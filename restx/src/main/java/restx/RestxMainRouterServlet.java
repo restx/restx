@@ -28,22 +28,12 @@ public class RestxMainRouterServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        String appModule = config.getInitParameter("appModule");
-        logger.info("loading restx main router servlet. app module is {}", appModule);
-        Class<?> appModuleClass = null;
-        try {
-            appModuleClass = Class.forName(appModule);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("invalid configuration: app module class not found: " + appModule);
-        }
 
         logger.info("locating restx router modules...");
         ImmutableList<RestxRouterModule> restxRouterModules = ImmutableList.copyOf(ServiceLoader.load(RestxRouterModule.class));
         logger.info("restx router modules: {}", restxRouterModules);
 
-        objectGraph = ObjectGraph.create(ImmutableList.builder()
-                .add(appModuleClass)
-                .addAll(restxRouterModules).build().toArray());
+        objectGraph = ObjectGraph.create(restxRouterModules.toArray());
 
         ImmutableList.Builder<RestxRoute> routersBuilder = ImmutableList.builder();
         for (RestxRouterModule restxRouterModule : restxRouterModules) {

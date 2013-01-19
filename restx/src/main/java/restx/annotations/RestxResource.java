@@ -7,4 +7,6 @@ package restx.annotations;
  */
 public @interface RestxResource {
     String group();
+
+    Class<?>[] modules();
 }
