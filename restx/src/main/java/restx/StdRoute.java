@@ -33,6 +33,7 @@ public abstract class StdRoute implements RestxRoute {
             Optional<?> result = doRoute(match.get());
             if (result.isPresent()) {
                 resp.setStatus(200);
+                resp.setContentType("application/json");
                 mapper.writeValue(resp.getWriter(), result.get());
                 resp.getWriter().close();
             } else {
