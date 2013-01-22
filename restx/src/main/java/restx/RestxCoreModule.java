@@ -32,7 +32,7 @@ public class RestxCoreModule {
             @Override
             public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a) {
                 Class<? extends JsonDeserializer<?>> deserializer = super.findDeserializer(a);
-                if ("org.jongo.marshall.jackson.id.ObjectIdDeserializer".equals(deserializer.getName())) {
+                if (deserializer != null && "org.jongo.marshall.jackson.id.ObjectIdDeserializer".equals(deserializer.getName())) {
                     return null;
                 }
                 return deserializer;

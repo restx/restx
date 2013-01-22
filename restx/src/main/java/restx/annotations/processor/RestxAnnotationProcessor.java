@@ -3,14 +3,9 @@ package restx.annotations.processor;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
-import restx.annotations.GET;
-import restx.annotations.PathParam;
-import restx.annotations.RestxResource;
+import restx.annotations.*;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -18,14 +13,18 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * User: xavierhanin
@@ -34,10 +33,27 @@ import java.util.Set;
  */
 @SupportedAnnotationTypes({
         "restx.annotations.RestxResource",
-        "restx.annotations.RestxBaseModule",
-        "restx.annotations.GET"})
+        "restx.annotations.GET",
+        "restx.annotations.HEAD",
+        "restx.annotations.POST",
+        "restx.annotations.PUT",
+        "restx.annotations.DELETE"
+})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class RestxAnnotationProcessor extends AbstractProcessor {
+    final Tpl routerModuleTpl;
+    final Tpl routerTpl;
+    final Tpl routeTpl;
+
+    public RestxAnnotationProcessor() {
+        try {
+            routerModuleTpl = new Tpl("RestxRouterModule");
+            routerTpl = new Tpl("RestxRouter");
+            routeTpl = new Tpl("RestxRoute");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -45,48 +61,26 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             final Map<String, ResourceGroup> groups = Maps.newHashMap();
             final Set<Element> modulesListOriginatingElements = Sets.newHashSet();
 
-            for (Element elem : roundEnv.getElementsAnnotatedWith(GET.class)) {
-                GET get = elem.getAnnotation(GET.class);
-                TypeElement typeElem = (TypeElement) elem.getEnclosingElement();
+            for (ResourceMethodAnnotation annotation : getResourceMethodAnnotationsInRound(roundEnv)) {
+                TypeElement typeElem = (TypeElement) annotation.methodElem.getEnclosingElement();
                 RestxResource r = typeElem.getAnnotation(RestxResource.class);
-
-                String fqcn = typeElem.getQualifiedName().toString();
-
-                ResourceGroup group = groups.get(r.group());
-                if (group == null) {
-                    groups.put(r.group(), group = new ResourceGroup(r.group()));
+                if (r == null) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                        String.format("%s rest method class must be annotated with RestxResourceparam",
+                                annotation.methodElem.getSimpleName()), typeElem);
                 }
 
-                ResourceClass resourceClass = group.resourceClasses.get(fqcn);
-                if (resourceClass == null) {
-                    modulesListOriginatingElements.add(typeElem);
-                    group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn));
-                    resourceClass.originatingElements.add(typeElem);
-
-                    try {
-                        r.modules();
-                    } catch (MirroredTypesException e) {
-                        for (TypeMirror typeMirror : e.getTypeMirrors()) {
-                            resourceClass.includeModules.add(String.format("                %s.class",
-                                    typeMirror.toString()));
-                        }
-                    }
-                }
+                ResourceGroup group = getResourceGroup(r, groups);
+                ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
 
                 ResourceMethod resourceMethod = new ResourceMethod(
-                        resourceClass, "GET", get.value(), elem.getSimpleName().toString());
+                        resourceClass,
+                        annotation.httpMethod, annotation.path,
+                        annotation.methodElem.getSimpleName().toString());
                 resourceClass.resourceMethods.add(resourceMethod);
-                resourceClass.originatingElements.add(elem);
+                resourceClass.originatingElements.add(annotation.methodElem);
 
-                for (VariableElement p : ((ExecutableElement) elem).getParameters()) {
-                    PathParam pathParam = p.getAnnotation(PathParam.class); // TODO handle other kind of params
-
-                    resourceMethod.parameters.add(new ResourceMethodParameter(
-                            "java.lang.String", // TODO
-                            p.getSimpleName().toString(),
-                            pathParam.value().length() == 0 ? p.getSimpleName().toString() : pathParam.value(),
-                            ResourceMethodParameterKind.PATH));
-                }
+                buildResourceMethodParams(annotation, resourceMethod);
             }
 
             if (!groups.isEmpty()) {
@@ -98,11 +92,78 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void generateFiles(Map<String, ResourceGroup> groups, Set<Element> modulesListOriginatingElements) throws IOException {
-        final Tpl routerModuleTpl = new Tpl("RestxRouterModule");
-        final Tpl routerTpl = new Tpl("RestxRouter");
-        final Tpl routeTpl = new Tpl("RestxRoute");
+    private void buildResourceMethodParams(ResourceMethodAnnotation annotation, ResourceMethod resourceMethod) {
+        Set<String> pathParamNamesToMatch = Sets.newHashSet(resourceMethod.pathParamNames);
+        for (VariableElement p : annotation.methodElem.getParameters()) {
+            Param param = p.getAnnotation(Param.class);
+            String paramName = p.getSimpleName().toString();
+            String reqParamName = p.getSimpleName().toString();
+            ResourceMethodParameterKind parameterKind = null;
+            if (param != null) {
+                reqParamName = param.value().length() == 0 ? paramName : param.value();
+                if (param.kind() != Param.Kind.DEFAULT) {
+                    parameterKind = ResourceMethodParameterKind.valueOf(param.kind().name());
+                }
+            }
+            if (pathParamNamesToMatch.contains(reqParamName)) {
+                if (parameterKind != null && parameterKind != ResourceMethodParameterKind.PATH) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                        String.format("%s param %s matches a Path param name", parameterKind.name(), reqParamName),
+                            annotation.methodElem);
+                    continue;
+                }
+                pathParamNamesToMatch.remove(reqParamName);
+                parameterKind = ResourceMethodParameterKind.PATH;
+            } else if (parameterKind == null) {
+                if (ImmutableList.of("GET", "HEAD").contains(resourceMethod.httpMethod)) {
+                    parameterKind = ResourceMethodParameterKind.QUERY;
+                } else {
+                    parameterKind = ResourceMethodParameterKind.BODY;
+                }
+            }
 
+            resourceMethod.parameters.add(new ResourceMethodParameter(
+                p.asType().toString(),
+                paramName,
+                reqParamName,
+                parameterKind));
+        }
+        if (!pathParamNamesToMatch.isEmpty()) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                String.format("path param(s) %s not found among method parameters", pathParamNamesToMatch),
+                    annotation.methodElem);
+        }
+    }
+
+    private ResourceGroup getResourceGroup(RestxResource r, Map<String, ResourceGroup> groups) {
+        ResourceGroup group = groups.get(r.group());
+        if (group == null) {
+            groups.put(r.group(), group = new ResourceGroup(r.group()));
+        }
+        return group;
+    }
+
+    private ResourceClass getResourceClass(TypeElement typeElem, RestxResource r, ResourceGroup group, Set<Element> modulesListOriginatingElements) {
+        String fqcn = typeElem.getQualifiedName().toString();
+        ResourceClass resourceClass = group.resourceClasses.get(fqcn);
+        if (resourceClass == null) {
+            modulesListOriginatingElements.add(typeElem);
+            group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn));
+            resourceClass.originatingElements.add(typeElem);
+
+            try {
+                r.modules();
+            } catch (MirroredTypesException e) {
+                for (TypeMirror typeMirror : e.getTypeMirrors()) {
+                    resourceClass.includeModules.add(String.format("                %s.class",
+                            typeMirror.toString()));
+                }
+            }
+        }
+        return resourceClass;
+    }
+
+    private void generateFiles(Map<String, ResourceGroup> groups, Set<Element> modulesListOriginatingElements) throws IOException {
         FileObject resource = processingEnv.getFiler().createResource(
                 StandardLocation.SOURCE_OUTPUT, "", "META-INF/services/restx.RestxRouterModule",
                 Iterables.toArray(modulesListOriginatingElements, Element.class));
@@ -115,31 +176,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 List<String> injectRoutes = Lists.newArrayList();
                 List<String> provideRoutes = Lists.newArrayList();
 
-                for (ResourceMethod resourceMethod : resourceClass.resourceMethods) {
-                    routes.add("                " + resourceMethod.name);
-                    injectRoutes.add(String.format(
-                            "    @Inject @Named(\"%s\") RestxRoute %s;", resourceMethod.id, resourceMethod.name));
-
-                    List<String> callParameters = Lists.newArrayList();
-
-                    for (ResourceMethodParameter parameter : resourceMethod.parameters) {
-                        String getParamValueCode = parameter.kind.fetchFromReqCode(parameter.name);
-                        if (!String.class.getName().equals(parameter.type)) {
-                            throw new UnsupportedOperationException("TODO handle type conversion");
-                        }
-                        callParameters.add(getParamValueCode);
-                    }
-
-                    provideRoutes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
-                            .put("routeId", resourceMethod.id)
-                            .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
-                            .put("method", resourceMethod.httpMethod)
-                            .put("path", resourceMethod.path)
-                            .put("resource", resourceClass.name)
-                            .put("call", resourceMethod.name + "( " + Joiner.on(", ").join(callParameters) + " )")
-                            .build()
-                    ));
-                }
+                buildResourceRoutesCodeChunks(resourceClass, routes, injectRoutes, provideRoutes);
 
                 ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
                         .put("package", resourceClass.pack)
@@ -151,21 +188,87 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                         .put("injectRoutes", Joiner.on("\n").join(injectRoutes))
                         .build();
 
-                JavaFileObject router = processingEnv.getFiler().createSourceFile(resourceClass.fqcn + "Router",
-                        Iterables.toArray(resourceClass.originatingElements, Element.class));
-                Writer writer = router.openWriter();
-                writer.write(routerTpl.bind(ctx));
-                writer.close();
-                JavaFileObject routerModule = processingEnv.getFiler().createSourceFile(resourceClass.fqcn + "RouterModule",
-                        Iterables.toArray(resourceClass.originatingElements, Element.class));
-                writer = routerModule.openWriter();
-                writer.write(routerModuleTpl.bind(ctx));
-                writer.close();
+                generateJavaClass(resourceClass.fqcn + "Router", routerTpl.bind(ctx), resourceClass.originatingElements);
+                generateJavaClass(resourceClass.fqcn + "RouterModule", routerModuleTpl.bind(ctx), resourceClass.originatingElements);
             }
 
         }
-
         modules.close();
+    }
+
+    private void generateJavaClass(String className, String code, Set<Element> originatingElements) throws IOException {
+        JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className,
+                Iterables.toArray(originatingElements, Element.class));
+        Writer writer = fileObject.openWriter();
+        writer.write(code);
+        writer.close();
+    }
+
+    private void buildResourceRoutesCodeChunks(ResourceClass resourceClass, List<String> routes, List<String> injectRoutes, List<String> provideRoutes) {
+        for (ResourceMethod resourceMethod : resourceClass.resourceMethods) {
+            routes.add("                " + resourceMethod.name);
+            injectRoutes.add(String.format(
+                    "    @Inject @Named(\"%s\") RestxRoute %s;", resourceMethod.id, resourceMethod.name));
+
+            List<String> callParameters = Lists.newArrayList();
+
+            for (ResourceMethodParameter parameter : resourceMethod.parameters) {
+                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter.name, parameter.type);
+                if (!String.class.getName().equals(parameter.type)
+                        && parameter.kind != ResourceMethodParameterKind.BODY) {
+                    throw new UnsupportedOperationException("TODO handle type conversion");
+                }
+                callParameters.add(getParamValueCode);
+            }
+
+            provideRoutes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
+                    .put("routeId", resourceMethod.id)
+                    .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
+                    .put("method", resourceMethod.httpMethod)
+                    .put("path", resourceMethod.path)
+                    .put("resource", resourceClass.name)
+                    .put("call", resourceMethod.name + "( " + Joiner.on(", ").join(callParameters) + " )")
+                    .build()
+            ));
+        }
+    }
+
+    private Collection<ResourceMethodAnnotation> getResourceMethodAnnotationsInRound(RoundEnvironment roundEnv) {
+        Collection<ResourceMethodAnnotation> methodAnnotations = Lists.newArrayList();
+        // iterating through these annotations would be nicer, but we would need to use reflection for "value()"
+        for (Element elem : roundEnv.getElementsAnnotatedWith(GET.class)) {
+            GET annotation = elem.getAnnotation(GET.class);
+            methodAnnotations.add(new ResourceMethodAnnotation("GET", elem, annotation.value()));
+        }
+        for (Element elem : roundEnv.getElementsAnnotatedWith(POST.class)) {
+            POST annotation = elem.getAnnotation(POST.class);
+            methodAnnotations.add(new ResourceMethodAnnotation("POST", elem, annotation.value()));
+        }
+        for (Element elem : roundEnv.getElementsAnnotatedWith(PUT.class)) {
+            PUT annotation = elem.getAnnotation(PUT.class);
+            methodAnnotations.add(new ResourceMethodAnnotation("PUT", elem, annotation.value()));
+        }
+        for (Element elem : roundEnv.getElementsAnnotatedWith(DELETE.class)) {
+            DELETE annotation = elem.getAnnotation(DELETE.class);
+            methodAnnotations.add(new ResourceMethodAnnotation("DELETE", elem, annotation.value()));
+        }
+        for (Element elem : roundEnv.getElementsAnnotatedWith(HEAD.class)) {
+            HEAD annotation = elem.getAnnotation(HEAD.class);
+            methodAnnotations.add(new ResourceMethodAnnotation("HEAD", elem, annotation.value()));
+        }
+        return methodAnnotations;
+    }
+
+    private static class ResourceMethodAnnotation {
+        final String httpMethod;
+        final ExecutableElement methodElem;
+        final String path;
+
+        private ResourceMethodAnnotation(String httpMethod, Element methodElem, String path) {
+            this.httpMethod = httpMethod;
+            this.methodElem = (ExecutableElement) methodElem;
+            this.path = path;
+        }
     }
 
     private static class ResourceGroup {
@@ -195,10 +298,12 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     }
 
     private static class ResourceMethod {
+        private static final Pattern pathParamNamesPattern = Pattern.compile("\\{([a-zA-Z]+)}");
         final String httpMethod;
         final String path;
         final String name;
         final String id;
+        final Collection<String> pathParamNames;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
@@ -207,6 +312,11 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             this.path = path;
             this.name = name;
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
+            Matcher matcher = pathParamNamesPattern.matcher(path);
+            pathParamNames = Sets.newHashSet();
+            while (matcher.find()) {
+                pathParamNames.add(matcher.group(1));
+            }
         }
     }
 
@@ -226,21 +336,21 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
 
     private static enum ResourceMethodParameterKind {
         QUERY {
-            public String fetchFromReqCode(String name) {
+            public String fetchFromReqCode(String name, String type) {
                 throw new UnsupportedOperationException("TODO");
             }
         },
         PATH {
-            public String fetchFromReqCode(String name) {
+            public String fetchFromReqCode(String name, String type) {
                 return String.format("match.getPathParams().get(\"%s\")", name);
             }
         },
         BODY {
-            public String fetchFromReqCode(String name) {
-                throw new UnsupportedOperationException("TODO");
+            public String fetchFromReqCode(String name, String type) {
+                return String.format("mapper.readValue(request.getContentStream(), %s.class)", type);
             }
         };
 
-        public abstract String fetchFromReqCode(String name);
+        public abstract String fetchFromReqCode(String name, String type);
     }
 }

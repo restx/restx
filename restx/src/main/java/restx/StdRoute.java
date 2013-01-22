@@ -30,7 +30,7 @@ public abstract class StdRoute implements RestxRoute {
         String path = req.getRequestURI().substring((req.getContextPath() + req.getServletPath()).length());
         Optional<RestxRouteMatch> match = matcher.match(req.getMethod(), path);
         if (match.isPresent()) {
-            Optional<?> result = doRoute(match.get());
+            Optional<?> result = doRoute(new HttpServletRestxRequest(req), match.get());
             if (result.isPresent()) {
                 resp.setStatus(200);
                 resp.setContentType("application/json");
@@ -44,7 +44,7 @@ public abstract class StdRoute implements RestxRoute {
         return false;
     }
 
-    protected abstract Optional<?> doRoute(RestxRouteMatch match);
+    protected abstract Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException;
 
     @Override
     public String toString() {
