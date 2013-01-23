@@ -2,6 +2,7 @@ package restx;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,7 +35,11 @@ public abstract class StdRoute implements RestxRoute {
             if (result.isPresent()) {
                 resp.setStatus(200);
                 resp.setContentType("application/json");
-                mapper.writeValue(resp.getWriter(), result.get());
+                Object value = result.get();
+                if (value instanceof Iterable) {
+                    value = Lists.newArrayList((Iterable) value);
+                }
+                mapper.writeValue(resp.getWriter(), value);
                 resp.getWriter().close();
             } else {
                 resp.setStatus(404);

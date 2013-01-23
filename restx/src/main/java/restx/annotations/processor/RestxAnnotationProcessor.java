@@ -2,6 +2,7 @@ package restx.annotations.processor;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import restx.annotations.*;
 
@@ -76,7 +77,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 ResourceMethod resourceMethod = new ResourceMethod(
                         resourceClass,
                         annotation.httpMethod, annotation.path,
-                        annotation.methodElem.getSimpleName().toString());
+                        annotation.methodElem.getSimpleName().toString(),
+                        annotation.methodElem.getReturnType().toString());
                 resourceClass.resourceMethods.add(resourceMethod);
                 resourceClass.originatingElements.add(annotation.methodElem);
 
@@ -170,7 +172,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         Writer modules = resource.openWriter();
         for (ResourceGroup group : groups.values()) {
             for (ResourceClass resourceClass: group.resourceClasses.values()) {
-                modules.write(resourceClass.fqcn + "RouterModule");
+                modules.write(resourceClass.fqcn + "RouterModule\n");
 
                 List<String> routes = Lists.newArrayList();
                 List<String> injectRoutes = Lists.newArrayList();
@@ -221,13 +223,17 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 callParameters.add(getParamValueCode);
             }
 
+            String call = "resource." + resourceMethod.name + "( " + Joiner.on(", ").join(callParameters) + " )";
+            if (!resourceMethod.returnType.startsWith(Optional.class.getName())) {
+                call = "Optional.of(" + call + ")";
+            }
             provideRoutes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
                     .put("method", resourceMethod.httpMethod)
                     .put("path", resourceMethod.path)
                     .put("resource", resourceClass.name)
-                    .put("call", resourceMethod.name + "( " + Joiner.on(", ").join(callParameters) + " )")
+                    .put("call", call)
                     .build()
             ));
         }
@@ -302,15 +308,17 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final String httpMethod;
         final String path;
         final String name;
+        final String returnType;
         final String id;
         final Collection<String> pathParamNames;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
-        ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name) {
+        ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
+            this.returnType = returnType;
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             Matcher matcher = pathParamNamesPattern.matcher(path);
             pathParamNames = Sets.newHashSet();
@@ -337,7 +345,10 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     private static enum ResourceMethodParameterKind {
         QUERY {
             public String fetchFromReqCode(String name, String type) {
-                throw new UnsupportedOperationException("TODO");
+                // TODO: we should check the type, in case of list, use getQueryParams,
+                // and in case of optional, don't do the .get()
+                // and we should better handle missing params
+                return String.format("request.getQueryParam(\"%s\").get()", name);
             }
         },
         PATH {
