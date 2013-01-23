@@ -48,6 +48,11 @@ public class RestxMainRouterServlet extends HttpServlet {
         logger.info("incoming request {}", req);
 
         if (!mainRouter.route(req, resp)) {
+            logger.info("no route found for {}\n" +
+                    "routes:\n" +
+                    "-----------------------------------\n" +
+                    "{}\n" +
+                    "-----------------------------------", req, mainRouter);
             resp.setStatus(404);
         }
     }
