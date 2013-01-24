@@ -6,7 +6,10 @@ import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import restx.annotations.*;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -215,7 +218,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             List<String> callParameters = Lists.newArrayList();
 
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
-                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter.name, parameter.type);
+                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
                 if (!String.class.getName().equals(parameter.type)
                         && parameter.kind != ResourceMethodParameterKind.BODY) {
                     throw new UnsupportedOperationException("TODO handle type conversion");
@@ -329,13 +332,19 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     }
 
     private static class ResourceMethodParameter {
+        static Pattern optionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
         final String type;
+        final String realType;
+        final boolean optional;
         final String name;
         final String reqParamName;
         final ResourceMethodParameterKind kind;
 
         private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind) {
-            this.type = type;
+            Matcher m = optionalPattern.matcher(type);
+            this.realType = type;
+            this.optional = m.matches();
+            this.type = optional ? m.group(1) : type;
             this.name = name;
             this.reqParamName = reqParamName;
             this.kind = kind;
@@ -344,24 +353,33 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
 
     private static enum ResourceMethodParameterKind {
         QUERY {
-            public String fetchFromReqCode(String name, String type) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter) {
                 // TODO: we should check the type, in case of list, use getQueryParams,
-                // and in case of optional, don't do the .get()
                 // and we should better handle missing params
-                return String.format("request.getQueryParam(\"%s\").get()", name);
+                String code = String.format("request.getQueryParam(\"%s\")", parameter.name);
+                if (!parameter.optional) {
+                    code += ".get()";
+                }
+                return code;
             }
         },
         PATH {
-            public String fetchFromReqCode(String name, String type) {
-                return String.format("match.getPathParams().get(\"%s\")", name);
+            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+                String code = String.format("match.getPathParams().get(\"%s\")", parameter.name);
+                if (parameter.optional) {
+                    code = "Optional.fromNullable(" + code + ")";
+                } else {
+                    code = "Preconditions.checkNotNull(" + code + ")";
+                }
+                return code;
             }
         },
         BODY {
-            public String fetchFromReqCode(String name, String type) {
-                return String.format("mapper.readValue(request.getContentStream(), %s.class)", type);
+            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+                return String.format("mapper.readValue(request.getContentStream(), %s.class)", parameter.type);
             }
         };
 
-        public abstract String fetchFromReqCode(String name, String type);
+        public abstract String fetchFromReqCode(ResourceMethodParameter parameter);
     }
 }

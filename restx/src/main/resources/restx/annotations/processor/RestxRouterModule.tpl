@@ -2,6 +2,7 @@ package {package};
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import dagger.Module;
 import dagger.Provides;
 import java.io.IOException;
