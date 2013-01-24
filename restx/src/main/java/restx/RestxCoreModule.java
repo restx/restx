@@ -2,8 +2,10 @@ package restx;
 
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import dagger.Module;
 import dagger.Provides;
 
@@ -18,6 +20,8 @@ import javax.inject.Singleton;
 public class RestxCoreModule {
     @Provides @Singleton ObjectMapper mapper() {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
             @Override
             public Object findSerializer(Annotated am) {

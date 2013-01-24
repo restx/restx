@@ -54,6 +54,11 @@
             <artifactId>jackson-datatype-joda</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>de.undercouch</groupId>
+            <artifactId>bson4jackson</artifactId>
+            <version>2.1.0</version>
+        </dependency>
 
         <dependency>
           <groupId>com.squareup</groupId>
