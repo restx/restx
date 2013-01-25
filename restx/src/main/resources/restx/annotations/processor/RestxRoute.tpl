@@ -5,5 +5,7 @@
             protected Optional<?> doRoute(RestxRequest request, RestxRouteMatch match) throws IOException {
                 return {call};
             }
+
+            {overrideWriteValue}
         };
     }

@@ -227,7 +227,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             }
 
             String call = "resource." + resourceMethod.name + "( " + Joiner.on(", ").join(callParameters) + " )";
-            if (!resourceMethod.returnType.startsWith(Optional.class.getName())) {
+            if (!resourceMethod.returnTypeOptional) {
                 call = "Optional.of(" + call + ")";
             }
             provideRoutes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
@@ -237,6 +237,9 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("path", resourceMethod.path)
                     .put("resource", resourceClass.name)
                     .put("call", call)
+                    .put("overrideWriteValue", resourceMethod.returnType.startsWith(Iterable.class.getName()) ?
+                            String.format("protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException { mapper.writerWithType(new TypeReference<%s>() { }).writeValue(writer, value); }", resourceMethod.returnType)
+                            : "")
                     .build()
             ));
         }
@@ -267,6 +270,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         }
         return methodAnnotations;
     }
+
+    static Pattern optionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
 
     private static class ResourceMethodAnnotation {
         final String httpMethod;
@@ -311,6 +316,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final String httpMethod;
         final String path;
         final String name;
+        final String realReturnType;
+        final boolean returnTypeOptional;
         final String returnType;
         final String id;
         final Collection<String> pathParamNames;
@@ -321,7 +328,10 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
-            this.returnType = returnType;
+            Matcher m = optionalPattern.matcher(returnType);
+            this.realReturnType = returnType;
+            this.returnTypeOptional = m.matches();
+            this.returnType = returnTypeOptional ? m.group(1) : returnType;
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             Matcher matcher = pathParamNamesPattern.matcher(path);
             pathParamNames = Sets.newHashSet();
@@ -332,7 +342,6 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     }
 
     private static class ResourceMethodParameter {
-        static Pattern optionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
         final String type;
         final String realType;
         final boolean optional;

@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -39,7 +40,7 @@ public abstract class StdRoute implements RestxRoute {
                 if (value instanceof Iterable) {
                     value = Lists.newArrayList((Iterable) value);
                 }
-                mapper.writeValue(resp.getWriter(), value);
+                writeValue(mapper, resp.getWriter(), value);
                 resp.getWriter().close();
             } else {
                 resp.setStatus(404);
@@ -47,6 +48,10 @@ public abstract class StdRoute implements RestxRoute {
             return true;
         }
         return false;
+    }
+
+    protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException {
+        mapper.writeValue(writer, value);
     }
 
     protected abstract Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException;
