@@ -1,6 +1,8 @@
 package restx.jongo;
 
+import com.mongodb.DBObject;
 import org.bson.types.ObjectId;
+import org.jongo.ResultHandler;
 
 import java.util.regex.Pattern;
 
@@ -16,5 +18,14 @@ public class Jongos {
 
     public static String newObjectIdKey() {
         return new ObjectId().toString();
+    }
+
+    public static <T> ResultHandler<T> singleField(final String field, Class<T> fieldClass) {
+        return new ResultHandler<T>() {
+            @Override
+            public T map(DBObject result) {
+                return (T) result.get(field);
+            }
+        };
     }
 }
