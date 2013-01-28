@@ -1,9 +1,9 @@
 package restx.jongo;
 
-import com.mongodb.DBObject;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
-import org.jongo.ResultHandler;
+
+import static restx.jongo.Jongos.singleField;
 
 /**
  * User: xavierhanin
@@ -20,15 +20,10 @@ public class Counter {
     }
 
     public long next() {
-        Number c = (Number) counters
+        Number c = counters
                 .findAndModify("{ _id: # }", counter)
                 .with("{ $inc: { seq: 1 } }")
-                .returnNew().map(new ResultHandler<Object>() {
-                    @Override
-                    public Object map(DBObject result) {
-                        return result.get("seq");
-                    }
-                });
+                .returnNew().map(singleField("seq", Number.class));
         return c.longValue();
     }
 }
