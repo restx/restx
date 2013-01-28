@@ -16,6 +16,10 @@ public class Jongos {
         return Pattern.compile(String.format("\\Q%s\\E.*", expr));
     }
 
+    public static Pattern ignoreCase(String expr) {
+        return Pattern.compile(String.format("\\Q%s\\E", expr), Pattern.CASE_INSENSITIVE);
+    }
+
     public static String newObjectIdKey() {
         return new ObjectId().toString();
     }
