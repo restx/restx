@@ -28,10 +28,11 @@ public abstract class StdRoute implements RestxRoute {
     }
 
     @Override
-    public boolean route(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public boolean route(HttpServletRequest req, HttpServletResponse resp, RouteLifecycleListener listener) throws IOException {
         String path = req.getRequestURI().substring((req.getContextPath() + req.getServletPath()).length());
         Optional<RestxRouteMatch> match = matcher.match(req.getMethod(), path);
         if (match.isPresent()) {
+            listener.onRouteMatch(this);
             Optional<?> result = doRoute(new HttpServletRestxRequest(req), match.get());
             if (result.isPresent()) {
                 resp.setStatus(200);
@@ -40,6 +41,7 @@ public abstract class StdRoute implements RestxRoute {
                 if (value instanceof Iterable) {
                     value = Lists.newArrayList((Iterable) value);
                 }
+                listener.onBeforeWriteContent(this);
                 writeValue(mapper, resp.getWriter(), value);
                 resp.getWriter().close();
             } else {

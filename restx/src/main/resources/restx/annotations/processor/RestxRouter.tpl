@@ -2,6 +2,7 @@ package {package};
 
 import restx.RestxRoute;
 import restx.RestxRouter;
+import restx.RouteLifecycleListener;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -22,8 +23,8 @@ public class {router} implements RestxRoute {
     private volatile RestxRouter router;
 
     @Override
-    public boolean route(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        return router().route(req, resp);
+    public boolean route(HttpServletRequest req, HttpServletResponse resp, RouteLifecycleListener listener) throws IOException {
+        return router().route(req, resp, listener);
     }
 
     private RestxRouter router() {

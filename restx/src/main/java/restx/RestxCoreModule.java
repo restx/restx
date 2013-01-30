@@ -44,4 +44,8 @@ public class RestxCoreModule {
         });
         return mapper;
     }
+
+    @Provides @Singleton RestxContext.Definition contextDefinition() {
+        return new RestxContext.Definition();
+    }
 }
