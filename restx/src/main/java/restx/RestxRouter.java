@@ -28,9 +28,9 @@ public class RestxRouter implements RestxRoute {
     }
 
     @Override
-    public boolean route(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public boolean route(HttpServletRequest req, HttpServletResponse resp, RouteLifecycleListener listener) throws IOException {
         for (RestxRoute router : routes) {
-            if (router.route(req, resp)) {
+            if (router.route(req, resp, listener)) {
                 return true;
             }
         }
