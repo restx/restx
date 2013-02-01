@@ -1,4 +1,4 @@
-package restx.annotations.processor;
+package restx.common;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
@@ -19,8 +19,8 @@ public class Tpl {
 
     private final String tpl;
 
-    public Tpl(String name) throws IOException {
-        tpl = Resources.toString(Resources.getResource(Tpl.class, name + ".tpl"), Charset.forName("UTF-8"));
+    public Tpl(Class clazz, String name) throws IOException {
+        tpl = Resources.toString(Resources.getResource(clazz, name + ".tpl"), Charset.forName("UTF-8"));
     }
 
     public String bind(final ImmutableMap<String, String> ctx) {

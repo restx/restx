@@ -6,19 +6,25 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import dagger.Module;
-import dagger.Provides;
-
-import javax.inject.Singleton;
+import restx.factory.BoundlessComponentBox;
+import restx.factory.Factory;
+import restx.factory.Name;
+import restx.factory.SingleNameFactoryMachine;
 
 /**
  * User: xavierhanin
  * Date: 1/19/13
  * Time: 12:12 AM
  */
-@Module
-public class RestxCoreModule {
-    @Provides @Singleton ObjectMapper mapper() {
+public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMapper> {
+    public static final Name<ObjectMapper> NAME = Name.of(ObjectMapper.class, "FrontObjectMapper");
+
+    public FrontObjectMapperFactory() {
+        super(0, NAME, BoundlessComponentBox.FACTORY);
+    }
+
+    @Override
+    protected ObjectMapper doNewComponent(Factory factory) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JodaModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -43,9 +49,5 @@ public class RestxCoreModule {
             }
         });
         return mapper;
-    }
-
-    @Provides @Singleton RestxContext.Definition contextDefinition() {
-        return new RestxContext.Definition();
     }
 }

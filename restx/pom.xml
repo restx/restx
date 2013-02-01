@@ -60,6 +60,14 @@
             <version>2.1.0</version>
         </dependency>
 
+        <!-- for factory -->
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+
         <!-- mongo -->
         <dependency>
         	<groupId>org.mongodb</groupId>
@@ -70,17 +78,6 @@
             <groupId>org.jongo</groupId>
             <artifactId>jongo</artifactId>
             <version>0.3</version>
-        </dependency>
-
-        <dependency>
-          <groupId>com.squareup</groupId>
-          <artifactId>dagger</artifactId>
-          <version>${dagger.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup</groupId>
-            <artifactId>dagger-compiler</artifactId>
-            <version>${dagger.version}</version>
         </dependency>
 
         <!-- No brainers -->

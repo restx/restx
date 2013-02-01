@@ -4,10 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import dagger.ObjectGraph;
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.Crypto;
+import restx.factory.Factory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
-import java.util.ServiceLoader;
 
 /**
  * User: xavierhanin
@@ -29,7 +29,6 @@ public class RestxMainRouterServlet extends HttpServlet {
     private static final String RESTX_CTX = "RestxCtx";
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouterServlet.class);
 
-    private ObjectGraph objectGraph;
 
     private RestxRouter mainRouter;
     private RestxContext.Definition ctxDefinition;
@@ -40,40 +39,35 @@ public class RestxMainRouterServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
 
-        String entryPointModuleName = config.getInitParameter("entry.point.module");
-
-        logger.info("locating restx router modules...");
-        ImmutableList<RestxRouterModule> restxRouterModules = ImmutableList.copyOf(ServiceLoader.load(RestxRouterModule.class));
-        logger.info("restx router modules: {}", restxRouterModules);
-
-        try {
-            objectGraph = ObjectGraph.create(ImmutableList.builder().addAll(restxRouterModules).add(Class.forName(entryPointModuleName)).build().toArray());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        if (getLoadFactoryMode().equals("onstartup")) {
+            loadFactory("");
         }
+    }
 
-        ImmutableList.Builder<RestxRoute> routersBuilder = ImmutableList.builder();
-        for (RestxRouterModule restxRouterModule : restxRouterModules) {
-            routersBuilder.add(objectGraph.get(restxRouterModule.router()));
-        }
+    private void loadFactory(String context) {
+        Factory factory = Factory.builder()
+                .addMachine(new FrontObjectMapperFactory())
+                .addFromServiceLoader()
+                .addLocalMachines(Factory.LocalMachines.threadLocal())
+                .addLocalMachines(Factory.LocalMachines.contextLocal(context))
+                .build();
 
-        try {
-            RestxEntryPoint entryPoint = (RestxEntryPoint) objectGraph.get(Class.forName(entryPointModuleName + "$Init"));
-            ctxDefinition = entryPoint.getCtxDefinition();
-            mapper = entryPoint.getObjectMapper();
-            signatureKey = entryPoint.getSignatureKey().getKey();
-            entryPoint.getOnStartup().onStartup();
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        ctxDefinition = new RestxContext.Definition(factory.getComponents(RestxContext.Definition.Entry.class));
+        mapper = factory.getNamedComponent(FrontObjectMapperFactory.NAME).get().getComponent();
+        signatureKey = Iterables.getFirst(factory.getComponents(SignatureKey.class),
+                new SignatureKey("this is the default signature key".getBytes())).getKey();
 
-        mainRouter = new RestxRouter("MainRouter", routersBuilder.build());
+        mainRouter = new RestxRouter("MainRouter", ImmutableList.copyOf(factory.getComponents(RestxRoute.class)));
         logger.info("restx main router servlet ready: " + mainRouter);
     }
 
     @Override
     protected void service(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         logger.info("incoming request {}", req);
+
+        if (getLoadFactoryMode().equals("onrequest")) {
+            loadFactory(getFactoryContextName(req.getServerPort()));
+        }
 
         final RestxContext ctx = buildContextFromRequest(req);
         RestxContext.setCurrent(ctx);
@@ -101,6 +95,14 @@ public class RestxMainRouterServlet extends HttpServlet {
         } finally {
             RestxContext.setCurrent(null);
         }
+    }
+
+    public static String getFactoryContextName(int port) {
+        return String.format("RESTX@%s", port);
+    }
+
+    private String getLoadFactoryMode() {
+        return System.getProperty("restx.factory.load", "onstartup");
     }
 
     private RestxContext buildContextFromRequest(HttpServletRequest req) throws IOException {

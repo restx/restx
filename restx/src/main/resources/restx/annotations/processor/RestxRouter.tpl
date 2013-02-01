@@ -1,43 +1,26 @@
 package {package};
 
-import restx.RestxRoute;
-import restx.RestxRouter;
-import restx.RouteLifecycleListener;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import restx.*;
+import restx.factory.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 
-public class {router} implements RestxRoute {
-{injectRoutes}
+@Component
+public class {router} extends RestxRouter {
 
-    private RestxRouter buildRouter() {
-        return new RestxRouter(
+    public {router}(final {resource} resource, final ObjectMapper mapper) {
+        super(
                 "{router}",
 {routes}
         );
     }
 
-    private volatile RestxRouter router;
-
-    @Override
-    public boolean route(HttpServletRequest req, HttpServletResponse resp, RouteLifecycleListener listener) throws IOException {
-        return router().route(req, resp, listener);
-    }
-
-    private RestxRouter router() {
-        // this is not thread safe, but it's ok to construct multiple routers,
-        // all behave the same and they are stateless
-        if (router == null) {
-            router = buildRouter();
-        }
-        return router;
-    }
-
-    @Override
-    public String toString() {
-        return router().toString();
-    }
 }

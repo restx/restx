@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -17,11 +18,25 @@ import java.util.concurrent.ExecutionException;
  */
 public class RestxContext {
     public static class Definition {
-        private final Map<String, LoadingCache<String, ?>> caches = Maps.newHashMap();
+        public static class Entry<T> {
+            private final Class<T> clazz;
+            private final String name;
+            private final CacheLoader<String, T> loader;
 
-        public <T> Definition define(Class<T> clazz, String name, CacheLoader<String, T> loader) {
-            caches.put(name, CacheBuilder.newBuilder().maximumSize(1000).build(loader));
-            return this;
+            public Entry(Class<T> clazz, String name, CacheLoader<String, T> loader) {
+                this.clazz = clazz;
+                this.name = name;
+                this.loader = loader;
+            }
+        }
+        private final ImmutableMap<String, LoadingCache<String, ?>> caches;
+
+        public Definition(Iterable<Entry> entries) {
+            ImmutableMap.Builder<String, LoadingCache<String, ?>> builder = ImmutableMap.builder();
+            for (Entry entry : entries) {
+                builder.put(entry.name, CacheBuilder.newBuilder().maximumSize(1000).build(entry.loader));
+            }
+            caches = builder.build();
         }
 
         public <T> LoadingCache<String, T> getCache(Class<T> clazz, String name) {

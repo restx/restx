@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import restx.annotations.*;
+import restx.common.Tpl;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -15,12 +16,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.MirroredTypesException;
-import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -45,15 +42,13 @@ import java.util.regex.Pattern;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class RestxAnnotationProcessor extends AbstractProcessor {
-    final Tpl routerModuleTpl;
     final Tpl routerTpl;
     final Tpl routeTpl;
 
     public RestxAnnotationProcessor() {
         try {
-            routerModuleTpl = new Tpl("RestxRouterModule");
-            routerTpl = new Tpl("RestxRouter");
-            routeTpl = new Tpl("RestxRoute");
+            routerTpl = new Tpl(RestxAnnotationProcessor.class, "RestxRouter");
+            routeTpl = new Tpl(RestxAnnotationProcessor.class, "RestxRoute");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -155,50 +150,28 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             modulesListOriginatingElements.add(typeElem);
             group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn));
             resourceClass.originatingElements.add(typeElem);
-
-            try {
-                r.modules();
-            } catch (MirroredTypesException e) {
-                for (TypeMirror typeMirror : e.getTypeMirrors()) {
-                    resourceClass.includeModules.add(String.format("                %s.class",
-                            typeMirror.toString()));
-                }
-            }
         }
         return resourceClass;
     }
 
     private void generateFiles(Map<String, ResourceGroup> groups, Set<Element> modulesListOriginatingElements) throws IOException {
-        FileObject resource = processingEnv.getFiler().createResource(
-                StandardLocation.SOURCE_OUTPUT, "", "META-INF/services/restx.RestxRouterModule",
-                Iterables.toArray(modulesListOriginatingElements, Element.class));
-        Writer modules = resource.openWriter();
         for (ResourceGroup group : groups.values()) {
             for (ResourceClass resourceClass: group.resourceClasses.values()) {
-                modules.write(resourceClass.fqcn + "RouterModule\n");
-
                 List<String> routes = Lists.newArrayList();
-                List<String> injectRoutes = Lists.newArrayList();
-                List<String> provideRoutes = Lists.newArrayList();
 
-                buildResourceRoutesCodeChunks(resourceClass, routes, injectRoutes, provideRoutes);
+                buildResourceRoutesCodeChunks(resourceClass, routes);
 
                 ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
                         .put("package", resourceClass.pack)
                         .put("router", resourceClass.name + "Router")
-                        .put("countRoutes", String.valueOf(routes.size()))
-                        .put("includeModules", Joiner.on(",\n").join(resourceClass.includeModules))
+                        .put("resource", resourceClass.name)
                         .put("routes", Joiner.on(",\n").join(routes))
-                        .put("provideRoutes", Joiner.on("\n\n").join(provideRoutes))
-                        .put("injectRoutes", Joiner.on("\n").join(injectRoutes))
                         .build();
 
                 generateJavaClass(resourceClass.fqcn + "Router", routerTpl.bind(ctx), resourceClass.originatingElements);
-                generateJavaClass(resourceClass.fqcn + "RouterModule", routerModuleTpl.bind(ctx), resourceClass.originatingElements);
             }
 
         }
-        modules.close();
     }
 
     private void generateJavaClass(String className, String code, Set<Element> originatingElements) throws IOException {
@@ -209,11 +182,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         writer.close();
     }
 
-    private void buildResourceRoutesCodeChunks(ResourceClass resourceClass, List<String> routes, List<String> injectRoutes, List<String> provideRoutes) {
+    private void buildResourceRoutesCodeChunks(ResourceClass resourceClass, List<String> routes) {
         for (ResourceMethod resourceMethod : resourceClass.resourceMethods) {
-            routes.add("                " + resourceMethod.name);
-            injectRoutes.add(String.format(
-                    "    @Inject @Named(\"%s\") RestxRoute %s;", resourceMethod.id, resourceMethod.name));
 
             List<String> callParameters = Lists.newArrayList();
 
@@ -230,7 +200,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             if (!resourceMethod.returnTypeOptional) {
                 call = "Optional.of(" + call + ")";
             }
-            provideRoutes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
+            routes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
                     .put("method", resourceMethod.httpMethod)
@@ -301,7 +271,6 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final ResourceGroup group;
         final String name;
         final Set<Element> originatingElements = Sets.newHashSet();
-        final List<String> includeModules = Lists.newArrayList("                RestxCoreModule.class");
 
         ResourceClass(ResourceGroup group, String fqcn) {
             this.group = group;
