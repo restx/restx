@@ -1,1 +1,2 @@
 restx.jackson.FrontObjectMapperFactory
+restx.jongo.JongoFactory

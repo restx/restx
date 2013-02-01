@@ -41,10 +41,12 @@ public class Factory {
             return this;
         }
 
-        ImmutableList<FactoryMachine> getAndClear() {
-            ImmutableList<FactoryMachine> machines = ImmutableList.copyOf(this.machines);
-            this.machines.clear();
-            return machines;
+        public void clear() {
+            machines.clear();
+        }
+
+        ImmutableList<FactoryMachine> get() {
+            return ImmutableList.copyOf(machines);
         }
     }
 
@@ -57,7 +59,7 @@ public class Factory {
         }
 
         public Builder addLocalMachines(LocalMachines localMachines) {
-            machines.addAll(localMachines.getAndClear());
+            machines.addAll(localMachines.get());
             return this;
         }
 
