@@ -1,4 +1,4 @@
-package restx;
+package restx.jackson;
 
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;

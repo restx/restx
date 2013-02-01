@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.Crypto;
 import restx.factory.Factory;
+import restx.jackson.FrontObjectMapperFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -46,7 +47,6 @@ public class RestxMainRouterServlet extends HttpServlet {
 
     private void loadFactory(String context) {
         Factory factory = Factory.builder()
-                .addMachine(new FrontObjectMapperFactory())
                 .addFromServiceLoader()
                 .addLocalMachines(Factory.LocalMachines.threadLocal())
                 .addLocalMachines(Factory.LocalMachines.contextLocal(context))
