@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import org.jongo.marshall.jackson.id.ObjectIdDeserializer;
+import org.jongo.marshall.jackson.id.ObjectIdSerializer;
 import restx.factory.BoundlessComponentBox;
 import restx.factory.Factory;
 import restx.factory.Name;
@@ -32,8 +34,8 @@ public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMap
             @Override
             public Object findSerializer(Annotated am) {
                 Object serializer = super.findSerializer(am);
-                if (serializer instanceof Class
-                        && "org.jongo.marshall.jackson.id.ObjectIdSerializer".equals(((Class) serializer).getName())) {
+                if (ObjectIdSerializer.class == serializer
+                        || FixedPrecision2Serializer.class == serializer) {
                     return null;
                 }
                 return serializer;
@@ -42,7 +44,8 @@ public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMap
             @Override
             public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a) {
                 Class<? extends JsonDeserializer<?>> deserializer = super.findDeserializer(a);
-                if (deserializer != null && "org.jongo.marshall.jackson.id.ObjectIdDeserializer".equals(deserializer.getName())) {
+                if (ObjectIdDeserializer.class == deserializer
+                        || FixedPrecision2Deserializer.class == deserializer) {
                     return null;
                 }
                 return deserializer;
