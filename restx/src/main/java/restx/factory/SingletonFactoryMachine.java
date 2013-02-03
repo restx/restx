@@ -1,9 +1,11 @@
 package restx.factory;
 
 /**
- * User: xavierhanin
- * Date: 2/1/13
- * Time: 3:18 PM
+ * A singleton factory machine provides a boundless component box made up of a component created
+ * at instanciation time.
+ *
+ * This is better suited to tests, for production code prefer a SingleNameFactoryMachine which
+ * constructs the component on demand (which is better especially if the component is overriden).
  */
 public class SingletonFactoryMachine<C> extends SingleNameFactoryMachine<C> {
     private final NamedComponent<C> component;
