@@ -3,6 +3,7 @@ package restx.factory.processor;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
+import com.google.common.io.CharStreams;
 import restx.common.Tpl;
 import restx.factory.Component;
 import restx.factory.Machine;
@@ -19,11 +20,8 @@ import javax.lang.model.element.*;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +50,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
             moduleMachineTpl = new Tpl(FactoryAnnotationProcessor.class, "ModuleMachine");
             providerMethodTpl = new Tpl(FactoryAnnotationProcessor.class, "ProviderMethod");
 
-            machinesDeclaration = new ServicesDeclaration("META-INF/services/restx.factory.FactoryMachine");
+            machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -296,14 +294,11 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 return;
             }
 
-            FileObject fileObject = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "", targetFile);
-            File file = new File(fileObject.toUri().toString());
-            if (file.exists()) {
-                // we don't use the file object api for reading, with eclipse jdt apt we can't do
-                // a getresource and then a createresource on the same file
-                declaredServices.addAll(Files.readAllLines(file.toPath(), Charset.forName("UTF-8")));
-            }
+            String targetFile = "META-INF/services/" + this.targetFile;
 
+            readExistingServicesIfExists(targetFile);
+
+            FileObject fileObject = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT, "", targetFile);
             Writer writer = fileObject.openWriter();
             for (String declaredService : Ordering.natural().sortedCopy(declaredServices)) {
                 writer.write(declaredService + "\n");
@@ -312,6 +307,16 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
             writer.close();
 
             declaredServices.clear();
+        }
+
+        private void readExistingServicesIfExists(String targetFile) throws IOException {
+            try {
+                FileObject fileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", targetFile);
+                declaredServices.addAll(
+                        CharStreams.readLines(fileObject.openReader(true)));
+            } catch (IOException | IllegalArgumentException ex) {
+                // ignore
+            }
         }
     }
 }
