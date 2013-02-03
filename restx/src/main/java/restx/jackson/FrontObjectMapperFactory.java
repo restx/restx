@@ -35,7 +35,7 @@ public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMap
             public Object findSerializer(Annotated am) {
                 Object serializer = super.findSerializer(am);
                 if (ObjectIdSerializer.class == serializer
-                        || FixedPrecision2Serializer.class == serializer) {
+                        || FixedPrecisionSerializer.class == serializer) {
                     return null;
                 }
                 return serializer;
@@ -45,7 +45,7 @@ public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMap
             public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a) {
                 Class<? extends JsonDeserializer<?>> deserializer = super.findDeserializer(a);
                 if (ObjectIdDeserializer.class == deserializer
-                        || FixedPrecision2Deserializer.class == deserializer) {
+                        || FixedPrecisionDeserializer.class == deserializer) {
                     return null;
                 }
                 return deserializer;

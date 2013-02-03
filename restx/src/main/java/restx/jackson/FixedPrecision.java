@@ -16,7 +16,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @JacksonAnnotationsInside
 
-@JsonSerialize(using = FixedPrecision2Serializer.class)
-@JsonDeserialize(using = FixedPrecision2Deserializer.class)
-public @interface FixedPrecision2 {
+@JsonSerialize(using = FixedPrecisionSerializer.class)
+@JsonDeserialize(using = FixedPrecisionDeserializer.class)
+public @interface FixedPrecision {
+    int value();
 }
