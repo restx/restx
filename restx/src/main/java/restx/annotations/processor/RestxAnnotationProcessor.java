@@ -336,7 +336,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 // and we should better handle missing params
                 String code = String.format("request.getQueryParam(\"%s\")", parameter.name);
                 if (!parameter.optional) {
-                    code += ".get()";
+                    code = String.format("checkPresent(%s, \"query param %s is required\")", code, parameter.name);
                 }
                 return code;
             }
@@ -347,7 +347,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 if (parameter.optional) {
                     code = "Optional.fromNullable(" + code + ")";
                 } else {
-                    code = "Preconditions.checkNotNull(" + code + ")";
+                    code = String.format("checkNotNull(%s, \"path param %s is required\")", code, parameter.name);
                 }
                 return code;
             }
