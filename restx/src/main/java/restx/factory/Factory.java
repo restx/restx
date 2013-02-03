@@ -1,5 +1,6 @@
 package restx.factory;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 
@@ -156,12 +157,24 @@ public class Factory {
 
     public <T> NamedComponent<T> mustGetNamedComponent(Name<T> name) {
         return checkPresent(getNamedComponent(name),
-                "component named %s not found", name);
+                "component named %s not found.\n%s", name, this);
     }
 
     public <T> NamedComponent<T> mustGetNamedComponent(Class<T> componentClass) {
         return checkPresent(getNamedComponent(componentClass),
-                "component of class %s not found", componentClass);
+                "component of class %s not found.\n%s", componentClass, this);
     }
 
+    @Override
+    public String toString() {
+        return  "---------------------------------------------\n" +
+                "                 Factory\n" +
+                "--> Machines\n" +
+                Joiner.on("\n").join(machines) +
+                "\n--\n" +
+                "--> Warehouse\n" +
+                warehouse +
+                "\n--\n" +
+                "---------------------------------------------";
+    }
 }

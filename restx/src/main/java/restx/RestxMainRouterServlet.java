@@ -52,6 +52,8 @@ public class RestxMainRouterServlet extends HttpServlet {
                 .addLocalMachines(Factory.LocalMachines.contextLocal(context))
                 .build();
 
+        logger.debug("restx factory ready: {}", factory);
+
         ctxDefinition = new RestxContext.Definition(factory.getComponents(RestxContext.Definition.Entry.class));
         mapper = factory.getNamedComponent(FrontObjectMapperFactory.NAME).get().getComponent();
         signatureKey = Iterables.getFirst(factory.getComponents(SignatureKey.class),

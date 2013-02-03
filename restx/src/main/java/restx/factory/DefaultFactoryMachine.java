@@ -41,6 +41,15 @@ public class DefaultFactoryMachine implements FactoryMachine {
             return Optional.of(
                                 boxFactory.of(new NamedComponent<>(name, supplier.newComponent(factory))));
         }
+
+        @Override
+        public String toString() {
+            return "SingleComponentBoxSupplier{" +
+                    "name=" + name +
+                    ", supplier=" + supplier +
+                    ", boxFactory=" + boxFactory +
+                    '}';
+        }
     }
 
     private final int priority;
@@ -79,5 +88,13 @@ public class DefaultFactoryMachine implements FactoryMachine {
     @Override
     public int priority() {
         return priority;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultFactoryMachine{" +
+                "priority=" + priority +
+                ", suppliers=" + suppliers +
+                '}';
     }
 }

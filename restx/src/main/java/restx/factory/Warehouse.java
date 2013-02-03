@@ -24,4 +24,11 @@ public class Warehouse {
     public <T> void checkIn(ComponentBox<T> componentBox) {
         boxes.put(componentBox.getName(), componentBox);
     }
+
+    @Override
+    public String toString() {
+        return "Warehouse{" +
+                "boxes=" + boxes +
+                '}';
+    }
 }

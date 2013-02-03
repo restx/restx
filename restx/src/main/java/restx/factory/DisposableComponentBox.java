@@ -12,6 +12,11 @@ public class DisposableComponentBox<T> implements ComponentBox<T> {
         public <T> ComponentBox<T> of(NamedComponent<T> namedComponent) {
             return new DisposableComponentBox<>(namedComponent);
         }
+
+        @Override
+        public String toString() {
+            return "DisposableComponentBox.FACTORY";
+        }
     };
 
     private final Name<T> name;
@@ -26,6 +31,14 @@ public class DisposableComponentBox<T> implements ComponentBox<T> {
         Optional<NamedComponent<T>> picked = Optional.fromNullable(namedComponent);
         namedComponent = null;
         return picked;
+    }
+
+    @Override
+    public String toString() {
+        return "DisposableComponentBox{" +
+                "name=" + name +
+                ", namedComponent=" + namedComponent +
+                '}';
     }
 
     @Override

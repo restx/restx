@@ -17,4 +17,13 @@ public class SingletonFactoryMachine<C> extends SingleNameFactoryMachine<C> {
     protected C doNewComponent(Factory factory) {
         return component.getComponent();
     }
+
+    @Override
+    public String toString() {
+        return "SingletonFactoryMachine{" +
+                "priority=" + priority() +
+                ", name=" + name +
+                ", component=" + component +
+                '}';
+    }
 }

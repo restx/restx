@@ -14,6 +14,11 @@ public class BoundlessComponentBox<T> implements ComponentBox<T> {
         public <T> ComponentBox<T> of(NamedComponent<T> namedComponent) {
             return new BoundlessComponentBox<>(namedComponent);
         }
+
+        @Override
+        public String toString() {
+            return "BoundlessComponentBox.FACTORY";
+        }
     };
 
     private final NamedComponent<T> namedComponent;
@@ -29,5 +34,12 @@ public class BoundlessComponentBox<T> implements ComponentBox<T> {
     @Override
     public Name<T> getName() {
         return namedComponent.getName();
+    }
+
+    @Override
+    public String toString() {
+        return "BoundlessComponentBox{" +
+                "namedComponent=" + namedComponent +
+                '}';
     }
 }
