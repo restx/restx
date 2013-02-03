@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static restx.common.MorePreconditions.checkPresent;
 
 /**
  * User: xavierhanin
@@ -152,4 +153,15 @@ public class Factory {
                     componentClass.getName(), components));
         }
     }
+
+    public <T> NamedComponent<T> mustGetNamedComponent(Name<T> name) {
+        return checkPresent(getNamedComponent(name),
+                "component named %s not found", name);
+    }
+
+    public <T> NamedComponent<T> mustGetNamedComponent(Class<T> componentClass) {
+        return checkPresent(getNamedComponent(componentClass),
+                "component of class %s not found", componentClass);
+    }
+
 }

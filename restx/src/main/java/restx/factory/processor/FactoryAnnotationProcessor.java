@@ -238,10 +238,10 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
         public String getFromFactoryCode() {
             if (injectionName.isPresent()) {
-                return String.format("factory.getNamedComponent(Name.of(%s, \"%s\")).get().getComponent()",
+                return String.format("factory.mustGetNamedComponent(Name.of(%s, \"%s\")).getComponent()",
                         type + ".class", injectionName.get());
             } else {
-                return String.format("factory.getNamedComponent(%s).get().getComponent()",
+                return String.format("factory.mustGetNamedComponent(%s).getComponent()",
                         type + ".class");
             }
         }
