@@ -1,6 +1,5 @@
 package restx;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +38,21 @@ public class RestxRouter implements RestxRoute {
 
     @Override
     public String toString() {
-        return name + "[RestxRouter] {\n\t" + Joiner.on("\n\t").join(routes) + "\n}";
+        StringBuilder sb = new StringBuilder();
+        toString(sb, "");
+        return sb.toString();
+    }
+
+    public void toString(StringBuilder sb, String indent) {
+        sb.append(indent).append(name).append("[RestxRouter] {\n");
+        for (RestxRoute route : routes) {
+            if (route instanceof RestxRouter) {
+                ((RestxRouter) route).toString(sb, indent + "    ");
+            } else {
+                sb.append(indent).append("    ").append(route);
+            }
+            sb.append("\n");
+        }
+        sb.append(indent).append("}");
     }
 }

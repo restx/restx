@@ -46,6 +46,11 @@ public abstract class StdRoute implements RestxRoute {
                 resp.getWriter().close();
             } else {
                 resp.setStatus(404);
+                resp.setContentType("text/plain");
+                resp.getWriter().println("Route matched, but resource " + path + " not found.");
+                resp.getWriter().println("Matched route: " + this);
+                resp.getWriter().println("Path params: " + match.get().getPathParams());
+                resp.getWriter().close();
             }
             return true;
         }

@@ -87,12 +87,18 @@ public class RestxMainRouterServlet extends HttpServlet {
                     }
                 }
             })) {
-                logger.info("no route found for {}\n" +
+                String path = req.getRequestURI().substring((req.getContextPath() + req.getServletPath()).length());
+                String msg = String.format(
+                        "no restx route found for %s %s\n" +
                         "routes:\n" +
                         "-----------------------------------\n" +
-                        "{}\n" +
-                        "-----------------------------------", req, mainRouter);
+                        "%s\n" +
+                        "-----------------------------------",
+                        req.getMethod(), path, mainRouter);
                 resp.setStatus(404);
+                resp.setContentType("text/plain");
+                resp.getWriter().print(msg);
+                resp.getWriter().close();
             }
         } finally {
             RestxContext.setCurrent(null);
