@@ -9,6 +9,9 @@ import restx.*;
 import restx.factory.*;
 import static restx.common.MorePreconditions.checkPresent;
 
+import javax.validation.Validator;
+import static restx.validation.Validations.checkValid;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -17,7 +20,7 @@ import java.io.PrintWriter;
 @Component
 public class {router} extends RestxRouter {
 
-    public {router}(final {resource} resource, final ObjectMapper mapper) {
+    public {router}(final {resource} resource, final ObjectMapper mapper, final Validator validator) {
         super(
                 "{router}",
 {routes}

@@ -115,6 +115,13 @@
             <version>${logback-classic.version}</version>
         </dependency>
 
+        <!-- validation -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>5.0.0.Alpha2</version>
+        </dependency>
+
         <!-- test -->
         <dependency>
             <groupId>junit</groupId>

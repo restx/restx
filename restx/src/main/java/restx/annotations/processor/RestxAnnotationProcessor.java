@@ -193,10 +193,13 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                         && parameter.kind != ResourceMethodParameterKind.BODY) {
                     throw new UnsupportedOperationException("TODO handle type conversion");
                 }
-                callParameters.add(getParamValueCode);
+                callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
             }
 
-            String call = "resource." + resourceMethod.name + "( " + Joiner.on(", ").join(callParameters) + " )";
+            String call = "resource." + resourceMethod.name + "(\n" +
+                    "                        " +
+                    Joiner.on(",\n                        ").join(callParameters) + "\n" +
+                    "                )";
             if (!resourceMethod.returnTypeOptional) {
                 call = "Optional.of(" + call + ")";
             }
@@ -354,7 +357,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         },
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                return String.format("mapper.readValue(request.getContentStream(), %s.class)", parameter.type);
+                return String.format("checkValid(validator, mapper.readValue(request.getContentStream(), %s.class))", parameter.type);
             }
         };
 

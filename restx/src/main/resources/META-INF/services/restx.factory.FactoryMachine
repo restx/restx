@@ -1,2 +1,3 @@
 restx.jackson.FrontObjectMapperFactory
 restx.jongo.JongoFactory
+restx.validation.ValidatorFactory

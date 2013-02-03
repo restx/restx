@@ -100,6 +100,12 @@ public class RestxMainRouterServlet extends HttpServlet {
                 resp.getWriter().print(msg);
                 resp.getWriter().close();
             }
+        } catch (IllegalArgumentException ex) {
+            logger.info("request raised IllegalArgumentException", ex);
+            resp.setStatus(400);
+            resp.setContentType("text/plain");
+            resp.getWriter().print(ex.getMessage());
+            resp.getWriter().close();
         } finally {
             RestxContext.setCurrent(null);
         }
