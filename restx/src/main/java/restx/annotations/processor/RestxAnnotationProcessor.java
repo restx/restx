@@ -191,7 +191,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
                 if (!String.class.getName().equals(parameter.type)
                         && parameter.kind != ResourceMethodParameterKind.BODY) {
-                    throw new UnsupportedOperationException("TODO handle type conversion");
+                    getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
             }

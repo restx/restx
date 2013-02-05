@@ -7,6 +7,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import restx.*;
 import restx.factory.*;
+import restx.converters.MainStringConverter;
 import static restx.common.MorePreconditions.checkPresent;
 
 import javax.validation.Validator;
@@ -20,7 +21,7 @@ import java.io.PrintWriter;
 @Component
 public class {router} extends RestxRouter {
 
-    public {router}(final {resource} resource, final ObjectMapper mapper, final Validator validator) {
+    public {router}(final {resource} resource, final ObjectMapper mapper, final MainStringConverter converter, final Validator validator) {
         super(
                 "{router}",
 {routes}

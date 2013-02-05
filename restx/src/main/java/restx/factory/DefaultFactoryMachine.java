@@ -17,6 +17,14 @@ public class DefaultFactoryMachine implements FactoryMachine {
     }
 
     public static class SingleComponentBoxSupplier<T> {
+        public static <T> SingleComponentBoxSupplier<T> disposable(Name<T> name,
+                                                                 SingleComponentSupplier<T> supplier) {
+            return new SingleComponentBoxSupplier<>(name, DisposableComponentBox.FACTORY, supplier);
+        }
+        public static <T> SingleComponentBoxSupplier<T> boundless(Name<T> name,
+                                                                 SingleComponentSupplier<T> supplier) {
+            return new SingleComponentBoxSupplier<>(name, BoundlessComponentBox.FACTORY, supplier);
+        }
         public static <T> SingleComponentBoxSupplier<T> of(Name<T> name, ComponentBox.BoxFactory boxFactory,
                                                                  SingleComponentSupplier<T> supplier) {
             return new SingleComponentBoxSupplier<>(name, boxFactory, supplier);
