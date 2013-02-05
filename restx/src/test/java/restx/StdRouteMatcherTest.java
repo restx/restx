@@ -44,6 +44,9 @@ public class StdRouteMatcherTest {
         match = matcher.match("POST", "/user/johndoe");
         assertThat(match.isPresent(), is(false));
 
+        match = matcher.match("GET", "/user/johndoe/details");
+        assertThat(match.isPresent(), is(false));
+
         match = matcher.match("GET", "/users/johndoe");
         assertThat(match.isPresent(), is(false));
 

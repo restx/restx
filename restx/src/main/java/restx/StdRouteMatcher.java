@@ -32,7 +32,7 @@ public class StdRouteMatcher implements RestxRouteMatcher {
         while (m.find()) {
             String name = m.group(1);
             groupNamesBuilder.add(name);
-            m.appendReplacement(sb, Matcher.quoteReplacement("(.+)"));
+            m.appendReplacement(sb, Matcher.quoteReplacement("([^\\/]+)"));
         }
         m.appendTail(sb);
 
