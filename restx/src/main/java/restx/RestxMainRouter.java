@@ -1,10 +1,14 @@
 package restx;
 
+import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.Crypto;
@@ -12,7 +16,11 @@ import restx.factory.Factory;
 import restx.jackson.FrontObjectMapperFactory;
 
 import javax.servlet.http.Cookie;
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -88,16 +96,59 @@ public class RestxMainRouter {
                         restxRequest.getHttpMethod(), path, mainRouter);
                 restxResponse.setStatus(404);
                 restxResponse.setContentType("text/plain");
-                restxResponse.getWriter().print(msg);
-                restxResponse.getWriter().close();
+                PrintWriter out = restxResponse.getWriter();
+                out.print(msg);
+                out.close();
             }
-        } catch (IllegalArgumentException ex) {
-            logger.info("request raised IllegalArgumentException", ex);
+        } catch (JsonProcessingException ex) {
+            logger.debug("request raised " + ex.getClass().getSimpleName(), ex);
             restxResponse.setStatus(400);
             restxResponse.setContentType("text/plain");
-            restxResponse.getWriter().print(ex.getMessage());
-            restxResponse.getWriter().close();
+            PrintWriter out = restxResponse.getWriter();
+            if (restxRequest.getContentStream() instanceof BufferedInputStream) {
+                try {
+                    JsonLocation location = ex.getLocation();
+                    restxRequest.getContentStream().reset();
+                    out.println(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, ex.getClass().getSimpleName()) + "." +
+                            " Please verify your input:");
+                    out.println("<-- JSON -->");
+                    List<String> lines = CharStreams.readLines(
+                            new InputStreamReader(restxRequest.getContentStream()));
+                    for (int i = 0; i < lines.size(); i++) {
+                        String line = lines.get(i);
+                        out.println(line);
+                        if (i + 1 == location.getLineNr()) {
+                            out.print(Strings.repeat(" ", location.getColumnNr() - 2));
+                            out.println("^");
+                            out.print(">> ");
+                            out.print(Strings.repeat(" ", Math.max(0, location.getColumnNr()
+                                    - (ex.getOriginalMessage().length() / 2) - 3)));
+                            out.print(ex.getOriginalMessage());
+                            out.println(" <<");
+                            out.println();
+                        }
+                    }
+                    out.println("</- JSON -->");
+
+                    restxRequest.getContentStream().reset();
+                    logger.debug(ex.getClass().getSimpleName() + " on " + restxRequest + "." +
+                            " message: " + ex.getMessage() + "." +
+                            " request content: " + CharStreams.toString(new InputStreamReader(restxRequest.getContentStream())));
+                } catch (IOException e) {
+                    logger.warn("io exception raised when trying to provide original input to caller", e);
+                    out.println(ex.getMessage());
+                }
+            }
+            out.close();
+        } catch (IllegalArgumentException ex) {
+            logger.debug("request raised IllegalArgumentException", ex);
+            restxResponse.setStatus(400);
+            restxResponse.setContentType("text/plain");
+            PrintWriter out = restxResponse.getWriter();
+            out.print(ex.getMessage());
+            out.close();
         } finally {
+            try { restxRequest.closeContentStream(); } catch (Exception ex) { }
             RestxContext.setCurrent(null);
         }
     }

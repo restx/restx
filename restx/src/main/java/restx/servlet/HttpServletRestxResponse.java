@@ -45,4 +45,9 @@ public class HttpServletRestxResponse implements RestxResponse {
     public void addCookie(Cookie cookie) {
         resp.addCookie(cookie);
     }
+
+    @Override
+    public String toString() {
+        return "[RESTX RESPONSE] " + resp.getStatus();
+    }
 }

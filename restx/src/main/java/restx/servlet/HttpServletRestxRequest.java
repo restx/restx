@@ -1,14 +1,17 @@
 package restx.servlet;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import restx.RestxRequest;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -17,6 +20,7 @@ import java.util.List;
  */
 public class HttpServletRestxRequest implements RestxRequest {
     private final HttpServletRequest request;
+    private BufferedInputStream bufferedInputStream;
 
     public HttpServletRestxRequest(HttpServletRequest request) {
         this.request = request;
@@ -40,7 +44,25 @@ public class HttpServletRestxRequest implements RestxRequest {
 
     @Override
     public InputStream getContentStream() throws IOException {
-        return request.getInputStream();
+        /*
+           maybe we could do this buffering only in dev mode?
+           It is used to be able to read data again in case of json processing error.
+         */
+        if (bufferedInputStream == null) {
+            bufferedInputStream = new BufferedInputStream(request.getInputStream()) {
+                @Override
+                public void close() throws IOException {
+                    // NO OP, see #closeContentStream
+                }
+            };
+            bufferedInputStream.mark(10 * 1024);
+        }
+        return bufferedInputStream;
+    }
+
+    @Override
+    public void closeContentStream() throws IOException {
+        bufferedInputStream.close();
     }
 
     @Override
@@ -67,4 +89,26 @@ public class HttpServletRestxRequest implements RestxRequest {
         return defaultValue;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[RESTX REQUEST] ");
+        sb.append(getHttpMethod()).append(" ").append(getRestxPath());
+        dumpParameters(sb);
+        return sb.toString();
+    }
+
+    private void dumpParameters(StringBuilder sb) {
+        if (request.getParameterMap().isEmpty()) {
+            return;
+        }
+        sb.append(" ? ");
+        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+            sb.append(entry.getKey()).append("=").append(
+                    entry.getValue().length == 1
+                            ? entry.getValue()[0]
+                            : Joiner.on("&" + entry.getKey() + "=").join(entry.getValue()));
+            sb.append("&");
+        }
+        sb.setLength(sb.length() - 1);
+    }
 }
