@@ -1,5 +1,6 @@
 package restx.jackson;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -29,6 +30,7 @@ public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMap
     protected ObjectMapper doNewComponent(Factory factory) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JodaModule());
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
             @Override
