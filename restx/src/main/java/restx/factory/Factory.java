@@ -17,6 +17,7 @@ import static restx.common.MorePreconditions.checkPresent;
  * Time: 5:42 PM
  */
 public class Factory {
+
     public static class LocalMachines {
         private static final ThreadLocal<LocalMachines> threadLocals = new ThreadLocal() {
             @Override
@@ -91,6 +92,10 @@ public class Factory {
                     }
                 }).sortedCopy(machines));
         this.warehouse = checkNotNull(warehouse);
+    }
+
+    public int getNbMachines() {
+        return machines.size();
     }
 
     public synchronized <T> Optional<NamedComponent<T>> getNamedComponent(Name<T> name) {

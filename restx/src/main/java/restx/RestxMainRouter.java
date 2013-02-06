@@ -34,6 +34,7 @@ public class RestxMainRouter {
 
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouter.class);
 
+    private Factory factory;
     private RestxRouter mainRouter;
     private RestxContext.Definition ctxDefinition;
     private ObjectMapper mapper;
@@ -42,11 +43,23 @@ public class RestxMainRouter {
     public void init() {
         if (getLoadFactoryMode().equals("onstartup")) {
             loadFactory("");
+            String baseUri = System.getProperty("restx.baseUri", "");
+            if (!baseUri.isEmpty()) {
+                logger.info("\n" +
+                        "--------------------------------------\n" +
+                        " -- RESTX READY\n" +
+                        " -- " + mainRouter.getNbRoutes() + " routes - " + factory.getNbMachines() + " factory machines\n" +
+                        " -- for a list of available routes,\n" +
+                        " --   VISIT " + baseUri + "/404\n" +
+                        " --\n");
+            } else {
+                logger.info("RESTX READY");
+            }
         }
     }
 
     private void loadFactory(String context) {
-        Factory factory = Factory.builder()
+        factory = Factory.builder()
                 .addFromServiceLoader()
                 .addLocalMachines(Factory.LocalMachines.threadLocal())
                 .addLocalMachines(Factory.LocalMachines.contextLocal(context))
@@ -60,12 +73,11 @@ public class RestxMainRouter {
                 new SignatureKey("this is the default signature key".getBytes())).getKey();
 
         mainRouter = new RestxRouter("MainRouter", ImmutableList.copyOf(factory.getComponents(RestxRoute.class)));
-        logger.info("restx main router servlet ready: " + mainRouter);
     }
 
 
     public void route(String contextName, RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
-        logger.info("incoming request {}", restxRequest);
+        logger.info("<< {}", restxRequest);
         if (getLoadFactoryMode().equals("onrequest")) {
             loadFactory(contextName);
         }

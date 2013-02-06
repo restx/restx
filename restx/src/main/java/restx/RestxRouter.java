@@ -53,4 +53,16 @@ public class RestxRouter implements RestxRoute {
         }
         sb.append(indent).append("}");
     }
+
+    public int getNbRoutes() {
+        int count = 0;
+        for (RestxRoute route : routes) {
+            if (route instanceof RestxRouter) {
+                count += ((RestxRouter) route).getNbRoutes();
+            } else {
+                count++;
+            }
+        }
+        return count;
+    }
 }
