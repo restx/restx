@@ -11,35 +11,27 @@ import restx.common.Crypto;
 import restx.factory.Factory;
 import restx.jackson.FrontObjectMapperFactory;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
 /**
  * User: xavierhanin
- * Date: 1/18/13
- * Time: 2:46 PM
+ * Date: 2/6/13
+ * Time: 9:53 PM
  */
-public class RestxMainRouterServlet extends HttpServlet {
+public class RestxMainRouter {
     private static final String RESTX_CTX_SIGNATURE = "RestxCtxSignature";
     private static final String RESTX_CTX = "RestxCtx";
-    private final Logger logger = LoggerFactory.getLogger(RestxMainRouterServlet.class);
 
+    private final Logger logger = LoggerFactory.getLogger(RestxMainRouter.class);
 
     private RestxRouter mainRouter;
     private RestxContext.Definition ctxDefinition;
     private ObjectMapper mapper;
     private byte[] signatureKey;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        super.init(config);
-
+    public void init() {
         if (getLoadFactoryMode().equals("onstartup")) {
             loadFactory("");
         }
@@ -63,18 +55,17 @@ public class RestxMainRouterServlet extends HttpServlet {
         logger.info("restx main router servlet ready: " + mainRouter);
     }
 
-    @Override
-    protected void service(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        logger.info("incoming request {}", req);
 
+    public void route(String contextName, RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
+        logger.info("incoming request {}", restxRequest);
         if (getLoadFactoryMode().equals("onrequest")) {
-            loadFactory(getFactoryContextName(req.getServerPort()));
+            loadFactory(contextName);
         }
 
-        final RestxContext ctx = buildContextFromRequest(req);
+        final RestxContext ctx = buildContextFromRequest(restxRequest);
         RestxContext.setCurrent(ctx);
         try {
-            if (!mainRouter.route(req, resp, new RouteLifecycleListener() {
+            if (!mainRouter.route(restxRequest, restxResponse, new RouteLifecycleListener() {
                 @Override
                 public void onRouteMatch(RestxRoute source) {
                 }
@@ -83,48 +74,44 @@ public class RestxMainRouterServlet extends HttpServlet {
                 public void onBeforeWriteContent(RestxRoute source) {
                     RestxContext newCtx = RestxContext.current();
                     if (newCtx != ctx) {
-                        updateContextInClient(resp, newCtx);
+                        updateContextInClient(restxResponse, newCtx);
                     }
                 }
             })) {
-                String path = req.getRequestURI().substring((req.getContextPath() + req.getServletPath()).length());
+                String path = restxRequest.getRestxPath();
                 String msg = String.format(
                         "no restx route found for %s %s\n" +
                         "routes:\n" +
                         "-----------------------------------\n" +
                         "%s\n" +
                         "-----------------------------------",
-                        req.getMethod(), path, mainRouter);
-                resp.setStatus(404);
-                resp.setContentType("text/plain");
-                resp.getWriter().print(msg);
-                resp.getWriter().close();
+                        restxRequest.getHttpMethod(), path, mainRouter);
+                restxResponse.setStatus(404);
+                restxResponse.setContentType("text/plain");
+                restxResponse.getWriter().print(msg);
+                restxResponse.getWriter().close();
             }
         } catch (IllegalArgumentException ex) {
             logger.info("request raised IllegalArgumentException", ex);
-            resp.setStatus(400);
-            resp.setContentType("text/plain");
-            resp.getWriter().print(ex.getMessage());
-            resp.getWriter().close();
+            restxResponse.setStatus(400);
+            restxResponse.setContentType("text/plain");
+            restxResponse.getWriter().print(ex.getMessage());
+            restxResponse.getWriter().close();
         } finally {
             RestxContext.setCurrent(null);
         }
-    }
-
-    public static String getFactoryContextName(int port) {
-        return String.format("RESTX@%s", port);
     }
 
     private String getLoadFactoryMode() {
         return System.getProperty("restx.factory.load", "onstartup");
     }
 
-    private RestxContext buildContextFromRequest(HttpServletRequest req) throws IOException {
-        String cookie = getCookieValue(req.getCookies(), RESTX_CTX, "");
+    private RestxContext buildContextFromRequest(RestxRequest req) throws IOException {
+        String cookie = req.getCookieValue(RESTX_CTX, "");
         if (cookie.trim().isEmpty()) {
             return new RestxContext(ctxDefinition, ImmutableMap.<String,String>of());
         } else {
-            String sig = getCookieValue(req.getCookies(), RESTX_CTX_SIGNATURE, "");
+            String sig = req.getCookieValue(RESTX_CTX_SIGNATURE, "");
             if (!Crypto.sign(cookie, signatureKey).equals(sig)) {
 
             }
@@ -132,7 +119,7 @@ public class RestxMainRouterServlet extends HttpServlet {
         }
     }
 
-    private void updateContextInClient(HttpServletResponse resp, RestxContext ctx) {
+    private void updateContextInClient(RestxResponse resp, RestxContext ctx) {
         try {
             String value = mapper.writeValueAsString(ctx.keysByNameMap());
             resp.addCookie(new Cookie(RESTX_CTX, value));
@@ -142,17 +129,4 @@ public class RestxMainRouterServlet extends HttpServlet {
         }
     }
 
-    public static String getCookieValue(Cookie[] cookies,
-                                          String cookieName,
-                                          String defaultValue) {
-        if (cookies == null) {
-            return defaultValue;
-        }
-        for (int i = 0; i < cookies.length; i++) {
-            Cookie cookie = cookies[i];
-            if (cookieName.equals(cookie.getName()))
-                return cookie.getValue();
-        }
-        return defaultValue;
-    }
 }

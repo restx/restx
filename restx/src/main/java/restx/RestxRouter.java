@@ -2,8 +2,6 @@ package restx;
 
 import com.google.common.collect.ImmutableList;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -27,7 +25,7 @@ public class RestxRouter implements RestxRoute {
     }
 
     @Override
-    public boolean route(HttpServletRequest req, HttpServletResponse resp, RouteLifecycleListener listener) throws IOException {
+    public boolean route(RestxRequest req, RestxResponse resp, RouteLifecycleListener listener) throws IOException {
         for (RestxRoute router : routes) {
             if (router.route(req, resp, listener)) {
                 return true;

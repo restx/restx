@@ -12,7 +12,10 @@ import java.util.List;
  * Time: 2:49 PM
  */
 public interface RestxRequest {
+    String getRestxPath();
     Optional<String> getQueryParam(String param);
     List<String> getQueryParams(String param);
     InputStream getContentStream() throws IOException;
+    String getHttpMethod();
+    String getCookieValue(String cookie, String defaultValue);
 }

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -28,12 +26,12 @@ public abstract class StdRoute implements RestxRoute {
     }
 
     @Override
-    public boolean route(HttpServletRequest req, HttpServletResponse resp, RouteLifecycleListener listener) throws IOException {
-        String path = req.getRequestURI().substring((req.getContextPath() + req.getServletPath()).length());
-        Optional<RestxRouteMatch> match = matcher.match(req.getMethod(), path);
+    public boolean route(RestxRequest req, RestxResponse resp, RouteLifecycleListener listener) throws IOException {
+        String path = req.getRestxPath();
+        Optional<RestxRouteMatch> match = matcher.match(req.getHttpMethod(), path);
         if (match.isPresent()) {
             listener.onRouteMatch(this);
-            Optional<?> result = doRoute(new HttpServletRestxRequest(req), match.get());
+            Optional<?> result = doRoute(req, match.get());
             if (result.isPresent()) {
                 resp.setStatus(200);
                 resp.setContentType("application/json");
