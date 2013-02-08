@@ -10,6 +10,6 @@ import java.security.Principal;
  * Time: 6:30 PM
  */
 public interface RestxPrincipal extends Principal {
-    public static final String CTX_KEY = "principal";
+    public static final String SESSION_DEF_KEY = "principal";
     public ImmutableSet<String> getPrincipalRoles();
 }

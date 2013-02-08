@@ -29,14 +29,14 @@ import java.util.Map;
  * Time: 9:53 PM
  */
 public class RestxMainRouter {
-    private static final String RESTX_CTX_SIGNATURE = "RestxCtxSignature";
-    private static final String RESTX_CTX = "RestxCtx";
+    private static final String RESTX_SESSION_SIGNATURE = "RestxSessionSignature";
+    private static final String RESTX_SESSION = "RestxSession";
 
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouter.class);
 
     private Factory factory;
     private RestxRouter mainRouter;
-    private RestxContext.Definition ctxDefinition;
+    private RestxSession.Definition sessionDefinition;
     private ObjectMapper mapper;
     private byte[] signatureKey;
 
@@ -67,7 +67,7 @@ public class RestxMainRouter {
 
         logger.debug("restx factory ready: {}", factory);
 
-        ctxDefinition = new RestxContext.Definition(factory.getComponents(RestxContext.Definition.Entry.class));
+        sessionDefinition = new RestxSession.Definition(factory.getComponents(RestxSession.Definition.Entry.class));
         mapper = factory.getNamedComponent(FrontObjectMapperFactory.NAME).get().getComponent();
         signatureKey = Iterables.getFirst(factory.getComponents(SignatureKey.class),
                 new SignatureKey("this is the default signature key".getBytes())).getKey();
@@ -82,8 +82,8 @@ public class RestxMainRouter {
             loadFactory(contextName);
         }
 
-        final RestxContext ctx = buildContextFromRequest(restxRequest);
-        RestxContext.setCurrent(ctx);
+        final RestxSession session = buildContextFromRequest(restxRequest);
+        RestxSession.setCurrent(session);
         try {
             if (!mainRouter.route(restxRequest, restxResponse, new RouteLifecycleListener() {
                 @Override
@@ -92,9 +92,9 @@ public class RestxMainRouter {
 
                 @Override
                 public void onBeforeWriteContent(RestxRoute source) {
-                    RestxContext newCtx = RestxContext.current();
-                    if (newCtx != ctx) {
-                        updateContextInClient(restxResponse, newCtx);
+                    RestxSession newSession = RestxSession.current();
+                    if (newSession != session) {
+                        updateSessionInClient(restxResponse, newSession);
                     }
                 }
             })) {
@@ -161,7 +161,7 @@ public class RestxMainRouter {
             out.close();
         } finally {
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
-            RestxContext.setCurrent(null);
+            RestxSession.setCurrent(null);
         }
     }
 
@@ -169,24 +169,24 @@ public class RestxMainRouter {
         return System.getProperty("restx.factory.load", "onstartup");
     }
 
-    private RestxContext buildContextFromRequest(RestxRequest req) throws IOException {
-        String cookie = req.getCookieValue(RESTX_CTX, "");
+    private RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
+        String cookie = req.getCookieValue(RESTX_SESSION, "");
         if (cookie.trim().isEmpty()) {
-            return new RestxContext(ctxDefinition, ImmutableMap.<String,String>of());
+            return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of());
         } else {
-            String sig = req.getCookieValue(RESTX_CTX_SIGNATURE, "");
+            String sig = req.getCookieValue(RESTX_SESSION_SIGNATURE, "");
             if (!Crypto.sign(cookie, signatureKey).equals(sig)) {
-
+                throw new IllegalArgumentException("invalid restx session signature");
             }
-            return new RestxContext(ctxDefinition, ImmutableMap.copyOf(mapper.readValue(cookie, Map.class)));
+            return new RestxSession(sessionDefinition, ImmutableMap.copyOf(mapper.readValue(cookie, Map.class)));
         }
     }
 
-    private void updateContextInClient(RestxResponse resp, RestxContext ctx) {
+    private void updateSessionInClient(RestxResponse resp, RestxSession session) {
         try {
-            String value = mapper.writeValueAsString(ctx.keysByNameMap());
-            resp.addCookie(new Cookie(RESTX_CTX, value));
-            resp.addCookie(new Cookie(RESTX_CTX_SIGNATURE, Crypto.sign(value, signatureKey)));
+            String sessionJson = mapper.writeValueAsString(session.valueidsByKeyMap());
+            resp.addCookie(new Cookie(RESTX_SESSION, sessionJson));
+            resp.addCookie(new Cookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
