@@ -2,10 +2,7 @@ package restx.security;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import restx.RestxRequest;
-import restx.RestxResponse;
-import restx.RestxRoute;
-import restx.RouteLifecycleListener;
+import restx.*;
 import restx.factory.BoundlessComponentBox;
 import restx.factory.Factory;
 import restx.factory.Name;
@@ -27,7 +24,7 @@ public class CORSFilter implements RestxRoute {
     }
 
     @Override
-    public boolean route(RestxRequest req, RestxResponse resp, RouteLifecycleListener listener) throws IOException {
+    public boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         Optional<String> acrMethod = req.getHeader("Access-Control-Request-Method");
         Optional<String> origin = req.getHeader("Origin");
         if ("OPTIONS".equals(req.getHttpMethod())
@@ -47,6 +44,7 @@ public class CORSFilter implements RestxRoute {
                 resp.setHeader("Access-Control-Allow-Origin", cors.getOrigin());
             }
             // do not return true, we want the following routes to be used as usual
+            return ctx.proceed(req, resp);
         }
 
         return false;

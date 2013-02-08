@@ -8,5 +8,5 @@ import java.io.IOException;
  * Time: 12:00 AM
  */
 public interface RestxRoute {
-    boolean route(RestxRequest req, RestxResponse resp, RouteLifecycleListener listener) throws IOException;
+    boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException;
 }

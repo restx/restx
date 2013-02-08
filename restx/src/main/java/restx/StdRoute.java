@@ -31,11 +31,11 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
     }
 
     @Override
-    public boolean route(RestxRequest req, RestxResponse resp, RouteLifecycleListener listener) throws IOException {
+    public boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         String path = req.getRestxPath();
         Optional<RestxRouteMatch> match = matcher.match(req.getHttpMethod(), path);
         if (match.isPresent()) {
-            listener.onRouteMatch(this);
+            ctx.getLifecycleListener().onRouteMatch(this);
             Optional<?> result = doRoute(req, match.get());
             if (result.isPresent()) {
                 resp.setStatus(200);
@@ -44,7 +44,7 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
                 if (value instanceof Iterable) {
                     value = Lists.newArrayList((Iterable) value);
                 }
-                listener.onBeforeWriteContent(this);
+                ctx.getLifecycleListener().onBeforeWriteContent(this);
                 writeValue(mapper, resp.getWriter(), value);
                 resp.getWriter().close();
             } else {

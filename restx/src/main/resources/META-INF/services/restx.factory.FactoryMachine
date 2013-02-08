@@ -3,5 +3,6 @@ restx.jongo.JongoFactory
 restx.validation.ValidatorFactory
 restx.converters.MainStringConverter$Machine
 restx.converters.DefaultConverters
+restx.RestxSessionFilter$Machine
 restx.security.CORSFilter$Machine
 restx.swagger.SwaggerMachine

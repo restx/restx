@@ -2,26 +2,19 @@ package restx;
 
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.common.Crypto;
 import restx.factory.Factory;
-import restx.jackson.FrontObjectMapperFactory;
 
-import javax.servlet.http.Cookie;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -29,16 +22,11 @@ import java.util.Map;
  * Time: 9:53 PM
  */
 public class RestxMainRouter {
-    private static final String RESTX_SESSION_SIGNATURE = "RestxSessionSignature";
-    private static final String RESTX_SESSION = "RestxSession";
 
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouter.class);
 
     private Factory factory;
     private RestxRouter mainRouter;
-    private RestxSession.Definition sessionDefinition;
-    private ObjectMapper mapper;
-    private byte[] signatureKey;
 
     public void init() {
         if (getLoadFactoryMode().equals("onstartup")) {
@@ -67,11 +55,6 @@ public class RestxMainRouter {
 
         logger.debug("restx factory ready: {}", factory);
 
-        sessionDefinition = new RestxSession.Definition(factory.getComponents(RestxSession.Definition.Entry.class));
-        mapper = factory.getNamedComponent(FrontObjectMapperFactory.NAME).get().getComponent();
-        signatureKey = Iterables.getFirst(factory.getComponents(SignatureKey.class),
-                new SignatureKey("this is the default signature key".getBytes())).getKey();
-
         mainRouter = new RestxRouter("MainRouter", ImmutableList.copyOf(factory.getComponents(RestxRoute.class)));
     }
 
@@ -82,22 +65,9 @@ public class RestxMainRouter {
             loadFactory(contextName);
         }
 
-        final RestxSession session = buildContextFromRequest(restxRequest);
-        RestxSession.setCurrent(session);
         try {
-            if (!mainRouter.route(restxRequest, restxResponse, new RouteLifecycleListener() {
-                @Override
-                public void onRouteMatch(RestxRoute source) {
-                }
-
-                @Override
-                public void onBeforeWriteContent(RestxRoute source) {
-                    RestxSession newSession = RestxSession.current();
-                    if (newSession != session) {
-                        updateSessionInClient(restxResponse, newSession);
-                    }
-                }
-            })) {
+            if (!mainRouter.route(restxRequest, restxResponse,
+                    new RestxContext(RouteLifecycleListener.DEAF))) {
                 String path = restxRequest.getRestxPath();
                 String msg = String.format(
                         "no restx route found for %s %s\n" +
@@ -161,7 +131,6 @@ public class RestxMainRouter {
             out.close();
         } finally {
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
-            RestxSession.setCurrent(null);
         }
     }
 
@@ -169,27 +138,5 @@ public class RestxMainRouter {
         return System.getProperty("restx.factory.load", "onstartup");
     }
 
-    private RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
-        String cookie = req.getCookieValue(RESTX_SESSION, "");
-        if (cookie.trim().isEmpty()) {
-            return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of());
-        } else {
-            String sig = req.getCookieValue(RESTX_SESSION_SIGNATURE, "");
-            if (!Crypto.sign(cookie, signatureKey).equals(sig)) {
-                throw new IllegalArgumentException("invalid restx session signature");
-            }
-            return new RestxSession(sessionDefinition, ImmutableMap.copyOf(mapper.readValue(cookie, Map.class)));
-        }
-    }
-
-    private void updateSessionInClient(RestxResponse resp, RestxSession session) {
-        try {
-            String sessionJson = mapper.writeValueAsString(session.valueidsByKeyMap());
-            resp.addCookie(new Cookie(RESTX_SESSION, sessionJson));
-            resp.addCookie(new Cookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey)));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 }
