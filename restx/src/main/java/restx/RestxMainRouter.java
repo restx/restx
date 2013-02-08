@@ -100,13 +100,16 @@ public class RestxMainRouter {
                         String line = lines.get(i);
                         out.println(line);
                         if (i + 1 == location.getLineNr()) {
-                            out.print(Strings.repeat(" ", location.getColumnNr() - 2));
-                            out.println("^");
-                            out.print(">> ");
-                            out.print(Strings.repeat(" ", Math.max(0, location.getColumnNr()
-                                    - (ex.getOriginalMessage().length() / 2) - 3)));
-                            out.print(ex.getOriginalMessage());
-                            out.println(" <<");
+                            boolean farColumn = location.getColumnNr() > 80;
+                            /*
+                             * if error column is too far, we precede the error message with >> to show
+                             * that there is an error message on the line
+                             */
+                            out.println(
+                                    Strings.repeat(" ", Math.max(0, location.getColumnNr() - 2)) + "^");
+                            out.println(Strings.repeat(farColumn ? ">" : " ", Math.max(0, location.getColumnNr()
+                                                                - (ex.getOriginalMessage().length() / 2) - 3))
+                                    + ">> " + ex.getOriginalMessage() + " <<");
                             out.println();
                         }
                     }
