@@ -5,4 +5,11 @@
             }
 
             {overrideWriteValue}
+
+            @Override
+            protected void describeOperation(OperationDescription operation) {
+                {parametersDescription}
+
+                operation.responseClass = "{responseClass}";
+            }
         }

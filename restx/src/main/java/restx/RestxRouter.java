@@ -65,4 +65,8 @@ public class RestxRouter implements RestxRoute {
         }
         return count;
     }
+
+    public ImmutableList<RestxRoute> getRoutes() {
+        return routes;
+    }
 }

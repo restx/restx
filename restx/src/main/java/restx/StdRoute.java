@@ -3,9 +3,14 @@ package restx;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import restx.description.DescribableRoute;
+import restx.description.OperationDescription;
+import restx.description.ResourceDescription;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.Collections;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -14,10 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Date: 1/19/13
  * Time: 8:10 AM
  */
-public abstract class StdRoute implements RestxRoute {
+public abstract class StdRoute implements RestxRoute, DescribableRoute {
     private final String name;
     private final RestxRouteMatcher matcher;
-    private final ObjectMapper mapper;
+    protected final ObjectMapper mapper;
 
     public StdRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher) {
         this.name = checkNotNull(name);
@@ -57,6 +62,27 @@ public abstract class StdRoute implements RestxRoute {
 
     protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException {
         mapper.writeValue(writer, value);
+    }
+
+    @Override
+    public Collection<ResourceDescription> describe() {
+        if (matcher instanceof StdRouteMatcher) {
+            ResourceDescription description = new ResourceDescription();
+            StdRouteMatcher stdRouteMatcher = (StdRouteMatcher) matcher;
+            description.path = stdRouteMatcher.getPath();
+            OperationDescription operation = new OperationDescription();
+            operation.httpMethod = stdRouteMatcher.getMethod();
+            operation.nickname = name.substring(name.lastIndexOf('#') + 1);
+            describeOperation(operation);
+            description.operations = Collections.singletonList(operation);
+            return Collections.singleton(description);
+        } else {
+            return Collections.emptySet();
+        }
+    }
+
+    // override to provide parameters, response and error codes description
+    protected void describeOperation(OperationDescription operation) {
     }
 
     protected abstract Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException;

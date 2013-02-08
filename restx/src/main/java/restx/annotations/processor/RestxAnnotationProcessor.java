@@ -186,6 +186,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         for (ResourceMethod resourceMethod : resourceClass.resourceMethods) {
 
             List<String> callParameters = Lists.newArrayList();
+            List<String> parametersDescription = Lists.newArrayList();
 
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
                 String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
@@ -194,6 +195,19 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
+
+                parametersDescription.add(String.format(
+                        "                OperationParameterDescription {PARAMETER} = new OperationParameterDescription();\n" +
+                        "                {PARAMETER}.name = \"%s\";\n" +
+                        "                {PARAMETER}.paramType = OperationParameterDescription.ParamType.%s;\n" +
+                        "                {PARAMETER}.dataType = \"%s\";\n" +
+                        "                {PARAMETER}.required = %s;\n" +
+                        "                operation.parameters.add({PARAMETER});\n",
+                        parameter.name,
+                        parameter.kind.name().toLowerCase(),
+                        toTypeDescription(parameter.type),
+                        String.valueOf(parameter.optional)
+                ).replaceAll("\\{PARAMETER}", parameter.name));
             }
 
             String call = "resource." + resourceMethod.name + "(\n" +
@@ -203,6 +217,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             if (!resourceMethod.returnTypeOptional) {
                 call = "Optional.of(" + call + ")";
             }
+
             routes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
@@ -210,11 +225,41 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("path", resourceMethod.path)
                     .put("resource", resourceClass.name)
                     .put("call", call)
+                    .put("responseClass", toTypeDescription(resourceMethod.returnType))
+                    .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
                     .put("overrideWriteValue", resourceMethod.returnType.startsWith(Iterable.class.getName()) ?
                             String.format("protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException { mapper.writerWithType(new TypeReference<%s>() { }).writeValue(writer, value); }", resourceMethod.returnType)
                             : "")
                     .build()
             ));
+        }
+    }
+
+    private String toTypeDescription(String type) {
+        // see https://github.com/wordnik/swagger-core/wiki/datatypes
+        boolean isList = false;
+        Pattern p = Pattern.compile("java\\.lang\\.Iterable<(.+)>");
+        Matcher m = p.matcher(type);
+        if (m.matches()) {
+            type = m.group(1);
+            isList = true;
+        }
+        boolean primitive = type.startsWith("java.lang");
+        type =  type.substring(type.lastIndexOf('.') + 1);
+        if ("Integer".equals(type)) {
+            type = "int";
+        }
+        if (primitive) {
+            type = type.toLowerCase();
+        }
+        if ("DateTime".equals(type) || "DateMidnight".equals(type)) {
+            type = "Date";
+        }
+
+        if (isList) {
+            return "LIST[" + type + "]";
+        } else {
+            return type;
         }
     }
 

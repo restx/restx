@@ -62,4 +62,12 @@ public class StdRouteMatcher implements RestxRouteMatcher {
     public String toString() {
         return method + " " + path;
     }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getPath() {
+        return path;
+    }
 }

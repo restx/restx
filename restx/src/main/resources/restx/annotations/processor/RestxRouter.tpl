@@ -7,6 +7,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import restx.*;
 import restx.factory.*;
+import restx.description.*;
 import restx.converters.MainStringConverter;
 import static restx.common.MorePreconditions.checkPresent;
 
