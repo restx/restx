@@ -6,3 +6,4 @@ restx.converters.DefaultConverters
 restx.RestxSessionFilter$Machine
 restx.security.CORSFilter$Machine
 restx.swagger.SwaggerMachine
+restx.MonitorRoute$Factory

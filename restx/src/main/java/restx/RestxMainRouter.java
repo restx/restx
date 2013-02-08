@@ -6,6 +6,8 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
+import com.jamonapi.Monitor;
+import com.jamonapi.MonitorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.factory.Factory;
@@ -29,21 +31,29 @@ public class RestxMainRouter {
     private RestxRouter mainRouter;
 
     public void init() {
+        String baseUri = System.getProperty("restx.baseUri", "");
         if (getLoadFactoryMode().equals("onstartup")) {
             loadFactory("");
-            String baseUri = System.getProperty("restx.baseUri", "");
             if (!baseUri.isEmpty()) {
-                logger.info("\n" +
-                        "--------------------------------------\n" +
-                        " -- RESTX READY\n" +
-                        " -- " + mainRouter.getNbRoutes() + " routes - " + factory.getNbMachines() + " factory machines\n" +
-                        " -- for a list of available routes,\n" +
-                        " --   VISIT " + baseUri + "/404\n" +
-                        " --\n");
+                logPrompt(baseUri, "READY");
             } else {
                 logger.info("RESTX READY");
             }
+        } else {
+            if (!baseUri.isEmpty()) {
+                logPrompt(baseUri, "LOAD ON REQUEST");
+            }
         }
+    }
+
+    private void logPrompt(String baseUri, String state) {
+        logger.info("\n" +
+                "--------------------------------------\n" +
+                " -- RESTX " + state + "\n" +
+                (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes - " + factory.getNbMachines() + " factory machines\n") : "") +
+                " -- for a list of available routes,\n" +
+                " --   VISIT " + baseUri + "/404\n" +
+                " --\n");
     }
 
     private void loadFactory(String context) {
@@ -65,6 +75,7 @@ public class RestxMainRouter {
             loadFactory(contextName);
         }
 
+        Monitor monitor = MonitorFactory.start("[" + restxRequest.getHttpMethod() + "]" + restxRequest.getRestxPath());
         try {
             if (!mainRouter.route(restxRequest, restxResponse,
                     new RestxContext(RouteLifecycleListener.DEAF))) {
@@ -134,6 +145,7 @@ public class RestxMainRouter {
             out.close();
         } finally {
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
+            monitor.stop();
         }
     }
 

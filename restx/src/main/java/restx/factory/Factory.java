@@ -3,8 +3,15 @@ package restx.factory;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
+import com.jamonapi.Monitor;
+import com.jamonapi.MonitorFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -17,6 +24,7 @@ import static restx.common.MorePreconditions.checkPresent;
  * Time: 5:42 PM
  */
 public class Factory {
+    private final Logger logger = LoggerFactory.getLogger(Factory.class);
 
     public static class LocalMachines {
         private static final ThreadLocal<LocalMachines> threadLocals = new ThreadLocal() {
@@ -105,10 +113,9 @@ public class Factory {
         }
 
         for (FactoryMachine machine : machines) {
-            Optional<? extends ComponentBox<T>> box = machine.newComponent(this, name);
-            if (box.isPresent()) {
-                warehouse.checkIn(box.get());
-                return warehouse.checkOut(box.get().getName());
+            Optional<NamedComponent<T>> namedComponent = buildAndStore(name, machine);
+            if (namedComponent.isPresent()) {
+                return namedComponent;
             }
         }
         return Optional.absent();
@@ -126,10 +133,9 @@ public class Factory {
                         components.add(component.get());
                         builtNames.add(name);
                     } else {
-                        Optional<? extends ComponentBox<T>> box = machine.newComponent(this, name);
-                        if (box.isPresent()) {
-                            warehouse.checkIn(box.get());
-                            components.add(warehouse.checkOut(name).get());
+                        Optional<NamedComponent<T>> namedComponent = buildAndStore(name, machine);
+                        if (namedComponent.isPresent()) {
+                            components.add(namedComponent.get());
                             builtNames.add(name);
                         }
                     }
@@ -182,4 +188,18 @@ public class Factory {
                 "\n--\n" +
                 "---------------------------------------------";
     }
+
+    private <T> Optional<NamedComponent<T>> buildAndStore(Name<T> name, FactoryMachine machine) {
+        Monitor monitor = MonitorFactory.start("BUILD." + name.toString());
+        Optional<? extends ComponentBox<T>> box = machine.newComponent(this, name);
+        if (box.isPresent()) {
+            monitor.stop();
+            warehouse.checkIn(box.get());
+            return warehouse.checkOut(box.get().getName());
+        } else {
+            return Optional.absent();
+        }
+    }
+
+
 }
