@@ -20,4 +20,6 @@ public interface RestxResponse {
     OutputStream getOutputStream() throws IOException;
 
     void addCookie(Cookie cookie);
+
+    void setHeader(String headerName, String header);
 }

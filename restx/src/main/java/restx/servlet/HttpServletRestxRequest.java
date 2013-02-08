@@ -27,6 +27,12 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     @Override
+    public String getBaseUri() {
+        String url = request.getRequestURL().toString();
+        return url.substring(0, url.lastIndexOf(getRestxPath()));
+    }
+
+    @Override
     public String getRestxPath() {
         return request.getRequestURI().substring(
                 (request.getContextPath() + request.getServletPath()).length());
@@ -87,6 +93,11 @@ public class HttpServletRestxRequest implements RestxRequest {
                 return cookie.getValue();
         }
         return defaultValue;
+    }
+
+    @Override
+    public Optional<String> getHeader(String headerName) {
+        return Optional.fromNullable(request.getHeader(headerName));
     }
 
     @Override

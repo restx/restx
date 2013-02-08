@@ -12,9 +12,34 @@ import java.util.List;
  * Time: 2:49 PM
  */
 public interface RestxRequest {
+    /**
+     * Returns the base URI of this request.
+     * Eg http://mydomain.com/api
+     *
+     * @return the base URI of this request.
+     */
+    String getBaseUri();
+    /**
+     * Returns the restx portion of the request path.
+     * <p>
+     * If incoming request is http://mydomain.com/api/myresource/test and baseUri is http://mydomain.com/api,
+     * then restx path will be /myresource/test
+     * </p>
+     * @return the restx portion of the request path.
+     */
     String getRestxPath();
+
+    /**
+     * HTTP METHOD, eg GET, POST, ...
+     * @return the request HTTP method
+     */
+    String getHttpMethod();
+
     Optional<String> getQueryParam(String param);
     List<String> getQueryParams(String param);
+    Optional<String> getHeader(String headerName);
+    String getCookieValue(String cookie, String defaultValue);
+
     InputStream getContentStream() throws IOException;
 
     /**
@@ -30,6 +55,4 @@ public interface RestxRequest {
      * @throws IOException
      */
     void closeContentStream() throws IOException;
-    String getHttpMethod();
-    String getCookieValue(String cookie, String defaultValue);
 }

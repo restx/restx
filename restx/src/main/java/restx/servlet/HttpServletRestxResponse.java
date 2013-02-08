@@ -47,6 +47,11 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
+    public void setHeader(String headerName, String header) {
+        resp.setHeader(headerName, header);
+    }
+
+    @Override
     public String toString() {
         return "[RESTX RESPONSE] " + resp.getStatus();
     }
