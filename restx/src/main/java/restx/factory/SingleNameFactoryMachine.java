@@ -25,7 +25,9 @@ public abstract class SingleNameFactoryMachine<C> implements FactoryMachine {
 
     @Override
     public <T> Optional<? extends ComponentBox<T>> newComponent(Factory factory, Name<T> name) {
-        if (this.name.equals(name)) {
+        if (this.name.equals(name)
+                || (   this.name.getName().equals(name.getName())
+                    && name.getClazz().isAssignableFrom(this.name.getClazz()))) {
             return (Optional) Optional.of(boxFactory.of(new NamedComponent<>(this.name, doNewComponent(factory))));
         } else {
             return Optional.absent();

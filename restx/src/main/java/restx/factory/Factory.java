@@ -108,7 +108,7 @@ public class Factory {
             Optional<? extends ComponentBox<T>> box = machine.newComponent(this, name);
             if (box.isPresent()) {
                 warehouse.checkIn(box.get());
-                return warehouse.checkOut(name);
+                return warehouse.checkOut(box.get().getName());
             }
         }
         return Optional.absent();
