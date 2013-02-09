@@ -12,10 +12,9 @@ import restx.factory.*;
 public class MainStringConverter {
     private final ImmutableMap<Class, StringConverter> converters;
 
-
-    public MainStringConverter(Factory factory) {
+    public MainStringConverter(Iterable<StringConverter> stringConverters) {
         ImmutableMap.Builder<Class, StringConverter> builder = ImmutableMap.builder();
-        for (StringConverter converter : factory.getComponents(StringConverter.class)) {
+        for (StringConverter converter : stringConverters) {
             builder.put(Primitives.wrap(converter.getConvertedClass()), converter);
         }
 
@@ -36,12 +35,19 @@ public class MainStringConverter {
         public static final Name<MainStringConverter> NAME = Name.of(MainStringConverter.class, "MainStringConverter");
 
         public Machine() {
-            super(0, NAME, BoundlessComponentBox.FACTORY);
-        }
+            super(0, new StdMachineEngine<MainStringConverter>(NAME, BoundlessComponentBox.FACTORY) {
+                private Factory.Query<StringConverter> stringConverters = Factory.Query.byClass(StringConverter.class);
 
-        @Override
-        protected MainStringConverter doNewComponent(Factory factory) {
-            return new MainStringConverter(factory);
+                @Override
+                public MainStringConverter doNewComponent(SatisfiedBOM satisfiedBOM) {
+                    return new MainStringConverter(satisfiedBOM.getAsComponents(stringConverters));
+                }
+
+                @Override
+                public BillOfMaterials getBillOfMaterial() {
+                    return BillOfMaterials.of(stringConverters);
+                }
+            });
         }
     }
 }

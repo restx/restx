@@ -1,9 +1,7 @@
 package restx;
 
 import com.jamonapi.MonitorFactory;
-import restx.factory.BoundlessComponentBox;
-import restx.factory.Name;
-import restx.factory.SingleNameFactoryMachine;
+import restx.factory.*;
 
 import java.io.IOException;
 
@@ -26,14 +24,14 @@ public class MonitorRoute implements RestxRoute {
     }
 
     public static class Factory extends SingleNameFactoryMachine<MonitorRoute> {
-
         public Factory() {
-            super(0, Name.of(MonitorRoute.class, "MonitorRoute"), BoundlessComponentBox.FACTORY);
-        }
-
-        @Override
-        protected MonitorRoute doNewComponent(restx.factory.Factory factory) {
-            return new MonitorRoute();
+            super(0, new NoDepsMachineEngine<MonitorRoute>(
+                    Name.of(MonitorRoute.class, "MonitorRoute"), BoundlessComponentBox.FACTORY) {
+                @Override
+                public MonitorRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
+                    return new MonitorRoute();
+                }
+            });
         }
     }
 }

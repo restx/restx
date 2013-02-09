@@ -1,5 +1,6 @@
 package {package};
 
+import com.google.common.collect.ImmutableSet;
 import restx.factory.*;
 import {moduleFqcn};
 
@@ -10,7 +11,7 @@ public class {machine} extends DefaultFactoryMachine {
 
     public {machine}() {
         super(0,
-{providers}
+{engines}
         );
     }
 }

@@ -51,7 +51,7 @@ public class SwaggerIndexRoute extends StdRoute {
     }
 
     private List<ImmutableMap<String, String>> buildApis() {
-        Set<NamedComponent<RestxRoute>> routes = factory.getNamedComponents(RestxRoute.class);
+        Set<NamedComponent<RestxRoute>> routes = factory.queryByClass(RestxRoute.class).find();
         List<ImmutableMap<String, String>> apis = Lists.newArrayList();
         for (NamedComponent<RestxRoute> route : routes) {
             if (route.getComponent() instanceof RestxRouter) {

@@ -1,10 +1,7 @@
 package restx.validation;
 
 import org.hibernate.validator.HibernateValidator;
-import restx.factory.BoundlessComponentBox;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.SingleNameFactoryMachine;
+import restx.factory.*;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -19,12 +16,12 @@ public class ValidatorFactory extends SingleNameFactoryMachine<Validator> {
     public static final Name<Validator> VALIDATOR = Name.of(Validator.class, VALIDATOR_NAME);
 
     public ValidatorFactory() {
-        super(0, VALIDATOR, BoundlessComponentBox.FACTORY);
-    }
-
-    @Override
-    protected Validator doNewComponent(Factory factory) {
-        return Validation.byProvider(HibernateValidator.class).configure()
-                .ignoreXmlConfiguration().buildValidatorFactory().getValidator();
+        super(0, new NoDepsMachineEngine<Validator>(VALIDATOR, BoundlessComponentBox.FACTORY) {
+            @Override
+            public Validator doNewComponent(SatisfiedBOM satisfiedBOM) {
+                return Validation.byProvider(HibernateValidator.class).configure()
+                                .ignoreXmlConfiguration().buildValidatorFactory().getValidator();
+            }
+        });
     }
 }

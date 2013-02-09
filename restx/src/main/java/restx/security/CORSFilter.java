@@ -2,14 +2,13 @@ package restx.security;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import restx.*;
-import restx.factory.BoundlessComponentBox;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.SingleNameFactoryMachine;
+import restx.RestxContext;
+import restx.RestxRequest;
+import restx.RestxResponse;
+import restx.RestxRoute;
+import restx.factory.*;
 
 import java.io.IOException;
-import java.util.Set;
 
 /**
  * User: xavierhanin
@@ -105,13 +104,18 @@ public class CORSFilter implements RestxRoute {
         public static final Name<CORSFilter> NAME = Name.of(CORSFilter.class, "CORSFilter");
 
         public Machine() {
-            super(-10, NAME, BoundlessComponentBox.FACTORY);
-        }
+            super(-10, new StdMachineEngine<CORSFilter>(NAME, BoundlessComponentBox.FACTORY) {
+                private final Factory.Query<CORSAuthorizer> authorizers = Factory.Query.byClass(CORSAuthorizer.class);
+                @Override
+                public CORSFilter doNewComponent(SatisfiedBOM satisfiedBOM) {
+                    return new CORSFilter(satisfiedBOM.getAsComponents(authorizers));
+                }
 
-        @Override
-        protected CORSFilter doNewComponent(Factory factory) {
-            Set<CORSAuthorizer> authorizers = factory.getComponents(CORSAuthorizer.class);
-            return new CORSFilter(authorizers);
+                @Override
+                public BillOfMaterials getBillOfMaterial() {
+                    return BillOfMaterials.of(authorizers);
+                }
+            });
         }
     }
 

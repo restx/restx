@@ -8,24 +8,12 @@ package restx.factory;
  * constructs the component on demand (which is better especially if the component is overriden).
  */
 public class SingletonFactoryMachine<C> extends SingleNameFactoryMachine<C> {
-    private final NamedComponent<C> component;
-
-    public SingletonFactoryMachine(int priority, NamedComponent<C> component) {
-        super(priority, component.getName(), BoundlessComponentBox.FACTORY);
-        this.component = component;
-    }
-
-    @Override
-    protected C doNewComponent(Factory factory) {
-        return component.getComponent();
-    }
-
-    @Override
-    public String toString() {
-        return "SingletonFactoryMachine{" +
-                "priority=" + priority() +
-                ", name=" + name +
-                ", component=" + component +
-                '}';
+    public SingletonFactoryMachine(int priority, final NamedComponent<C> component) {
+        super(priority, new NoDepsMachineEngine<C>(component.getName(), BoundlessComponentBox.FACTORY) {
+            @Override
+            public C doNewComponent(SatisfiedBOM satisfiedBOM) {
+                return component.getComponent();
+            }
+        });
     }
 }

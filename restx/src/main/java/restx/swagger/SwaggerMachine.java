@@ -1,9 +1,8 @@
 package restx.swagger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import restx.RestxRoute;
-import restx.factory.DefaultFactoryMachine;
-import restx.factory.Factory;
-import restx.factory.Name;
+import restx.factory.*;
 import restx.jackson.FrontObjectMapperFactory;
 import restx.security.CORSAuthorizer;
 
@@ -17,33 +16,45 @@ public class SwaggerMachine extends DefaultFactoryMachine {
 
     public SwaggerMachine() {
         super(0,
-                SingleComponentBoxSupplier.boundless(Name.of(RestxRoute.class, "SwaggerIndexRoute"),
-                        new SingleComponentSupplier<RestxRoute>() {
-                            @Override
-                            public RestxRoute newComponent(Factory factory) {
-                                return new SwaggerIndexRoute("SwaggerIndexRoute",
-                                        factory.mustGetNamedComponent(FrontObjectMapperFactory.NAME).getComponent(),
-                                        factory);
-                            }
-                        })
+                new StdMachineEngine<RestxRoute>(Name.of(RestxRoute.class, "SwaggerIndexRoute"), BoundlessComponentBox.FACTORY) {
+                    private final Factory.Query<ObjectMapper> mapper = Factory.Query.byName(FrontObjectMapperFactory.NAME);
+                    private final Factory.Query<Factory> factory = Factory.Query.factoryQuery();
+                    @Override
+                    public RestxRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        return new SwaggerIndexRoute("SwaggerIndexRoute",
+                                satisfiedBOM.getOne(mapper).get().getComponent(),
+                                satisfiedBOM.getOne(factory).get().getComponent());
+                    }
+
+                    @Override
+                    public BillOfMaterials getBillOfMaterial() {
+                        return BillOfMaterials.of(mapper, factory);
+                    }
+                }
                 ,
-                SingleComponentBoxSupplier.boundless(Name.of(RestxRoute.class, "SwaggerApiDeclarationRoute"),
-                        new SingleComponentSupplier<RestxRoute>() {
-                            @Override
-                            public RestxRoute newComponent(Factory factory) {
-                                return new SwaggerApiDeclarationRoute("SwaggerApiDeclarationRoute",
-                                        factory.mustGetNamedComponent(FrontObjectMapperFactory.NAME).getComponent(),
-                                        factory);
-                            }
-                        })
+                new StdMachineEngine<RestxRoute>(Name.of(RestxRoute.class, "SwaggerApiDeclarationRoute"), BoundlessComponentBox.FACTORY) {
+                    private final Factory.Query<ObjectMapper> mapper = Factory.Query.byName(FrontObjectMapperFactory.NAME);
+                    private final Factory.Query<Factory> factory = Factory.Query.factoryQuery();
+                    @Override
+                    public RestxRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        return new SwaggerApiDeclarationRoute("SwaggerApiDeclarationRoute",
+                                satisfiedBOM.getOne(mapper).get().getComponent(),
+                                satisfiedBOM.getOne(factory).get().getComponent());
+                    }
+
+                    @Override
+                    public BillOfMaterials getBillOfMaterial() {
+                        return BillOfMaterials.of(mapper, factory);
+                    }
+                }
                 ,
-                SingleComponentBoxSupplier.boundless(Name.of(CORSAuthorizer.class, "SwaggerCORSAuthorizer"),
-                        new SingleComponentSupplier<CORSAuthorizer>() {
-                            @Override
-                            public CORSAuthorizer newComponent(Factory factory) {
-                                return SWAGGER_PROVIDER.getSwaggerAuthorizer();
-                            }
-                        })
+                new NoDepsMachineEngine<CORSAuthorizer>(Name.of(CORSAuthorizer.class, "SwaggerCORSAuthorizer"),
+                        BoundlessComponentBox.FACTORY) {
+                    @Override
+                    public CORSAuthorizer doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        return SWAGGER_PROVIDER.getSwaggerAuthorizer();
+                    }
+                }
         );
     }
 }

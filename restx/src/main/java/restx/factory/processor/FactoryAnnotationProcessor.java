@@ -41,14 +41,14 @@ import java.util.Set;
 public class FactoryAnnotationProcessor extends AbstractProcessor {
     final Tpl componentMachineTpl;
     final Tpl moduleMachineTpl;
-    final Tpl providerMethodTpl;
+    final Tpl machineEngineTpl;
     private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
         try {
             componentMachineTpl = new Tpl(FactoryAnnotationProcessor.class, "ComponentMachine");
             moduleMachineTpl = new Tpl(FactoryAnnotationProcessor.class, "ModuleMachine");
-            providerMethodTpl = new Tpl(FactoryAnnotationProcessor.class, "ProviderMethod");
+            machineEngineTpl = new Tpl(FactoryAnnotationProcessor.class, "MachineEngine");
 
             machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
         } catch (IOException e) {
@@ -149,15 +149,17 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
 
     private void generateMachineFile(ModuleClass moduleClass) throws IOException {
-        List<String> providerMethods = Lists.newArrayList();
+        List<String> engines = Lists.newArrayList();
 
         for (ProviderMethod method : moduleClass.providerMethods) {
-            providerMethods.add(providerMethodTpl.bind(ImmutableMap.<String, String>builder()
+            engines.add(machineEngineTpl.bind(ImmutableMap.<String, String>builder()
                     .put("type", method.type)
                     .put("name", method.name)
                     .put("injectionName", method.injectionName.isPresent() ?
                             method.injectionName.get() : method.name)
-                    .put("parameters", Joiner.on(",\n").join(buildParametersCode(method.parameters)))
+                    .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
+                    .put("queries", Joiner.on(",\n").join(buildQueriesNames(method.parameters)))
+                    .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(method.parameters)))
                     .build()));
         }
 
@@ -166,7 +168,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("machine", moduleClass.name + "FactoryMachine")
                 .put("moduleFqcn", moduleClass.fqcn)
                 .put("moduleType", moduleClass.name)
-                .put("providers", Joiner.on(",\n").join(providerMethods))
+                .put("engines", Joiner.on(",\n").join(engines))
                 .build();
 
         generateJavaClass(moduleClass.fqcn + "FactoryMachine", moduleMachineTpl.bind(ctx),
@@ -181,7 +183,9 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("componentType", componentClass.name)
                 .put("componentInjectionName", componentClass.injectionName.isPresent() ?
                         componentClass.injectionName.get() : componentClass.name)
-                .put("parameters", Joiner.on(",\n").join(buildParametersCode(componentClass.parameters)))
+                .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(componentClass.parameters)))
+                .put("queries", Joiner.on(",\n").join(buildQueriesNames(componentClass.parameters)))
+                .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
                 .build();
 
         generateJavaClass(componentClass.fqcn + "FactoryMachine", componentMachineTpl.bind(ctx),
@@ -189,10 +193,26 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
     }
 
-    private List<String> buildParametersCode(List<InjectableParameter> parameters) {
+    private List<String> buildQueriesDeclarationsCode(List<InjectableParameter> parameters) {
         List<String> parametersCode = Lists.newArrayList();
         for (InjectableParameter parameter : parameters) {
-            parametersCode.add(parameter.getFromFactoryCode());
+            parametersCode.add(parameter.getQueryDeclarationCode());
+        }
+        return parametersCode;
+    }
+
+    private List<String> buildQueriesNames(List<InjectableParameter> parameters) {
+        List<String> parametersCode = Lists.newArrayList();
+        for (InjectableParameter parameter : parameters) {
+            parametersCode.add(parameter.name);
+        }
+        return parametersCode;
+    }
+
+    private List<String> buildParamFromSatisfiedBomCode(List<InjectableParameter> parameters) {
+        List<String> parametersCode = Lists.newArrayList();
+        for (InjectableParameter parameter : parameters) {
+            parametersCode.add(parameter.getFromSatisfiedBomCode());
         }
         return parametersCode;
     }
@@ -234,14 +254,18 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
             this.injectionName = injectionName;
         }
 
-        public String getFromFactoryCode() {
+        public String getQueryDeclarationCode() {
             if (injectionName.isPresent()) {
-                return String.format("factory.mustGetNamedComponent(Name.of(%s, \"%s\")).getComponent()",
-                        type + ".class", injectionName.get());
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\"));",
+                        type, name, type + ".class", injectionName.get());
             } else {
-                return String.format("factory.mustGetNamedComponent(%s).getComponent()",
-                        type + ".class");
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).mandatory();",
+                        type, name, type + ".class");
             }
+        }
+
+        public String getFromSatisfiedBomCode() {
+            return String.format("satisfiedBOM.getOne(%s).get().getComponent()", name);
         }
     }
 

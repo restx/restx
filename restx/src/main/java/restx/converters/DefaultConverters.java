@@ -3,9 +3,7 @@ package restx.converters;
 import com.google.common.base.CharMatcher;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
-import restx.factory.DefaultFactoryMachine;
-import restx.factory.Factory;
-import restx.factory.Name;
+import restx.factory.*;
 
 /**
  * User: xavierhanin
@@ -15,9 +13,9 @@ import restx.factory.Name;
 public class DefaultConverters extends DefaultFactoryMachine {
     public DefaultConverters() {
         super(0,
-                SingleComponentBoxSupplier.boundless(Name.of(StringConverter.class, "BooleanConverter"), new SingleComponentSupplier<StringConverter>() {
+                new NoDepsMachineEngine<StringConverter>(Name.of(StringConverter.class, "BooleanConverter"), BoundlessComponentBox.FACTORY) {
                     @Override
-                    public StringConverter<Boolean> newComponent(Factory factory) {
+                    public StringConverter doNewComponent(SatisfiedBOM satisfiedBOM) {
                         return new SimpleStringConverter<Boolean>(Boolean.class) {
                             @Override
                             public Boolean apply(String input) {
@@ -25,11 +23,11 @@ public class DefaultConverters extends DefaultFactoryMachine {
                             }
                         };
                     }
-                })
+                }
                 ,
-                SingleComponentBoxSupplier.boundless(Name.of(StringConverter.class, "IntegerConverter"), new SingleComponentSupplier<StringConverter>() {
+                new NoDepsMachineEngine<StringConverter>(Name.of(StringConverter.class, "IntegerConverter"), BoundlessComponentBox.FACTORY) {
                     @Override
-                    public StringConverter<Integer> newComponent(Factory factory) {
+                    public StringConverter doNewComponent(SatisfiedBOM satisfiedBOM) {
                         return new SimpleStringConverter<Integer>(Integer.class) {
                             @Override
                             public Integer apply(String input) {
@@ -37,11 +35,11 @@ public class DefaultConverters extends DefaultFactoryMachine {
                             }
                         };
                     }
-                })
+                }
                 ,
-                SingleComponentBoxSupplier.boundless(Name.of(StringConverter.class, "LongConverter"), new SingleComponentSupplier<StringConverter>() {
+                new NoDepsMachineEngine<StringConverter>(Name.of(StringConverter.class, "LongConverter"), BoundlessComponentBox.FACTORY) {
                     @Override
-                    public StringConverter<Long> newComponent(Factory factory) {
+                    public StringConverter doNewComponent(SatisfiedBOM satisfiedBOM) {
                         return new SimpleStringConverter<Long>(Long.class) {
                             @Override
                             public Long apply(String input) {
@@ -49,11 +47,11 @@ public class DefaultConverters extends DefaultFactoryMachine {
                             }
                         };
                     }
-                })
+                }
                 ,
-                SingleComponentBoxSupplier.boundless(Name.of(StringConverter.class, "DateTimeConverter"), new SingleComponentSupplier<StringConverter>() {
+                new NoDepsMachineEngine<StringConverter>(Name.of(StringConverter.class, "DateTimeConverter"), BoundlessComponentBox.FACTORY) {
                     @Override
-                    public StringConverter<DateTime> newComponent(Factory factory) {
+                    public StringConverter doNewComponent(SatisfiedBOM satisfiedBOM) {
                         return new SimpleStringConverter<DateTime>(DateTime.class) {
                             @Override
                             public DateTime apply(String input) {
@@ -63,11 +61,11 @@ public class DefaultConverters extends DefaultFactoryMachine {
                             }
                         };
                     }
-                })
+                }
                 ,
-                SingleComponentBoxSupplier.boundless(Name.of(StringConverter.class, "DateMidnightConverter"), new SingleComponentSupplier<StringConverter>() {
+                new NoDepsMachineEngine<StringConverter>(Name.of(StringConverter.class, "DateMidnightConverter"), BoundlessComponentBox.FACTORY) {
                     @Override
-                    public StringConverter<DateMidnight> newComponent(Factory factory) {
+                    public StringConverter doNewComponent(SatisfiedBOM satisfiedBOM) {
                         return new SimpleStringConverter<DateMidnight>(DateMidnight.class) {
                             @Override
                             public DateMidnight apply(String input) {
@@ -77,7 +75,7 @@ public class DefaultConverters extends DefaultFactoryMachine {
                             }
                         };
                     }
-                })
+                }
         );
     }
 }

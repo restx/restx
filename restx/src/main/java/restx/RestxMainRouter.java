@@ -65,7 +65,8 @@ public class RestxMainRouter {
 
         logger.debug("restx factory ready: {}", factory);
 
-        mainRouter = new RestxRouter("MainRouter", ImmutableList.copyOf(factory.getComponents(RestxRoute.class)));
+        mainRouter = new RestxRouter("MainRouter", ImmutableList.copyOf(
+                factory.queryByClass(RestxRoute.class).findAsComponents()));
     }
 
 

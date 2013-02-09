@@ -9,10 +9,7 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.jongo.marshall.jackson.id.ObjectIdDeserializer;
 import org.jongo.marshall.jackson.id.ObjectIdSerializer;
-import restx.factory.BoundlessComponentBox;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.SingleNameFactoryMachine;
+import restx.factory.*;
 
 /**
  * User: xavierhanin
@@ -23,36 +20,36 @@ public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMap
     public static final Name<ObjectMapper> NAME = Name.of(ObjectMapper.class, "FrontObjectMapper");
 
     public FrontObjectMapperFactory() {
-        super(0, NAME, BoundlessComponentBox.FACTORY);
-    }
-
-    @Override
-    protected ObjectMapper doNewComponent(Factory factory) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JodaModule());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+        super(0, new NoDepsMachineEngine<ObjectMapper>(NAME, BoundlessComponentBox.FACTORY) {
             @Override
-            public Object findSerializer(Annotated am) {
-                Object serializer = super.findSerializer(am);
-                if (ObjectIdSerializer.class == serializer
-                        || FixedPrecisionSerializer.class == serializer) {
-                    return null;
-                }
-                return serializer;
-            }
+            public ObjectMapper doNewComponent(SatisfiedBOM satisfiedBOM) {
+                ObjectMapper mapper = new ObjectMapper();
+                mapper.registerModule(new JodaModule());
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+                    @Override
+                    public Object findSerializer(Annotated am) {
+                        Object serializer = super.findSerializer(am);
+                        if (ObjectIdSerializer.class == serializer
+                                || FixedPrecisionSerializer.class == serializer) {
+                            return null;
+                        }
+                        return serializer;
+                    }
 
-            @Override
-            public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a) {
-                Class<? extends JsonDeserializer<?>> deserializer = super.findDeserializer(a);
-                if (ObjectIdDeserializer.class == deserializer
-                        || FixedPrecisionDeserializer.class == deserializer) {
-                    return null;
-                }
-                return deserializer;
+                    @Override
+                    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a) {
+                        Class<? extends JsonDeserializer<?>> deserializer = super.findDeserializer(a);
+                        if (ObjectIdDeserializer.class == deserializer
+                                || FixedPrecisionDeserializer.class == deserializer) {
+                            return null;
+                        }
+                        return deserializer;
+                    }
+                });
+                return mapper;
             }
         });
-        return mapper;
     }
 }

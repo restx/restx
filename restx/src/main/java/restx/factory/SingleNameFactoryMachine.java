@@ -1,7 +1,5 @@
 package restx.factory;
 
-import com.google.common.base.Optional;
-
 import java.util.Collections;
 import java.util.Set;
 
@@ -10,28 +8,27 @@ import java.util.Set;
  * Date: 1/31/13
  * Time: 7:23 PM
  */
-public abstract class SingleNameFactoryMachine<C> implements FactoryMachine {
+public class SingleNameFactoryMachine<C> implements FactoryMachine {
     private final int priority;
-    private final ComponentBox.BoxFactory boxFactory;
-    protected final Name<C> name;
+    private final MachineEngine<C> engine;
+    private final Name<C> name;
 
-    public SingleNameFactoryMachine(int priority, Name<C> name, ComponentBox.BoxFactory boxFactory) {
+    public SingleNameFactoryMachine(int priority, MachineEngine<C> engine) {
         this.priority = priority;
-        this.name = name;
-        this.boxFactory = boxFactory;
+        this.engine = engine;
+        this.name = engine.getName();
     }
 
-    protected abstract C doNewComponent(Factory factory);
+    @Override
+    public boolean canBuild(Name<?> name) {
+        return (this.name.equals(name)
+                || (   this.name.getName().equals(name.getName())
+                    && name.getClazz().isAssignableFrom(this.name.getClazz())));
+    }
 
     @Override
-    public <T> Optional<? extends ComponentBox<T>> newComponent(Factory factory, Name<T> name) {
-        if (this.name.equals(name)
-                || (   this.name.getName().equals(name.getName())
-                    && name.getClazz().isAssignableFrom(this.name.getClazz()))) {
-            return (Optional) Optional.of(boxFactory.of(new NamedComponent<>(this.name, doNewComponent(factory))));
-        } else {
-            return Optional.absent();
-        }
+    public <T> MachineEngine<T> getEngine(Name<T> name) {
+        return (MachineEngine<T>) engine;
     }
 
     @Override
@@ -48,12 +45,4 @@ public abstract class SingleNameFactoryMachine<C> implements FactoryMachine {
         return priority;
     }
 
-    @Override
-    public String toString() {
-        return "SingleNameFactoryMachine{" +
-                "priority=" + priority +
-                ", boxFactory=" + boxFactory +
-                ", name=" + name +
-                '}';
-    }
 }
