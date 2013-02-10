@@ -51,8 +51,8 @@ public class RestxMainRouter {
                 "--------------------------------------\n" +
                 " -- RESTX " + state + "\n" +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes - " + factory.getNbMachines() + " factory machines\n") : "") +
-                " -- for a list of available routes,\n" +
-                " --   VISIT " + baseUri + "/404\n" +
+                " -- for api documentation,\n" +
+                " --   VISIT " + baseUri + "/@/api-docs-ui\n" +
                 " --\n");
     }
 
@@ -83,11 +83,14 @@ public class RestxMainRouter {
                 String path = restxRequest.getRestxPath();
                 String msg = String.format(
                         "no restx route found for %s %s\n" +
+                        "go to %s for API documentation\n\n" +
                         "routes:\n" +
                         "-----------------------------------\n" +
                         "%s\n" +
                         "-----------------------------------",
-                        restxRequest.getHttpMethod(), path, mainRouter);
+                        restxRequest.getHttpMethod(), path,
+                        restxRequest.getBaseUri() + "/@/api-docs-ui",
+                        mainRouter);
                 restxResponse.setStatus(404);
                 restxResponse.setContentType("text/plain");
                 PrintWriter out = restxResponse.getWriter();

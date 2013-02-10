@@ -48,6 +48,13 @@ public class SwaggerMachine extends DefaultFactoryMachine {
                     }
                 }
                 ,
+                new NoDepsMachineEngine<RestxRoute>(Name.of(RestxRoute.class, "SwaggerUIRoute"), BoundlessComponentBox.FACTORY) {
+                    @Override
+                    protected RestxRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        return new SwaggerUIRoute();
+                    }
+                }
+                ,
                 new NoDepsMachineEngine<CORSAuthorizer>(Name.of(CORSAuthorizer.class, "SwaggerCORSAuthorizer"),
                         BoundlessComponentBox.FACTORY) {
                     @Override
