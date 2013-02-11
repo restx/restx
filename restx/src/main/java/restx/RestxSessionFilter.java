@@ -50,12 +50,10 @@ public class RestxSessionFilter implements RestxRoute {
                     }
                 }
             };
-            ctx.withListener(lifecycleListener).proceed(req, resp);
+            return ctx.withListener(lifecycleListener).proceed(req, resp);
         } finally {
             RestxSession.setCurrent(null);
         }
-
-        return false;
     }
 
     private RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
