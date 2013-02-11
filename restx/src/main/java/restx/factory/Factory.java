@@ -401,7 +401,7 @@ public class Factory {
         SatisfiedBOM satisfiedBOM = satisfy(name, bom);
 
         logger.info("building {} with {}", name, engine);
-        Monitor monitor = MonitorFactory.start("BUILD." + name.getSimpleName());
+        Monitor monitor = MonitorFactory.start("<BUILD> " + name.getSimpleName());
         ComponentBox<T> box = engine.newComponent(satisfiedBOM);
         warehouse.checkIn(box, satisfiedBOM, monitor.stop());
         return warehouse.checkOut(box.getName());

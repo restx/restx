@@ -76,7 +76,7 @@ public class RestxMainRouter {
             loadFactory(contextName);
         }
 
-        Monitor monitor = MonitorFactory.start("[" + restxRequest.getHttpMethod() + "]" + restxRequest.getRestxPath());
+        Monitor monitor = MonitorFactory.start("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath());
         try {
             if (!mainRouter.route(restxRequest, restxResponse,
                     new RestxContext(RouteLifecycleListener.DEAF))) {
