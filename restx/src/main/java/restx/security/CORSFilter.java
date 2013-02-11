@@ -42,7 +42,6 @@ public class CORSFilter implements RestxRoute {
             if (cors.isAccepted()) {
                 resp.setHeader("Access-Control-Allow-Origin", cors.getOrigin());
             }
-            // do not return true, we want the following routes to be used as usual
             return ctx.proceed(req, resp);
         }
 
