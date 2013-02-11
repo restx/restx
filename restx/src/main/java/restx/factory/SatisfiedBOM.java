@@ -1,10 +1,11 @@
 package restx.factory;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 
-import java.util.Set;
+import java.util.Iterator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -15,9 +16,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class SatisfiedBOM {
     private final BillOfMaterials bom;
-    private final ImmutableMap<Factory.Query<?>, Set<?>> materials;
+    private final ImmutableMultimap<Factory.Query<?>, NamedComponent<?>> materials;
 
-    public SatisfiedBOM(BillOfMaterials bom, ImmutableMap<Factory.Query<?>, Set<?>> materials) {
+    public SatisfiedBOM(BillOfMaterials bom, ImmutableMultimap<Factory.Query<?>, NamedComponent<?>> materials) {
         this.bom = bom;
         this.materials = materials;
     }
@@ -26,9 +27,10 @@ public class SatisfiedBOM {
         return bom;
     }
 
-    public <T> Set<NamedComponent<T>> get(Factory.Query<T> key) {
-        return (Set<NamedComponent<T>>) checkNotNull(materials.get(key),
+    public <T> Iterable<NamedComponent<T>> get(Factory.Query<T> key) {
+        ImmutableCollection namedComponents = checkNotNull(materials.get(key),
                 "key not found: %s. Check your bill of materials. Available keys: %s", key, materials.keySet());
+        return (Iterable<NamedComponent<T>>) namedComponents;
     }
 
     public <T> Iterable<T> getAsComponents(Factory.Query<T> key) {
@@ -36,18 +38,19 @@ public class SatisfiedBOM {
     }
 
     public <T> Optional<NamedComponent<T>> getOne(Factory.Query<T> key) {
-        Set<NamedComponent<T>> components = get(key);
-        if (components.isEmpty()) {
+        Iterator<NamedComponent<T>> components = get(key).iterator();
+        if (!components.hasNext()) {
             return Optional.absent();
-        } else if (components.size() == 1) {
-            return Optional.of(components.iterator().next());
-        } else {
+        }
+        NamedComponent<T> component = components.next();
+        if (components.hasNext()) {
             throw new IllegalStateException(String.format(
                     "more than one component is available for %s." +
                             " Please select which one you want with a more specific query." +
                             " Available components are: %s",
-                    key, components));
+                    key, materials.get(key)));
         }
+        return Optional.of(component);
     }
 
     @Override
@@ -56,5 +59,9 @@ public class SatisfiedBOM {
                 "bom=" + bom +
                 ", materials=" + materials +
                 '}';
+    }
+
+    public Iterable<NamedComponent<? extends Object>> getAllComponents() {
+        return materials.values();
     }
 }

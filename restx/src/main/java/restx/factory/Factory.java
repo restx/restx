@@ -28,6 +28,10 @@ public class Factory {
     private final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
 
+    public Warehouse getWarehouse() {
+        return warehouse;
+    }
+
     public static class LocalMachines {
         private static final ThreadLocal<LocalMachines> threadLocals = new ThreadLocal() {
             @Override
@@ -397,27 +401,18 @@ public class Factory {
         SatisfiedBOM satisfiedBOM = satisfy(name, bom);
 
         logger.info("building {} with {}", name, engine);
-        Monitor monitor = MonitorFactory.start("BUILD." + simpleName(name));
+        Monitor monitor = MonitorFactory.start("BUILD." + name.getSimpleName());
         ComponentBox<T> box = engine.newComponent(satisfiedBOM);
-        monitor.stop();
-        warehouse.checkIn(box);
+        warehouse.checkIn(box, satisfiedBOM, monitor.stop());
         return warehouse.checkOut(box.getName());
-    }
-
-    private <T> String simpleName(Name<T> name) {
-        String simpleName = name.getClazz().getSimpleName();
-        if (!simpleName.equalsIgnoreCase(name.getName())) {
-            simpleName = name.getName() + "[" + simpleName + "]";
-        }
-        return simpleName;
     }
 
     private SatisfiedBOM satisfy(Name name, BillOfMaterials bom) {
         logger.info("satisfying BOM for {} - {}", name, bom);
-        ImmutableMap.Builder<Query<?>, Set<?>> materials = ImmutableMap.builder();
+        ImmutableMultimap.Builder<Query<?>, NamedComponent<?>> materials = ImmutableMultimap.builder();
 
         for (Query key : bom.getQueries()) {
-            materials.put(key, key.bind(this).find());
+            materials.putAll(key, key.bind(this).find());
         }
 
         return new SatisfiedBOM(bom, materials.build());

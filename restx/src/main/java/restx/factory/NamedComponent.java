@@ -19,6 +19,15 @@ public final class NamedComponent<T> {
         };
     }
 
+    public static <T> Function<NamedComponent<T>, Name<T>> toName() {
+        return new Function<NamedComponent<T>, Name<T>>() {
+            @Override
+            public Name<T> apply(NamedComponent<T> namedComponent) {
+                return namedComponent.getName();
+            }
+        };
+    }
+
     public static <T> NamedComponent<T> of(Class<T> clazz, String name, T component) {
         return new NamedComponent<>(new Name<>(clazz, name), component);
     }

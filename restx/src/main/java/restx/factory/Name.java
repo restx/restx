@@ -15,9 +15,25 @@ public final class Name<T> {
         return new Name<>(clazz, name);
     }
 
+    public static <T> Name<T> of(Class<T> clazz) {
+        return new Name<>(clazz, clazz.getSimpleName());
+    }
+
     public Name(Class<T> clazz, String name) {
         this.name = checkNotNull(name);
         this.clazz = checkNotNull(clazz);
+    }
+
+    public String getSimpleName() {
+        String simpleName = clazz.getSimpleName();
+        if (!simpleName.equalsIgnoreCase(name)) {
+            simpleName = name + "[" + simpleName + "]";
+        }
+        return simpleName;
+    }
+
+    public String asId() {
+        return name; // + "[" + clazz.getName() + "]";
     }
 
     public String getName() {

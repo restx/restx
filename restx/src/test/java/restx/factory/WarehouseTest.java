@@ -1,6 +1,8 @@
 package restx.factory;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMultimap;
+import com.jamonapi.MonitorFactory;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -17,7 +19,9 @@ public class WarehouseTest {
     public void should_checkin_and_checkout_from_disposable_box() throws Exception {
         Warehouse warehouse = new Warehouse();
 
-        warehouse.checkIn(new DisposableComponentBox<>(NamedComponent.of(String.class, "name", "test")));
+        warehouse.checkIn(new DisposableComponentBox<>(NamedComponent.of(String.class, "name", "test")),
+                new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()),
+                MonitorFactory.getRootMonitor());
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
         assertThat(component.isPresent(), equalTo(true));
@@ -33,7 +37,9 @@ public class WarehouseTest {
     public void should_checkin_and_checkout_from_boundless_box() throws Exception {
         Warehouse warehouse = new Warehouse();
 
-        warehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")));
+        warehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")),
+                new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()),
+                MonitorFactory.getRootMonitor());
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
         assertThat(component.isPresent(), equalTo(true));
