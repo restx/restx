@@ -1,6 +1,6 @@
 package restx.jongo;
 
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import org.jongo.Jongo;
 import org.jongo.marshall.jackson.JacksonMapper;
 import restx.factory.*;
@@ -19,19 +19,33 @@ public class JongoFactory extends SingleNameFactoryMachine<Jongo> {
     public static final Name<Jongo> NAME = Name.of(Jongo.class, "Jongo");
 
     public JongoFactory() {
-        super(0, new StdMachineEngine<Jongo>(NAME, BoundlessComponentBox.FACTORY) {
+        super(0, new MachineEngine<Jongo>() {
             private Factory.Query<String> dbNameQuery = Factory.Query.byName(JONGO_DB);
+
+            @Override
+            public Name<Jongo> getName() {
+                return NAME;
+            }
 
             @Override
             public BillOfMaterials getBillOfMaterial() {
                 return BillOfMaterials.of(dbNameQuery);
             }
 
-            @Override
+            public ComponentBox<Jongo> newComponent(SatisfiedBOM satisfiedBOM) {
+                return new BoundlessComponentBox<Jongo>(
+                        new NamedComponent(NAME, doNewComponent(satisfiedBOM))) {
+                    @Override
+                    public void close() {
+                        pick().get().getComponent().getDatabase().getMongo().close();
+                    }
+                };
+            }
+
             public Jongo doNewComponent(SatisfiedBOM satisfiedBOM) {
                 String db = satisfiedBOM.getOne(dbNameQuery).get().getComponent();
                 try {
-                    return new Jongo(new Mongo().getDB(db),
+                    return new Jongo(new MongoClient().getDB(db),
                             new JacksonMapper.Builder()
                                 .registerModule(new BsonJodaTimeModule())
                                 .build());

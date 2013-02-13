@@ -2,6 +2,9 @@ package restx.factory;
 
 import com.google.common.base.Optional;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -25,6 +28,17 @@ public class BoundlessComponentBox<T> implements ComponentBox<T> {
 
     public BoundlessComponentBox(NamedComponent<T> namedComponent) {
         this.namedComponent = checkNotNull(namedComponent);
+    }
+
+    @Override
+    public void close() {
+        if (namedComponent.getComponent() instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) namedComponent.getComponent()).close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public synchronized Optional<NamedComponent<T>> pick() {

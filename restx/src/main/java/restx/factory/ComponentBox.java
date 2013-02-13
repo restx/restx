@@ -7,7 +7,7 @@ import com.google.common.base.Optional;
  * Date: 1/31/13
  * Time: 6:03 PM
  */
-public interface ComponentBox<T> {
+public interface ComponentBox<T> extends AutoCloseable {
     public static interface BoxFactory {
         <T> ComponentBox<T> of(NamedComponent<T> namedComponent);
     }

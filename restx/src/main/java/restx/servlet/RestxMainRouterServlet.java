@@ -1,8 +1,6 @@
 package restx.servlet;
 
 import restx.RestxMainRouter;
-import restx.servlet.HttpServletRestxRequest;
-import restx.servlet.HttpServletRestxResponse;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -24,6 +22,16 @@ public class RestxMainRouterServlet extends HttpServlet {
         super.init(config);
 
         mainRouter.init();
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            mainRouter.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        super.destroy();
     }
 
     @Override

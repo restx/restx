@@ -24,7 +24,7 @@ import static restx.common.MorePreconditions.checkPresent;
  * Date: 1/31/13
  * Time: 5:42 PM
  */
-public class Factory {
+public class Factory implements AutoCloseable {
     private final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
 
@@ -375,6 +375,10 @@ public class Factory {
 
     public <T> Query<T> queryByClass(Class<T> componentClass) {
         return new ClassQuery(componentClass).bind(this);
+    }
+
+    public void close() {
+        warehouse.close();
     }
 
     @Override

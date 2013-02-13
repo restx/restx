@@ -23,7 +23,7 @@ import java.util.List;
  * Date: 2/6/13
  * Time: 9:53 PM
  */
-public class RestxMainRouter {
+public class RestxMainRouter implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouter.class);
 
@@ -43,6 +43,13 @@ public class RestxMainRouter {
             if (!baseUri.isEmpty()) {
                 logPrompt(baseUri, "LOAD ON REQUEST");
             }
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (factory != null) {
+            factory.close();
         }
     }
 
@@ -67,6 +74,13 @@ public class RestxMainRouter {
 
         mainRouter = new RestxRouter("MainRouter", ImmutableList.copyOf(
                 factory.queryByClass(RestxRoute.class).findAsComponents()));
+    }
+
+    private void closeFactory(String contextName) {
+        mainRouter = null;
+        factory.close();
+        factory = null;
+        logger.debug("closed restx factory");
     }
 
 
@@ -149,6 +163,9 @@ public class RestxMainRouter {
             out.close();
         } finally {
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
+            if (getLoadFactoryMode().equals("onrequest")) {
+                closeFactory(contextName);
+            }
             monitor.stop();
         }
     }

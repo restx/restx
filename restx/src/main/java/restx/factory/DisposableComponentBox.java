@@ -21,15 +21,33 @@ public class DisposableComponentBox<T> implements ComponentBox<T> {
 
     private final Name<T> name;
     private NamedComponent<T> namedComponent;
+    private boolean disposed;
 
     public DisposableComponentBox(NamedComponent<T> namedComponent) {
         name = namedComponent.getName();
         this.namedComponent = namedComponent;
     }
 
-    public synchronized Optional<NamedComponent<T>> pick() {
-        Optional<NamedComponent<T>> picked = Optional.fromNullable(namedComponent);
+    @Override
+    public synchronized void close() {
+        if (namedComponent.getComponent() instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) namedComponent.getComponent()).close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         namedComponent = null;
+        disposed = true;
+    }
+
+    public synchronized Optional<NamedComponent<T>> pick() {
+        if (disposed) {
+            return Optional.absent();
+        }
+        Optional<NamedComponent<T>> picked = Optional.fromNullable(namedComponent);
+        // we don't clear the reference to the component, we may need it to clean it when closing the box
+        disposed = true;
         return picked;
     }
 
