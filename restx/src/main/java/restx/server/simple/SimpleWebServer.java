@@ -10,6 +10,7 @@ import org.simpleframework.transport.connect.SocketConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxMainRouter;
+import restx.RestxMainRouterFactory;
 import restx.server.WebServer;
 
 import java.io.IOException;
@@ -30,15 +31,20 @@ public class SimpleWebServer implements WebServer {
     private Connection connection;
     private RestxMainRouter router;
 
+
     public SimpleWebServer(String appBase, int port) {
         this("/api", appBase, port);
     }
 
     public SimpleWebServer(String routerPath, String appBase, int port) {
+        this(buildRestxMainRouterFactory(port), routerPath, appBase, port);
+    }
+
+    public SimpleWebServer(RestxMainRouter router, String routerPath, String appBase, int port) {
         this.routerPath = routerPath;
         this.appBase = appBase;
         this.port = port;
-        this.router = new RestxMainRouter();
+        this.router = router;
     }
 
     public RestxMainRouter getRouter() {
@@ -54,7 +60,7 @@ public class SimpleWebServer implements WebServer {
             public void handle(Request request, Response response) {
                 try {
                     if (request.getPath().getPath().startsWith(routerPath)) {
-                        router.route(getFactoryContextName(port),
+                        router.route(
                                 new SimpleRestxRequest(routerPath, request), new SimpleRestxResponse(response));
                     } else {
                         response.getPrintStream().print("Not found...");
@@ -70,11 +76,6 @@ public class SimpleWebServer implements WebServer {
         SocketAddress address = new InetSocketAddress(port);
 
         connection.connect(address);
-        router.init();
-    }
-
-    public static String getFactoryContextName(int port) {
-        return String.format("RESTX@%s", port);
     }
 
     @Override
@@ -85,7 +86,9 @@ public class SimpleWebServer implements WebServer {
 
     @Override
     public void stop() throws Exception {
-        router.close();
+        if (router instanceof AutoCloseable) {
+            ((AutoCloseable) router).close();
+        }
         connection.close();
     }
 
@@ -98,4 +101,16 @@ public class SimpleWebServer implements WebServer {
     public int getPort() {
         return port;
     }
+
+    private static RestxMainRouterFactory buildRestxMainRouterFactory(int port) {
+        RestxMainRouterFactory router = new RestxMainRouterFactory();
+        router.setContextName(getFactoryContextName(port));
+        router.init();
+        return router;
+    }
+
+    public static String getFactoryContextName(int port) {
+        return String.format("RESTX@%s", port);
+    }
+
 }
