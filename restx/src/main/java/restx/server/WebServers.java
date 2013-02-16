@@ -1,6 +1,6 @@
-package restx.embed;
+package restx.server;
 
-import restx.embed.simple.SimpleWebServer;
+import restx.server.simple.SimpleWebServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;

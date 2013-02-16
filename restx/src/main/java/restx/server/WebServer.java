@@ -1,4 +1,4 @@
-package restx.embed;
+package restx.server;
 
 /**
  * User: xavierhanin

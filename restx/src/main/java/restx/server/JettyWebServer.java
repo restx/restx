@@ -1,4 +1,4 @@
-package restx.embed;
+package restx.server;
 
 import com.google.common.base.Strings;
 import org.eclipse.jetty.security.DefaultIdentityService;

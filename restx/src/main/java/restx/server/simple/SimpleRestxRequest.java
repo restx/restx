@@ -1,4 +1,4 @@
-package restx.embed.simple;
+package restx.server.simple;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;

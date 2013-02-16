@@ -1,4 +1,4 @@
-package restx.embed;
+package restx.server;
 
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;

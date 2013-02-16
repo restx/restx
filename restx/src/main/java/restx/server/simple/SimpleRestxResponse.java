@@ -1,4 +1,4 @@
-package restx.embed.simple;
+package restx.server.simple;
 
 import org.simpleframework.http.Response;
 import restx.RestxResponse;

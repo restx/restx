@@ -1,4 +1,4 @@
-package restx.embed.simple;
+package restx.server.simple;
 
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
@@ -10,7 +10,7 @@ import org.simpleframework.transport.connect.SocketConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxMainRouter;
-import restx.embed.WebServer;
+import restx.server.WebServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
