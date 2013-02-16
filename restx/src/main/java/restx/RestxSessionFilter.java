@@ -7,7 +7,6 @@ import restx.common.Crypto;
 import restx.factory.*;
 import restx.jackson.FrontObjectMapperFactory;
 
-import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.util.Map;
 
@@ -72,8 +71,8 @@ public class RestxSessionFilter implements RestxRoute {
     private void updateSessionInClient(RestxResponse resp, RestxSession session) {
         try {
             String sessionJson = mapper.writeValueAsString(session.valueidsByKeyMap());
-            resp.addCookie(new Cookie(RESTX_SESSION, sessionJson));
-            resp.addCookie(new Cookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey)));
+            resp.addCookie(RESTX_SESSION, sessionJson);
+            resp.addCookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

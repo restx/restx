@@ -42,13 +42,17 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void addCookie(Cookie cookie) {
-        resp.addCookie(cookie);
+    public void addCookie(String cookie, String value) {
+        resp.addCookie(new Cookie(cookie, value));
     }
 
     @Override
     public void setHeader(String headerName, String header) {
         resp.setHeader(headerName, header);
+    }
+
+    @Override
+    public void close() throws Exception {
     }
 
     @Override

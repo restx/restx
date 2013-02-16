@@ -1,6 +1,5 @@
 package restx;
 
-import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -10,7 +9,7 @@ import java.io.PrintWriter;
  * Date: 2/6/13
  * Time: 9:46 PM
  */
-public interface RestxResponse {
+public interface RestxResponse extends AutoCloseable {
     void setStatus(int i);
 
     void setContentType(String s);
@@ -19,7 +18,7 @@ public interface RestxResponse {
 
     OutputStream getOutputStream() throws IOException;
 
-    void addCookie(Cookie cookie);
+    void addCookie(String cookie, String value);
 
     void setHeader(String headerName, String header);
 }

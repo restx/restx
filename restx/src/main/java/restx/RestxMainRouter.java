@@ -109,7 +109,6 @@ public class RestxMainRouter implements AutoCloseable {
                 restxResponse.setContentType("text/plain");
                 PrintWriter out = restxResponse.getWriter();
                 out.print(msg);
-                out.close();
             }
         } catch (JsonProcessingException ex) {
             logger.debug("request raised " + ex.getClass().getSimpleName(), ex);
@@ -153,16 +152,15 @@ public class RestxMainRouter implements AutoCloseable {
                     out.println(ex.getMessage());
                 }
             }
-            out.close();
         } catch (IllegalArgumentException ex) {
             logger.debug("request raised IllegalArgumentException", ex);
             restxResponse.setStatus(400);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             out.print(ex.getMessage());
-            out.close();
         } finally {
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
+            try { restxResponse.close(); } catch (Exception ex) { }
             if (getLoadFactoryMode().equals("onrequest")) {
                 closeFactory(contextName);
             }
