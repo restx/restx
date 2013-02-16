@@ -193,6 +193,14 @@
             <scope>optional</scope>
         </dependency>
 
+        <!-- Simple framework dependencies -->
+        <dependency>
+            <groupId>org.simpleframework</groupId>
+            <artifactId>simple</artifactId>
+            <version>5.0.4</version>
+            <scope>optional</scope>
+        </dependency>
+
 
         <!-- test -->
         <dependency>

@@ -1,5 +1,7 @@
 package restx.embed;
 
+import restx.embed.simple.SimpleWebServer;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 
@@ -9,13 +11,15 @@ import java.net.ServerSocket;
  * Time: 9:48 PM
  */
 public class WebServers {
-    public static WebServer newWebServer(String webInfBase, String docsBase,int port) throws Exception {
+    public static WebServer newWebServer(String webInfLocation, String appBase, int port) throws Exception {
         String server = System.getProperty("server", "jetty");
         switch (server) {
             case "jetty":
-                return new JettyWebServer(webInfBase, docsBase, port, null);
+                return new JettyWebServer(webInfLocation, appBase, port, null);
             case "tomcat":
-                return new TomcatWebServer(webInfBase, port);
+                return new TomcatWebServer(appBase, port);
+            case "simple":
+                return new SimpleWebServer(appBase, port);
             default:
                 throw new IllegalStateException("unknown server " + server + "." +
                         " Review your configuration with -Dserver={jetty,tomcat}");
