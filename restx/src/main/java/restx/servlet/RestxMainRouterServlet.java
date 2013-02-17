@@ -4,7 +4,6 @@ import restx.RestxMainRouterFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -14,7 +13,7 @@ import java.io.IOException;
  * Date: 1/18/13
  * Time: 2:46 PM
  */
-public class RestxMainRouterServlet extends HttpServlet {
+public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
     private final RestxMainRouterFactory mainRouter = new RestxMainRouterFactory();
 
     @Override
@@ -22,24 +21,14 @@ public class RestxMainRouterServlet extends HttpServlet {
         super.init(config);
 
         mainRouter.init();
-    }
 
-    @Override
-    public void destroy() {
-        try {
-            mainRouter.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        super.destroy();
+        init(mainRouter);
     }
 
     @Override
     protected void service(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         mainRouter.setContextName(getFactoryContextName(req.getServerPort()));
-        mainRouter.route(
-                new HttpServletRestxRequest(req),
-                new HttpServletRestxResponse(resp));
+        super.service(req, resp);
     }
 
     public static String getFactoryContextName(int port) {
