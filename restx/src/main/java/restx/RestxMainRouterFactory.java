@@ -17,7 +17,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
 
     private Factory factory;
     private StdRestxMainRouter mainRouter;
-    private String contextName;
+    private String contextName = "";
 
     public void setContextName(String contextName) {
         this.contextName = contextName;
