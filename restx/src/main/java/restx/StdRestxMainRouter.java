@@ -2,9 +2,12 @@ package restx;
 
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
@@ -23,6 +26,38 @@ import java.util.List;
  * Time: 9:53 PM
  */
 public class StdRestxMainRouter implements RestxMainRouter {
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private ObjectMapper mapper;
+        private List<RestxRoute> routes = Lists.newArrayList();
+
+        public Builder withMapper(ObjectMapper mapper) {
+            this.mapper = mapper;
+            return this;
+        }
+
+        public Builder addRoute(RestxRoute route) {
+            routes.add(route);
+            return this;
+        }
+
+        public Builder addRoute(String method, String path, final MatchedEntityRoute route) {
+            routes.add(new StdRoute(path, mapper, new StdRouteMatcher(method, path)) {
+                @Override
+                protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                    return route.route(restxRequest, match);
+                }
+            });
+            return this;
+        }
+
+        public RestxMainRouter build() {
+            return new StdRestxMainRouter(ImmutableList.copyOf(routes));
+        }
+    }
 
     private final Logger logger = LoggerFactory.getLogger(StdRestxMainRouter.class);
 

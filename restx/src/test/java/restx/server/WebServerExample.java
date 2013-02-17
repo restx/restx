@@ -2,7 +2,6 @@ package restx.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import restx.*;
 import restx.server.simple.SimpleWebServer;
@@ -18,38 +17,28 @@ import java.io.IOException;
 public class WebServerExample {
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static final StdRestxMainRouter ROUTER = new StdRestxMainRouter(ImmutableList.of(
-            route1(),
-            route2(),
-            route3()
-    ));
+    private static final RestxMainRouter ROUTER = StdRestxMainRouter.builder()
+            .withMapper(mapper)
+            .addRoute("GET", "/route1/{id}", new MatchedEntityRoute() {
+                @Override
+                public Optional<?> route(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                    return Optional.of(ImmutableMap.of("id", match.getPathParams().get("id")));
+                }
+            })
+            .addRoute("GET", "/route2", new MatchedEntityRoute() {
+                @Override
+                public Optional<?> route(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                    return Optional.of(ImmutableMap.of("path", "route2"));
+                }
+            })
+            .addRoute("GET", "/route3", new MatchedEntityRoute() {
+                @Override
+                public Optional<?> route(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                    return Optional.of(ImmutableMap.of("path", "route3"));
+                }
+            })
+            .build();
 
-    private static RestxRoute route1() {
-        return new StdRoute("route1", mapper, new StdRouteMatcher("GET", "/route1/{id}")) {
-            @Override
-            protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
-                return Optional.of(ImmutableMap.of("id", match.getPathParams().get("id")));
-            }
-        };
-    }
-
-    private static RestxRoute route2() {
-        return new StdRoute("route2", mapper, new StdRouteMatcher("GET", "/route2")) {
-            @Override
-            protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
-                return Optional.of(ImmutableMap.of("name", "route2"));
-            }
-        };
-    }
-
-    private static RestxRoute route3() {
-        return new StdRoute("route3", mapper, new StdRouteMatcher("GET", "/route3")) {
-            @Override
-            protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
-                return Optional.of(ImmutableMap.of("name", "route3"));
-            }
-        };
-    }
 
     public static void main(String[] args) throws Exception {
         String server = args.length > 0 ? args[0] : "jetty";
