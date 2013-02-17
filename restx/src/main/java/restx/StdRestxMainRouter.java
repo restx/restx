@@ -41,20 +41,21 @@ public class StdRestxMainRouter implements RestxMainRouter {
             if (!mainRouter.route(restxRequest, restxResponse,
                     new RestxContext(RouteLifecycleListener.DEAF))) {
                 String path = restxRequest.getRestxPath();
-                String msg = String.format(
-                        "no restx route found for %s %s\n" +
-                        "go to %s for API documentation\n\n" +
-                        "routes:\n" +
-                        "-----------------------------------\n" +
-                        "%s\n" +
-                        "-----------------------------------",
-                        restxRequest.getHttpMethod(), path,
-                        restxRequest.getBaseUri() + "/@/api-docs-ui",
-                        mainRouter);
+                StringBuilder sb = new StringBuilder()
+                        .append("no restx route found for ")
+                        .append(restxRequest.getHttpMethod()).append(" ").append(path).append("\n");
+                if (hasApiDocs()) {
+                    sb.append("go to ").append(restxRequest.getBaseUri()).append("/@/api-docs-ui")
+                            .append(" for API documentation\n\n");
+                }
+                sb.append("routes:\n")
+                        .append("-----------------------------------\n")
+                        .append(mainRouter).append("\n")
+                        .append("-----------------------------------");
                 restxResponse.setStatus(404);
                 restxResponse.setContentType("text/plain");
                 PrintWriter out = restxResponse.getWriter();
-                out.print(msg);
+                out.print(sb.toString());
             }
         } catch (JsonProcessingException ex) {
             logger.debug("request raised " + ex.getClass().getSimpleName(), ex);
@@ -82,7 +83,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                             out.println(
                                     Strings.repeat(" ", Math.max(0, location.getColumnNr() - 2)) + "^");
                             out.println(Strings.repeat(farColumn ? ">" : " ", Math.max(0, location.getColumnNr()
-                                                                - (ex.getOriginalMessage().length() / 2) - 3))
+                                    - (ex.getOriginalMessage().length() / 2) - 3))
                                     + ">> " + ex.getOriginalMessage() + " <<");
                             out.println();
                         }
@@ -109,6 +110,18 @@ public class StdRestxMainRouter implements RestxMainRouter {
             try { restxResponse.close(); } catch (Exception ex) { }
             monitor.stop();
         }
+    }
+
+    private boolean hasApiDocs() {
+        for (RestxRoute route : mainRouter.getRoutes()) {
+            // maybe we should find a more pluggable way to detect this feature..
+            // we don't use the class itself, we don't want to have a strong dependency on swagger route
+            if (route.getClass().getName().endsWith("SwaggerUIRoute")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public int getNbRoutes() {
