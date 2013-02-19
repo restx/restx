@@ -3,6 +3,7 @@ package restx.servlet;
 import restx.RestxResponse;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,9 +17,11 @@ import java.io.PrintWriter;
 public class HttpServletRestxResponse implements RestxResponse {
 
     private final HttpServletResponse resp;
+    private final HttpServletRequest request;
 
-    public HttpServletRestxResponse(HttpServletResponse resp) {
+    public HttpServletRestxResponse(HttpServletResponse resp, HttpServletRequest request) {
         this.resp = resp;
+        this.request = request;
     }
 
     @Override
@@ -43,7 +46,13 @@ public class HttpServletRestxResponse implements RestxResponse {
 
     @Override
     public void addCookie(String cookie, String value) {
-        resp.addCookie(new Cookie(cookie, value));
+        Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
+        if (existingCookie != null) {
+            existingCookie.setValue(value);
+            resp.addCookie(existingCookie);
+        } else {
+            resp.addCookie(new Cookie(cookie, value));
+        }
     }
 
     @Override

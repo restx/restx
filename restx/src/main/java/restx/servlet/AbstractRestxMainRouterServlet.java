@@ -43,6 +43,6 @@ public class AbstractRestxMainRouterServlet extends HttpServlet {
     protected void service(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         mainRouter.route(
                 new HttpServletRestxRequest(req),
-                new HttpServletRestxResponse(resp));
+                new HttpServletRestxResponse(resp, req));
     }
 }

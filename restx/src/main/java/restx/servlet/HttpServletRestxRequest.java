@@ -95,6 +95,15 @@ public class HttpServletRestxRequest implements RestxRequest {
         return defaultValue;
     }
 
+    static Cookie getCookie(Cookie[] cookies, String cookieName) {
+        for (int i = 0; i < cookies.length; i++) {
+            Cookie cookie = cookies[i];
+            if (cookieName.equals(cookie.getName()))
+                return cookie;
+        }
+        return null;
+    }
+
     @Override
     public Optional<String> getHeader(String headerName) {
         return Optional.fromNullable(request.getHeader(headerName));
