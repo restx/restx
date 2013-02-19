@@ -228,7 +228,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
                     .put("overrideWriteValue", resourceMethod.returnType.startsWith(Iterable.class.getName()) ?
-                            String.format("protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException { mapper.writerWithType(new TypeReference<%s>() { }).writeValue(writer, value); }", resourceMethod.returnType)
+                            String.format("protected ObjectWriter getObjectWriter(ObjectMapper mapper) { return super.getObjectWriter(mapper).withType(new TypeReference<%s>() { }); }", resourceMethod.returnType)
                             : "")
                     .build()
             ));

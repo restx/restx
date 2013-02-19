@@ -1,11 +1,13 @@
 package restx;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import restx.description.DescribableRoute;
 import restx.description.OperationDescription;
 import restx.description.ResourceDescription;
+import restx.jackson.Views;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -59,7 +61,11 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
     }
 
     protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException {
-        mapper.writeValue(writer, value);
+        getObjectWriter(mapper).writeValue(writer, value);
+    }
+
+    protected ObjectWriter getObjectWriter(ObjectMapper mapper) {
+        return mapper.writerWithView(Views.Transient.class);
     }
 
     @Override

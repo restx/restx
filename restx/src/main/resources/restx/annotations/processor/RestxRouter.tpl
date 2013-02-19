@@ -2,6 +2,7 @@ package {package};
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import static com.google.common.base.Preconditions.checkNotNull;
 

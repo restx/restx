@@ -5,6 +5,7 @@ import org.jongo.Jongo;
 import org.jongo.marshall.jackson.JacksonMapper;
 import restx.factory.*;
 import restx.jackson.BsonJodaTimeModule;
+import restx.jackson.Views;
 
 import java.net.UnknownHostException;
 
@@ -48,6 +49,7 @@ public class JongoFactory extends SingleNameFactoryMachine<Jongo> {
                     return new Jongo(new MongoClient().getDB(db),
                             new JacksonMapper.Builder()
                                 .registerModule(new BsonJodaTimeModule())
+                                .withView(Views.Private.class)
                                 .build());
                 } catch (UnknownHostException e) {
                     throw new RuntimeException(e);
