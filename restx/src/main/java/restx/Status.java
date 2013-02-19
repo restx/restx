@@ -10,5 +10,24 @@ import com.google.common.collect.ImmutableMap;
 public final class Status {
     public static final ImmutableMap DELETED = ImmutableMap.of("status", "deleted");
 
-    private Status() {}
+    public static Status of(String status) {
+        return new Status(status);
+    }
+
+    private String status;
+
+    public Status() {
+    }
+
+    public Status(String status) {
+        this.status = status;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
