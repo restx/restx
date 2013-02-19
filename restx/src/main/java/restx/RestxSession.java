@@ -113,7 +113,11 @@ public class RestxSession {
         // create new map by using a mutable map, not a builder, in case the the given entry overrides a previous one
         Map<String,String> newValueidsByKey = Maps.newHashMap();
         newValueidsByKey.putAll(valueidsByKey);
-        newValueidsByKey.put(key, valueid);
+        if (valueid == null) {
+            newValueidsByKey.remove(key);
+        } else {
+            newValueidsByKey.put(key, valueid);
+        }
         RestxSession newCtx = new RestxSession(definition, ImmutableMap.copyOf(newValueidsByKey));
         if (this == current()) {
             current.set(newCtx);
