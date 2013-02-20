@@ -1,6 +1,8 @@
 package restx.servlet;
 
+import com.google.common.base.Optional;
 import restx.RestxResponse;
+import restx.server.HTTP;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +33,12 @@ public class HttpServletRestxResponse implements RestxResponse {
 
     @Override
     public void setContentType(String s) {
+        if (HTTP.isTextContentType(s)) {
+            Optional<String> cs = HTTP.charsetFromContentType(s);
+            if (!cs.isPresent()) {
+                s += "; charset=UTF-8";
+            }
+        }
         resp.setContentType(s);
     }
 

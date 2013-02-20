@@ -1,10 +1,15 @@
 package restx.server.simple;
 
+import com.google.common.base.Optional;
 import org.simpleframework.http.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import restx.RestxResponse;
+import restx.server.HTTP;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 /**
@@ -13,7 +18,9 @@ import java.io.PrintWriter;
  * Time: 1:57 PM
  */
 public class SimpleRestxResponse implements RestxResponse {
+    private final Logger logger = LoggerFactory.getLogger(SimpleRestxResponse.class);
     private final Response response;
+    private String charset;
     private PrintWriter writer;
     private OutputStream outputStream;
 
@@ -28,12 +35,27 @@ public class SimpleRestxResponse implements RestxResponse {
 
     @Override
     public void setContentType(String s) {
+        if (HTTP.isTextContentType(s)) {
+            Optional<String> cs = HTTP.charsetFromContentType(s);
+            if (!cs.isPresent()) {
+                s += "; charset=UTF-8";
+                charset = "UTF-8";
+            } else {
+                charset = cs.get();
+            }
+        }
         response.setValue("Content-Type", s);
     }
 
     @Override
     public PrintWriter getWriter() throws IOException {
-        return writer = new PrintWriter(response.getPrintStream(), true);
+        if (charset == null) {
+            logger.warn("no charset defined while getting writer to write http response." +
+                    " Make sure you call setContentType() before calling getWriter(). Using UTF-8 charset.");
+            charset = "UTF-8";
+        }
+        return writer = new PrintWriter(
+                new OutputStreamWriter(response.getPrintStream(), charset), true);
     }
 
     @Override
