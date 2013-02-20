@@ -2,9 +2,7 @@ package restx.common;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.notNullValue;
+import static org.fest.assertions.api.Assertions.*;
 
 /**
  * User: xavierhanin
@@ -16,8 +14,9 @@ public class CryptoTest {
     public void testSign() throws Exception {
         String signature = Crypto.sign("My message to sign", "my grain of salt".getBytes("UTF-8"));
 
-        assertThat(signature, notNullValue());
-        assertThat(signature, equalTo("yIDXrtZ71qCfHnUNvlYSS//0YPE="));
-        assertThat(signature, equalTo(Crypto.sign("My message to sign", "my grain of salt".getBytes("UTF-8"))));
+        assertThat(signature)
+                .isNotNull()
+                .isEqualTo("yIDXrtZ71qCfHnUNvlYSS//0YPE=")
+                .isEqualTo(Crypto.sign("My message to sign", "my grain of salt".getBytes("UTF-8")));
     }
 }

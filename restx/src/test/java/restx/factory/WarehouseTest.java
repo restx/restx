@@ -5,8 +5,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.jamonapi.MonitorFactory;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * User: xavierhanin
@@ -24,12 +23,12 @@ public class WarehouseTest {
                 MonitorFactory.getRootMonitor());
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
-        assertThat(component.isPresent(), equalTo(true));
-        assertThat(component.get().getName().getName(), equalTo("name"));
-        assertThat(component.get().getComponent(), equalTo("test"));
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("name");
+        assertThat(component.get().getComponent()).isEqualTo("test");
 
         component = warehouse.checkOut(Name.of(String.class, "name"));
-        assertThat(component.isPresent(), equalTo(false));
+        assertThat(component.isPresent()).isFalse();
     }
 
 
@@ -42,13 +41,13 @@ public class WarehouseTest {
                 MonitorFactory.getRootMonitor());
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
-        assertThat(component.isPresent(), equalTo(true));
-        assertThat(component.get().getName().getName(), equalTo("name"));
-        assertThat(component.get().getComponent(), equalTo("test"));
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("name");
+        assertThat(component.get().getComponent()).isEqualTo("test");
 
         component = warehouse.checkOut(Name.of(String.class, "name"));
-        assertThat(component.isPresent(), equalTo(true));
-        assertThat(component.get().getName().getName(), equalTo("name"));
-        assertThat(component.get().getComponent(), equalTo("test"));
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("name");
+        assertThat(component.get().getComponent()).isEqualTo("test");
     }
 }

@@ -1,14 +1,11 @@
 package restx.factory;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import java.util.Set;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 /**
  * User: xavierhanin
@@ -29,11 +26,11 @@ public class FactoryTest {
 
         Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "test")).findOne();
 
-        assertThat(component.isPresent(), equalTo(true));
-        assertThat(component.get().getName(), equalTo(Name.of(String.class, "test")));
-        assertThat(component.get().getComponent(), equalTo("value1"));
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName()).isEqualTo(Name.of(String.class, "test"));
+        assertThat(component.get().getComponent()).isEqualTo("value1");
 
-        assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get(), is(component.get()));
+        assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get()).isEqualTo(component.get());
     }
 
 
@@ -58,9 +55,8 @@ public class FactoryTest {
 
         Set<NamedComponent<String>> components = factory.queryByClass(String.class).find();
 
-        Set<NamedComponent<String>> expected = Sets.newHashSet(
+        assertThat(components).containsExactly(
                 NamedComponent.of(String.class, "test 1", "value 1"),
                 NamedComponent.of(String.class, "test 2", "value 2"));
-        assertThat(components, equalTo(expected));
     }
 }
