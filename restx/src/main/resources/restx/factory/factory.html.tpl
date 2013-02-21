@@ -11,20 +11,59 @@
             // compose group of elements to represent a node.
             var graph = Viva.Graph.graph();
 
+
+            var searchedQuery, hover = false, defaultOpacity = 0.05, defaultLabelOpacity = 0;
+
+            function applyOpacities() {
+                graph.forEachLink(function (link) {
+                    link.ui.attr('opacity', (searchedQuery || hover) ? defaultOpacity : 1);
+                });
+                //noinspection JSValidateTypes
+                graph.forEachNode(function (node) {
+                    node.ui.attr('opacity', opacityForNode(node));
+                    node.ui.children('text')[0].attr('opacity', opacityForNodeLabel(node));
+                });
+            }
+
+            function highlightSearchedNodes() {
+                searchedQuery = $('#search').val();
+                applyOpacities();
+            };
+
+            function opacityForNode(node) {
+                return (searchedQuery &&
+                        node && node.data && node.data.name.toUpperCase().indexOf(searchedQuery.toUpperCase()) !== -1)
+                        ? 1
+                        : ((hover || searchedQuery) ? defaultOpacity : 1);
+            }
+            function opacityForNodeLabel(node) {
+                return (searchedQuery &&
+                        node && node.data && node.data.name.toUpperCase().indexOf(searchedQuery.toUpperCase()) !== -1)
+                        ? 1 : defaultLabelOpacity;
+            }
+            $('#search').keyup(highlightSearchedNodes);
+
+
             var graphics = Viva.Graph.View.svgGraphics(),
                 nodeHeight = 24,
                 nodeWidth = 24,
-                // we use this method to highlight all realted links
+
+                // we use this method to highlight all realted links and nodes
                 // when user hovers mouse over a node:
-                highlightRelatedNodes = function(nodeId, isOn) {
-                   // just enumerate all realted nodes and update link color:
-                   graph.forEachLinkedNode(nodeId, function(node, link){
+                highlightRelatedNodes = function(node, isOn) {
+                    applyOpacities();
+                    var opacity = isOn ? 1 : opacityForNode(node);
+                    var labelOpacity = isOn ? 1 : opacityForNodeLabel(node);
+                    node.ui.attr('opacity', opacity);
+                    node.ui.children('text')[0].attr('opacity', labelOpacity);
+                    graph.forEachLinkedNode(node.id, function(node, link){
                        if (link && link.ui) {
-                           // link.ui is a special property of each link
-                           // points to the link presentation object.
+                           link.ui.attr('opacity', isOn ? 1 : (searchedQuery ? defaultOpacity : 1));
                            link.ui.attr('stroke', isOn ? 'orange' : 'gray');
+                           node.ui.attr('opacity', isOn ? 1 : opacityForNode(node));
+                           node.ui.children('text')[0].attr('opacity', isOn ? 1 : opacityForNodeLabel(node));
                        }
-                   });
+                    });
                 },
                 colors = {
                     'RestxResource': '#4ECDC4',
@@ -42,27 +81,32 @@
             // Render the graph
             var renderer = Viva.Graph.View.renderer(graph, {
                     layout     : layout,
-                    graphics : graphics
+                    graphics : graphics,
+                    container : $('#graph')[0]
                 });
             renderer.run();
 
             graphics.node(function(node) {
               // This time it's a group of elements: http://www.w3.org/TR/SVG/struct.html#Groups
               var ui = Viva.Graph.svg('g'),
-                  svgText = Viva.Graph.svg('text').attr('y', '-4px').text(node.data ? node.data.name : node.id),
+                  svgText = Viva.Graph.svg('text').attr('opacity', defaultLabelOpacity)
+                          .attr('y', '-4px').attr('x', (nodeWidth + 4) + 'px').text(node.data ? node.data.name : node.id),
                   img = Viva.Graph.svg('rect')
                      .attr('width', nodeWidth)
                      .attr('height', nodeHeight)
                      .attr('stroke', node.data ? colors[node.data.type] || colors.default : colors.default)
                      .attr('fill', node.data ? colors[node.data.type] || colors.default : colors.default);
 
+              ui.attr('opacity', 1);
               ui.append(svgText);
               ui.append(img);
 
-                $(ui).hover(function() { // mouse over
-                    highlightRelatedNodes(node.id, true);
+                $(img).hover(function() { // mouse over
+                    hover = true;
+                    highlightRelatedNodes(node, true);
                 }, function() { // mouse out
-                    highlightRelatedNodes(node.id, false);
+                    hover = false;
+                    highlightRelatedNodes(node, false);
                 });
 
               ui.width = nodeWidth;
@@ -108,6 +152,7 @@
             graphics.link(function(link){
                 // Notice the Triangle marker-end attribe:
                 return Viva.Graph.svg('path')
+                           .attr('opacity', 1)
                            .attr('stroke', 'gray')
                            .attr('marker-end', 'url(#Triangle)');
             }).placeLink(function(linkUI, fromPos, toPos) {
@@ -159,7 +204,10 @@
         html, body, svg { width: 100%; height: 100%;}
     </style>
 </head>
-<body onload='main()'>
-
+<body style="background: #302E30; " onload='main()'>
+<div id="panel" style="position: absolute; top: 5px; bottom: 5px; left: 10px; width: 200px; color: #F3F7E4;">
+    <div>Search: <input id="search"> </div>
+</div>
+    <div id="graph" style="position: absolute; top: 5px; bottom: 5px; right: 5px; left: 215px; background: #eeeeee; "></div>
 </body>
 </html>
