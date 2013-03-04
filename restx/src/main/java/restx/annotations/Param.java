@@ -7,7 +7,7 @@ package restx.annotations;
  */
 public @interface Param {
     public static enum Kind {
-        PATH, QUERY, BODY, DEFAULT
+        PATH, QUERY, BODY, CONTEXT, DEFAULT
     }
 
     String value() default "";

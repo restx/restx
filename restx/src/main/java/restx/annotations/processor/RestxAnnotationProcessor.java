@@ -20,10 +20,7 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -196,18 +193,20 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
 
-                parametersDescription.add(String.format(
-                        "                OperationParameterDescription {PARAMETER} = new OperationParameterDescription();\n" +
-                        "                {PARAMETER}.name = \"%s\";\n" +
-                        "                {PARAMETER}.paramType = OperationParameterDescription.ParamType.%s;\n" +
-                        "                {PARAMETER}.dataType = \"%s\";\n" +
-                        "                {PARAMETER}.required = %s;\n" +
-                        "                operation.parameters.add({PARAMETER});\n",
-                        parameter.name,
-                        parameter.kind.name().toLowerCase(),
-                        toTypeDescription(parameter.type),
-                        String.valueOf(parameter.optional)
-                ).replaceAll("\\{PARAMETER}", parameter.name));
+                if (parameter.kind != ResourceMethodParameterKind.CONTEXT) {
+                    parametersDescription.add(String.format(
+                            "                OperationParameterDescription {PARAMETER} = new OperationParameterDescription();\n" +
+                            "                {PARAMETER}.name = \"%s\";\n" +
+                            "                {PARAMETER}.paramType = OperationParameterDescription.ParamType.%s;\n" +
+                            "                {PARAMETER}.dataType = \"%s\";\n" +
+                            "                {PARAMETER}.required = %s;\n" +
+                            "                operation.parameters.add({PARAMETER});\n",
+                            parameter.name,
+                            parameter.kind.name().toLowerCase(),
+                            toTypeDescription(parameter.type),
+                            String.valueOf(parameter.optional)
+                    ).replaceAll("\\{PARAMETER}", parameter.name));
+                }
             }
 
             String call = "resource." + resourceMethod.name + "(\n" +
@@ -403,6 +402,22 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
                 return String.format("checkValid(validator, mapper.readValue(request.getContentStream(), %s.class))", parameter.type);
+            }
+        },
+        CONTEXT {
+            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+                Collection<String> contextParamNames = Arrays.asList("baseUri");
+                if (!contextParamNames.contains(parameter.reqParamName)) {
+                    throw new IllegalArgumentException("context parameter not known: " + parameter.reqParamName +
+                            ". Possible names are: " + Joiner.on(", ").join(contextParamNames));
+                }
+                switch (parameter.reqParamName) {
+                    case "baseUri":
+                        return String.format("request.getBaseUri()", parameter.type);
+                    default:
+                        throw new IllegalStateException(
+                                "invalid context param name not catched by contextParamNames list !! " + parameter.reqParamName);
+                }
             }
         };
 
