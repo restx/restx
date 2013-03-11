@@ -134,19 +134,19 @@
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-catalina</artifactId>
             <version>${embedded.tomcat.version}</version>
-            <scope>optional</scope>
+
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>${embedded.tomcat.version}</version>
-            <scope>optional</scope>
+
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-jasper</artifactId>
             <version>${embedded.tomcat.version}</version>
-            <scope>optional</scope>
+
             <exclusions>
                 <exclusion>
                     <groupId>org.eclipse.jdt.core.compiler</groupId>
@@ -160,37 +160,31 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
             <version>${jetty.version}</version>
-            <scope>optional</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
             <version>${jetty.version}</version>
-            <scope>optional</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-security</artifactId>
             <version>${jetty.version}</version>
-            <scope>optional</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
             <version>${jetty.version}</version>
-            <scope>optional</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
             <version>${jetty.version}</version>
-            <scope>optional</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
             <version>${jetty.version}</version>
-            <scope>optional</scope>
         </dependency>
 
         <!-- Simple framework dependencies -->
@@ -198,7 +192,6 @@
             <groupId>org.simpleframework</groupId>
             <artifactId>simple</artifactId>
             <version>5.0.4</version>
-            <scope>optional</scope>
         </dependency>
 
 
