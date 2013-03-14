@@ -3,11 +3,14 @@ package restx;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import org.joda.time.DateTime;
 import restx.common.Crypto;
 import restx.factory.*;
 import restx.jackson.FrontObjectMapperFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -20,6 +23,7 @@ public class RestxSessionFilter implements RestxRoute {
 
     private static final String RESTX_SESSION_SIGNATURE = "RestxSessionSignature";
     private static final String RESTX_SESSION = "RestxSession";
+    private static final String EXPIRES = "_expires";
 
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
@@ -64,17 +68,26 @@ public class RestxSessionFilter implements RestxRoute {
             if (!Crypto.sign(cookie, signatureKey).equals(sig)) {
                 throw new IllegalArgumentException("invalid restx session signature");
             }
-            return new RestxSession(sessionDefinition, ImmutableMap.copyOf(mapper.readValue(cookie, Map.class)));
+            Map entries = mapper.readValue(cookie, Map.class);
+            DateTime expires = DateTime.parse((String) entries.remove(EXPIRES));
+            if (expires.isBeforeNow()) {
+                return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of());
+            }
+
+            return new RestxSession(sessionDefinition, ImmutableMap.copyOf(entries));
         }
     }
 
     private void updateSessionInClient(RestxResponse resp, RestxSession session) {
         try {
-            if (session.valueidsByKeyMap().isEmpty()) {
+            ImmutableMap<String, String> sessionMap = session.valueidsByKeyMap();
+            if (sessionMap.isEmpty()) {
                 resp.clearCookie(RESTX_SESSION);
                 resp.clearCookie(RESTX_SESSION_SIGNATURE);
             } else {
-                String sessionJson = mapper.writeValueAsString(session.valueidsByKeyMap());
+                HashMap<String,String> map = Maps.newHashMap(sessionMap);
+                map.put(EXPIRES, DateTime.now().plusDays(30).toString());
+                String sessionJson = mapper.writeValueAsString(map);
                 resp.addCookie(RESTX_SESSION, sessionJson);
                 resp.addCookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey));
             }
