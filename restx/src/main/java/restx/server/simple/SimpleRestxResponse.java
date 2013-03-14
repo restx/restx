@@ -1,6 +1,7 @@
 package restx.server.simple;
 
 import com.google.common.base.Optional;
+import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,13 @@ public class SimpleRestxResponse implements RestxResponse {
     @Override
     public void addCookie(String cookie, String value) {
         response.setCookie(cookie, value);
+    }
+
+    @Override
+    public void clearCookie(String cookie) {
+        Cookie c = new Cookie(cookie, "");
+        c.setExpiry(0);
+        response.setCookie(c);
     }
 
     @Override

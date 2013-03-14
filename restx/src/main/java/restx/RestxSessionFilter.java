@@ -70,9 +70,14 @@ public class RestxSessionFilter implements RestxRoute {
 
     private void updateSessionInClient(RestxResponse resp, RestxSession session) {
         try {
-            String sessionJson = mapper.writeValueAsString(session.valueidsByKeyMap());
-            resp.addCookie(RESTX_SESSION, sessionJson);
-            resp.addCookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey));
+            if (session.valueidsByKeyMap().isEmpty()) {
+                resp.clearCookie(RESTX_SESSION);
+                resp.clearCookie(RESTX_SESSION_SIGNATURE);
+            } else {
+                String sessionJson = mapper.writeValueAsString(session.valueidsByKeyMap());
+                resp.addCookie(RESTX_SESSION, sessionJson);
+                resp.addCookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey));
+            }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

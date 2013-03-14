@@ -64,6 +64,16 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
+    public void clearCookie(String cookie) {
+        Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
+        if (existingCookie != null) {
+            existingCookie.setValue("");
+            existingCookie.setMaxAge(0);
+            resp.addCookie(existingCookie);
+        }
+    }
+
+    @Override
     public void setHeader(String headerName, String header) {
         resp.setHeader(headerName, header);
     }

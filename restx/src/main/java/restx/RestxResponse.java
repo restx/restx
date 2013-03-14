@@ -19,6 +19,8 @@ public interface RestxResponse extends AutoCloseable {
     OutputStream getOutputStream() throws IOException;
 
     void addCookie(String cookie, String value);
+    void clearCookie(String cookie);
 
     void setHeader(String headerName, String header);
+
 }
