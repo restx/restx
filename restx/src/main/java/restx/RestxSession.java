@@ -6,6 +6,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.joda.time.Duration;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -85,10 +86,12 @@ public class RestxSession {
 
     private final Definition definition;
     private final ImmutableMap<String, String> valueidsByKey;
+    private final Duration expires;
 
-    RestxSession(Definition definition, ImmutableMap<String, String> valueidsByKey) {
+    RestxSession(Definition definition, ImmutableMap<String, String> valueidsByKey, Duration expires) {
         this.definition = definition;
         this.valueidsByKey = valueidsByKey;
+        this.expires = expires;
     }
 
     public <T> Optional<T> get(Class<T> clazz, String key) {
@@ -105,6 +108,18 @@ public class RestxSession {
         }
     }
 
+    public RestxSession expires(Duration duration) {
+        RestxSession newCtx = new RestxSession(definition, valueidsByKey, duration);
+        if (this == current()) {
+            current.set(newCtx);
+        }
+        return newCtx;
+    }
+
+    public Duration getExpires() {
+        return expires;
+    }
+
     public <T> RestxSession define(Class<T> clazz, String key, String valueid) {
         if (!definition.caches.containsKey(key)) {
             throw new IllegalArgumentException("undefined context key: " + key + "." +
@@ -118,7 +133,7 @@ public class RestxSession {
         } else {
             newValueidsByKey.put(key, valueid);
         }
-        RestxSession newCtx = new RestxSession(definition, ImmutableMap.copyOf(newValueidsByKey));
+        RestxSession newCtx = new RestxSession(definition, ImmutableMap.copyOf(newValueidsByKey), expires);
         if (this == current()) {
             current.set(newCtx);
         }

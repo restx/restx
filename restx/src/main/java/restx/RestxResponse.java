@@ -1,5 +1,7 @@
 package restx;
 
+import org.joda.time.Duration;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -19,6 +21,7 @@ public interface RestxResponse extends AutoCloseable {
     OutputStream getOutputStream() throws IOException;
 
     void addCookie(String cookie, String value);
+    void addCookie(String cookie, String value, Duration expires);
     void clearCookie(String cookie);
 
     void setHeader(String headerName, String header);

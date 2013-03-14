@@ -62,6 +62,11 @@ public class SimpleRestxRequest implements RestxRequest {
     }
 
     @Override
+    public boolean isPersistentCookie(String cookie) {
+        return request.getCookies().contains(cookie) ? request.getCookie(cookie).getExpiry() > 0 : false;
+    }
+
+    @Override
     public InputStream getContentStream() throws IOException {
         /*
            maybe we could do this buffering only in dev mode?

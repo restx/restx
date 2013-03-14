@@ -1,6 +1,7 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
+import org.joda.time.Duration;
 import restx.RestxResponse;
 import restx.server.HTTP;
 
@@ -54,12 +55,20 @@ public class HttpServletRestxResponse implements RestxResponse {
 
     @Override
     public void addCookie(String cookie, String value) {
+        addCookie(cookie, value, Duration.ZERO);
+    }
+
+    @Override
+    public void addCookie(String cookie, String value, Duration expiration) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
             existingCookie.setValue(value);
+            existingCookie.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
             resp.addCookie(existingCookie);
         } else {
-            resp.addCookie(new Cookie(cookie, value));
+            Cookie c = new Cookie(cookie, value);
+            c.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
+            resp.addCookie(c);
         }
     }
 

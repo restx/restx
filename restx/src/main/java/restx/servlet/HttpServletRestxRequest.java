@@ -81,9 +81,15 @@ public class HttpServletRestxRequest implements RestxRequest {
         return getCookieValue(request.getCookies(), cookieName, defaultValue);
     }
 
+    @Override
+    public boolean isPersistentCookie(String cookie) {
+        Cookie c = getCookie(request.getCookies(), cookie);
+        return c == null ? false : c.getMaxAge() > 0;
+    }
+
     private static String getCookieValue(Cookie[] cookies,
-                                          String cookieName,
-                                          String defaultValue) {
+                                    String cookieName,
+                                    String defaultValue) {
         if (cookies == null) {
             return defaultValue;
         }

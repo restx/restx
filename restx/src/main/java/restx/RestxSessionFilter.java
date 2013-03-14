@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import restx.common.Crypto;
 import restx.factory.*;
 import restx.jackson.FrontObjectMapperFactory;
@@ -62,7 +63,7 @@ public class RestxSessionFilter implements RestxRoute {
     private RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
         String cookie = req.getCookieValue(RESTX_SESSION, "");
         if (cookie.trim().isEmpty()) {
-            return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of());
+            return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(), Duration.ZERO);
         } else {
             String sig = req.getCookieValue(RESTX_SESSION_SIGNATURE, "");
             if (!Crypto.sign(cookie, signatureKey).equals(sig)) {
@@ -71,10 +72,11 @@ public class RestxSessionFilter implements RestxRoute {
             Map entries = mapper.readValue(cookie, Map.class);
             DateTime expires = DateTime.parse((String) entries.remove(EXPIRES));
             if (expires.isBeforeNow()) {
-                return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of());
+                return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(), Duration.ZERO);
             }
 
-            return new RestxSession(sessionDefinition, ImmutableMap.copyOf(entries));
+            Duration expiration = req.isPersistentCookie(RESTX_SESSION) ? new Duration(DateTime.now(), expires) : Duration.ZERO;
+            return new RestxSession(sessionDefinition, ImmutableMap.copyOf(entries), expiration);
         }
     }
 
@@ -88,8 +90,8 @@ public class RestxSessionFilter implements RestxRoute {
                 HashMap<String,String> map = Maps.newHashMap(sessionMap);
                 map.put(EXPIRES, DateTime.now().plusDays(30).toString());
                 String sessionJson = mapper.writeValueAsString(map);
-                resp.addCookie(RESTX_SESSION, sessionJson);
-                resp.addCookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey));
+                resp.addCookie(RESTX_SESSION, sessionJson, session.getExpires());
+                resp.addCookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey), session.getExpires());
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

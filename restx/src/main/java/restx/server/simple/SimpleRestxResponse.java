@@ -1,6 +1,7 @@
 package restx.server.simple;
 
 import com.google.common.base.Optional;
+import org.joda.time.Duration;
 import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Response;
 import org.slf4j.Logger;
@@ -66,7 +67,14 @@ public class SimpleRestxResponse implements RestxResponse {
 
     @Override
     public void addCookie(String cookie, String value) {
-        response.setCookie(cookie, value);
+        addCookie(cookie, value, Duration.ZERO);
+    }
+
+    @Override
+    public void addCookie(String cookie, String value, Duration expiration) {
+        Cookie c = new Cookie(cookie, value);
+        c.setExpiry(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
+        response.setCookie(c);
     }
 
     @Override

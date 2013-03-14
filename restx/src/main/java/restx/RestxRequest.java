@@ -38,7 +38,9 @@ public interface RestxRequest {
     Optional<String> getQueryParam(String param);
     List<String> getQueryParams(String param);
     Optional<String> getHeader(String headerName);
+
     String getCookieValue(String cookie, String defaultValue);
+    boolean isPersistentCookie(String cookie);
 
     InputStream getContentStream() throws IOException;
 
@@ -55,4 +57,5 @@ public interface RestxRequest {
      * @throws IOException
      */
     void closeContentStream() throws IOException;
+
 }
