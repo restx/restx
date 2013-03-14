@@ -72,7 +72,7 @@ public class SimpleRestxResponse implements RestxResponse {
 
     @Override
     public void addCookie(String cookie, String value, Duration expiration) {
-        Cookie c = new Cookie(cookie, value);
+        Cookie c = new Cookie(cookie, value, "/");
         c.setExpiry(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
         response.setCookie(c);
     }
@@ -80,6 +80,7 @@ public class SimpleRestxResponse implements RestxResponse {
     @Override
     public void clearCookie(String cookie) {
         Cookie c = new Cookie(cookie, "");
+        c.setPath("/");
         c.setExpiry(0);
         response.setCookie(c);
     }

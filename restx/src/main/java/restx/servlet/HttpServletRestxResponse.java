@@ -67,6 +67,7 @@ public class HttpServletRestxResponse implements RestxResponse {
             resp.addCookie(existingCookie);
         } else {
             Cookie c = new Cookie(cookie, value);
+            c.setPath("/");
             c.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
             resp.addCookie(c);
         }
@@ -76,6 +77,7 @@ public class HttpServletRestxResponse implements RestxResponse {
     public void clearCookie(String cookie) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
+            existingCookie.setPath("/");
             existingCookie.setValue("");
             existingCookie.setMaxAge(0);
             resp.addCookie(existingCookie);
