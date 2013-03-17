@@ -1,6 +1,7 @@
 package restx.specs;
 
 import com.github.kevinsawicki.http.HttpRequest;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
@@ -188,6 +189,16 @@ public class RestxSpec {
             this.path = path;
             this.data = data;
             this.sequence = sequence;
+        }
+
+        @Override
+        public String toString() {
+            return "" +
+                    "  - collection: " + collection + "\n" +
+                    (Strings.isNullOrEmpty(path) ? "" : "    path: " + path + "\n") +
+                    "    data: |\n" + data + "\n" +
+                    (sequence.isEmpty() ? "" : "    sequence: " + Joiner.on(", ").join(sequence) + "\n")
+                    ;
         }
 
         public GivenCleaner run(final ImmutableMap<String, String> params) {

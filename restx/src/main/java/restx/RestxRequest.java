@@ -22,12 +22,21 @@ public interface RestxRequest {
     /**
      * Returns the restx portion of the request path.
      * <p>
-     * If incoming request is http://mydomain.com/api/myresource/test and baseUri is http://mydomain.com/api,
+     * If incoming request is http://mydomain.com/api/myresource/test?q=test and baseUri is http://mydomain.com/api,
      * then restx path will be /myresource/test
      * </p>
      * @return the restx portion of the request path.
      */
     String getRestxPath();
+    /**
+     * Returns the restx portion of the full request uri.
+     * <p>
+     * If incoming request is http://mydomain.com/api/myresource/test?q=test and baseUri is http://mydomain.com/api,
+     * then restx uri will be /myresource/test?q=test
+     * </p>
+     * @return the restx portion of the full request uri.
+     */
+    String getRestxUri();
 
     /**
      * HTTP METHOD, eg GET, POST, ...

@@ -1,8 +1,5 @@
 package restx.jongo;
 
-import org.jongo.Jongo;
-import org.jongo.MongoCollection;
-
 import static restx.jongo.Jongos.singleField;
 
 /**
@@ -11,16 +8,16 @@ import static restx.jongo.Jongos.singleField;
  * Time: 3:00 PM
  */
 public class Counter {
-    private final MongoCollection counters;
+    private final JongoCollection counters;
     private final String counter;
 
-    public Counter(Jongo jongo, String counter) {
-        this.counters = jongo.getCollection("counters");
+    public Counter(JongoCollection counters, String counter) {
+        this.counters = counters;
         this.counter = counter;
     }
 
     public long next() {
-        Number c = counters
+        Number c = counters.get()
                 .findAndModify("{ _id: # }", counter)
                 .with("{ $inc: { seq: 1 } }")
                 .returnNew().map(singleField("seq", Number.class));

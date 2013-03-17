@@ -37,6 +37,11 @@ public class SimpleRestxRequest implements RestxRequest {
     }
 
     @Override
+    public String getRestxUri() {
+        return getRestxPath() + (request.getQuery().isEmpty() ? "" : "?" + request.getQuery().toString());
+    }
+
+    @Override
     public String getHttpMethod() {
         return request.getMethod();
     }

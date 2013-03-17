@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.factory.Factory;
+import restx.specs.SpecRecorder;
 
 import java.io.IOException;
 
@@ -13,6 +14,10 @@ import java.io.IOException;
  * Time: 3:40 PM
  */
 public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
+    private static final String PROD = "prod";
+    private static final String DEV = "dev";
+    private static final String RECORDING = SpecRecorder.RECORDING;
+
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
 
     private Factory factory;
@@ -25,6 +30,9 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
 
     public void init() {
         String baseUri = System.getProperty("restx.baseUri", "");
+        if (RECORDING.equals(getMode())) {
+            SpecRecorder.install();
+        }
         if (getLoadFactoryMode().equals("onstartup")) {
             loadFactory();
             if (!baseUri.isEmpty()) {
@@ -42,19 +50,22 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
     private void logPrompt(String baseUri, String state) {
         logger.info("\n" +
                 "--------------------------------------\n" +
-                " -- RESTX " + state + "\n" +
-                (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes") : "") +
+                " -- RESTX " + state + (RECORDING.equals(getMode()) ? " >> RECORDING MODE <<" : "") + "\n" +
+                (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
                 " -- for api documentation,\n" +
                 " --   VISIT " + baseUri + "/@/api-docs-ui\n" +
                 " --\n");
     }
 
     private void loadFactory() {
-        factory = Factory.builder()
+        Factory.Builder builder = Factory.builder()
                 .addFromServiceLoader()
                 .addLocalMachines(Factory.LocalMachines.threadLocal())
-                .addLocalMachines(Factory.LocalMachines.contextLocal(contextName))
-                .build();
+                .addLocalMachines(Factory.LocalMachines.contextLocal(contextName));
+        if (RECORDING.equals(getMode())) {
+            builder.addLocalMachines(Factory.LocalMachines.contextLocal(RECORDING));
+        }
+        factory = builder.build();
 
         logger.debug("restx factory ready: {}", factory);
 
@@ -80,6 +91,12 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
     }
 
     public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+        if (RECORDING.equals(getMode())) {
+            SpecRecorder recorder = SpecRecorder.record(restxRequest, restxResponse);
+            restxRequest = recorder.getRecordingRequest();
+            restxResponse = recorder.getRecordingResponse();
+        }
+
         if (getLoadFactoryMode().equals("onrequest")) {
             loadFactory();
         }
@@ -93,4 +110,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
         }
     }
 
+    private String getMode() {
+        return System.getProperty("restx.mode", PROD);
+    }
 }

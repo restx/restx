@@ -1,5 +1,6 @@
 restx.jackson.FrontObjectMapperFactory
 restx.jongo.JongoFactory
+restx.jongo.StdJongoCollection$JongoCollectionFactory
 restx.validation.ValidatorFactory
 restx.converters.MainStringConverter$Machine
 restx.converters.DefaultConverters

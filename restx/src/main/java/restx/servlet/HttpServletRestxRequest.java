@@ -39,6 +39,15 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     @Override
+    public String getRestxUri() {
+        if (request.getQueryString() == null) {
+            return getRestxPath();
+        } else {
+            return getRestxPath() + "?" + request.getQueryString();
+        }
+    }
+
+    @Override
     public Optional<String> getQueryParam(String param) {
         return Optional.fromNullable(request.getParameter(param));
     }
