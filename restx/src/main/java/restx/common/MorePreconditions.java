@@ -24,4 +24,11 @@ public class MorePreconditions {
 
         return o1;
     }
+
+    public static <T> T checkInstanceOf(String name, Object o, Class<T> clazz) {
+        Preconditions.checkArgument(clazz.isInstance(o),
+                "%s %s must be an instanceof of %s", name, o, clazz.getSimpleName());
+
+        return (T) o;
+    }
 }
