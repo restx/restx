@@ -3,13 +3,14 @@ package restx.specs;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.jongo.MongoCollection;
 import org.jongo.ResultHandler;
 import restx.RestxRequest;
@@ -24,7 +25,10 @@ import restx.jongo.StdJongoCollection;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * User: xavierhanin
@@ -34,6 +38,8 @@ import java.util.Map;
 public class SpecRecorder {
     public static final String RECORDING = "recording";
     private static final ThreadLocal<SpecRecorder> specRecorder = new ThreadLocal<>();
+    private static final AtomicInteger specId = new AtomicInteger();
+    static final List<RecordedSpec> specs = new CopyOnWriteArrayList<>();
 
     public static void install() {
         Factory.LocalMachines.contextLocal(RECORDING).addMachine(
@@ -86,6 +92,7 @@ public class SpecRecorder {
     private final RestxRequest restxRequest;
     private final RestxResponse restxResponse;
 
+    private final RecordedSpec recordedSpec = new RecordedSpec();
     private final Map<String, RestxSpec.Given> givens = Maps.newLinkedHashMap();
 
     private RestxRequest recordingRequest;
@@ -97,12 +104,15 @@ public class SpecRecorder {
     }
 
     public SpecRecorder doRecord() throws IOException {
+        recordedSpec.setRecordTime(DateTime.now());
         Stopwatch stopwatch = new Stopwatch().start();
         System.out.print("RECORDING REQUEST...");
         final String method = restxRequest.getHttpMethod();
         final String path = restxRequest.getRestxUri();
         final byte[] requestBody = ByteStreams.toByteArray(restxRequest.getContentStream());
         System.out.println(" >> recorded request " + method + " " + path + " (" + requestBody.length + " bytes) -- " + stopwatch.stop());
+        recordedSpec.setCapturedRequestSize(requestBody.length);
+
         recordingRequest = new RestxRequestWrapper(restxRequest) {
             @Override
             public InputStream getContentStream() throws IOException {
@@ -113,14 +123,20 @@ public class SpecRecorder {
             private Stopwatch stopwatch = new Stopwatch();
             private ByteArrayOutputStream baos;
             private PrintWriter realWriter;
+            private PrintWriter writer;
             private OutputStream realOS;
+            public int status = 200;
 
             @Override
             public PrintWriter getWriter() throws IOException {
-                System.out.print("RECORDING RESPONSE...");
-                stopwatch.start();
-                realWriter = super.getWriter();
-                return new PrintWriter(baos = new ByteArrayOutputStream());
+                if (writer == null) {
+                    System.out.print("RECORDING RESPONSE...");
+                    stopwatch.start();
+                    realWriter = super.getWriter();
+                    writer = new PrintWriter(baos = new ByteArrayOutputStream());
+                }
+
+                return writer;
             }
 
             @Override
@@ -132,8 +148,14 @@ public class SpecRecorder {
             }
 
             @Override
+            public void setStatus(int i) {
+                super.setStatus(i);
+                status = i;
+            }
+
+            @Override
             public void close() throws Exception {
-                System.out.println(" >> recorded response (" + baos.toByteArray().length + " bytes) -- " + stopwatch.stop());
+                System.out.println(" >> recorded response (" + baos.size() + " bytes) -- " + stopwatch.stop());
                 if (realWriter != null) {
                     CharStreams.copy(CharStreams.asCharSource(baos.toString("UTF-8")).openStream(), realWriter);
                 } else if (realOS != null) {
@@ -141,30 +163,19 @@ public class SpecRecorder {
                 }
                 super.close();
 
-                Appendable sb = new StringBuilder();
-                sb.append("title: ").append(path).append("\n");
-                if (!givens.isEmpty()) {
-                    sb.append("given:\n");
-                    for (RestxSpec.Given given : givens.values()) {
-                        sb.append(given.toString());
-                    }
-                }
-                sb.append("wts:\n");
-                String body = new String(requestBody, Charset.forName("UTF-8"));
-                if (Strings.isNullOrEmpty(body)) {
-                    sb.append("  - when: ").append(method).append(" ").append(path).append("\n");
-                } else {
-                    sb.append("  - when: |\n")
-                      .append("       ").append(method).append(" ").append(path).append("\n\n")
-                      .append("       ").append(body).append("\n");
-                }
-                sb.append("    then: |\n")
-                        .append("       ").append(baos.toString("UTF-8")).append("\n");
-
+                int id = specId.incrementAndGet();
+                RestxSpec restxSpec = new RestxSpec(
+                        String.format("[%03d] %s", id, path),
+                        ImmutableList.copyOf(givens.values()), ImmutableList.<RestxSpec.When>of(
+                        new RestxSpec.WhenHttpRequest(method, path, new String(requestBody, Charset.forName("UTF-8")),
+                                new RestxSpec.ThenHttpResponse(status, baos.toString("UTF-8")))));
                 System.out.println("-----------------  RESTX SPEC  ---------------- \n"
-                        + sb + "\n"
+                        + restxSpec + "\n"
                         + "------------------------------------------------"
                 );
+                specs.add(recordedSpec.setId(id).setSpec(restxSpec).setMethod(method).setPath(path)
+                        .setDuration(new Duration(recordedSpec.getRecordTime(), DateTime.now()))
+                        .setCapturedResponseSize(baos.size()));
 
                 if (specRecorder.get() == SpecRecorder.this) {
                     specRecorder.remove();
@@ -192,11 +203,109 @@ public class SpecRecorder {
         Iterable<String> items = mongoCollection.find().map(new ResultHandler<String>() {
             @Override
             public String map(DBObject result) {
+                recordedSpec.capturedItems++;
                 return JSON.serialize(result);
             }
         });
 
         givens.put(key, new RestxSpec.GivenCollection(mongoCollection.getName(), "", "       " + Joiner.on("\n       ").join(items), ImmutableList.<String>of()));
         System.out.println(" >> recorded " + mongoCollection.getName() + " -- " + stopwatch.toString());
+    }
+
+    public static class RecordedSpec {
+        private RestxSpec spec;
+        private DateTime recordTime;
+        private Duration duration;
+        private int capturedItems;
+        private int capturedRequestSize;
+        private int capturedResponseSize;
+        private int id;
+        private String path;
+        private String method;
+
+        public RecordedSpec() {
+        }
+
+        public RecordedSpec setSpec(final RestxSpec spec) {
+            this.spec = spec;
+            return this;
+        }
+
+        public RecordedSpec setRecordTime(final DateTime recordTime) {
+            this.recordTime = recordTime;
+            return this;
+        }
+
+        public RecordedSpec setDuration(final Duration duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public RecordedSpec setCapturedItems(final int capturedItems) {
+            this.capturedItems = capturedItems;
+            return this;
+        }
+
+        public RecordedSpec setCapturedRequestSize(final int capturedRequestSize) {
+            this.capturedRequestSize = capturedRequestSize;
+            return this;
+        }
+
+        public RecordedSpec setCapturedResponseSize(final int capturedResponseSize) {
+            this.capturedResponseSize = capturedResponseSize;
+            return this;
+        }
+
+        public RestxSpec getSpec() {
+            return spec;
+        }
+
+        public DateTime getRecordTime() {
+            return recordTime;
+        }
+
+        public Duration getDuration() {
+            return duration;
+        }
+
+        public int getCapturedItems() {
+            return capturedItems;
+        }
+
+        public int getCapturedRequestSize() {
+            return capturedRequestSize;
+        }
+
+        public int getCapturedResponseSize() {
+            return capturedResponseSize;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public RecordedSpec setId(final int id) {
+            this.id = id;
+            return this;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public String getMethod() {
+            return method;
+        }
+
+        public RecordedSpec setPath(final String path) {
+            this.path = path;
+            return this;
+        }
+
+        public RecordedSpec setMethod(final String method) {
+            this.method = method;
+            return this;
+        }
+
     }
 }

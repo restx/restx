@@ -9,3 +9,4 @@ restx.security.CORSFilter$Machine
 restx.swagger.SwaggerMachine
 restx.MonitorRoute$Factory
 restx.factory.WarehouseRoute$Machine
+restx.specs.SpecRecorderRoute$Factory

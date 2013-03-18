@@ -156,6 +156,23 @@ public class RestxSpec {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("title: ").append(title).append("\n");
+        if (!given.isEmpty()) {
+            sb.append("given:\n");
+            for (RestxSpec.Given g : given) {
+                g.toString(sb);
+            }
+        }
+        sb.append("wts:\n");
+        for (When when : whens) {
+            when.toString(sb);
+        }
+        return sb.toString();
+    }
+
     public String getTitle() {
         return title;
     }
@@ -170,6 +187,7 @@ public class RestxSpec {
 
     public static interface Given {
         public GivenCleaner run(ImmutableMap<String, String> params);
+        void toString(StringBuilder sb);
     }
 
     public static interface GivenCleaner {
@@ -192,12 +210,11 @@ public class RestxSpec {
         }
 
         @Override
-        public String toString() {
-            return "" +
-                    "  - collection: " + collection + "\n" +
-                    (Strings.isNullOrEmpty(path) ? "" : "    path: " + path + "\n") +
-                    "    data: |\n" + data + "\n" +
-                    (sequence.isEmpty() ? "" : "    sequence: " + Joiner.on(", ").join(sequence) + "\n")
+        public void toString(StringBuilder sb) {
+            sb.append("  - collection: ").append(collection).append("\n")
+                    .append(Strings.isNullOrEmpty(path) ? "" : "    path: " + path + "\n")
+                    .append("    data: |\n").append(data).append("\n")
+                    .append(sequence.isEmpty() ? "" : "    sequence: " + Joiner.on(", ").join(sequence) + "\n").toString()
                     ;
         }
 
@@ -276,6 +293,11 @@ public class RestxSpec {
         public DateTime getTime() {
             return time;
         }
+
+        @Override
+        public void toString(StringBuilder sb) {
+
+        }
     }
 
     public static abstract class When<T extends Then> {
@@ -290,6 +312,8 @@ public class RestxSpec {
         public T getThen() {
             return then;
         }
+
+        public abstract void toString(StringBuilder sb);
     }
 
     public static class WhenHttpRequest extends When<ThenHttpResponse> {
@@ -337,6 +361,18 @@ public class RestxSpec {
             System.out.printf("checked %s /%s -- %s%n", getMethod(), getPath(), stopwatch.stop().toString());
         }
 
+        @Override
+        public void toString(StringBuilder sb) {
+            if (Strings.isNullOrEmpty(body)) {
+                sb.append("  - when: ").append(method).append(" ").append(path).append("\n");
+            } else {
+                sb.append("  - when: |\n")
+                  .append("       ").append(method).append(" ").append(path).append("\n\n")
+                  .append("       ").append(body).append("\n");
+            }
+            getThen().toString(sb);
+        }
+
         public String getMethod() {
             return method;
         }
@@ -370,6 +406,14 @@ public class RestxSpec {
 
         public int getExpectedCode() {
             return expectedCode;
+        }
+
+        public void toString(StringBuilder sb) {
+            sb.append("    then: |\n");
+            if (expectedCode != 200) {
+                sb.append("       ").append(expectedCode).append("\n\n");
+            }
+            sb.append("       ").append(expected).append("\n");
         }
     }
 
