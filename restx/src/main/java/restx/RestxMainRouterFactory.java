@@ -91,7 +91,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
     }
 
     public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-        if (RECORDING.equals(getMode())) {
+        if (RECORDING.equals(getMode()) && !restxRequest.getRestxPath().startsWith("/@/")) {
             SpecRecorder recorder = SpecRecorder.record(restxRequest, restxResponse);
             restxRequest = recorder.getRecordingRequest();
             restxResponse = recorder.getRecordingResponse();
