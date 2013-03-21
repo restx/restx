@@ -1,0 +1,116 @@
+package restx.exceptions;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import restx.common.UUIDGenerator;
+
+import java.util.Map;
+
+/**
+ * User: xavierhanin
+ * Date: 3/19/13
+ * Time: 12:10 PM
+ */
+public class RestxError<T> {
+
+    public static <E> RestxError<E> on(Class<E> errorCode) {
+        ErrorCode code = errorCode.getAnnotation(ErrorCode.class);
+        int errorStatus = code != null ? code.status() : 400;
+        String error = code != null ? code.code() : errorCode.getSimpleName();
+        String description = code != null ? code.description() : errorCode.getName();
+        return new RestxError<>(errorStatus, error, description);
+    }
+
+    private final int errorStatus;
+    private final String error;
+    private final String description;
+    private final Map<String, String> data = Maps.newLinkedHashMap();
+
+    private RestxError(int errorStatus, String error, String description) {
+        this.errorStatus = errorStatus;
+        this.error = error;
+        this.description = description;
+    }
+
+    public RestxError<T> set(T field, String value) {
+        if (value != null) {
+            data.put(field.toString(), value);
+        }
+        return this;
+    }
+
+    public RestxException raise() {
+        return new RestxException(
+                UUIDGenerator.generate(),
+                DateTime.now().toDateTime(DateTimeZone.UTC),
+                errorStatus, error,
+                description,
+                ImmutableMap.copyOf(data));
+    }
+
+    public static class RestxException  extends RuntimeException {
+        private final String id;
+        private final DateTime errorTime;
+        private final int errorStatus;
+        private final String error;
+        private final String description;
+        private final ImmutableMap<String, String> data;
+
+        RestxException(String id, DateTime errorTime, int errorStatus, String error, String description, ImmutableMap<String, String> data) {
+            super(String.format("[%s] [%s] [%3d~%s] %s - %s", errorTime, id, errorStatus, error, description, data));
+            this.id = id;
+            this.errorTime = errorTime;
+            this.errorStatus = errorStatus;
+            this.error = error;
+            this.description = description;
+            this.data = data;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public DateTime getErrorTime() {
+            return errorTime;
+        }
+
+        public int getErrorStatus() {
+            return errorStatus;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public ImmutableMap<String, String> getData() {
+            return data;
+        }
+
+        public String toJSON() {
+            StringBuilder sb = new StringBuilder().append("{")
+                    .append("\"id\": \"").append(id).append("\",")
+                    .append("\"errorTime\": \"").append(errorTime).append("\",")
+                    .append("\"errorCode\": \"").append(error).append("\",")
+                    .append("\"description\": \"").append(description.replace("\"", "\\\"")).append("\",")
+                    ;
+
+            sb.append("\"data\": {");
+            if (!data.isEmpty()) {
+                for (Map.Entry<String, String> entry : data.entrySet()) {
+                    sb.append("\"" + entry.getKey() + "\": \"").append(entry.getValue().replace("\"", "\\\"")).append("\",");
+                }
+                sb.setLength(sb.length() - 1);
+            }
+            sb.append("}");
+
+            sb.append("}");
+            return sb.toString();
+        }
+    }
+}

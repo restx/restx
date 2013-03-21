@@ -1,0 +1,20 @@
+package {package};
+
+import com.google.common.collect.ImmutableMap;
+import restx.exceptions.*;
+import restx.factory.*;
+
+
+@Component
+public final class {descriptor} extends ErrorDescriptor {
+    public {descriptor}() {
+        super(
+            {errorStatus},
+            "{errorCode}",
+            "{description}",
+            ImmutableMap.<String, ErrorFieldDescriptor>builder()
+                {fields}
+                .build()
+        );
+    }
+}

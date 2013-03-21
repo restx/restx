@@ -10,3 +10,4 @@ restx.swagger.SwaggerMachine
 restx.MonitorRoute$Factory
 restx.factory.WarehouseRoute$Machine
 restx.specs.SpecRecorderRoute$Factory
+restx.exceptions.ErrorDescriptorsRoute$Factory

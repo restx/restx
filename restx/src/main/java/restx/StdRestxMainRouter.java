@@ -13,6 +13,7 @@ import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.exceptions.RestxError;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -93,7 +94,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                 out.print(sb.toString());
             }
         } catch (JsonProcessingException ex) {
-            logger.debug("request raised " + ex.getClass().getSimpleName(), ex);
+            logger.warn("request raised " + ex.getClass().getSimpleName(), ex);
             restxResponse.setStatus(400);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
@@ -134,11 +135,25 @@ public class StdRestxMainRouter implements RestxMainRouter {
                     out.println(ex.getMessage());
                 }
             }
-        } catch (IllegalArgumentException ex) {
-            logger.debug("request raised IllegalArgumentException", ex);
+        } catch (RestxError.RestxException ex) {
+            logger.debug("request raised RestxException", ex);
+            restxResponse.setStatus(ex.getErrorStatus());
+            restxResponse.setContentType("application/json");
+            PrintWriter out = restxResponse.getWriter();
+            out.println(ex.toJSON());
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            logger.warn("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
             restxResponse.setStatus(400);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
+            out.println("UNEXPECTED CLIENT ERROR:");
+            out.print(ex.getMessage());
+        } catch (RuntimeException ex) {
+            logger.error("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
+            restxResponse.setStatus(500);
+            restxResponse.setContentType("text/plain");
+            PrintWriter out = restxResponse.getWriter();
+            out.println("UNEXPECTED SERVER ERROR:");
             out.print(ex.getMessage());
         } finally {
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
