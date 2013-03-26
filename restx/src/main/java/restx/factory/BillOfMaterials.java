@@ -28,4 +28,9 @@ public class BillOfMaterials {
     public String toString() {
         return "BillOfMaterials{" + bill + '}';
     }
+
+    public BillOfMaterials addQueries(Iterable<Factory.Query<?>> queries) {
+        return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>builder()
+                .addAll(bill).addAll(queries).build());
+    }
 }

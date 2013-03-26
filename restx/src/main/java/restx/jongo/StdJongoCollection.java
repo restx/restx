@@ -26,6 +26,8 @@ public class StdJongoCollection implements JongoCollection {
         return jongo.getCollection(name);
     }
 
+
+
     @Override
     public String getName() {
         return name;

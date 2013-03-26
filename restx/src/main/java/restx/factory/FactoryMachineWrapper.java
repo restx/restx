@@ -2,7 +2,11 @@ package restx.factory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -18,7 +22,8 @@ public class FactoryMachineWrapper implements FactoryMachine {
     public static class Builder {
         private FactoryMachine factoryMachine;
         private Integer priority;
-        private Function<NamedComponent, NamedComponent> transform;
+        private Function transform;
+        private List<Factory.Query<?>> deps = Lists.newArrayList();
 
         public Builder from(final FactoryMachine factoryMachine) {
             this.factoryMachine = factoryMachine;
@@ -30,7 +35,12 @@ public class FactoryMachineWrapper implements FactoryMachine {
             return this;
         }
 
-        public Builder transformComponents(final Function<NamedComponent, NamedComponent> transform) {
+        public Builder withDependencies(Factory.Query<?>... q) {
+            deps.addAll(Lists.newArrayList(q));
+            return this;
+        }
+
+        public Builder transformComponents(final Function<Map.Entry<SatisfiedBOM, NamedComponent>, NamedComponent> transform) {
             this.transform = transform;
             return this;
         }
@@ -55,7 +65,12 @@ public class FactoryMachineWrapper implements FactoryMachine {
                 public <T> MachineEngine<T> getEngine(Name<T> name) {
                     return new MachineEngineWrapper<T>(super.getEngine(name)) {
                         @Override
-                        public ComponentBox<T> newComponent(SatisfiedBOM satisfiedBOM) {
+                        public BillOfMaterials getBillOfMaterial() {
+                            return super.getBillOfMaterial().addQueries(deps);
+                        }
+
+                        @Override
+                        public ComponentBox<T> newComponent(final SatisfiedBOM satisfiedBOM) {
                             return new ComponentBoxWrapper<T>(super.newComponent(satisfiedBOM)) {
                                 @Override
                                 public Optional<NamedComponent<T>> pick() {
@@ -63,7 +78,8 @@ public class FactoryMachineWrapper implements FactoryMachine {
                                     if (!pick.isPresent()) {
                                         return pick;
                                     }
-                                    return Optional.of((NamedComponent<T>) transform.apply(pick.get()));
+                                    return Optional.of((NamedComponent<T>) transform.apply(
+                                            Maps.immutableEntry(satisfiedBOM, pick.get())));
                                 }
                             };
                         }

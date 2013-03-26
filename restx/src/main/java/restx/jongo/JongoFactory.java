@@ -2,10 +2,8 @@ package restx.jongo;
 
 import com.mongodb.MongoClient;
 import org.jongo.Jongo;
-import org.jongo.marshall.jackson.JacksonMapper;
+import org.jongo.Mapper;
 import restx.factory.*;
-import restx.jackson.BsonJodaTimeModule;
-import restx.jackson.Views;
 
 import java.net.UnknownHostException;
 
@@ -22,6 +20,7 @@ public class JongoFactory extends SingleNameFactoryMachine<Jongo> {
     public JongoFactory() {
         super(0, new MachineEngine<Jongo>() {
             private Factory.Query<String> dbNameQuery = Factory.Query.byName(JONGO_DB);
+            private Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
 
             @Override
             public Name<Jongo> getName() {
@@ -30,7 +29,7 @@ public class JongoFactory extends SingleNameFactoryMachine<Jongo> {
 
             @Override
             public BillOfMaterials getBillOfMaterial() {
-                return BillOfMaterials.of(dbNameQuery);
+                return BillOfMaterials.of(dbNameQuery, mapperQuery);
             }
 
             public ComponentBox<Jongo> newComponent(SatisfiedBOM satisfiedBOM) {
@@ -47,10 +46,7 @@ public class JongoFactory extends SingleNameFactoryMachine<Jongo> {
                 String db = satisfiedBOM.getOne(dbNameQuery).get().getComponent();
                 try {
                     return new Jongo(new MongoClient().getDB(db),
-                            new JacksonMapper.Builder()
-                                .registerModule(new BsonJodaTimeModule())
-                                .withView(Views.Private.class)
-                                .build());
+                            satisfiedBOM.getOne(mapperQuery).get().getComponent());
                 } catch (UnknownHostException e) {
                     throw new RuntimeException(e);
                 }

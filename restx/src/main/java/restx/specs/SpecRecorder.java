@@ -10,15 +10,25 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
+import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
+import org.jongo.Mapper;
 import org.jongo.MongoCollection;
+import org.jongo.ObjectIdUpdater;
 import org.jongo.ResultHandler;
-import restx.*;
+import org.jongo.marshall.Marshaller;
+import org.jongo.marshall.Unmarshaller;
+import org.jongo.query.QueryFactory;
+import restx.RestxRequest;
+import restx.RestxRequestWrapper;
+import restx.RestxResponse;
+import restx.RestxResponseWrapper;
 import restx.factory.Factory;
 import restx.factory.FactoryMachineWrapper;
 import restx.factory.NamedComponent;
+import restx.factory.SatisfiedBOM;
 import restx.jongo.JongoCollection;
 import restx.jongo.StdJongoCollection;
 
@@ -44,31 +54,71 @@ public class SpecRecorder {
     static final List<RecordedSpec> specs = new CopyOnWriteArrayList<>();
 
     public static void install() {
+        final Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
         Factory.LocalMachines.contextLocal(RECORDING).addMachine(
-            FactoryMachineWrapper.from(new StdJongoCollection.JongoCollectionFactory())
-                .withPriority(-10)
-                .transformComponents(new Function<NamedComponent, NamedComponent>() {
-                    @Override
-                    public NamedComponent apply(final NamedComponent input) {
-                        final JongoCollection collection = (JongoCollection) input.getComponent();
-                        return new NamedComponent<>(input.getName(),
-                                new JongoCollection() {
-                                    @Override
-                                    public String getName() {
-                                        return collection.getName();
-                                    }
+                FactoryMachineWrapper.from(new StdJongoCollection.JongoCollectionFactory())
+                        .withPriority(-10)
+                        .withDependencies(mapperQuery)
+                        .transformComponents(new Function<Map.Entry<SatisfiedBOM, NamedComponent>, NamedComponent>() {
+                            @Override
+                            public NamedComponent apply(final Map.Entry<SatisfiedBOM, NamedComponent> input) {
+                                final JongoCollection collection = (JongoCollection) input.getValue().getComponent();
+                                final Mapper mapper = input.getKey().getOne(mapperQuery).get().getComponent();
+                                final ObjectIdUpdater objectIdUpdater = mapper.getObjectIdUpdater();
 
-                                    @Override
-                                    public MongoCollection get() {
-                                        MongoCollection mongoCollection = collection.get();
-                                        if (specRecorder.get() != null) {
-                                            specRecorder.get().recordCollection(mongoCollection);
-                                        }
-                                        return mongoCollection;
-                                    }
-                                });
-                    }
-                }).build());
+                                return new NamedComponent<>(input.getValue().getName(),
+                                        new JongoCollection() {
+                                            @Override
+                                            public String getName() {
+                                                return collection.getName();
+                                            }
+
+                                            @Override
+                                            public MongoCollection get() {
+                                                MongoCollection mongoCollection = collection.get();
+                                                if (specRecorder.get() != null) {
+                                                    specRecorder.get().recordCollection(mongoCollection);
+                                                    mongoCollection = new MongoCollection(
+                                                            mongoCollection.getDBCollection(),
+                                                            new Mapper() {
+                                                                @Override
+                                                                public Marshaller getMarshaller() {
+                                                                    return mapper.getMarshaller();
+                                                                }
+
+                                                                @Override
+                                                                public Unmarshaller getUnmarshaller() {
+                                                                    return mapper.getUnmarshaller();
+                                                                }
+
+                                                                @Override
+                                                                public ObjectIdUpdater getObjectIdUpdater() {
+                                                                    return new ObjectIdUpdater() {
+                                                                        @Override
+                                                                        public boolean canSetObjectId(Object target) {
+                                                                            return objectIdUpdater.canSetObjectId(target);
+                                                                        }
+
+                                                                        @Override
+                                                                        public void setDocumentGeneratedId(Object target, ObjectId id) {
+                                                                            specRecorder.get().recordGeneratedId(collection.getName(), id);
+                                                                            objectIdUpdater.setDocumentGeneratedId(target, id);
+                                                                        }
+                                                                    };
+                                                                }
+
+                                                                @Override
+                                                                public QueryFactory getQueryFactory() {
+                                                                    return mapper.getQueryFactory();
+                                                                }
+                                                            }
+                                                    );
+                                                }
+                                                return mongoCollection;
+                                            }
+                                        });
+                            }
+                        }).build());
     }
 
 
@@ -79,7 +129,7 @@ public class SpecRecorder {
      * request handling.
      * </p>
      *
-     * @param restxRequest the request to record
+     * @param restxRequest  the request to record
      * @param restxResponse the response to record
      * @return a recorder
      * @throws IOException
@@ -128,7 +178,7 @@ public class SpecRecorder {
         System.out.print("RECORDING REQUEST...");
         final String method = restxRequest.getHttpMethod();
         final String path = restxRequest.getRestxUri().substring(1); // remove leading slash
-        final Map<String,String> cookies = restxRequest.getCookiesMap();
+        final Map<String, String> cookies = restxRequest.getCookiesMap();
         final byte[] requestBody = ByteStreams.toByteArray(restxRequest.getContentStream());
         System.out.println(" >> recorded request " + method + " " + path + " (" + requestBody.length + " bytes) -- " + stopwatch.stop());
         recordedSpec.setCapturedRequestSize(requestBody.length);
@@ -211,7 +261,7 @@ public class SpecRecorder {
     }
 
     public void recordCollection(MongoCollection mongoCollection) {
-        String key = RestxSpec.GivenCollection.class.getSimpleName() + "/" + mongoCollection.getName();
+        String key = getGivenCollectionKey(mongoCollection.getName());
         if (givens.containsKey(key)) {
             return;
         }
@@ -227,6 +277,20 @@ public class SpecRecorder {
 
         givens.put(key, new RestxSpec.GivenCollection(mongoCollection.getName(), "", "       " + Joiner.on("\n       ").join(items), ImmutableList.<String>of()));
         System.out.println(" >> recorded " + mongoCollection.getName() + " -- " + stopwatch.toString());
+    }
+
+    private String getGivenCollectionKey(String name) {
+        return RestxSpec.GivenCollection.class.getSimpleName() + "/" + name;
+    }
+
+    private void recordGeneratedId(String name, ObjectId id) {
+        String key = getGivenCollectionKey(name);
+        RestxSpec.Given given = givens.get(key);
+        if (given instanceof RestxSpec.GivenCollection) {
+            RestxSpec.GivenCollection collection = (RestxSpec.GivenCollection) given;
+            givens.put(key, collection.addSequenceId(id.toString()));
+            System.out.println(" >> recorded OID " + name + " > " + id);
+        }
     }
 
     public static class RecordedSpec {

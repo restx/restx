@@ -10,6 +10,7 @@ given:
         { "_id": "511bd1267638b9481a66f385", "title": "example1" },
         { "_id": "511bd1297638b9481a66f386", "title": "example2" }
         ]
+    sequence: 511bd1297638b9481a66f387, 511bd1297638b9481a66f388
   - collection: salaries
 wts:
   - when: |

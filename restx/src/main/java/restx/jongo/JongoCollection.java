@@ -10,4 +10,5 @@ import org.jongo.MongoCollection;
  */
 public interface JongoCollection extends Supplier<MongoCollection> {
     String getName();
+
 }

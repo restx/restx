@@ -5,10 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.mongodb.MongoClient;
@@ -133,6 +130,19 @@ public class RestxSpec {
                     data = "";
                 }
                 List<String> sequence = Lists.newArrayList();
+                if (given1.containsKey("sequence")) {
+                    Object seq = given1.get("sequence");
+                    if (seq instanceof String) {
+                        String s = (String) seq;
+                        Iterables.addAll(sequence, Splitter.on(",").omitEmptyStrings().trimResults().split(s));
+                    } else if (seq instanceof Iterable) {
+                        Iterables.addAll(sequence, (Iterable<? extends String>) seq);
+                    } else {
+                        throw new IllegalArgumentException("unsupported type for sequence in " + given1 +
+                                ": " + seq.getClass().getName() +
+                                " must be either String or Iterable.");
+                    }
+                }
 
                 givens.add(new GivenCollection(
                         checkInstanceOf("collection", given1.get("collection"), String.class),
@@ -303,6 +313,11 @@ public class RestxSpec {
 
         public ImmutableList<String> getSequence() {
             return sequence;
+        }
+
+        public GivenCollection addSequenceId(String id) {
+            return new GivenCollection(collection, path, data,
+                    ImmutableList.<String>builder().addAll(sequence).add(id).build());
         }
     }
 
