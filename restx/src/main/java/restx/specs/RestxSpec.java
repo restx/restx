@@ -38,6 +38,9 @@ import static restx.common.MorePreconditions.checkInstanceOf;
 * Time: 9:51 PM
 */
 public class RestxSpec {
+
+    private static final String COOKIE = "Cookie:";
+
     public static RestxSpec load(String resource) throws IOException {
         return load(Resources.newReaderSupplier(
                 Resources.getResource(resource),
@@ -64,8 +67,17 @@ public class RestxSpec {
                     definition = ws.substring(0, nlIndex);
                     body = ws.substring(nlIndex + 1).trim();
 
-                    while (body.startsWith("Cookie:")) {
-                        String cookieValues = body.substring("Cookie:".length());
+                    while (body.startsWith(COOKIE)) {
+                        nlIndex = body.indexOf("\n");
+                        String cookieValues;
+                        if (nlIndex == -1) {
+                            cookieValues = body.substring(COOKIE.length(), body.length());
+                            body = "";
+                        } else {
+                            cookieValues = body.substring(COOKIE.length(), nlIndex);
+                            body = body.substring(nlIndex + 1).trim();
+                        }
+
                         for (String s : Splitter.on(";").trimResults().split(cookieValues)) {
                             int i = s.indexOf('=');
 
@@ -74,8 +86,6 @@ public class RestxSpec {
                             cookies.put(name, value);
                         }
 
-                        nlIndex = body.indexOf("\n");
-                        body = nlIndex == -1 ? "" : body.substring(nlIndex + 1).trim();
                     }
                 } else {
                     definition = ws;
@@ -427,7 +437,7 @@ public class RestxSpec {
                 sb.append("  - when: ").append(method).append(" ").append(path).append("\n");
             } else {
                 sb.append("  - when: |\n")
-                        .append("       ").append(method).append(" ").append(path).append("\n\n");
+                        .append("       ").append(method).append(" ").append(path).append("\n");
                 if (!cookies.isEmpty()) {
                     sb.append("       Cookie: ");
                     for (Map.Entry<String, String> entry : cookies.entrySet()) {
@@ -437,7 +447,7 @@ public class RestxSpec {
                     sb.append("\n");
                 }
                 if (!Strings.isNullOrEmpty(body)) {
-                    sb.append(indent(body.trim(), 8)).append("\n");
+                    sb.append("\n").append(indent(body.trim(), 8)).append("\n");
                 }
             }
             getThen().toString(sb);

@@ -14,6 +14,7 @@ given:
 wts:
   - when: |
       PUT contracts/511bc1e97638b9481a66f383/salaries/201212/status
+       Cookie: cookie1=value1
 
       { "status": "validated" }
     then: |

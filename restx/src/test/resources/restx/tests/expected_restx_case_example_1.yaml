@@ -15,6 +15,7 @@ given:
 wts:
   - when: |
        PUT contracts/511bc1e97638b9481a66f383/salaries/201212/status
+       Cookie: cookie1=value1
 
         { "status": "validated" }
     then: |
@@ -29,7 +30,6 @@ wts:
         }
   - when: |
        GET contracts/511bc1e97638b9481a66f383/calendar/events?start=1355176800000&end=1355263200000
-
        Cookie: cookie1=value1; cookie2=value2
     then: |
         [

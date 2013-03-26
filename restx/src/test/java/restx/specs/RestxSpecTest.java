@@ -46,6 +46,8 @@ public class RestxSpecTest {
                 .containsExactly("{ \"status\": \"validated\" }", "", "");
         Assertions.assertThat(Assertions.extractProperty("then.expectedCode").from(testCase.getWhens()))
                 .containsExactly(201, 200, 200);
+        Assertions.assertThat(((RestxSpec.WhenHttpRequest) testCase.getWhens().get(0)).getCookies()).contains(
+                MapEntry.entry("cookie1", "value1"));
         Assertions.assertThat(((RestxSpec.WhenHttpRequest) testCase.getWhens().get(2)).getCookies()).contains(
                 MapEntry.entry("cookie1", "value1"), MapEntry.entry("cookie2", "value2"));
         Assertions.assertThat(Assertions.extractProperty("then.expected").from(testCase.getWhens()))
@@ -70,7 +72,9 @@ public class RestxSpecTest {
                         Resources.getResource("restx/tests/restx_test_case_example_1.yaml"),
                         Charset.forName("UTF-8")));
 
-        assertThat(testCase.toString()).isEqualTo(Resources.toString(
+        String actual = testCase.toString();
+        System.out.println("actual = " + actual);
+        assertThat(actual).isEqualTo(Resources.toString(
                                 Resources.getResource("restx/tests/expected_restx_case_example_1.yaml"),
                                 Charset.forName("UTF-8")));
     }
