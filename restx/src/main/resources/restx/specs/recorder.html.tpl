@@ -17,7 +17,7 @@
 </head>
 <body style="background: #302E30; ">
   <div style="width:960px; margin-bottom: 5px; margin-left: auto; margin-right: auto; color: #F3F7E4;">
-    Search: <input id="search"> <span class="hint">Hint: press S after clicking a line to save it</span>
+    Search: <input id="search"> <span class="hint">Hint: press S when a line is selected to save it</span>
   </div>
   <div id="myGrid" style="width:960px;height:400px; margin-left: auto; margin-right: auto; "></div>
   <pre class="prettyprint" style="width:900px;height:400px; margin-left: auto; margin-right: auto; overflow: auto;">
@@ -32,6 +32,7 @@
 <script src="http://mleibman.github.com/SlickGrid/slick.core.js"></script>
 <script src="http://mleibman.github.com/SlickGrid/slick.grid.js"></script>
 <script src="http://mleibman.github.com/SlickGrid/slick.dataview.js"></script>
+<script src="http://mleibman.github.com/SlickGrid/plugins/slick.rowselectionmodel.js"></script>
 
 <script src="https://google-code-prettify.googlecode.com/svn/loader/prettify.js"></script>
 <script src="https://google-code-prettify.googlecode.com/svn/loader/lang-yaml.js"></script>
@@ -87,27 +88,31 @@
     dataView = new Slick.Data.DataView({ inlineFilters: true });
     grid = new Slick.Grid("#myGrid", dataView, columns, options);
 
-    var onSelect = function(index) {
-        selItem = dataView.getItem(index);
-        selIndex = index;
-        $.get('{baseUrl}/@/recorder/' + selItem.id, function(data) {
-              $('#details').text(data);
-              $('.prettyprint').removeClass('prettyprinted');
-              prettyPrint();
-              $('pre > span.pln').remove();
-        }, 'text');
+    grid.setSelectionModel(new Slick.RowSelectionModel());
+
+    function withSelection(f) {
+       var selectedRows = grid.getSelectedRows();
+       if (selectedRows.length) {
+           f.call(grid, selectedRows[0], dataView.getItem(selectedRows[0]));
+       }
     }
 
-    var selIndex, selItem;
     var save = function() {
-       $.post('{baseUrl}/@/recorder/storage/' + selItem.id + '?path=' + $('#saveToFolder').val(), function(data) {
-           console.log('saved', selItem, data);
-           alertify.success("Saved to " + data);
-       });
+        withSelection(function(selIndex, selItem) {
+           $.post('{baseUrl}/@/recorder/storage/' + selItem.id + '?path=' + $('#saveToFolder').val(), function(data) {
+               console.log('saved', selItem, data);
+               alertify.success("Saved to " + data);
+           });
+        });
     };
 
     var selectNext = function() {
-      onSelect(selIndex + 1);
+       var selectedRows = grid.getSelectedRows();
+       if (selectedRows.length) {
+          grid.setSelectedRows([selectedRows[0] + 1]);
+       } else {
+          grid.setSelectedRows([0]);
+       }
     };
 
     $('#save').click(save);
@@ -127,8 +132,15 @@
       dataView.sort(comparer, args.sortAsc);
     });
 
-    grid.onClick.subscribe(function(e, args) {
-      onSelect(args.row);
+    grid.onSelectedRowsChanged.subscribe(function(e, args) {
+        withSelection(function(selIndex, selItem) {
+            $.get('{baseUrl}/@/recorder/' + selItem.id, function(data) {
+                  $('#details').text(data);
+                  $('.prettyprint').removeClass('prettyprinted');
+                  prettyPrint();
+                  $('pre > span.pln').remove();
+            }, 'text');
+        });
     });
 
       dataView.onRowCountChanged.subscribe(function (e, args) {
