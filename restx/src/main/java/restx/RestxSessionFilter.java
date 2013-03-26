@@ -39,6 +39,13 @@ public class RestxSessionFilter implements RestxRoute {
     @Override
     public boolean route(RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
         final RestxSession session = buildContextFromRequest(req);
+        if (RestxContext.Modes.RECORDING.equals(ctx.getMode())) {
+            // we clean up caches in recording mode so that each request records the cache loading
+            // Note: having this piece of code here is not a very nice isolation of responsibilities
+            // we could put it in a separate filter, but then it's not easy to be sure it's called right after this
+            // filter. Until such a feature is introduced, the easy solution to put it here is used.
+            session.cleanUpCaches();
+        }
         RestxSession.setCurrent(session);
         try {
             RouteLifecycleListener lifecycleListener = new RouteLifecycleListener() {

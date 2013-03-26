@@ -8,16 +8,14 @@ import restx.specs.SpecRecorder;
 
 import java.io.IOException;
 
+import static restx.StdRestxMainRouter.getMode;
+
 /**
  * User: xavierhanin
  * Date: 2/16/13
  * Time: 3:40 PM
  */
 public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
-    private static final String PROD = "prod";
-    private static final String DEV = "dev";
-    private static final String RECORDING = SpecRecorder.RECORDING;
-
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
 
     private Factory factory;
@@ -30,7 +28,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
 
     public void init() {
         String baseUri = System.getProperty("restx.baseUri", "");
-        if (RECORDING.equals(getMode())) {
+        if (RestxContext.Modes.RECORDING.equals(getMode())) {
             SpecRecorder.install();
         }
         if (getLoadFactoryMode().equals("onstartup")) {
@@ -50,7 +48,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
     private void logPrompt(String baseUri, String state) {
         logger.info("\n" +
                 "--------------------------------------\n" +
-                " -- RESTX " + state + (RECORDING.equals(getMode()) ? " >> RECORDING MODE <<" : "") + "\n" +
+                " -- RESTX " + state + (RestxContext.Modes.RECORDING.equals(getMode()) ? " >> RECORDING MODE <<" : "") + "\n" +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
                 " -- for api documentation,\n" +
                 " --   VISIT " + baseUri + "/@/api-docs-ui\n" +
@@ -62,8 +60,8 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
                 .addFromServiceLoader()
                 .addLocalMachines(Factory.LocalMachines.threadLocal())
                 .addLocalMachines(Factory.LocalMachines.contextLocal(contextName));
-        if (RECORDING.equals(getMode())) {
-            builder.addLocalMachines(Factory.LocalMachines.contextLocal(RECORDING));
+        if (RestxContext.Modes.RECORDING.equals(getMode())) {
+            builder.addLocalMachines(Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING));
         }
         factory = builder.build();
 
@@ -91,8 +89,9 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
     }
 
     public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-        if (RECORDING.equals(getMode()) && !restxRequest.getRestxPath().startsWith("/@/")) {
-            SpecRecorder recorder = SpecRecorder.record(restxRequest, restxResponse);
+        SpecRecorder recorder = null;
+        if (RestxContext.Modes.RECORDING.equals(getMode()) && !restxRequest.getRestxPath().startsWith("/@/")) {
+            recorder = SpecRecorder.record(restxRequest, restxResponse);
             restxRequest = recorder.getRecordingRequest();
             restxResponse = recorder.getRecordingResponse();
         }
@@ -104,13 +103,12 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
         try {
             mainRouter.route(restxRequest, restxResponse);
         } finally {
+            if (recorder != null) {
+                recorder.close();
+            }
             if (getLoadFactoryMode().equals("onrequest")) {
                 closeFactory();
             }
         }
-    }
-
-    private String getMode() {
-        return System.getProperty("restx.mode", PROD);
     }
 }

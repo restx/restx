@@ -14,10 +14,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.jongo.MongoCollection;
 import org.jongo.ResultHandler;
-import restx.RestxRequest;
-import restx.RestxRequestWrapper;
-import restx.RestxResponse;
-import restx.RestxResponseWrapper;
+import restx.*;
 import restx.factory.Factory;
 import restx.factory.FactoryMachineWrapper;
 import restx.factory.NamedComponent;
@@ -29,7 +26,9 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * User: xavierhanin
@@ -38,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class SpecRecorder {
     public static final String RECORDING = "recording";
+    private static final ReentrantLock lock = new ReentrantLock();
     private static final ThreadLocal<SpecRecorder> specRecorder = new ThreadLocal<>();
     private static final AtomicInteger specId = new AtomicInteger();
     static final List<RecordedSpec> specs = new CopyOnWriteArrayList<>();
@@ -84,6 +84,12 @@ public class SpecRecorder {
      * @throws IOException
      */
     public static SpecRecorder record(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+        try {
+            lock.tryLock(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("in record mode only one request at a time can be processed, " +
+                    "another request is currently being processed which is taking too much time");
+        }
         SpecRecorder recorder = new SpecRecorder(restxRequest, restxResponse);
         specRecorder.set(recorder);
         return recorder.doRecord();
@@ -102,6 +108,13 @@ public class SpecRecorder {
     public SpecRecorder(RestxRequest restxRequest, RestxResponse restxResponse) {
         this.restxRequest = restxRequest;
         this.restxResponse = restxResponse;
+    }
+
+    public void close() {
+        if (specRecorder.get() == SpecRecorder.this) {
+            specRecorder.remove();
+        }
+        lock.unlock();
     }
 
     public SpecRecorder doRecord() throws IOException {
@@ -178,10 +191,6 @@ public class SpecRecorder {
                 specs.add(recordedSpec.setId(id).setSpec(restxSpec).setMethod(method).setPath(path)
                         .setDuration(new Duration(recordedSpec.getRecordTime(), DateTime.now()))
                         .setCapturedResponseSize(baos.size()));
-
-                if (specRecorder.get() == SpecRecorder.this) {
-                    specRecorder.remove();
-                }
             }
         };
         return this;

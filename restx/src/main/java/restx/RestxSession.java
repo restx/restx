@@ -94,6 +94,14 @@ public class RestxSession {
         this.expires = expires;
     }
 
+    public RestxSession cleanUpCaches() {
+        for (LoadingCache<String, ?> cache : definition.caches.values()) {
+            cache.cleanUp();
+        }
+        return this;
+    }
+
+
     public <T> Optional<T> get(Class<T> clazz, String key) {
         String valueid = valueidsByKey.get(key);
         if (valueid == null) {

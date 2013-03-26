@@ -75,7 +75,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         Monitor monitor = MonitorFactory.start("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath());
         try {
             if (!mainRouter.route(restxRequest, restxResponse,
-                    new RestxContext(RouteLifecycleListener.DEAF))) {
+                    new RestxContext(getMode(), RouteLifecycleListener.DEAF))) {
                 String path = restxRequest.getRestxPath();
                 StringBuilder sb = new StringBuilder()
                         .append("no restx route found for ")
@@ -160,6 +160,10 @@ public class StdRestxMainRouter implements RestxMainRouter {
             try { restxResponse.close(); } catch (Exception ex) { }
             monitor.stop();
         }
+    }
+
+    static String getMode() {
+        return System.getProperty("restx.mode", RestxContext.Modes.PROD);
     }
 
     private boolean hasApiDocs() {
