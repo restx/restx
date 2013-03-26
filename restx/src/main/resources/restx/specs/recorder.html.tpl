@@ -79,23 +79,6 @@
   $(function () {
     alertify.set({ delay: 3000 });
 
-    var selected;
-    var save = function() {
-       $.post('{baseUrl}/@/recorder/storage/' + selected.id + '?path=' + $('#saveToFolder').val(), function(data) {
-           console.log('saved', selected, data);
-           alertify.success("Saved to " + data);
-       });
-    };
-    $('#save').click(save);
-
-    $('body').keyup(function(e) {
-        if (e.which == 83   // s
-            && $(e.target).closest('#myGrid').length > 0 // focus is in the grid
-            ) {
-            save();
-        }
-    })
-
     var data = [
         // { id: "%03d", method: "%s", path: "%s", recordTime: "%s", duration: %d, capturedItems: %d, capturedRequestSize: %d, capturedResponseSize: %d },
         {data}
@@ -104,6 +87,40 @@
     dataView = new Slick.Data.DataView({ inlineFilters: true });
     grid = new Slick.Grid("#myGrid", dataView, columns, options);
 
+    var onSelect = function(index) {
+        selItem = dataView.getItem(index);
+        selIndex = index;
+        $.get('{baseUrl}/@/recorder/' + selItem.id, function(data) {
+              $('#details').text(data);
+              $('.prettyprint').removeClass('prettyprinted');
+              prettyPrint();
+              $('pre > span.pln').remove();
+        }, 'text');
+    }
+
+    var selIndex, selItem;
+    var save = function() {
+       $.post('{baseUrl}/@/recorder/storage/' + selItem.id + '?path=' + $('#saveToFolder').val(), function(data) {
+           console.log('saved', selItem, data);
+           alertify.success("Saved to " + data);
+       });
+    };
+
+    var selectNext = function() {
+      onSelect(selIndex + 1);
+    };
+
+    $('#save').click(save);
+
+    $('body').keyup(function(e) {
+        if (e.which == 83   // s
+            && $(e.target).closest('#myGrid').length > 0 // focus is in the grid
+            ) {
+            save();
+            selectNext();
+        }
+    })
+
     grid.onSort.subscribe(function (e, args) {
       sortdir = args.sortAsc ? 1 : -1;
       sortcol = args.sortCol.field;
@@ -111,14 +128,7 @@
     });
 
     grid.onClick.subscribe(function(e, args) {
-      var item = dataView.getItem(args.row);
-      $.get('{baseUrl}/@/recorder/' + item.id, function(data) {
-            selected = item;
-            $('#details').text(data);
-            $('.prettyprint').removeClass('prettyprinted');
-            prettyPrint();
-            $('pre > span.pln').remove();
-      }, 'text');
+      onSelect(args.row);
     });
 
       dataView.onRowCountChanged.subscribe(function (e, args) {
