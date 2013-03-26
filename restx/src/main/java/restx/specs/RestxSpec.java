@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -138,9 +139,20 @@ public class RestxSpec {
                         path,
                         data,
                         ImmutableList.copyOf(sequence)));
+            } else if (given1.containsKey("time")) {
+                Object time = given1.get("time");
+                if (time instanceof String) {
+                    givens.add(new GivenTime(DateTime.parse((String) time)));
+                } else if (time instanceof Date) {
+                    givens.add(new GivenTime(new DateTime(time)));
+                } else {
+                    throw new IllegalArgumentException("invalid given time " + given1 + ": " +
+                            "unrecognized value type " + time.getClass().getName() + "." +
+                            " Was expecting String or Date ");
+                }
             } else {
-                throw new IllegalArgumentException("invalid given " + given1 + ": unreconigzed type." +
-                        " Was expecting one of ['collection'] field to be assigned");
+                throw new IllegalArgumentException("invalid given " + given1 + ": unrecognized type." +
+                        " Was expecting one of ['collection', 'time'] field to be assigned");
             }
         }
         return givens;
@@ -319,7 +331,7 @@ public class RestxSpec {
 
         @Override
         public void toString(StringBuilder sb) {
-
+            sb.append("  - time: ").append(time.toString()).append("\n");
         }
     }
 

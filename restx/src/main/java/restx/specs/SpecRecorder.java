@@ -11,6 +11,7 @@ import com.google.common.io.CharStreams;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.jongo.MongoCollection;
 import org.jongo.ResultHandler;
@@ -114,11 +115,15 @@ public class SpecRecorder {
         if (specRecorder.get() == SpecRecorder.this) {
             specRecorder.remove();
         }
+        DateTimeUtils.setCurrentMillisSystem();
         lock.unlock();
     }
 
     public SpecRecorder doRecord() throws IOException {
-        recordedSpec.setRecordTime(DateTime.now());
+        DateTime now = DateTime.now();
+        givens.put(RestxSpec.GivenTime.class.getSimpleName() + "/now", new RestxSpec.GivenTime(now));
+        DateTimeUtils.setCurrentMillisFixed(now.getMillis());
+        recordedSpec.setRecordTime(now);
         Stopwatch stopwatch = new Stopwatch().start();
         System.out.print("RECORDING REQUEST...");
         final String method = restxRequest.getHttpMethod();
@@ -189,7 +194,8 @@ public class SpecRecorder {
                         + "------------------------------------------------"
                 );
                 specs.add(recordedSpec.setId(id).setSpec(restxSpec).setMethod(method).setPath(path)
-                        .setDuration(new Duration(recordedSpec.getRecordTime(), DateTime.now()))
+                        .setDuration(new Duration(recordedSpec.getRecordTime(),
+                                new DateTime(System.currentTimeMillis()))) // we don't use DateTime.now for that, time is still frozen
                         .setCapturedResponseSize(baos.size()));
             }
         };
