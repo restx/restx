@@ -7,14 +7,22 @@
   <link rel="stylesheet" href="http://mleibman.github.com/SlickGrid/slick.grid.css" type="text/css"/>
   <link rel="stylesheet" href="http://mleibman.github.com/SlickGrid/examples/examples.css" type="text/css"/>
   <link rel="stylesheet" href="https://google-code-prettify.googlecode.com/svn/loader/skins/sunburst.css" type="text/css"/>
+  	<link rel="stylesheet" href="http://fabien-d.github.com/alertify.js/assets/js/lib/alertify/alertify.core.css" />
+  	<link rel="stylesheet" href="http://fabien-d.github.com/alertify.js/assets/js/lib/alertify/alertify.default.css" />
   <style type="text/css">
   * { font-size: 14px; font-family:Consolas,'Lucida Console','DejaVu Sans Mono',monospace; }
+  #save, #saveToFolder { float: right; }
+  .hint { font-style:italic; }
   </style>
 </head>
 <body style="background: #302E30; ">
-  <div style="width:960px; margin-bottom: 5px; margin-left: auto; margin-right: auto; color: #F3F7E4;">Search: <input id="search"></div>
+  <div style="width:960px; margin-bottom: 5px; margin-left: auto; margin-right: auto; color: #F3F7E4;">
+    Search: <input id="search"> <span class="hint">Hint: press S after clicking a line to save it</span>
+  </div>
   <div id="myGrid" style="width:960px;height:400px; margin-left: auto; margin-right: auto; "></div>
   <pre class="prettyprint" style="width:900px;height:400px; margin-left: auto; margin-right: auto; overflow: auto;">
+    <input type="button" value="SAVE" id="save">
+    <input id="saveToFolder" placeholder="Folder">
     <code class="language-yaml" id="details"></code>
   </pre>
 
@@ -27,6 +35,7 @@
 
 <script src="https://google-code-prettify.googlecode.com/svn/loader/prettify.js"></script>
 <script src="https://google-code-prettify.googlecode.com/svn/loader/lang-yaml.js"></script>
+<script src="http://fabien-d.github.com/alertify.js/assets/js/lib/alertify/alertify.min.js"></script>
 
 <script>
   var grid, dataView;
@@ -68,6 +77,25 @@
   }
 
   $(function () {
+    alertify.set({ delay: 3000 });
+
+    var selected;
+    var save = function() {
+       $.post('{baseUrl}/@/recorder/storage/' + selected.id + '?path=' + $('#saveToFolder').val(), function(data) {
+           console.log('saved', selected, data);
+           alertify.success("Saved to " + data);
+       });
+    };
+    $('#save').click(save);
+
+    $('body').keyup(function(e) {
+        if (e.which == 83   // s
+            && $(e.target).closest('#myGrid').length > 0 // focus is in the grid
+            ) {
+            save();
+        }
+    })
+
     var data = [
         // { id: "%03d", method: "%s", path: "%s", recordTime: "%s", duration: %d, capturedItems: %d, capturedRequestSize: %d, capturedResponseSize: %d },
         {data}
@@ -85,6 +113,7 @@
     grid.onClick.subscribe(function(e, args) {
       var item = dataView.getItem(args.row);
       $.get('{baseUrl}/@/recorder/' + item.id, function(data) {
+            selected = item;
             $('#details').text(data);
             $('.prettyprint').removeClass('prettyprinted');
             prettyPrint();
