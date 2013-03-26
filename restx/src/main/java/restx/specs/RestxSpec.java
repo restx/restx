@@ -8,6 +8,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.mongodb.MongoClient;
@@ -58,11 +59,26 @@ public class RestxSpec {
                 String ws = (String) w;
                 String definition;
                 String body;
+                Map<String, String> cookies = Maps.newLinkedHashMap();
 
                 int nlIndex = ws.indexOf("\n");
                 if (nlIndex != -1) {
                     definition = ws.substring(0, nlIndex);
                     body = ws.substring(nlIndex + 1).trim();
+
+                    while (body.startsWith("Cookie:")) {
+                        String cookieValues = body.substring("Cookie:".length());
+                        for (String s : Splitter.on(";").trimResults().split(cookieValues)) {
+                            int i = s.indexOf('=');
+
+                            String name = s.substring(0, i);
+                            String value = s.substring(i + 1);
+                            cookies.put(name, value);
+                        }
+
+                        nlIndex = body.indexOf("\n");
+                        body = nlIndex == -1 ? "" : body.substring(nlIndex + 1).trim();
+                    }
                 } else {
                     definition = ws;
                     body = "";
@@ -82,7 +98,7 @@ public class RestxSpec {
                         code = Integer.parseInt(respMatcher.group(1));
                         then = then.substring(endLineIndex).trim();
                     }
-                    whens.add(new WhenHttpRequest(method, path, body, new ThenHttpResponse(code, then)));
+                    whens.add(new WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), body, new ThenHttpResponse(code, then)));
                 } else {
                     throw new IllegalArgumentException("unrecognized 'when' format: it must begin with " +
                             "a HTTP declaration of the form 'VERB resource/path'\nEg: GET users/johndoe\n. Was: '" + ws + "'\n");
@@ -211,11 +227,18 @@ public class RestxSpec {
 
         @Override
         public void toString(StringBuilder sb) {
-            sb.append("  - collection: ").append(collection).append("\n")
-                    .append(Strings.isNullOrEmpty(path) ? "" : "    path: " + path + "\n")
-                    .append("    data: |\n").append(data).append("\n")
-                    .append(sequence.isEmpty() ? "" : "    sequence: " + Joiner.on(", ").join(sequence) + "\n").toString()
-                    ;
+            sb.append("  - collection: ").append(collection).append("\n");
+            if (!Strings.isNullOrEmpty(path) && !path.equals("data://")) {
+                sb.append("    path: ").append(path).append("\n");
+            }
+            if (!data.isEmpty()) {
+                sb.append("    data: |\n").append(reindent(data.trim(), 8)).append("\n");
+            }
+            if (!sequence.isEmpty()) {
+                    sb.append("    sequence: ");
+                    Joiner.on(", ").appendTo(sb, sequence);
+                    sb.append("\n");
+            }
         }
 
         public GivenCleaner run(final ImmutableMap<String, String> params) {
@@ -322,12 +345,14 @@ public class RestxSpec {
         private final String method;
         private final String path;
         private final String body;
+        private final ImmutableMap<String, String> cookies;
 
-        WhenHttpRequest(String method, String path, String body, ThenHttpResponse then) {
+        WhenHttpRequest(String method, String path, ImmutableMap<String, String> cookies, String body, ThenHttpResponse then) {
             super(then);
             this.method = method;
             this.path = path;
             this.body = body;
+            this.cookies = cookies;
         }
 
         public void check(ImmutableMap<String, String> params) {
@@ -338,8 +363,16 @@ public class RestxSpec {
             System.out.println(">> REQUEST");
             System.out.println(getMethod() + " " + url);
             System.out.println();
-            HttpRequest httpRequest = new HttpRequest(url,
-                    getMethod());
+            HttpRequest httpRequest = new HttpRequest(url, getMethod());
+
+            if (!cookies.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (Map.Entry<String, String> entry : cookies.entrySet()) {
+                    sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
+                }
+                sb.setLength(sb.length() - 2);
+                httpRequest.header("Cookie", sb.toString());
+            }
 
             if (!Strings.isNullOrEmpty(getBody())) {
                 httpRequest.send(getBody());
@@ -363,12 +396,22 @@ public class RestxSpec {
 
         @Override
         public void toString(StringBuilder sb) {
-            if (Strings.isNullOrEmpty(body)) {
+            if (Strings.isNullOrEmpty(body) && cookies.isEmpty()) {
                 sb.append("  - when: ").append(method).append(" ").append(path).append("\n");
             } else {
                 sb.append("  - when: |\n")
-                  .append("       ").append(method).append(" ").append(path).append("\n\n")
-                  .append("       ").append(body).append("\n");
+                        .append("       ").append(method).append(" ").append(path).append("\n\n");
+                if (!cookies.isEmpty()) {
+                    sb.append("       Cookie: ");
+                    for (Map.Entry<String, String> entry : cookies.entrySet()) {
+                        sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
+                    }
+                    sb.setLength(sb.length() - 2);
+                    sb.append("\n");
+                }
+                if (!Strings.isNullOrEmpty(body)) {
+                    sb.append(indent(body.trim(), 8)).append("\n");
+                }
             }
             getThen().toString(sb);
         }
@@ -383,6 +426,10 @@ public class RestxSpec {
 
         public String getBody() {
             return body;
+        }
+
+        public ImmutableMap<String, String> getCookies() {
+            return cookies;
         }
     }
 
@@ -413,8 +460,17 @@ public class RestxSpec {
             if (expectedCode != 200) {
                 sb.append("       ").append(expectedCode).append("\n\n");
             }
-            sb.append("       ").append(expected).append("\n");
+            sb.append(indent(expected, 8)).append("\n");
         }
     }
+
+    private static String indent(String s, int i) {
+        return Pattern.compile("^", Pattern.MULTILINE).matcher(s).replaceAll(Strings.repeat(" ", i));
+    }
+
+    private static String reindent(String s, int i) {
+        return Pattern.compile("^\\s*", Pattern.MULTILINE).matcher(s).replaceAll(Strings.repeat(" ", i));
+    }
+
 
 }

@@ -3,6 +3,8 @@ package restx.server.simple;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Request;
 import restx.RestxRequest;
 
@@ -10,6 +12,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -59,6 +62,15 @@ public class SimpleRestxRequest implements RestxRequest {
     @Override
     public Optional<String> getHeader(String headerName) {
         return Optional.fromNullable(request.getValue(headerName));
+    }
+
+    @Override
+    public Map<String, String> getCookiesMap() {
+        Map<String, String> cookies = Maps.newLinkedHashMap();
+        for (Cookie cookie : request.getCookies()) {
+            cookies.put(cookie.getName(), cookie.getValue());
+        }
+        return cookies;
     }
 
     @Override

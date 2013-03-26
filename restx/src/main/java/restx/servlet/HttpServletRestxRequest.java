@@ -3,6 +3,7 @@ package restx.servlet;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import restx.RestxRequest;
 
 import javax.servlet.http.Cookie;
@@ -83,6 +84,19 @@ public class HttpServletRestxRequest implements RestxRequest {
     @Override
     public String getHttpMethod() {
         return request.getMethod();
+    }
+
+    @Override
+    public Map<String, String> getCookiesMap() {
+        Map<String, String> cookies = Maps.newLinkedHashMap();
+        Cookie[] requestCookies = request.getCookies();
+        if (requestCookies != null) {
+            for (int i = 0; i < requestCookies.length; i++) {
+                Cookie cookie = requestCookies[i];
+                cookies.put(cookie.getName(), cookie.getValue());
+            }
+        }
+        return cookies;
     }
 
     @Override

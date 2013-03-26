@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -51,6 +52,11 @@ public class RestxRequestWrapper implements RestxRequest {
     @Override
     public Optional<String> getHeader(String headerName) {
         return original.getHeader(headerName);
+    }
+
+    @Override
+    public Map<String, String> getCookiesMap() {
+        return original.getCookiesMap();
     }
 
     @Override

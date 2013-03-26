@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -50,6 +51,7 @@ public interface RestxRequest {
 
     String getCookieValue(String cookie, String defaultValue);
     boolean isPersistentCookie(String cookie);
+    Map<String,String> getCookiesMap();
 
     InputStream getContentStream() throws IOException;
 

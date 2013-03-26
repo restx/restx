@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
@@ -108,7 +109,8 @@ public class SpecRecorder {
         Stopwatch stopwatch = new Stopwatch().start();
         System.out.print("RECORDING REQUEST...");
         final String method = restxRequest.getHttpMethod();
-        final String path = restxRequest.getRestxUri();
+        final String path = restxRequest.getRestxUri().substring(1); // remove leading slash
+        final Map<String,String> cookies = restxRequest.getCookiesMap();
         final byte[] requestBody = ByteStreams.toByteArray(restxRequest.getContentStream());
         System.out.println(" >> recorded request " + method + " " + path + " (" + requestBody.length + " bytes) -- " + stopwatch.stop());
         recordedSpec.setCapturedRequestSize(requestBody.length);
@@ -165,9 +167,9 @@ public class SpecRecorder {
 
                 int id = specId.incrementAndGet();
                 RestxSpec restxSpec = new RestxSpec(
-                        String.format("[%03d] %s", id, path),
+                        String.format("%03d %s", id, path),
                         ImmutableList.copyOf(givens.values()), ImmutableList.<RestxSpec.When>of(
-                        new RestxSpec.WhenHttpRequest(method, path, new String(requestBody, Charset.forName("UTF-8")),
+                        new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), new String(requestBody, Charset.forName("UTF-8")),
                                 new RestxSpec.ThenHttpResponse(status, baos.toString("UTF-8")))));
                 System.out.println("-----------------  RESTX SPEC  ---------------- \n"
                         + restxSpec + "\n"

@@ -2,6 +2,7 @@ package restx.specs;
 
 import com.google.common.io.Resources;
 import org.fest.assertions.api.Assertions;
+import org.fest.assertions.data.MapEntry;
 import org.junit.Test;
 
 import java.nio.charset.Charset;
@@ -45,18 +46,32 @@ public class RestxSpecTest {
                 .containsExactly("{ \"status\": \"validated\" }", "", "");
         Assertions.assertThat(Assertions.extractProperty("then.expectedCode").from(testCase.getWhens()))
                 .containsExactly(201, 200, 200);
+        Assertions.assertThat(((RestxSpec.WhenHttpRequest) testCase.getWhens().get(2)).getCookies()).contains(
+                MapEntry.entry("cookie1", "value1"), MapEntry.entry("cookie2", "value2"));
         Assertions.assertThat(Assertions.extractProperty("then.expected").from(testCase.getWhens()))
-                .containsExactly(
-                        "{ \"status\": \"validated\" }",
-                        "{\n" +
-                                "    \"status\": \"validated\",\n" +
-                                "    \"workTime\": { }\n" +
-                                "}",
-                        "[\n" +
-                                "    { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"example1\" },\n" +
-                                "    { \"_id\": \"511bd1297638b9481a66f386\", \"title\": \"example2\" }\n" +
-                                "]");
+                        .containsExactly(
+                                "{ \"status\": \"validated\" }",
+                                "{\n" +
+                                        "    \"status\": \"validated\",\n" +
+                                        "    \"workTime\": { }\n" +
+                                        "}",
+                                "[\n" +
+                                        "    { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"example1\" },\n" +
+                                        "    { \"_id\": \"511bd1297638b9481a66f386\", \"title\": \"example2\" }\n" +
+                                        "]");
 
 
+    }
+
+    @Test
+    public void should_generate_yaml() throws Exception {
+        RestxSpec testCase = RestxSpec.load(
+                Resources.newReaderSupplier(
+                        Resources.getResource("restx/tests/restx_test_case_example_1.yaml"),
+                        Charset.forName("UTF-8")));
+
+        assertThat(testCase.toString()).isEqualTo(Resources.toString(
+                                Resources.getResource("restx/tests/expected_restx_case_example_1.yaml"),
+                                Charset.forName("UTF-8")));
     }
 }
