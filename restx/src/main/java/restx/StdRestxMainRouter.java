@@ -74,8 +74,18 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
         Monitor monitor = MonitorFactory.start("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath());
         try {
+            RouteLifecycleListener noCache = new RouteLifecycleListener() {
+                @Override
+                public void onRouteMatch(RestxRoute source) {
+                }
+
+                @Override
+                public void onBeforeWriteContent(RestxRoute source) {
+                    restxResponse.setHeader("Cache-Control", "no-cache");
+                }
+            };
             if (!mainRouter.route(restxRequest, restxResponse,
-                    new RestxContext(getMode(), RouteLifecycleListener.DEAF))) {
+                    new RestxContext(getMode(), noCache))) {
                 String path = restxRequest.getRestxPath();
                 StringBuilder sb = new StringBuilder()
                         .append("no restx route found for ")
