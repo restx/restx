@@ -6,7 +6,7 @@
     <parent>
         <groupId>fr.4sh.pom-parents</groupId>
         <artifactId>4sh-uberpom</artifactId>
-        <version>0.6</version>
+        <version>0.8</version>
     </parent>
 
     <groupId>restx</groupId>
