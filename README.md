@@ -3,9 +3,9 @@
 
 ## What is rest.x?
 
-rest.x is a Java rest framework:
+rest.x is an opinionated Java rest framework:
 - focused on REST, not a general web framework
-   it means no templating mechnism, use it with your favorite JS framework!
+   it means no templating mechanism, use it with your favorite JS framework!
 
 - no reflection
    we prefer annotation processing, so that even with some magic you can always view the source.
@@ -39,7 +39,8 @@ rest.x is a Java rest framework:
    relationnal DB support (soon)
 
 - ... but not only
-   strong support for embedded launch, starts up in less than 0.5s (depends mostly on DB connection and class loading)
+   strong support for embedded launch, starts up in less than 0.5s (depends mostly on DB connection and class loading,
+   by itself a restx server can start in less than 100ms)
 
 - type safe DI
    features a small dependency injection engine, based on annotation processing and code generation
@@ -53,6 +54,10 @@ rest.x is a Java rest framework:
 - easy to setup (soon)
    a command line helps to create new apps, run and deploy them on the cloud
 
+- opinionated
+   focused on JSON REST API, though being restful can be discussed: there is no help to support links between resources
+   (so there is no strong support for discoverability), and we support only JSON UTF-8 representations (yes, you read
+   correctly, no XML, ATOM, you name it)
 
 ## Show me some code
 
