@@ -1,3 +1,0 @@
-restx.annotations.processor.RestxAnnotationProcessor
-restx.exceptions.processor.ErrorAnnotationProcessor
-restx.factory.processor.FactoryAnnotationProcessor

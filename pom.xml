@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.4sh.pom-parents</groupId>
+        <artifactId>4sh-uberpom</artifactId>
+        <version>0.8</version>
+    </parent>
+
+    <groupId>restx</groupId>
+    <artifactId>restx-parent</artifactId>
+    <version>0.2-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>restx-common</module>
+        <module>restx-factory</module>
+        <module>restx-core</module>
+        <module>restx-swagger</module>
+        <module>restx-factory-admin</module>
+        <module>restx-specs</module>
+        <module>restx-specs-tests</module>
+        <module>restx-jongo</module>
+        <module>restx-jongo-specs-tests</module>
+        <module>restx-servlet</module>
+        <module>restx-server-jetty</module>
+        <module>restx-server-tomcat</module>
+        <module>restx-server-simple</module>
+    </modules>
+</project>
