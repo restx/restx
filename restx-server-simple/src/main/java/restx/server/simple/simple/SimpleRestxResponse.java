@@ -1,5 +1,6 @@
 package restx.server.simple.simple;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
 import org.simpleframework.http.Cookie;
@@ -41,7 +42,7 @@ public class SimpleRestxResponse implements RestxResponse {
             Optional<String> cs = HTTP.charsetFromContentType(s);
             if (!cs.isPresent()) {
                 s += "; charset=UTF-8";
-                charset = "UTF-8";
+                charset = Charsets.UTF_8.name();
             } else {
                 charset = cs.get();
             }
@@ -54,7 +55,7 @@ public class SimpleRestxResponse implements RestxResponse {
         if (charset == null) {
             logger.warn("no charset defined while getting writer to write http response." +
                     " Make sure you call setContentType() before calling getWriter(). Using UTF-8 charset.");
-            charset = "UTF-8";
+            charset = Charsets.UTF_8.name();
         }
         return writer = new PrintWriter(
                 new OutputStreamWriter(response.getPrintStream(), charset), true);

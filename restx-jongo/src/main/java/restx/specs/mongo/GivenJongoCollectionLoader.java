@@ -1,5 +1,6 @@
 package restx.specs.mongo;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -11,7 +12,6 @@ import restx.specs.RestxSpecLoader;
 
 import javax.inject.Named;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public final class GivenJongoCollectionLoader implements RestxSpecLoader.GivenLo
         } else if (given.containsKey("path")) {
             if (path.startsWith("/")) {
                 try {
-                    data = Resources.toString(Resources.getResource(path.substring(1)), Charset.forName("UTF-8"));
+                    data = Resources.toString(Resources.getResource(path.substring(1)), Charsets.UTF_8);
                 } catch (IOException e) {
                     throw new IllegalArgumentException("can't load referenced resource " + path + " for " + given, e);
                 }

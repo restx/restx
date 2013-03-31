@@ -1,12 +1,11 @@
 package restx.specs.mongo;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import org.fest.assertions.data.MapEntry;
 import org.junit.Test;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
-
-import java.nio.charset.Charset;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 import static org.fest.assertions.api.Assertions.extractProperty;
@@ -25,7 +24,7 @@ public class GivenJongoCollectionTest {
         RestxSpec testCase = restxSpecLoader.load(
                 Resources.newReaderSupplier(
                         Resources.getResource("restx/tests/restx_test_case_example_1.yaml"),
-                        Charset.forName("UTF-8")));
+                        Charsets.UTF_8));
 
         assertThat(testCase).isNotNull();
         assertThat(testCase.getTitle()).isEqualTo("should validate salary for casual reception 1st month");
@@ -75,12 +74,12 @@ public class GivenJongoCollectionTest {
         RestxSpec testCase = restxSpecLoader.load(
                 Resources.newReaderSupplier(
                         Resources.getResource("restx/tests/restx_test_case_example_1.yaml"),
-                        Charset.forName("UTF-8")));
+                        Charsets.UTF_8));
 
         String actual = testCase.toString();
         System.out.println("actual = " + actual);
         assertThat(actual).isEqualTo(Resources.toString(
                                 Resources.getResource("restx/tests/expected_restx_case_example_1.yaml"),
-                                Charset.forName("UTF-8")));
+                                Charsets.UTF_8));
     }
 }

@@ -1,5 +1,6 @@
 package restx.specs;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -14,7 +15,6 @@ import restx.factory.NamedComponent;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,7 +59,7 @@ public class RestxSpecLoader {
     public RestxSpec load(String resource) throws IOException {
         return load(Resources.newReaderSupplier(
                 Resources.getResource(resource),
-                Charset.forName("UTF-8")));
+                Charsets.UTF_8));
     }
 
     public RestxSpec load(InputSupplier<InputStreamReader> inputSupplier) throws IOException {

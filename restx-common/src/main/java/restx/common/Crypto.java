@@ -1,5 +1,6 @@
 package restx.common;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.BaseEncoding;
 
 import javax.crypto.Mac;
@@ -26,7 +27,7 @@ public class Crypto {
             Mac mac = Mac.getInstance("HmacSHA1");
             SecretKeySpec signingKey = new SecretKeySpec(key, "HmacSHA1");
             mac.init(signingKey);
-            byte[] messageBytes = message.getBytes("utf-8");
+            byte[] messageBytes = message.getBytes(Charsets.UTF_8);
             byte[] result = mac.doFinal(messageBytes);
             return BaseEncoding.base64().encode(result);
         } catch (Exception ex) {

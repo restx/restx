@@ -1,11 +1,11 @@
 package restx.common;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,7 +20,7 @@ public class Tpl {
     private final String tpl;
 
     public Tpl(Class clazz, String name) throws IOException {
-        tpl = Resources.toString(Resources.getResource(clazz, name + ".tpl"), Charset.forName("UTF-8"));
+        tpl = Resources.toString(Resources.getResource(clazz, name + ".tpl"), Charsets.UTF_8);
     }
 
     public String bind(final ImmutableMap<String, String> ctx) {

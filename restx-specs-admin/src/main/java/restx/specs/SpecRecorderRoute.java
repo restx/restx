@@ -1,5 +1,6 @@
 package restx.specs;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -13,7 +14,6 @@ import restx.common.Tpl;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -70,7 +70,7 @@ public class SpecRecorderRoute implements RestxRoute {
                             + title.or(String.format("%03d_%s_%s", spec.getId(), spec.getMethod(), spec.getPath().substring(0, endIndex)))
                                 .replace(' ', '_').replace('/', '_') + ".yaml");
                     destFile.getParentFile().mkdirs();
-                    Files.append(spec.getSpec().toString(), destFile, Charset.forName("UTF-8"));
+                    Files.append(spec.getSpec().toString(), destFile, Charsets.UTF_8);
 
                     resp.setContentType("text/plain");
                     resp.getWriter().println(destFile.getAbsolutePath());

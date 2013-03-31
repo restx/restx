@@ -1,6 +1,7 @@
 package restx.specs;
 
 import com.github.kevinsawicki.http.HttpRequest;
+import com.google.common.base.Charsets;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -10,11 +11,8 @@ import org.fest.assertions.api.Assertions;
 import org.hamcrest.MatcherAssert;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
-import restx.factory.Component;
 import uk.co.datumedge.hamcrest.json.SameJSONAs;
 
-import javax.inject.Named;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -183,7 +181,7 @@ public class RestxSpec {
             System.out.println("<< RESPONSE");
             System.out.println(code);
             System.out.println();
-            String body = httpRequest.body("UTF-8");
+            String body = httpRequest.body(Charsets.UTF_8.name());
             System.out.println(body);
             System.out.println();
 

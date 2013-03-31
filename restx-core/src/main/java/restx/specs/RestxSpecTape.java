@@ -1,5 +1,6 @@
 package restx.specs;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -16,7 +17,6 @@ import restx.RestxResponse;
 import restx.RestxResponseWrapper;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -142,7 +142,7 @@ public class RestxSpecTape {
             public void close() throws Exception {
                 System.out.println(" >> recorded response (" + baos.size() + " bytes) -- " + stopwatch.stop());
                 if (realWriter != null) {
-                    CharStreams.copy(CharStreams.asCharSource(baos.toString("UTF-8")).openStream(), realWriter);
+                    CharStreams.copy(CharStreams.asCharSource(baos.toString(Charsets.UTF_8.name())).openStream(), realWriter);
                 } else if (realOS != null) {
                     ByteStreams.copy(ByteStreams.asByteSource(baos.toByteArray()).openStream(), realOS);
                 }
@@ -152,8 +152,8 @@ public class RestxSpecTape {
                 RestxSpec restxSpec = new RestxSpec(
                         String.format("%03d %s", id, path),
                         ImmutableList.copyOf(givens.values()), ImmutableList.<RestxSpec.When>of(
-                        new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), new String(requestBody, Charset.forName("UTF-8")),
-                                new RestxSpec.ThenHttpResponse(status, baos.toString("UTF-8")))));
+                        new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), new String(requestBody, Charsets.UTF_8),
+                                new RestxSpec.ThenHttpResponse(status, baos.toString(Charsets.UTF_8.name())))));
                 System.out.println("-----------------  RESTX SPEC  ---------------- \n"
                         + restxSpec + "\n"
                         + "------------------------------------------------"
