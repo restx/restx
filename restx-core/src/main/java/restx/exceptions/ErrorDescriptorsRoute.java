@@ -7,7 +7,6 @@ import restx.RestxContext;
 import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.RestxRoute;
-import restx.factory.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -43,23 +42,4 @@ public class ErrorDescriptorsRoute implements RestxRoute {
         return false;
     }
 
-    public static class Factory extends SingleNameFactoryMachine<ErrorDescriptorsRoute> {
-        private static final restx.factory.Factory.Query<ErrorDescriptor> ERROR_DESCRIPTOR_QUERY =
-                                                restx.factory.Factory.Query.byClass(ErrorDescriptor.class);
-
-        public Factory() {
-            super(0, new StdMachineEngine<ErrorDescriptorsRoute>(
-                    Name.of(ErrorDescriptorsRoute.class, "SpecRecorderRoute"), BoundlessComponentBox.FACTORY) {
-                @Override
-                protected ErrorDescriptorsRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return new ErrorDescriptorsRoute(satisfiedBOM.getAsComponents(ERROR_DESCRIPTOR_QUERY));
-                }
-
-                @Override
-                public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of(ERROR_DESCRIPTOR_QUERY);
-                }
-            });
-        }
-    }
 }

@@ -8,11 +8,18 @@ import restx.annotations.RestxResource;
 import restx.common.Tpl;
 import restx.converters.StringConverter;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
 
+@Component
 public class WarehouseRoute implements RestxRoute {
     private final Warehouse warehouse;
+
+    @Inject
+    public WarehouseRoute(Factory factory) {
+        this(factory.getWarehouse());
+    }
 
     public WarehouseRoute(Warehouse warehouse) {
         this.warehouse = warehouse;
@@ -62,25 +69,5 @@ public class WarehouseRoute implements RestxRoute {
     @Override
     public String toString() {
         return "GET /@/warehouse => WarehouseRoute";
-    }
-
-    public static class Machine extends SingleNameFactoryMachine<WarehouseRoute> {
-
-        private static final Factory.Query<Factory> factoryQuery = Factory.Query.factoryQuery();
-
-        public Machine() {
-            super(0, new StdMachineEngine<WarehouseRoute>(Name.of(WarehouseRoute.class),
-                    BoundlessComponentBox.FACTORY) {
-                @Override
-                protected WarehouseRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return new WarehouseRoute(satisfiedBOM.getOne(factoryQuery).get().getComponent().getWarehouse());
-                }
-
-                @Override
-                public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of(factoryQuery);
-                }
-            });
-        }
     }
 }

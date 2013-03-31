@@ -6,9 +6,11 @@ import restx.RestxContext;
 import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.RestxRoute;
+import restx.factory.Component;
 
 import java.io.IOException;
 
+@Component
 public class SwaggerUIRoute implements RestxRoute {
     @Override
     public boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {

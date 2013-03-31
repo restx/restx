@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
  * Date: 1/19/13
  * Time: 12:12 AM
  */
+@Machine
 public class JongoFactory extends SingleNameFactoryMachine<Jongo> {
     public static final String JONGO_DB_NAME = "mongo.db";
     public static final Name<String> JONGO_DB = Name.of(String.class, JONGO_DB_NAME);

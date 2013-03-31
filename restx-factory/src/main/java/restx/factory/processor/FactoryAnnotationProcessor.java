@@ -14,6 +14,7 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -127,7 +128,14 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         ExecutableElement exec = null;
         for (Element element : component.getEnclosedElements()) {
             if (element instanceof ExecutableElement && element.getKind() == ElementKind.CONSTRUCTOR) {
-                exec = (ExecutableElement) element;
+                if (exec == null
+                        || element.getAnnotation(Inject.class) != null) {
+                    exec = (ExecutableElement) element;
+                    if (exec.getAnnotation(Inject.class) != null) {
+                        // if a constructor is marked with @Inject we use it whatever other constructors are available
+                        return exec;
+                    }
+                }
             }
         }
         return exec;

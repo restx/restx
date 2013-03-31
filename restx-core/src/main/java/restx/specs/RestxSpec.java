@@ -92,22 +92,6 @@ public class RestxSpec {
     }
 
     public static class GivenTime implements Given {
-        @Named("time") @Component
-        public static final class Loader implements RestxSpecLoader.GivenLoader {
-            @Override
-            public Given load(Map given1) {
-                Object time = given1.get("time");
-                if (time instanceof String) {
-                    return new GivenTime(DateTime.parse((String) time));
-                } else if (time instanceof Date) {
-                    return new GivenTime(new DateTime(time));
-                } else {
-                    throw new IllegalArgumentException("invalid given time " + given1 + ": " +
-                            "unrecognized value type " + time.getClass().getName() + "." +
-                            " Was expecting String or Date ");
-                }
-            }
-        }
 
         private final DateTime time;
 

@@ -6,10 +6,14 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
+import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.NamedComponent;
+import restx.jackson.FrontObjectMapperFactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -32,11 +36,13 @@ import java.util.Set;
  *    ]
  * }
  */
+@Component
 public class SwaggerIndexRoute extends StdRoute {
     private final Factory factory;
 
-    public SwaggerIndexRoute(String name, ObjectMapper mapper, Factory factory) {
-        super(name, mapper, new StdRouteMatcher("GET", "/@/api-docs"));
+    @Inject
+    public SwaggerIndexRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper, Factory factory) {
+        super("SwaggerIndexRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs"));
         this.factory = factory;
     }
 

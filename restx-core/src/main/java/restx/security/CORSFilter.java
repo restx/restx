@@ -99,23 +99,4 @@ public class CORSFilter implements RestxRoute {
         }
     }
 
-    public static final class Machine extends SingleNameFactoryMachine<CORSFilter> {
-        public static final Name<CORSFilter> NAME = Name.of(CORSFilter.class, "CORSFilter");
-
-        public Machine() {
-            super(-10, new StdMachineEngine<CORSFilter>(NAME, BoundlessComponentBox.FACTORY) {
-                private final Factory.Query<CORSAuthorizer> authorizers = Factory.Query.byClass(CORSAuthorizer.class);
-                @Override
-                public CORSFilter doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return new CORSFilter(satisfiedBOM.getAsComponents(authorizers));
-                }
-
-                @Override
-                public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of(authorizers);
-                }
-            });
-        }
-    }
-
 }

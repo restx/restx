@@ -2,6 +2,8 @@ package restx.swagger;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import restx.factory.Module;
+import restx.factory.Provides;
 import restx.security.CORSAuthorizer;
 import restx.security.StdCORSAuthorizer;
 
@@ -12,7 +14,9 @@ import java.util.regex.Pattern;
  * Date: 2/8/13
  * Time: 1:50 PM
  */
-public class SwaggerProvider {
+@Module
+public class SwaggerModule {
+    @Provides
     public CORSAuthorizer getSwaggerAuthorizer() {
         return new StdCORSAuthorizer(
                 Predicates.<CharSequence>alwaysTrue(),

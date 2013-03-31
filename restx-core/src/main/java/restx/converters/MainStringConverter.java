@@ -31,23 +31,4 @@ public class MainStringConverter {
         return (T) converter.apply(value);
     }
 
-    public static final class Machine extends SingleNameFactoryMachine<MainStringConverter> {
-        public static final Name<MainStringConverter> NAME = Name.of(MainStringConverter.class, "MainStringConverter");
-
-        public Machine() {
-            super(0, new StdMachineEngine<MainStringConverter>(NAME, BoundlessComponentBox.FACTORY) {
-                private Factory.Query<StringConverter> stringConverters = Factory.Query.byClass(StringConverter.class);
-
-                @Override
-                public MainStringConverter doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return new MainStringConverter(satisfiedBOM.getAsComponents(stringConverters));
-                }
-
-                @Override
-                public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of(stringConverters);
-                }
-            });
-        }
-    }
 }

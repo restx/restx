@@ -30,7 +30,7 @@ public class RestxSessionFilter implements RestxRoute {
     private final ObjectMapper mapper;
     private final byte[] signatureKey;
 
-    private RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, byte[] signatureKey) {
+    RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, byte[] signatureKey) {
         this.sessionDefinition = sessionDefinition;
         this.mapper = mapper;
         this.signatureKey = signatureKey;
@@ -106,30 +106,4 @@ public class RestxSessionFilter implements RestxRoute {
     }
 
 
-    public static class Machine extends SingleNameFactoryMachine<RestxSessionFilter> {
-
-        public Machine() {
-            super(-10, new StdMachineEngine<RestxSessionFilter>(NAME, BoundlessComponentBox.FACTORY) {
-                private final Factory.Query<RestxSession.Definition.Entry> entries = Factory.Query.byClass(RestxSession.Definition.Entry.class);
-                private final Factory.Query<ObjectMapper> mapper = Factory.Query.byName(FrontObjectMapperFactory.NAME);
-                private final Factory.Query<SignatureKey> signatureKeyQuery = Factory.Query.byClass(SignatureKey.class);
-                @Override
-                public RestxSessionFilter doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return new RestxSessionFilter(
-                            new RestxSession.Definition(satisfiedBOM.getAsComponents(entries)),
-                            satisfiedBOM.getOne(mapper).get().getComponent(),
-                            satisfiedBOM.getOne(signatureKeyQuery)
-                                    .or(new NamedComponent(
-                                            Name.of(SignatureKey.class, "DefaultSignature"),
-                                            new SignatureKey("this is the default signature key".getBytes())))
-                                    .getComponent().getKey());
-                }
-
-                @Override
-                public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of(entries, mapper, signatureKeyQuery);
-                }
-            });
-        }
-    }
 }

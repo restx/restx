@@ -6,13 +6,27 @@ import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import org.jongo.marshall.jackson.id.ObjectIdDeserializer;
 import org.jongo.marshall.jackson.id.ObjectIdSerializer;
+import restx.factory.Component;
+import restx.factory.NamedComponent;
+import restx.factory.SingleComponentNameCustomizerEngine;
 
 /**
  * User: xavierhanin
  * Date: 3/30/13
  * Time: 5:27 PM
  */
-public class FrontObjectMapperCustomizer {
+@Component
+public class FrontObjectMapperCustomizer extends SingleComponentNameCustomizerEngine<ObjectMapper> {
+    public FrontObjectMapperCustomizer() {
+        super(0, FrontObjectMapperFactory.NAME);
+    }
+
+    @Override
+    public NamedComponent<ObjectMapper> customize(NamedComponent<ObjectMapper> namedComponent) {
+        customize(namedComponent.getComponent());
+        return namedComponent;
+    }
+
     public void customize(ObjectMapper mapper) {
         mapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
             @Override

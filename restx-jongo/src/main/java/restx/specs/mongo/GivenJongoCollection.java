@@ -14,16 +14,11 @@ import org.jongo.ObjectIdUpdater;
 import org.jongo.marshall.Marshaller;
 import org.jongo.marshall.Unmarshaller;
 import org.jongo.query.QueryFactory;
-import restx.factory.Factory;
-import restx.factory.FactoryMachineWrapper;
-import restx.factory.NamedComponent;
-import restx.factory.SatisfiedBOM;
+import restx.factory.*;
 import restx.jongo.JongoCollection;
-import restx.jongo.StdJongoCollection;
 import restx.specs.RestxSpec;
 
 import java.net.UnknownHostException;
-import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.common.MoreStrings.reindent;
@@ -92,68 +87,28 @@ public class GivenJongoCollection implements RestxSpec.Given {
 
             final Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
             contextLocal(checkNotNull(params.get(CONTEXT_NAME), CONTEXT_NAME + " param is required")).addMachine(
-                    FactoryMachineWrapper.from(new StdJongoCollection.JongoCollectionFactory())
-                            .withPriority(-10)
-                            .withDependencies(mapperQuery)
-                            .transformComponents(new Function<Map.Entry<SatisfiedBOM, NamedComponent>, NamedComponent>() {
+                    new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
+                            Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplier"),
+                            BoundlessComponentBox.FACTORY) {
+                        @Override
+                        public BillOfMaterials getBillOfMaterial() {
+                            return BillOfMaterials.of(mapperQuery);
+                        }
+
+                        @Override
+                        protected ComponentCustomizerEngine doNewComponent(final SatisfiedBOM satisfiedBOM) {
+                            return new SingleComponentNameCustomizerEngine<JongoCollection>(0, Name.of(JongoCollection.class, getCollection())) {
                                 @Override
-                                public NamedComponent apply(final Map.Entry<SatisfiedBOM, NamedComponent> input) {
-                                    final JongoCollection collection = (JongoCollection) input.getValue().getComponent();
-                                    final Mapper mapper = input.getKey().getOne(mapperQuery).get().getComponent();
-                                    final ObjectIdUpdater objectIdUpdater = mapper.getObjectIdUpdater();
+                                public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
+                                    final Mapper mapper = satisfiedBOM.getOne(mapperQuery).get().getComponent();
 
-                                    return new NamedComponent<>(input.getValue().getName(),
-                                            new JongoCollection() {
-                                                @Override
-                                                public String getName() {
-                                                    return collection.getName();
-                                                }
-
-                                                @Override
-                                                public MongoCollection get() {
-                                                    MongoCollection mongoCollection = collection.get();
-                                                    if (mongoCollection.getName().equals(GivenJongoCollection.this.collection)) {
-                                                        mongoCollection = new MongoCollection(
-                                                                mongoCollection.getDBCollection(),
-                                                                new Mapper() {
-                                                                    @Override
-                                                                    public Marshaller getMarshaller() {
-                                                                        return mapper.getMarshaller();
-                                                                    }
-
-                                                                    @Override
-                                                                    public Unmarshaller getUnmarshaller() {
-                                                                        return mapper.getUnmarshaller();
-                                                                    }
-
-                                                                    @Override
-                                                                    public ObjectIdUpdater getObjectIdUpdater() {
-                                                                        return new ObjectIdUpdater() {
-                                                                            @Override
-                                                                            public boolean canSetObjectId(Object target) {
-                                                                                return objectIdUpdater.canSetObjectId(target);
-                                                                            }
-
-                                                                            @Override
-                                                                            public void setDocumentGeneratedId(Object target, ObjectId id) {
-                                                                                objectIdUpdater.setDocumentGeneratedId(target,
-                                                                                        new ObjectId(iteratingSequence.next().or(id.toString())));
-                                                                            }
-                                                                        };
-                                                                    }
-
-                                                                    @Override
-                                                                    public QueryFactory getQueryFactory() {
-                                                                        return mapper.getQueryFactory();
-                                                                    }
-                                                                });
-                                                    }
-                                                    return mongoCollection;
-                                                }
-                                            });
+                                    return new NamedComponent<>(namedComponent.getName(),
+                                            new SequencedJongoCollection(namedComponent.getComponent(), mapper,
+                                                    mapper.getObjectIdUpdater(), iteratingSequence));
                                 }
-                            }).build());
-
+                            };
+                        }
+                    }));
 
             return new RestxSpec.GivenCleaner() {
                 @Override
@@ -200,5 +155,67 @@ public class GivenJongoCollection implements RestxSpec.Given {
     public GivenJongoCollection addSequenceId(String id) {
         return new GivenJongoCollection(collection, path, data,
                 ImmutableList.<String>builder().addAll(sequence).add(id).build());
+    }
+
+    private class SequencedJongoCollection implements JongoCollection {
+        private final JongoCollection collection;
+        private final Mapper mapper;
+        private final ObjectIdUpdater objectIdUpdater;
+        private final CollectionSequence iteratingSequence;
+
+        public SequencedJongoCollection(JongoCollection collection, Mapper mapper,
+                                        ObjectIdUpdater objectIdUpdater, CollectionSequence iteratingSequence) {
+            this.collection = collection;
+            this.mapper = mapper;
+            this.objectIdUpdater = objectIdUpdater;
+            this.iteratingSequence = iteratingSequence;
+        }
+
+        @Override
+        public String getName() {
+            return collection.getName();
+        }
+
+        @Override
+        public MongoCollection get() {
+            MongoCollection mongoCollection = collection.get();
+            if (mongoCollection.getName().equals(GivenJongoCollection.this.collection)) {
+                mongoCollection = new MongoCollection(
+                        mongoCollection.getDBCollection(),
+                        new Mapper() {
+                            @Override
+                            public Marshaller getMarshaller() {
+                                return mapper.getMarshaller();
+                            }
+
+                            @Override
+                            public Unmarshaller getUnmarshaller() {
+                                return mapper.getUnmarshaller();
+                            }
+
+                            @Override
+                            public ObjectIdUpdater getObjectIdUpdater() {
+                                return new ObjectIdUpdater() {
+                                    @Override
+                                    public boolean canSetObjectId(Object target) {
+                                        return objectIdUpdater.canSetObjectId(target);
+                                    }
+
+                                    @Override
+                                    public void setDocumentGeneratedId(Object target, ObjectId id) {
+                                        objectIdUpdater.setDocumentGeneratedId(target,
+                                                new ObjectId(iteratingSequence.next().or(id.toString())));
+                                    }
+                                };
+                            }
+
+                            @Override
+                            public QueryFactory getQueryFactory() {
+                                return mapper.getQueryFactory();
+                            }
+                        });
+            }
+            return mongoCollection;
+        }
     }
 }

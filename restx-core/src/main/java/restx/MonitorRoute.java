@@ -6,7 +6,7 @@ import com.google.common.collect.Lists;
 import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
 import restx.common.Tpl;
-import restx.factory.*;
+import restx.factory.Component;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,6 +16,7 @@ import java.util.List;
  * Date: 2/9/13
  * Time: 12:44 AM
  */
+@Component
 public class MonitorRoute implements RestxRoute {
 
     @Override
@@ -43,17 +44,5 @@ public class MonitorRoute implements RestxRoute {
         }
 
         return false;
-    }
-
-    public static class Factory extends SingleNameFactoryMachine<MonitorRoute> {
-        public Factory() {
-            super(0, new NoDepsMachineEngine<MonitorRoute>(
-                    Name.of(MonitorRoute.class, "MonitorRoute"), BoundlessComponentBox.FACTORY) {
-                @Override
-                public MonitorRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return new MonitorRoute();
-                }
-            });
-        }
     }
 }

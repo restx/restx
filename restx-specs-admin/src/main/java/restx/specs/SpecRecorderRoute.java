@@ -10,7 +10,6 @@ import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.RestxRoute;
 import restx.common.Tpl;
-import restx.factory.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +22,11 @@ import java.util.List;
  * Time: 9:37 PM
  */
 public class SpecRecorderRoute implements RestxRoute {
+    private final RestxSpecRecorder specRecorder;
+
+    public SpecRecorderRoute(RestxSpecRecorder specRecorder) {
+        this.specRecorder = specRecorder;
+    }
 
     @Override
     public boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
@@ -31,7 +35,7 @@ public class SpecRecorderRoute implements RestxRoute {
             resp.setContentType("text/html");
 
             List<String> data = Lists.newArrayList();
-            for (SpecRecorder.RecordedSpec spec : SpecRecorder.specs) {
+            for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                 data.add(String.format("{ id: \"%03d\", method: \"%s\", path: \"%s\", recordTime: \"%s\", duration: %d, " +
                         "capturedItems: %d, capturedRequestSize: %d, capturedResponseSize: %d }",
                         spec.getId(), spec.getMethod(), spec.getPath(), spec.getRecordTime(), spec.getDuration().getMillis(),
@@ -44,7 +48,7 @@ public class SpecRecorderRoute implements RestxRoute {
             return true;
         } else if ("GET".equals(req.getHttpMethod()) && req.getRestxPath().startsWith("/@/recorder/")) {
             int id = Integer.parseInt(req.getRestxPath().substring("/@/recorder/".length()));
-            for (SpecRecorder.RecordedSpec spec : SpecRecorder.specs) {
+            for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                 if (spec.getId() == id) {
                     resp.setContentType("text/yaml");
                     resp.getWriter().println(spec.getSpec().toString());
@@ -54,7 +58,7 @@ public class SpecRecorderRoute implements RestxRoute {
             return false;
         } else if ("POST".equals(req.getHttpMethod()) && req.getRestxPath().startsWith("/@/recorder/storage/")) {
             int id = Integer.parseInt(req.getRestxPath().substring("/@/recorder/storage/".length()));
-            for (SpecRecorder.RecordedSpec spec : SpecRecorder.specs) {
+            for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                 if (spec.getId() == id) {
                     String basePath = System.getProperty("restx.recorder.basePath", "specs");
                     Optional<String> path = req.getQueryParam("path");
@@ -77,17 +81,5 @@ public class SpecRecorderRoute implements RestxRoute {
         }
 
         return false;
-    }
-
-    public static class Factory extends SingleNameFactoryMachine<SpecRecorderRoute> {
-        public Factory() {
-            super(0, new NoDepsMachineEngine<SpecRecorderRoute>(
-                    Name.of(SpecRecorderRoute.class, "SpecRecorderRoute"), BoundlessComponentBox.FACTORY) {
-                @Override
-                public SpecRecorderRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return new SpecRecorderRoute();
-                }
-            });
-        }
     }
 }

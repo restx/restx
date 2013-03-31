@@ -9,10 +9,14 @@ import com.google.common.collect.Lists;
 import restx.*;
 import restx.description.DescribableRoute;
 import restx.description.ResourceDescription;
+import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.NamedComponent;
+import restx.jackson.FrontObjectMapperFactory;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.List;
 
@@ -34,11 +38,14 @@ import java.util.List;
  *
  * See <a href="https://github.com/wordnik/swagger-core/wiki/API-Declaration">API Declaration</a>
  */
+@Component
 public class SwaggerApiDeclarationRoute extends StdRoute {
     private final Factory factory;
 
-    public SwaggerApiDeclarationRoute(String name, ObjectMapper mapper, Factory factory) {
-        super(name, mapper, new StdRouteMatcher("GET", "/@/api-docs/{router}"));
+    @Inject
+    public SwaggerApiDeclarationRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
+                                      Factory factory) {
+        super("SwaggerApiDeclarationRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs/{router}"));
         this.factory = factory;
     }
 

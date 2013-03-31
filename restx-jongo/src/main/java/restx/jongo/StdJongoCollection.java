@@ -33,39 +33,4 @@ public class StdJongoCollection implements JongoCollection {
         return name;
     }
 
-    public static class JongoCollectionFactory implements FactoryMachine {
-
-        private Factory.Query<Jongo> jongoQuery = Factory.Query.byName(JongoFactory.NAME);
-
-        @Override
-        public boolean canBuild(Name<?> name) {
-            return JongoCollection.class.isAssignableFrom(name.getClazz());
-        }
-
-        @Override
-        public <T> MachineEngine<T> getEngine(final Name<T> name) {
-            return new StdMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
-                @Override
-                protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return (T) new StdJongoCollection(satisfiedBOM.getOne(jongoQuery).get().getComponent(),
-                                    name.getName());
-                }
-
-                @Override
-                public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of(jongoQuery);
-                }
-            };
-        }
-
-        @Override
-        public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public int priority() {
-            return 0;
-        }
-    }
 }

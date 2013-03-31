@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.common.MorePreconditions.checkPresent;
@@ -356,8 +357,10 @@ public class Factory implements AutoCloseable {
 
     private final ImmutableList<FactoryMachine> machines;
     private final Warehouse warehouse;
+    private final List<ComponentCustomizerEngine> customizerEngines = new CopyOnWriteArrayList<>();
 
     private Factory(List<FactoryMachine> machines, Warehouse warehouse) {
+        machines.add(new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)));
         this.machines = ImmutableList.copyOf(
                 Ordering.from(new Comparator<FactoryMachine>() {
                     @Override
@@ -366,6 +369,17 @@ public class Factory implements AutoCloseable {
                     }
                 }).sortedCopy(machines));
         this.warehouse = checkNotNull(warehouse);
+        buildCustomizerEngines();
+    }
+
+    private void buildCustomizerEngines() {
+        for (FactoryMachine machine : machines) {
+            Set<Name<ComponentCustomizerEngine>> names = machine.nameBuildableComponents(ComponentCustomizerEngine.class);
+            for (Name<ComponentCustomizerEngine> name : names) {
+                Optional<NamedComponent<ComponentCustomizerEngine>> customizer = buildAndStore(name, machine.getEngine(name));
+                customizerEngines.add(customizer.get().getComponent());
+            }
+        }
     }
 
     public int getNbMachines() {
@@ -403,7 +417,10 @@ public class Factory implements AutoCloseable {
         }
 
         MachineEngine<T> engine = machine.getEngine(name);
+        return buildAndStore(name, engine);
+    }
 
+    private <T> Optional<NamedComponent<T>> buildAndStore(Name<T> name, MachineEngine<T> engine) {
         BillOfMaterials bom = engine.getBillOfMaterial();
         SatisfiedBOM satisfiedBOM = satisfy(name, bom);
 
@@ -412,31 +429,33 @@ public class Factory implements AutoCloseable {
         ComponentBox<T> box = engine.newComponent(satisfiedBOM);
         monitor.stop();
 
-        if (!ComponentCustomizerEngine.class.isAssignableFrom(name.getClazz())) {
-            // we don't customize customizers themselves to avoid causing a stck overflow
-            // it would be possible to introduce that feature, it would require isolating the construction of customizers
-            // from their customization. But that's not simple and there is no use case for that so far.
-            List<ComponentCustomizer> customizers = Lists.newArrayList();
-            for (ComponentCustomizerEngine customizerEngine : customizerEngines()) {
-                if (customizerEngine.canCustomize(box.getName())) {
-                    customizers.add(customizerEngine.getCustomizer(box.getName()));
-                }
+        if (box instanceof BoundlessComponentBox && box.pick().isPresent()
+                && box.pick().get().getComponent() == this) {
+            // do not store nor customize the factory itself
+            // to prevent stack overflow on close
+            return box.pick();
+        }
+
+        List<ComponentCustomizer> customizers = Lists.newArrayList();
+        for (ComponentCustomizerEngine customizerEngine : customizerEngines()) {
+            if (customizerEngine.canCustomize(box.getName())) {
+                customizers.add(customizerEngine.getCustomizer(box.getName()));
             }
-            for (ComponentCustomizer customizer : Ordering.from(customizerComparator).sortedCopy(customizers)) {
-                Monitor customizeMonitor = MonitorFactory.start("<CUSTOMIZE> " + name.getSimpleName()
-                        + " <WITH> " + customizer.getClass().getSimpleName());
-                logger.info("customizing {} with {}", name, customizer);
-                box = box.customize(customizer);
-                customizeMonitor.stop();
-            }
+        }
+        for (ComponentCustomizer customizer : Ordering.from(customizerComparator).sortedCopy(customizers)) {
+            Monitor customizeMonitor = MonitorFactory.start("<CUSTOMIZE> " + name.getSimpleName()
+                    + " <WITH> " + customizer.getClass().getSimpleName());
+            logger.info("customizing {} with {}", name, customizer);
+            box = box.customize(customizer);
+            customizeMonitor.stop();
         }
 
         warehouse.checkIn(box, satisfiedBOM, monitor);
         return warehouse.checkOut(box.getName());
     }
 
-    private Set<ComponentCustomizerEngine> customizerEngines() {
-        return queryByClass(ComponentCustomizerEngine.class).findAsComponents();
+    private Iterable<ComponentCustomizerEngine> customizerEngines() {
+        return customizerEngines;
     }
 
     private SatisfiedBOM satisfy(Name name, BillOfMaterials bom) {

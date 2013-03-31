@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.Lists.newArrayList;
 import static restx.RestxMainRouterFactory.getFactoryContextName;
 import static restx.factory.Factory.LocalMachines;
 import static restx.factory.Factory.LocalMachines.contextLocal;
@@ -41,6 +42,7 @@ public class RestxSpecRule implements TestRule {
         this(webInfLocation, appBase, Factory.builder()
                 .addLocalMachines(LocalMachines.threadLocal())
                 .addLocalMachines(contextLocal(RestxSpecRule.class.getSimpleName()))
+                .addFromServiceLoader()
                 .build());
     }
 
@@ -48,8 +50,8 @@ public class RestxSpecRule implements TestRule {
         this.webInfLocation = webInfLocation;
         this.appBase = appBase;
 
-        givenSpecRules = transform(factory.queryByClass(GivenSpecRuleSupplier.class).findAsComponents(),
-                Suppliers.<GivenSpecRule>supplierFunction());
+        givenSpecRules = newArrayList(transform(factory.queryByClass(GivenSpecRuleSupplier.class).findAsComponents(),
+                Suppliers.<GivenSpecRule>supplierFunction()));
     }
 
     protected LocalMachines localMachines() {
@@ -65,8 +67,7 @@ public class RestxSpecRule implements TestRule {
         params.put(RestxSpec.WhenHttpRequest.CONTEXT_NAME, getFactoryContextName(server.getPort()));
         params.put(RestxSpec.WhenHttpRequest.BASE_URL, server.baseUrl() + "/api");
 
-        restxSpec
-                .run(ImmutableMap.copyOf(params));
+        restxSpec.run(ImmutableMap.copyOf(params));
     }
 
     @Override

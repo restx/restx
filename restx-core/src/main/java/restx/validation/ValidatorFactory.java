@@ -3,6 +3,7 @@ package restx.validation;
 import org.hibernate.validator.HibernateValidator;
 import restx.factory.*;
 
+import javax.inject.Named;
 import javax.validation.Validation;
 import javax.validation.Validator;
 
@@ -11,17 +12,14 @@ import javax.validation.Validator;
  * Date: 2/3/13
  * Time: 9:48 PM
  */
-public class ValidatorFactory extends SingleNameFactoryMachine<Validator> {
+@Module
+public class ValidatorFactory {
     public static final String VALIDATOR_NAME = "validator";
     public static final Name<Validator> VALIDATOR = Name.of(Validator.class, VALIDATOR_NAME);
 
-    public ValidatorFactory() {
-        super(0, new NoDepsMachineEngine<Validator>(VALIDATOR, BoundlessComponentBox.FACTORY) {
-            @Override
-            public Validator doNewComponent(SatisfiedBOM satisfiedBOM) {
-                return Validation.byProvider(HibernateValidator.class).configure()
-                                .ignoreXmlConfiguration().buildValidatorFactory().getValidator();
-            }
-        });
+    @Provides @Named(VALIDATOR_NAME)
+    public Validator validator() {
+        return Validation.byProvider(HibernateValidator.class).configure()
+                        .ignoreXmlConfiguration().buildValidatorFactory().getValidator();
     }
 }

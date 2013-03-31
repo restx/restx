@@ -6,24 +6,24 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import restx.factory.*;
 
+import javax.inject.Named;
+
 /**
  * User: xavierhanin
  * Date: 1/19/13
  * Time: 12:12 AM
  */
-public class FrontObjectMapperFactory extends SingleNameFactoryMachine<ObjectMapper> {
-    public static final Name<ObjectMapper> NAME = Name.of(ObjectMapper.class, "FrontObjectMapper");
+@Module
+public class FrontObjectMapperFactory {
+    public static final String MAPPER_NAME = "FrontObjectMapper";
+    public static final Name<ObjectMapper> NAME = Name.of(ObjectMapper.class, MAPPER_NAME);
 
-    public FrontObjectMapperFactory() {
-        super(0, new NoDepsMachineEngine<ObjectMapper>(NAME, BoundlessComponentBox.FACTORY) {
-            @Override
-            public ObjectMapper doNewComponent(SatisfiedBOM satisfiedBOM) {
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.registerModule(new JodaModule());
-                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-                return mapper;
-            }
-        });
+    @Provides @Named(MAPPER_NAME)
+    public ObjectMapper mapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
     }
 }

@@ -1,6 +1,5 @@
 package restx.specs.mongo;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -17,7 +16,6 @@ import org.jongo.query.QueryFactory;
 import restx.RestxContext;
 import restx.factory.*;
 import restx.jongo.JongoCollection;
-import restx.jongo.StdJongoCollection;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRecorder;
 
@@ -34,69 +32,28 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
     public void installRecording() {
         final Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
         Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING).addMachine(
-                FactoryMachineWrapper.from(new StdJongoCollection.JongoCollectionFactory())
-                        .withPriority(-10)
-                        .withDependencies(mapperQuery)
-                        .transformComponents(new Function<Map.Entry<SatisfiedBOM, NamedComponent>, NamedComponent>() {
+                new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
+                                    Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplier"),
+                                    BoundlessComponentBox.FACTORY) {
+                    @Override
+                    protected ComponentCustomizerEngine doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        final Mapper mapper = satisfiedBOM.getOne(mapperQuery).get().getComponent();
+                        final ObjectIdUpdater objectIdUpdater = mapper.getObjectIdUpdater();
+                        return new SingleComponentClassCustomizerEngine<JongoCollection>(0, JongoCollection.class) {
                             @Override
-                            public NamedComponent apply(final Map.Entry<SatisfiedBOM, NamedComponent> input) {
-                                final JongoCollection collection = (JongoCollection) input.getValue().getComponent();
-                                final Mapper mapper = input.getKey().getOne(mapperQuery).get().getComponent();
-                                final ObjectIdUpdater objectIdUpdater = mapper.getObjectIdUpdater();
-
-                                return new NamedComponent<>(input.getValue().getName(),
-                                        new JongoCollection() {
-                                            @Override
-                                            public String getName() {
-                                                return collection.getName();
-                                            }
-
-                                            @Override
-                                            public MongoCollection get() {
-                                                MongoCollection mongoCollection = collection.get();
-                                                if (Tape.TAPE.get() != null) {
-                                                    Tape.TAPE.get().recordCollection(mongoCollection);
-                                                    mongoCollection = new MongoCollection(
-                                                            mongoCollection.getDBCollection(),
-                                                            new Mapper() {
-                                                                @Override
-                                                                public Marshaller getMarshaller() {
-                                                                    return mapper.getMarshaller();
-                                                                }
-
-                                                                @Override
-                                                                public Unmarshaller getUnmarshaller() {
-                                                                    return mapper.getUnmarshaller();
-                                                                }
-
-                                                                @Override
-                                                                public ObjectIdUpdater getObjectIdUpdater() {
-                                                                    return new ObjectIdUpdater() {
-                                                                        @Override
-                                                                        public boolean canSetObjectId(Object target) {
-                                                                            return objectIdUpdater.canSetObjectId(target);
-                                                                        }
-
-                                                                        @Override
-                                                                        public void setDocumentGeneratedId(Object target, ObjectId id) {
-                                                                            Tape.TAPE.get().recordGeneratedId(collection.getName(), id);
-                                                                            objectIdUpdater.setDocumentGeneratedId(target, id);
-                                                                        }
-                                                                    };
-                                                                }
-
-                                                                @Override
-                                                                public QueryFactory getQueryFactory() {
-                                                                    return mapper.getQueryFactory();
-                                                                }
-                                                            }
-                                                    );
-                                                }
-                                                return mongoCollection;
-                                            }
-                                        });
+                            public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
+                                final JongoCollection collection = namedComponent.getComponent();
+                                return new NamedComponent<>(namedComponent.getName(),
+                                        new SequencingJongoCollection(collection, mapper, objectIdUpdater));
                             }
-                        }).build());
+                        };
+                    }
+
+                    @Override
+                    public BillOfMaterials getBillOfMaterial() {
+                        return BillOfMaterials.of(mapperQuery);
+                    }
+                }));
     }
 
     @Override
@@ -111,6 +68,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
 
         private Tape(Map<String, RestxSpec.Given> givens) {
             this.givens = givens;
+            TAPE.set(this);
         }
 
         @Override
@@ -148,6 +106,67 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
                 givens.put(key, collection.addSequenceId(id.toString()));
                 System.out.println(" >> recorded OID " + name + " > " + id);
             }
+        }
+    }
+
+    private static class SequencingJongoCollection implements JongoCollection {
+        private final JongoCollection collection;
+        private final Mapper mapper;
+        private final ObjectIdUpdater objectIdUpdater;
+
+        public SequencingJongoCollection(JongoCollection collection, Mapper mapper, ObjectIdUpdater objectIdUpdater) {
+            this.collection = collection;
+            this.mapper = mapper;
+            this.objectIdUpdater = objectIdUpdater;
+        }
+
+        @Override
+        public String getName() {
+            return collection.getName();
+        }
+
+        @Override
+        public MongoCollection get() {
+            MongoCollection mongoCollection = collection.get();
+            if (Tape.TAPE.get() != null) {
+                Tape.TAPE.get().recordCollection(mongoCollection);
+                mongoCollection = new MongoCollection(
+                        mongoCollection.getDBCollection(),
+                        new Mapper() {
+                            @Override
+                            public Marshaller getMarshaller() {
+                                return mapper.getMarshaller();
+                            }
+
+                            @Override
+                            public Unmarshaller getUnmarshaller() {
+                                return mapper.getUnmarshaller();
+                            }
+
+                            @Override
+                            public ObjectIdUpdater getObjectIdUpdater() {
+                                return new ObjectIdUpdater() {
+                                    @Override
+                                    public boolean canSetObjectId(Object target) {
+                                        return objectIdUpdater.canSetObjectId(target);
+                                    }
+
+                                    @Override
+                                    public void setDocumentGeneratedId(Object target, ObjectId id) {
+                                        Tape.TAPE.get().recordGeneratedId(collection.getName(), id);
+                                        objectIdUpdater.setDocumentGeneratedId(target, id);
+                                    }
+                                };
+                            }
+
+                            @Override
+                            public QueryFactory getQueryFactory() {
+                                return mapper.getQueryFactory();
+                            }
+                        }
+                );
+            }
+            return mongoCollection;
         }
     }
 }
