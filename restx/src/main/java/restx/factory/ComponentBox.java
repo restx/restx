@@ -12,6 +12,7 @@ public interface ComponentBox<T> extends AutoCloseable {
         <T> ComponentBox<T> of(NamedComponent<T> namedComponent);
     }
 
+    ComponentBox<T> customize(ComponentCustomizer<T> customizer);
     Optional<NamedComponent<T>> pick();
     Name<T> getName();
 }

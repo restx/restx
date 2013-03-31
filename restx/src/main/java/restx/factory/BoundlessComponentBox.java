@@ -2,9 +2,6 @@ package restx.factory;
 
 import com.google.common.base.Optional;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -28,6 +25,15 @@ public class BoundlessComponentBox<T> implements ComponentBox<T> {
 
     public BoundlessComponentBox(NamedComponent<T> namedComponent) {
         this.namedComponent = checkNotNull(namedComponent);
+    }
+
+    @Override
+    public ComponentBox<T> customize(ComponentCustomizer<T> customizer) {
+        NamedComponent<T> customized = customizer.customize(namedComponent);
+        if (customized != namedComponent) {
+            return new BoundlessComponentBox<T>(customized);
+        }
+        return this;
     }
 
     @Override

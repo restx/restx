@@ -14,6 +14,11 @@ public class ComponentBoxWrapper<T> implements ComponentBox<T> {
         this.original = original;
     }
 
+    @Override
+    public ComponentBox<T> customize(ComponentCustomizer<T> customizer) {
+        return original.customize(customizer);
+    }
+
     public Optional<NamedComponent<T>> pick() {
         return original.pick();
     }

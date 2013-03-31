@@ -29,6 +29,14 @@ public class DisposableComponentBox<T> implements ComponentBox<T> {
     }
 
     @Override
+    public synchronized ComponentBox<T> customize(ComponentCustomizer<T> customizer) {
+        if (!disposed && namedComponent != null) {
+            namedComponent = customizer.customize(namedComponent);
+        }
+        return this;
+    }
+
+    @Override
     public synchronized void close() {
         if (namedComponent.getComponent() instanceof AutoCloseable) {
             try {

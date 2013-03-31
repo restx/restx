@@ -33,6 +33,66 @@ public class FactoryTest {
         assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get()).isEqualTo(component.get());
     }
 
+    @Test
+    public void should_customize_component() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(
+                        String.class, "test", "hello")))
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(ComponentCustomizerEngine.class, "cutomizerTest",
+                        new ComponentCustomizerEngine() {
+                    @Override
+                    public <T> boolean canCustomize(Name<T> name) {
+                        return name.getClazz() == String.class;
+                    }
+
+                    @Override
+                    public <T> ComponentCustomizer<T> getCustomizer(Name<T> name) {
+                        return new ComponentCustomizer<T>() {
+                            @Override
+                            public int priority() {
+                                return 0;
+                            }
+
+                            @Override
+                            public NamedComponent<T> customize(NamedComponent<T> namedComponent) {
+                                return new NamedComponent<>(
+                                        namedComponent.getName(), (T) (namedComponent.getComponent() + " world"));
+                            }
+                        };
+                    }
+                })))
+                .build();
+
+        Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "test")).findOne();
+
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName()).isEqualTo(Name.of(String.class, "test"));
+        assertThat(component.get().getComponent()).isEqualTo("hello world");
+
+        assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get()).isEqualTo(component.get());
+    }
+
+    @Test
+    public void should_customize_component_with_simple_customizer() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(
+                        String.class, "test", "hello")))
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(ComponentCustomizerEngine.class, "cutomizerTest",
+                        new SingleComponentClassCustomizerEngine<String>(0, String.class) {
+                            @Override
+                            public NamedComponent<String> customize(NamedComponent<String> namedComponent) {
+                                return new NamedComponent<>(
+                                        namedComponent.getName(), namedComponent.getComponent() + " world");
+                            }
+                })))
+                .build();
+
+        Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "test")).findOne();
+
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getComponent()).isEqualTo("hello world");
+    }
+
 
     @Test
     public void should_build_component_lists_from_multiple_machines() throws Exception {

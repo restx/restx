@@ -9,10 +9,7 @@ import com.jamonapi.MonitorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.ServiceLoader;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -27,6 +24,12 @@ import static restx.common.MorePreconditions.checkPresent;
 public class Factory implements AutoCloseable {
     private final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
+    private static final Comparator<ComponentCustomizer> customizerComparator = new Comparator<ComponentCustomizer>() {
+        @Override
+        public int compare(ComponentCustomizer o1, ComponentCustomizer o2) {
+            return Ordering.natural().compare(o1.priority(), o2.priority());
+        }
+    };
 
     public Warehouse getWarehouse() {
         return warehouse;
@@ -407,8 +410,33 @@ public class Factory implements AutoCloseable {
         logger.info("building {} with {}", name, engine);
         Monitor monitor = MonitorFactory.start("<BUILD> " + name.getSimpleName());
         ComponentBox<T> box = engine.newComponent(satisfiedBOM);
-        warehouse.checkIn(box, satisfiedBOM, monitor.stop());
+        monitor.stop();
+
+        if (!ComponentCustomizerEngine.class.isAssignableFrom(name.getClazz())) {
+            // we don't customize customizers themselves to avoid causing a stck overflow
+            // it would be possible to introduce that feature, it would require isolating the construction of customizers
+            // from their customization. But that's not simple and there is no use case for that so far.
+            List<ComponentCustomizer> customizers = Lists.newArrayList();
+            for (ComponentCustomizerEngine customizerEngine : customizerEngines()) {
+                if (customizerEngine.canCustomize(box.getName())) {
+                    customizers.add(customizerEngine.getCustomizer(box.getName()));
+                }
+            }
+            for (ComponentCustomizer customizer : Ordering.from(customizerComparator).sortedCopy(customizers)) {
+                Monitor customizeMonitor = MonitorFactory.start("<CUSTOMIZE> " + name.getSimpleName()
+                        + " <WITH> " + customizer.getClass().getSimpleName());
+                logger.info("customizing {} with {}", name, customizer);
+                box = box.customize(customizer);
+                customizeMonitor.stop();
+            }
+        }
+
+        warehouse.checkIn(box, satisfiedBOM, monitor);
         return warehouse.checkOut(box.getName());
+    }
+
+    private Set<ComponentCustomizerEngine> customizerEngines() {
+        return queryByClass(ComponentCustomizerEngine.class).findAsComponents();
     }
 
     private SatisfiedBOM satisfy(Name name, BillOfMaterials bom) {
