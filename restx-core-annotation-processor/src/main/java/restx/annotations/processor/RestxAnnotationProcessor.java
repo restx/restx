@@ -1,11 +1,12 @@
 package restx.annotations.processor;
 
+import com.github.mustachejava.Mustache;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import restx.annotations.*;
-import restx.common.Tpl;
+import restx.common.Mustaches;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -39,16 +40,10 @@ import java.util.regex.Pattern;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class RestxAnnotationProcessor extends AbstractProcessor {
-    final Tpl routerTpl;
-    final Tpl routeTpl;
+    final Mustache routerTpl;
 
     public RestxAnnotationProcessor() {
-        try {
-            routerTpl = new Tpl(RestxAnnotationProcessor.class, "RestxRouter");
-            routeTpl = new Tpl(RestxAnnotationProcessor.class, "RestxRoute");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        routerTpl = Mustaches.compile(RestxAnnotationProcessor.class, "RestxRouter.mustache");
     }
 
     @Override
@@ -154,32 +149,33 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     private void generateFiles(Map<String, ResourceGroup> groups, Set<Element> modulesListOriginatingElements) throws IOException {
         for (ResourceGroup group : groups.values()) {
             for (ResourceClass resourceClass: group.resourceClasses.values()) {
-                List<String> routes = Lists.newArrayList();
+                List<ImmutableMap<String, Object>> routes = Lists.newArrayList();
 
                 buildResourceRoutesCodeChunks(resourceClass, routes);
 
-                ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
+                ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                         .put("package", resourceClass.pack)
                         .put("router", resourceClass.name + "Router")
                         .put("resource", resourceClass.name)
-                        .put("routes", Joiner.on(",\n").join(routes))
+                        .put("routes", routes)
                         .build();
 
-                generateJavaClass(resourceClass.fqcn + "Router", routerTpl.bind(ctx), resourceClass.originatingElements);
+                generateJavaClass(resourceClass.fqcn + "Router", routerTpl, ctx, resourceClass.originatingElements);
             }
 
         }
     }
 
-    private void generateJavaClass(String className, String code, Set<Element> originatingElements) throws IOException {
+    private void generateJavaClass(String className, Mustache mustache, ImmutableMap<String, ? extends Object> ctx,
+            Set<Element> originatingElements) throws IOException {
         JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className,
                 Iterables.toArray(originatingElements, Element.class));
-        Writer writer = fileObject.openWriter();
-        writer.write(code);
-        writer.close();
+        try (Writer writer = fileObject.openWriter()) {
+            mustache.execute(writer, ctx);
+        }
     }
 
-    private void buildResourceRoutesCodeChunks(ResourceClass resourceClass, List<String> routes) {
+    private void buildResourceRoutesCodeChunks(ResourceClass resourceClass, List<ImmutableMap<String, Object>> routes) {
         for (ResourceMethod resourceMethod : resourceClass.resourceMethods) {
 
             List<String> callParameters = Lists.newArrayList();
@@ -217,7 +213,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 call = "Optional.of(" + call + ")";
             }
 
-            routes.add(routeTpl.bind(ImmutableMap.<String, String>builder()
+            routes.add(ImmutableMap.<String, Object>builder()
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
                     .put("method", resourceMethod.httpMethod)
@@ -230,7 +226,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                             String.format("protected ObjectWriter getObjectWriter(ObjectMapper mapper) { return super.getObjectWriter(mapper).withType(new TypeReference<%s>() { }); }", resourceMethod.returnType)
                             : "")
                     .build()
-            ));
+            );
         }
     }
 

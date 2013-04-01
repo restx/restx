@@ -1,15 +1,17 @@
 package restx;
 
+import com.github.mustachejava.Mustache;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
-import restx.common.Tpl;
 import restx.factory.Component;
 
 import java.io.IOException;
 import java.util.List;
+
+import static restx.common.Mustaches.compile;
 
 /**
  * User: xavierhanin
@@ -22,7 +24,7 @@ public class MonitorRoute implements RestxRoute {
     @Override
     public boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         if ("GET".equals(req.getHttpMethod()) && "/@/monitor".equals(req.getRestxPath())) {
-            Tpl tpl = new Tpl(MonitorRoute.class, "monitor.html");
+            Mustache tpl = compile(MonitorRoute.class, "monitor.mustache");
             resp.setContentType("text/html");
 
             List<String> data = Lists.newArrayList();
@@ -39,7 +41,7 @@ public class MonitorRoute implements RestxRoute {
                 }
             }
 
-            resp.getWriter().println(tpl.bind(ImmutableMap.of("data", Joiner.on(",\n").join(data))));
+            tpl.execute(resp.getWriter(), ImmutableMap.of("data", Joiner.on(",\n").join(data)));
             return true;
         }
 

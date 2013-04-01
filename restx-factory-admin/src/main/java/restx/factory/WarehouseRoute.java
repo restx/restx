@@ -1,16 +1,18 @@
 package restx.factory;
 
+import com.github.mustachejava.Mustache;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
 import restx.annotations.RestxResource;
-import restx.common.Tpl;
 import restx.converters.StringConverter;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.List;
+
+import static restx.common.Mustaches.compile;
 
 @Component
 public class WarehouseRoute implements RestxRoute {
@@ -40,10 +42,10 @@ public class WarehouseRoute implements RestxRoute {
                 }
             }
 
-            Tpl tpl = new Tpl(WarehouseRoute.class, "factory.html");
-            resp.getWriter().print(tpl.bind(ImmutableMap.of(
+            Mustache tpl = compile(WarehouseRoute.class, "factory.mustache");
+            tpl.execute(resp.getWriter(), ImmutableMap.of(
                     "nodes", Joiner.on("\n").join(nodesCode),
-                    "links", Joiner.on("\n").join(linksCode))));
+                    "links", Joiner.on("\n").join(linksCode)));
             return true;
         }
 

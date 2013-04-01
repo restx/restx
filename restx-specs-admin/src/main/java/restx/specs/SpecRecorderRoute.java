@@ -1,5 +1,6 @@
 package restx.specs;
 
+import com.github.mustachejava.Mustache;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -10,11 +11,12 @@ import restx.RestxContext;
 import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.RestxRoute;
-import restx.common.Tpl;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static restx.common.Mustaches.compile;
 
 /**
  * User: xavierhanin
@@ -31,7 +33,7 @@ public class SpecRecorderRoute implements RestxRoute {
     @Override
     public boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         if ("GET".equals(req.getHttpMethod()) && "/@/recorder".equals(req.getRestxPath())) {
-            Tpl tpl = new Tpl(SpecRecorderRoute.class, "recorder.html");
+            Mustache tpl = compile(SpecRecorderRoute.class, "recorder.mustache");
             resp.setContentType("text/html");
 
             List<String> data = Lists.newArrayList();
@@ -42,9 +44,9 @@ public class SpecRecorderRoute implements RestxRoute {
                         spec.getCapturedItems(), spec.getCapturedRequestSize(), spec.getCapturedResponseSize()));
             }
 
-            resp.getWriter().println(tpl.bind(ImmutableMap.of(
+            tpl.execute(resp.getWriter(), ImmutableMap.of(
                     "baseUrl", req.getBaseUri(),
-                    "data", Joiner.on(",\n").join(data))));
+                    "data", Joiner.on(",\n").join(data)));
             return true;
         } else if ("GET".equals(req.getHttpMethod()) && req.getRestxPath().startsWith("/@/recorder/")) {
             int id = Integer.parseInt(req.getRestxPath().substring("/@/recorder/".length()));

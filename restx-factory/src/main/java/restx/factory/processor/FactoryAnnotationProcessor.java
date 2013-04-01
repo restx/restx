@@ -1,10 +1,10 @@
 package restx.factory.processor;
 
+import com.github.mustachejava.Mustache;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
-import restx.common.Tpl;
 import restx.factory.Component;
 import restx.factory.Machine;
 import restx.factory.Module;
@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static restx.common.Mustaches.compile;
+
 /**
  * User: xavierhanin
  * Date: 1/18/13
@@ -40,21 +42,14 @@ import java.util.Set;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class FactoryAnnotationProcessor extends AbstractProcessor {
-    final Tpl componentMachineTpl;
-    final Tpl moduleMachineTpl;
-    final Tpl machineEngineTpl;
+    final Mustache componentMachineTpl;
+    final Mustache moduleMachineTpl;
     private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
-        try {
-            componentMachineTpl = new Tpl(FactoryAnnotationProcessor.class, "ComponentMachine");
-            moduleMachineTpl = new Tpl(FactoryAnnotationProcessor.class, "ModuleMachine");
-            machineEngineTpl = new Tpl(FactoryAnnotationProcessor.class, "MachineEngine");
-
-            machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        componentMachineTpl = compile(FactoryAnnotationProcessor.class, "ComponentMachine.mustache");
+        moduleMachineTpl = compile(FactoryAnnotationProcessor.class, "ModuleMachine.mustache");
+        machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
     }
 
     @Override
@@ -157,10 +152,10 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
 
     private void generateMachineFile(ModuleClass moduleClass) throws IOException {
-        List<String> engines = Lists.newArrayList();
+        List<ImmutableMap<String, Object>> engines = Lists.newArrayList();
 
         for (ProviderMethod method : moduleClass.providerMethods) {
-            engines.add(machineEngineTpl.bind(ImmutableMap.<String, String>builder()
+            engines.add(ImmutableMap.<String, Object>builder()
                     .put("type", method.type)
                     .put("name", method.name)
                     .put("injectionName", method.injectionName.isPresent() ?
@@ -168,18 +163,18 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                     .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
                     .put("queries", Joiner.on(",\n").join(buildQueriesNames(method.parameters)))
                     .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(method.parameters)))
-                    .build()));
+                    .build());
         }
 
-        ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
+        ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                 .put("package", moduleClass.pack)
                 .put("machine", moduleClass.name + "FactoryMachine")
                 .put("moduleFqcn", moduleClass.fqcn)
                 .put("moduleType", moduleClass.name)
-                .put("engines", Joiner.on(",\n").join(engines))
+                .put("engines", engines)
                 .build();
 
-        generateJavaClass(moduleClass.fqcn + "FactoryMachine", moduleMachineTpl.bind(ctx),
+        generateJavaClass(moduleClass.fqcn + "FactoryMachine", moduleMachineTpl, ctx,
                 Collections.singleton(moduleClass.originatingElement));
     }
 
@@ -196,7 +191,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
                 .build();
 
-        generateJavaClass(componentClass.fqcn + "FactoryMachine", componentMachineTpl.bind(ctx),
+        generateJavaClass(componentClass.fqcn + "FactoryMachine", componentMachineTpl, ctx,
                 Collections.singleton(componentClass.originatingElement));
 
     }
@@ -225,12 +220,13 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         return parametersCode;
     }
 
-    private void generateJavaClass(String className, String code, Set<Element> originatingElements) throws IOException {
+    private void generateJavaClass(String className, Mustache mustache, ImmutableMap<String, ? extends Object> ctx,
+            Set<Element> originatingElements) throws IOException {
         JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className,
                 Iterables.toArray(originatingElements, Element.class));
-        Writer writer = fileObject.openWriter();
-        writer.write(code);
-        writer.close();
+        try (Writer writer = fileObject.openWriter()) {
+            mustache.execute(writer, ctx);
+        }
     }
 
     private static class ComponentClass {

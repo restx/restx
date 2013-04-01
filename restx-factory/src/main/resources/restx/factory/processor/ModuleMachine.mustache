@@ -1,0 +1,34 @@
+package {{{package}}};
+
+import com.google.common.collect.ImmutableSet;
+import restx.factory.*;
+import {{{moduleFqcn}}};
+
+
+@Machine
+public class {{{machine}}} extends DefaultFactoryMachine {
+    private static final {{{moduleType}}} module = new {{{moduleType}}}();
+
+    public {{{machine}}}() {
+        super(0, new MachineEngine[] {
+{{#engines}}
+            new StdMachineEngine<{{{type}}}>(Name.of({{{type}}}.class, "{{{injectionName}}}"), BoundlessComponentBox.FACTORY) {
+        {{{queriesDeclarations}}}
+                @Override
+                public BillOfMaterials getBillOfMaterial() {
+                    return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(
+        {{{queries}}}
+                    ));
+                }
+
+                @Override
+                public {{{type}}} doNewComponent(SatisfiedBOM satisfiedBOM) {
+                    return module.{{{name}}}(
+        {{{parameters}}}
+                    );
+                }
+            },
+{{/engines}}
+        });
+}
+}

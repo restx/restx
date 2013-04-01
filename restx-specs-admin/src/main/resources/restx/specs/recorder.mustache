@@ -82,7 +82,7 @@
 
     var data = [
         // { id: "%03d", method: "%s", path: "%s", recordTime: "%s", duration: %d, capturedItems: %d, capturedRequestSize: %d, capturedResponseSize: %d },
-        {data}
+        {{{data}}}
     ];
 
     dataView = new Slick.Data.DataView({ inlineFilters: true });
@@ -99,7 +99,7 @@
 
     var save = function() {
         withSelection(function(selIndex, selItem) {
-           $.post('{baseUrl}/@/recorder/storage/' + selItem.id + '?path=' + $('#saveToFolder').val(), function(data) {
+           $.post('{{{baseUrl}}}/@/recorder/storage/' + selItem.id + '?path=' + $('#saveToFolder').val(), function(data) {
                console.log('saved', selItem, data);
                alertify.success("Saved to " + data);
            });
@@ -134,7 +134,7 @@
 
     grid.onSelectedRowsChanged.subscribe(function(e, args) {
         withSelection(function(selIndex, selItem) {
-            $.get('{baseUrl}/@/recorder/' + selItem.id, function(data) {
+            $.get('{{{baseUrl}}}/@/recorder/' + selItem.id, function(data) {
                   $('#details').text(data);
                   $('.prettyprint').removeClass('prettyprinted');
                   prettyPrint();

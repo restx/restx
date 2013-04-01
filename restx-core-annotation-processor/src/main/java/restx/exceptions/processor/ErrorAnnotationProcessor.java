@@ -1,10 +1,11 @@
 package restx.exceptions.processor;
 
+import com.github.mustachejava.Mustache;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import restx.common.Tpl;
+import restx.common.Mustaches;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
 
@@ -33,14 +34,10 @@ import java.util.Set;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ErrorAnnotationProcessor extends AbstractProcessor {
-    final Tpl errorDescriptorTpl;
+    final Mustache errorDescriptorTpl;
 
     public ErrorAnnotationProcessor() {
-        try {
-            errorDescriptorTpl = new Tpl(ErrorAnnotationProcessor.class, "ErrorDescriptor");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        errorDescriptorTpl = Mustaches.compile(ErrorAnnotationProcessor.class, "ErrorDescriptor.mustache");
     }
 
     @Override
@@ -68,7 +65,7 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
                     }
                 }
 
-                ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
+                ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                         .put("package", pack)
                         .put("descriptor", descriptor)
                         .put("errorStatus", String.valueOf(errorCode.status()))
@@ -77,7 +74,7 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
                         .put("fields", Joiner.on("\n").join(fields)).build();
 
 
-                generateJavaClass(pack + "." + descriptor, errorDescriptorTpl.bind(ctx), elem);
+                generateJavaClass(pack + "." + descriptor, errorDescriptorTpl, ctx, elem);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -85,11 +82,12 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void generateJavaClass(String className, String code, Element originatingElement) throws IOException {
-        JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className, originatingElement);
-        Writer writer = fileObject.openWriter();
-        writer.write(code);
-        writer.close();
+    private void generateJavaClass(String className, Mustache mustache, ImmutableMap<String, Object> ctx,
+            Element originatingElements) throws IOException {
+        JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className, originatingElements);
+        try (Writer writer = fileObject.openWriter()) {
+            mustache.execute(writer, ctx);
+        }
     }
 
 
