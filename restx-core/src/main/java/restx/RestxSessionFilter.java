@@ -105,5 +105,7 @@ public class RestxSessionFilter implements RestxRoute {
         }
     }
 
-
+    public String toString() {
+        return "RestxSessionFilter";
+    }
 }

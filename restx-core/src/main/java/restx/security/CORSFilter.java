@@ -58,6 +58,10 @@ public class CORSFilter implements RestxRoute {
         return CORS.reject();
     }
 
+    public String toString() {
+        return "CORSFilter";
+    }
+
     public static class CORS {
         public static CORS reject() {
             return new CORS(false, null, null, 0);

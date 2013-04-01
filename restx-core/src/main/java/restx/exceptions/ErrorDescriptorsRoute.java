@@ -42,4 +42,8 @@ public class ErrorDescriptorsRoute implements RestxRoute {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "GET /@/errors/descriptors => MonitorRoute";
+    }
 }

@@ -47,4 +47,9 @@ public class MonitorRoute implements RestxRoute {
 
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "GET /@/monitor => MonitorRoute";
+    }
 }
