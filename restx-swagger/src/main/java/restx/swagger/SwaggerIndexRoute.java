@@ -37,7 +37,7 @@ import java.util.Set;
  * }
  */
 @Component
-public class SwaggerIndexRoute extends StdRoute {
+public class SwaggerIndexRoute extends StdEntityRoute {
     private final Factory factory;
 
     @Inject

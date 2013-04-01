@@ -23,5 +23,5 @@ public interface CORSAuthorizer {
      * @return a CORS object if the request must be authorized or not, or Optional.absent() if this authorizer doesn't
      * take the decision.
      */
-    Optional<CORSFilter.CORS> checkCORS(RestxRequest request, String origin, String method, String restxPath);
+    Optional<CORS> checkCORS(RestxRequest request, String origin, String method, String restxPath);
 }

@@ -23,12 +23,12 @@ public class StdCORSAuthorizer implements CORSAuthorizer {
     }
 
     @Override
-    public Optional<CORSFilter.CORS> checkCORS(RestxRequest request, String origin, String method, String restxPath) {
+    public Optional<CORS> checkCORS(RestxRequest request, String origin, String method, String restxPath) {
         if (originMatcher.apply(origin) && pathMatcher.apply(restxPath)) {
             if (Iterables.contains(allowedMethods, method)) {
-                return Optional.of(CORSFilter.CORS.accept(origin, allowedMethods));
+                return Optional.of(CORS.accept(origin, allowedMethods));
             } else {
-                return Optional.of(CORSFilter.CORS.reject());
+                return Optional.of(CORS.reject());
             }
         }
         return Optional.absent();

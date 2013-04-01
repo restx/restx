@@ -39,7 +39,7 @@ import java.util.List;
  * See <a href="https://github.com/wordnik/swagger-core/wiki/API-Declaration">API Declaration</a>
  */
 @Component
-public class SwaggerApiDeclarationRoute extends StdRoute {
+public class SwaggerApiDeclarationRoute extends StdEntityRoute {
     private final Factory factory;
 
     @Inject

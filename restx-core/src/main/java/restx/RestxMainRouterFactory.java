@@ -1,6 +1,5 @@
 package restx;
 
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.factory.Factory;
@@ -54,6 +53,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
         logger.info("\n" +
                 "--------------------------------------\n" +
                 " -- RESTX " + state + (RestxContext.Modes.RECORDING.equals(getMode()) ? " >> RECORDING MODE <<" : "") + "\n" +
+                (mainRouter != null ? (" -- " + mainRouter.getNbFilters() + " filters\n") : "") +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
                 " -- for api documentation,\n" +
                 " --   VISIT " + baseUri + "/@/api-docs-ui\n" +
@@ -74,8 +74,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
 
         logger.debug("restx factory ready: {}", factory);
 
-        mainRouter = new StdRestxMainRouter(ImmutableList.copyOf(
-                factory.queryByClass(RestxRoute.class).findAsComponents()));
+        mainRouter = new StdRestxMainRouter(factory.queryByClass(RestxRouting.class).findOne().get().getComponent());
     }
 
     private void closeFactory() {

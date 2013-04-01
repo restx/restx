@@ -1,5 +1,6 @@
 package restx.security;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import restx.*;
@@ -11,19 +12,20 @@ import java.io.IOException;
  * Date: 2/7/13
  * Time: 9:33 AM
  */
-public class CORSFilter implements RestxFilter {
+public class CORSRoute implements RestxFilter {
     private final Iterable<CORSAuthorizer> authorizers;
 
-    public CORSFilter(Iterable<CORSAuthorizer> authorizers) {
+    public CORSRoute(Iterable<CORSAuthorizer> authorizers) {
         this.authorizers = authorizers;
     }
 
     @Override
     public Optional<RestxRouteMatch> match(RestxRequest req) {
+        Optional<String> acrMethod = req.getHeader("Access-Control-Request-Method");
         Optional<String> origin = req.getHeader("Origin");
-        if ("GET".equals(req.getHttpMethod())
-                        && origin.isPresent()) {
-            CORS cors = CORS.check(authorizers, req, origin.get(), "GET", req.getRestxPath());
+        if ("OPTIONS".equals(req.getHttpMethod())
+                && acrMethod.isPresent()) {
+            CORS cors = CORS.check(authorizers, req, origin.get(), acrMethod.get(), req.getRestxPath());
             if (cors.isAccepted()) {
                 return Optional.of(new RestxRouteMatch(this, "*", req.getRestxPath(),
                         ImmutableMap.<String, String>of(), ImmutableMap.of("cors", cors)));
@@ -34,14 +36,13 @@ public class CORSFilter implements RestxFilter {
 
     @Override
     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        resp.setHeader("Access-Control-Allow-Origin", ((CORS) match.getOtherParams().get("cors")).getOrigin());
-        RestxRouteMatch next = ctx.nextHandlerMatch();
-        next.getHandler().handle(next, req, resp, ctx);
+        CORS cors = (CORS) match.getOtherParams().get("cors");
+        resp.setHeader("Access-Control-Allow-Origin", cors.getOrigin());
+        resp.setHeader("Access-Control-Allow-Methods", Joiner.on(", ").join(cors.getMethods()));
+        resp.setHeader("Access-Control-Max-Age", String.valueOf(cors.getMaxAge()));
     }
-
 
     public String toString() {
-        return "CORSFilter";
+        return "CORSRoute";
     }
-
 }

@@ -2,6 +2,7 @@ package restx;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
@@ -20,7 +21,7 @@ import java.util.Map;
  * Date: 2/8/13
  * Time: 8:59 PM
  */
-public class RestxSessionFilter implements RestxRoute {
+public class RestxSessionFilter implements RestxFilter {
     public static final Name<RestxSessionFilter> NAME = Name.of(RestxSessionFilter.class, "RestxSessionFilter");
 
     private static final String RESTX_SESSION_SIGNATURE = "RestxSessionSignature";
@@ -40,7 +41,12 @@ public class RestxSessionFilter implements RestxRoute {
     }
 
     @Override
-    public boolean route(RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
+    public Optional<RestxRouteMatch> match(RestxRequest req) {
+        return Optional.of(new RestxRouteMatch(this, "*", req.getRestxPath()));
+    }
+
+    @Override
+    public void handle(RestxRouteMatch match, RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
         final RestxSession session = buildContextFromRequest(req);
         if (RestxContext.Modes.RECORDING.equals(ctx.getMode())) {
             // we clean up caches in recording mode so that each request records the cache loading
@@ -64,7 +70,8 @@ public class RestxSessionFilter implements RestxRoute {
                     }
                 }
             };
-            return ctx.withListener(lifecycleListener).proceed(req, resp);
+            RestxRouteMatch next = ctx.nextHandlerMatch();
+            next.getHandler().handle(next, req, resp, ctx.withListener(lifecycleListener));
         } finally {
             RestxSession.setCurrent(null);
         }

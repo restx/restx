@@ -16,18 +16,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class StdRouteMatcher implements RestxRouteMatcher {
     private final String method;
-    private final String path;
+    private final String pathPattern;
 
     private final Pattern pattern;
     private final ImmutableList<String> groupNames;
 
-    public StdRouteMatcher(String method, String path) {
+    public StdRouteMatcher(String method, String pathPattern) {
         this.method = checkNotNull(method);
-        this.path = checkNotNull(path);
+        this.pathPattern = checkNotNull(pathPattern);
 
         ImmutableList.Builder<String> groupNamesBuilder = ImmutableList.builder();
         Pattern p = Pattern.compile("\\{([^}]+)}");
-        Matcher m = p.matcher(path);
+        Matcher m = p.matcher(pathPattern);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             String name = m.group(1);
@@ -41,7 +41,7 @@ public class StdRouteMatcher implements RestxRouteMatcher {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(String method, String path) {
+    public Optional<RestxRouteMatch> match(RestxHandler handler, String method, String path) {
         if (!this.method.equals(method)) {
             return Optional.absent();
         }
@@ -55,19 +55,19 @@ public class StdRouteMatcher implements RestxRouteMatcher {
              params.put(groupNames.get(i), m.group(i + 1));
         }
 
-        return Optional.of(new RestxRouteMatch(path, params.build()));
+        return Optional.of(new RestxRouteMatch(handler, pathPattern, path, params.build()));
     }
 
     @Override
     public String toString() {
-        return method + " " + path;
+        return method + " " + pathPattern;
     }
 
     public String getMethod() {
         return method;
     }
 
-    public String getPath() {
-        return path;
+    public String getPathPattern() {
+        return pathPattern;
     }
 }

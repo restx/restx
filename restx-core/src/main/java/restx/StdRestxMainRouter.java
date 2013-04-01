@@ -27,16 +27,28 @@ import java.util.List;
  * Time: 9:53 PM
  */
 public class StdRestxMainRouter implements RestxMainRouter {
+
     public static Builder builder() {
         return new Builder();
     }
 
     public static class Builder {
         private ObjectMapper mapper;
+        private List<RestxFilter> filters = Lists.newArrayList();
         private List<RestxRoute> routes = Lists.newArrayList();
 
         public Builder withMapper(ObjectMapper mapper) {
             this.mapper = mapper;
+            return this;
+        }
+
+        public Builder addFilter(RestxFilter filter) {
+            filters.add(filter);
+            return this;
+        }
+
+        public Builder addRouter(RestxRouter router) {
+            routes.addAll(router.getRoutes());
             return this;
         }
 
@@ -46,7 +58,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
 
         public Builder addRoute(String method, String path, final MatchedEntityRoute route) {
-            routes.add(new StdRoute(path, mapper, new StdRouteMatcher(method, path)) {
+            routes.add(new StdEntityRoute(path, mapper, new StdRouteMatcher(method, path)) {
                 @Override
                 protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
                     return route.route(restxRequest, match);
@@ -56,16 +68,17 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
 
         public RestxMainRouter build() {
-            return new StdRestxMainRouter(ImmutableList.copyOf(routes));
+            return new StdRestxMainRouter(new RestxRouting(
+                    ImmutableList.copyOf(filters), ImmutableList.copyOf(routes)));
         }
     }
 
     private final Logger logger = LoggerFactory.getLogger(StdRestxMainRouter.class);
 
-    private RestxRouter mainRouter;
+    private final RestxRouting routing;
 
-    public StdRestxMainRouter(ImmutableList<RestxRoute> routes) {
-        mainRouter = new RestxRouter("MainRouter", routes);
+    public StdRestxMainRouter(RestxRouting routing) {
+        this.routing = routing;
     }
 
     @Override
@@ -74,18 +87,10 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
         Monitor monitor = MonitorFactory.start("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath());
         try {
-            RouteLifecycleListener noCache = new RouteLifecycleListener() {
-                @Override
-                public void onRouteMatch(RestxRoute source) {
-                }
+            Optional<RestxRouting.Match> m = routing.match(restxRequest);
 
-                @Override
-                public void onBeforeWriteContent(RestxRoute source) {
-                    restxResponse.setHeader("Cache-Control", "no-cache");
-                }
-            };
-            if (!mainRouter.route(restxRequest, restxResponse,
-                    new RestxContext(getMode(), noCache))) {
+            if (!m.isPresent()) {
+                // no route matched
                 String path = restxRequest.getRestxPath();
                 StringBuilder sb = new StringBuilder()
                         .append("no restx route found for ")
@@ -95,13 +100,29 @@ public class StdRestxMainRouter implements RestxMainRouter {
                             .append(" for API documentation\n\n");
                 }
                 sb.append("routes:\n")
-                        .append("-----------------------------------\n")
-                        .append(mainRouter).append("\n")
-                        .append("-----------------------------------");
+                        .append("-----------------------------------\n");
+                for (RestxRoute route : routing.getRoutes()) {
+                    sb.append(route).append("\n");
+                }
+                sb.append("-----------------------------------");
                 restxResponse.setStatus(404);
                 restxResponse.setContentType("text/plain");
                 PrintWriter out = restxResponse.getWriter();
                 out.print(sb.toString());
+            } else {
+                RouteLifecycleListener noCache = new RouteLifecycleListener() {
+                    @Override
+                    public void onRouteMatch(RestxRoute source) {
+                    }
+
+                    @Override
+                    public void onBeforeWriteContent(RestxRoute source) {
+                        restxResponse.setHeader("Cache-Control", "no-cache");
+                    }
+                };
+                RestxContext context = new RestxContext(getMode(), noCache, ImmutableList.copyOf(m.get().getMatches()));
+                RestxRouteMatch match = context.nextHandlerMatch();
+                match.getHandler().handle(match, restxRequest, restxResponse, context);
             }
         } catch (JsonProcessingException ex) {
             logger.warn("request raised " + ex.getClass().getSimpleName(), ex);
@@ -177,7 +198,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
     }
 
     private boolean hasApiDocs() {
-        for (RestxRoute route : mainRouter.getRoutes()) {
+        for (RestxRoute route : routing.getRoutes()) {
             // maybe we should find a more pluggable way to detect this feature..
             // we don't use the class itself, we don't want to have a strong dependency on swagger route
             if (route.getClass().getName().endsWith("SwaggerUIRoute")) {
@@ -188,7 +209,11 @@ public class StdRestxMainRouter implements RestxMainRouter {
         return false;
     }
 
+    public int getNbFilters() {
+        return routing.getFilters().size();
+    }
+
     public int getNbRoutes() {
-        return mainRouter.getNbRoutes();
+        return routing.getRoutes().size();
     }
 }

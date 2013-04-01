@@ -7,10 +7,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import restx.RestxContext;
-import restx.RestxRequest;
-import restx.RestxResponse;
-import restx.RestxRoute;
+import restx.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,65 +20,72 @@ import static restx.common.Mustaches.compile;
  * Date: 3/18/13
  * Time: 9:37 PM
  */
-public class SpecRecorderRoute implements RestxRoute {
-    private final RestxSpecRecorder specRecorder;
+public class SpecRecorderRoute extends RestxRouter {
+    public SpecRecorderRoute(final RestxSpecRecorder specRecorder) {
+        super("SpecRecorderRouter",
+                new StaticRoute("RecorderRoute", "GET", "/@/recorder") {
+                    @Override
+                    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                        Mustache tpl = compile(SpecRecorderRoute.class, "recorder.mustache");
+                        resp.setContentType("text/html");
 
-    public SpecRecorderRoute(RestxSpecRecorder specRecorder) {
-        this.specRecorder = specRecorder;
-    }
+                        List<String> data = Lists.newArrayList();
+                        for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
+                            data.add(String.format("{ id: \"%03d\", method: \"%s\", path: \"%s\", recordTime: \"%s\", duration: %d, " +
+                                    "capturedItems: %d, capturedRequestSize: %d, capturedResponseSize: %d }",
+                                    spec.getId(), spec.getMethod(), spec.getPath(), spec.getRecordTime(), spec.getDuration().getMillis(),
+                                    spec.getCapturedItems(), spec.getCapturedRequestSize(), spec.getCapturedResponseSize()));
+                        }
 
-    @Override
-    public boolean route(RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        if ("GET".equals(req.getHttpMethod()) && "/@/recorder".equals(req.getRestxPath())) {
-            Mustache tpl = compile(SpecRecorderRoute.class, "recorder.mustache");
-            resp.setContentType("text/html");
+                        tpl.execute(resp.getWriter(), ImmutableMap.of(
+                                "baseUrl", req.getBaseUri(),
+                                "data", Joiner.on(",\n").join(data)));
+                    }
+                },
 
-            List<String> data = Lists.newArrayList();
-            for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
-                data.add(String.format("{ id: \"%03d\", method: \"%s\", path: \"%s\", recordTime: \"%s\", duration: %d, " +
-                        "capturedItems: %d, capturedRequestSize: %d, capturedResponseSize: %d }",
-                        spec.getId(), spec.getMethod(), spec.getPath(), spec.getRecordTime(), spec.getDuration().getMillis(),
-                        spec.getCapturedItems(), spec.getCapturedRequestSize(), spec.getCapturedResponseSize()));
-            }
+                new StdRoute("RecorderRecord", new StdRouteMatcher("GET", "/@/recorder/{id}")) {
+                    @Override
+                    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                        int id = Integer.parseInt(match.getPathParams().get("id"));
+                        for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
+                            if (spec.getId() == id) {
+                                resp.setContentType("text/yaml");
+                                resp.getWriter().println(spec.getSpec().toString());
+                                return;
+                            }
+                        }
 
-            tpl.execute(resp.getWriter(), ImmutableMap.of(
-                    "baseUrl", req.getBaseUri(),
-                    "data", Joiner.on(",\n").join(data)));
-            return true;
-        } else if ("GET".equals(req.getHttpMethod()) && req.getRestxPath().startsWith("/@/recorder/")) {
-            int id = Integer.parseInt(req.getRestxPath().substring("/@/recorder/".length()));
-            for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
-                if (spec.getId() == id) {
-                    resp.setContentType("text/yaml");
-                    resp.getWriter().println(spec.getSpec().toString());
-                    return true;
+                        notFound(match, resp);
+                    }
+                },
+
+                new StdRoute("RecorderRecordStorage", new StdRouteMatcher("POST", "/@/recorder/storage/{id}")) {
+                    @Override
+                    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                        int id = Integer.parseInt(match.getPathParams().get("id"));
+                        for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
+                            if (spec.getId() == id) {
+                                String basePath = System.getProperty("restx.recorder.basePath", "specs");
+                                Optional<String> path = req.getQueryParam("path");
+                                Optional<String> title = req.getQueryParam("title");
+
+                                int endIndex = spec.getPath().indexOf('?');
+                                endIndex = endIndex == -1 ? spec.getPath().length() : endIndex;
+                                File destFile = new File(basePath + "/" + path.or("") + "/"
+                                        + title.or(String.format("%03d_%s_%s", spec.getId(), spec.getMethod(), spec.getPath().substring(0, endIndex)))
+                                            .replace(' ', '_').replace('/', '_') + ".yaml");
+                                destFile.getParentFile().mkdirs();
+                                Files.append(spec.getSpec().toString(), destFile, Charsets.UTF_8);
+
+                                resp.setContentType("text/plain");
+                                resp.getWriter().println(destFile.getAbsolutePath());
+                                return;
+                            }
+                        }
+
+                        notFound(match, resp);
+                    }
                 }
-            }
-            return false;
-        } else if ("POST".equals(req.getHttpMethod()) && req.getRestxPath().startsWith("/@/recorder/storage/")) {
-            int id = Integer.parseInt(req.getRestxPath().substring("/@/recorder/storage/".length()));
-            for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
-                if (spec.getId() == id) {
-                    String basePath = System.getProperty("restx.recorder.basePath", "specs");
-                    Optional<String> path = req.getQueryParam("path");
-                    Optional<String> title = req.getQueryParam("title");
-
-                    int endIndex = spec.getPath().indexOf('?');
-                    endIndex = endIndex == -1 ? spec.getPath().length() : endIndex;
-                    File destFile = new File(basePath + "/" + path.or("") + "/"
-                            + title.or(String.format("%03d_%s_%s", spec.getId(), spec.getMethod(), spec.getPath().substring(0, endIndex)))
-                                .replace(' ', '_').replace('/', '_') + ".yaml");
-                    destFile.getParentFile().mkdirs();
-                    Files.append(spec.getSpec().toString(), destFile, Charsets.UTF_8);
-
-                    resp.setContentType("text/plain");
-                    resp.getWriter().println(destFile.getAbsolutePath());
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        return false;
+            );
     }
 }

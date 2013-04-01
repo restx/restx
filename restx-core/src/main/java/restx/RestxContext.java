@@ -1,11 +1,7 @@
 package restx;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
+import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * User: xavierhanin
@@ -21,16 +17,24 @@ public class RestxContext {
 
     private final String mode;
     private final RouteLifecycleListener lifecycleListener;
-    private final List<RestxRoute> routes = Lists.newLinkedList();
+    private final ImmutableList<RestxRouteMatch> matches;
+    private final UnmodifiableIterator<RestxRouteMatch> matchesIterator;
 
-    public RestxContext(String mode, RouteLifecycleListener lifecycleListener) {
+
+    public RestxContext(String mode, RouteLifecycleListener lifecycleListener,
+                        ImmutableList<RestxRouteMatch> matches) {
         this.mode = mode;
         this.lifecycleListener = lifecycleListener;
+        this.matches = matches;
+        this.matchesIterator = matches.iterator();
     }
 
-    public RestxContext(String mode, RouteLifecycleListener lifecycleListener, Collection<RestxRoute> routes) {
-        this(mode, lifecycleListener);
-        this.routes.addAll(routes);
+    public RestxContext(String mode, RouteLifecycleListener lifecycleListener, ImmutableList<RestxRouteMatch> matches,
+                        UnmodifiableIterator<RestxRouteMatch> matchesIterator) {
+        this.mode = mode;
+        this.lifecycleListener = lifecycleListener;
+        this.matches = matches;
+        this.matchesIterator = matchesIterator;
     }
 
     public String getMode() {
@@ -41,19 +45,15 @@ public class RestxContext {
         return lifecycleListener;
     }
 
-    public boolean proceed(RestxRequest req, RestxResponse resp) throws IOException {
-        while (!routes.isEmpty()) {
-            RestxRoute route = routes.get(0);
-            routes.remove(0);
-            if (route.route(req, resp, this)) {
-                return true;
-            }
+    public RestxRouteMatch nextHandlerMatch() {
+        if (matchesIterator.hasNext()) {
+            return matchesIterator.next();
         }
-        return false;
-    }
-
-    public RestxContext withRoutes(ImmutableList<RestxRoute> routes) {
-        return new RestxContext(mode, lifecycleListener, routes);
+        throw new IllegalStateException(
+                "no next handler match. " +
+                "this is probably caused either by a filter calling next() twice or more, " +
+                "or by a route calling next(). " +
+                "list of handler matches: " + matches);
     }
 
     public RestxContext withListener(final RouteLifecycleListener listener) {
@@ -69,7 +69,7 @@ public class RestxContext {
                 lifecycleListener.onBeforeWriteContent(source);
                 listener.onBeforeWriteContent(source);
             }
-        }, routes);
+        }, matches, matchesIterator);
     }
 
 }
