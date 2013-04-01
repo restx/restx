@@ -1,0 +1,17 @@
+package hello.web;
+
+import hello.domain.Message;
+import org.joda.time.DateTime;
+import restx.annotations.GET;
+import restx.annotations.RestxResource;
+import restx.factory.Component;
+
+@Component @RestxResource(group = "hello")
+public class HelloResource {
+    @GET("/message")
+    public Message sayHello(String who) {
+        return new Message().setMessage(String.format(
+                "hello %s, it's %s",
+                who, DateTime.now().toString("HH:mm:ss")));
+    }
+}

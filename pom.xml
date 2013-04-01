@@ -30,5 +30,6 @@
         <module>restx-server-jetty</module>
         <module>restx-server-tomcat</module>
         <module>restx-server-simple</module>
+        <module>restx-samples</module>
     </modules>
 </project>
