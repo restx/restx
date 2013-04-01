@@ -6,9 +6,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import restx.common.Crypto;
-import restx.factory.*;
-import restx.jackson.FrontObjectMapperFactory;
+import restx.factory.Name;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -25,6 +26,8 @@ public class RestxSessionFilter implements RestxRoute {
     private static final String RESTX_SESSION_SIGNATURE = "RestxSessionSignature";
     private static final String RESTX_SESSION = "RestxSession";
     private static final String EXPIRES = "_expires";
+
+    private final Logger logger = LoggerFactory.getLogger(RestxSessionFilter.class);
 
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
@@ -74,7 +77,8 @@ public class RestxSessionFilter implements RestxRoute {
         } else {
             String sig = req.getCookieValue(RESTX_SESSION_SIGNATURE, "");
             if (!Crypto.sign(cookie, signatureKey).equals(sig)) {
-                throw new IllegalArgumentException("invalid restx session signature");
+                logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
+                return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(), Duration.ZERO);
             }
             Map entries = mapper.readValue(cookie, Map.class);
             DateTime expires = DateTime.parse((String) entries.remove(EXPIRES));
