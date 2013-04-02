@@ -29,7 +29,7 @@ public class RestxSpec {
     private final ImmutableList<Given> given;
     private final ImmutableList<When> whens;
 
-    RestxSpec(String title, ImmutableList<Given> given, ImmutableList<When> whens) {
+    public RestxSpec(String title, ImmutableList<Given> given, ImmutableList<When> whens) {
         checkNotNull(title);
         this.title = title;
         this.given = given;
@@ -93,7 +93,7 @@ public class RestxSpec {
 
         private final DateTime time;
 
-        GivenTime(DateTime time) {
+        public GivenTime(DateTime time) {
             this.time = time;
         }
 
@@ -144,7 +144,7 @@ public class RestxSpec {
         private final String body;
         private final ImmutableMap<String, String> cookies;
 
-        WhenHttpRequest(String method, String path, ImmutableMap<String, String> cookies, String body, ThenHttpResponse then) {
+        public WhenHttpRequest(String method, String path, ImmutableMap<String, String> cookies, String body, ThenHttpResponse then) {
             super(then);
             this.method = method;
             this.path = path;
@@ -239,7 +239,7 @@ public class RestxSpec {
         private final int expectedCode;
         private final String expected;
 
-        ThenHttpResponse(int expectedCode, String expected) {
+        public ThenHttpResponse(int expectedCode, String expected) {
             this.expectedCode = expectedCode;
             this.expected = expected;
         }

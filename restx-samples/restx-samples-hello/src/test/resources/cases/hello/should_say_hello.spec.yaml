@@ -1,0 +1,7 @@
+title: should say hello
+given:
+  - time: 2013-03-31T14:33:18.272+02:00
+wts:
+  - when: GET message?who=xavier
+    then: |
+      {"message":"hello xavier, it's 14:33:18"}

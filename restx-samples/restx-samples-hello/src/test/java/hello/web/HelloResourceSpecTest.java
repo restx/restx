@@ -18,6 +18,6 @@ public class HelloResourceSpecTest {
 
     @Test
     public void should_say_hello() throws Exception {
-        rule.runTest("cases/hello/should_say_hello.yaml");
+        rule.runTest("cases/hello/should_say_hello.spec.yaml");
     }
 }
