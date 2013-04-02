@@ -36,11 +36,6 @@
         </dependency>
         <dependency>
             <groupId>restx</groupId>
-            <artifactId>restx-specs</artifactId>
-            <version>0.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>restx</groupId>
             <artifactId>restx-server-jetty</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
