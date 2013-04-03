@@ -8,8 +8,6 @@ import com.google.common.collect.Lists;
 import restx.*;
 import restx.factory.Component;
 import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
 
 import javax.inject.Inject;
@@ -57,19 +55,16 @@ public class SwaggerIndexRoute extends StdEntityRoute {
     }
 
     private List<ImmutableMap<String, String>> buildApis() {
-        Set<NamedComponent<RestxRoute>> routes = factory.queryByClass(RestxRoute.class).find();
+        Set<RestxRouter> routers = factory.queryByClass(RestxRouter.class).findAsComponents();
         List<ImmutableMap<String, String>> apis = Lists.newArrayList();
-        for (NamedComponent<RestxRoute> route : routes) {
-            if (route.getComponent() instanceof RestxRouter) {
-                apis.add(ImmutableMap.of("path", "/@/api-docs/" + getRouterApiPath(route.getName()),
-                        "description", ""));
-            }
+        for (RestxRouter route : routers) {
+            apis.add(ImmutableMap.of("path", "/@/api-docs/" + getRouterApiPath(route.getName()),
+                    "description", ""));
         }
         return apis;
     }
 
-    private String getRouterApiPath(Name<?> name) {
-        String path = name.getName();
+    private String getRouterApiPath(String path) {
         if (path.endsWith("Router")) {
             path = path.substring(0, path.length() - "Router".length());
         }

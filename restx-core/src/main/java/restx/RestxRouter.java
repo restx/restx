@@ -44,4 +44,8 @@ public class RestxRouter {
     public ImmutableList<RestxRoute> getRoutes() {
         return routes;
     }
+
+    public String getName() {
+        return name;
+    }
 }
