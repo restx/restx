@@ -18,4 +18,11 @@ public class HTTPTest {
         assertThat(HTTP.charsetFromContentType("application/json; charset=ISO-8859-1")).isEqualTo(Optional.of("ISO-8859-1"));
         assertThat(HTTP.charsetFromContentType("application/json")).isEqualTo(Optional.<String>absent());
     }
+
+    @Test
+    public void should_find_mime_type() throws Exception {
+        assertThat(HTTP.getContentTypeFromExtension("test.js")).isEqualTo(Optional.of("application/x-javascript"));
+        assertThat(HTTP.getContentTypeFromExtension("html")).isEqualTo(Optional.of("text/html"));
+        assertThat(HTTP.getContentTypeFromExtension("css")).isEqualTo(Optional.of("text/css"));
+    }
 }

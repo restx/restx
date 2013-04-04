@@ -1,6 +1,12 @@
 package restx.server;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
+
+import java.io.IOException;
+import java.util.Properties;
+
+import static com.google.common.collect.Iterables.getFirst;
 
 /**
  * User: xavierhanin
@@ -8,6 +14,27 @@ import com.google.common.base.Optional;
  * Time: 1:51 PM
  */
 public class HTTP {
+    private static final Properties mimeTypes;
+
+    static {
+        mimeTypes = new Properties();
+        try {
+            mimeTypes.load(HTTP.class.getResourceAsStream("mime-types.properties"));
+            for (String prop : mimeTypes.stringPropertyNames()) {
+                Iterable<String> types = Splitter.on(",").omitEmptyStrings().trimResults().split(mimeTypes.getProperty(prop));
+                mimeTypes.setProperty(prop, getFirst(types, "application/octet-stream"));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Optional<String> getContentTypeFromExtension(String filename) {
+        String ext = filename.substring(filename.lastIndexOf('.') + 1);
+
+        return Optional.fromNullable(mimeTypes.getProperty(ext));
+    }
+
     public static boolean isTextContentType(String contentType) {
         // the list is not fully exhaustive, should cover most cases.
         return contentType.startsWith("text/")
