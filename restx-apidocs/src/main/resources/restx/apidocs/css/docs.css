@@ -1,0 +1,201 @@
+/* Add additional stylesheets below
+-------------------------------------------------- */
+/*
+  Bootstrap's documentation styles
+  Special styles for presenting Bootstrap's documentation and examples
+*/
+
+body {
+    padding-top: 40px;
+}
+
+#navbar-main > .navbar-inner {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Sidenav for Docs
+-------------------------------------------------- */
+
+.bs-docs-sidenav {
+  width: 228px;
+  margin: 30px 0 0;
+  padding: 0;
+  background-color: #fff;
+  -webkit-border-radius: 6px;
+     -moz-border-radius: 6px;
+          border-radius: 6px;
+  -webkit-box-shadow: 0 1px 4px rgba(0,0,0,.065);
+     -moz-box-shadow: 0 1px 4px rgba(0,0,0,.065);
+          box-shadow: 0 1px 4px rgba(0,0,0,.065);
+  position: fixed;
+  top: 40px;
+}
+.bs-docs-sidenav > li > a {
+  display: block;
+  width: 190px \9;
+  margin: 0 0 -1px;
+  padding: 8px 14px;
+  border: 1px solid #e5e5e5;
+}
+.bs-docs-sidenav > li:first-child > a {
+  -webkit-border-radius: 6px 6px 0 0;
+     -moz-border-radius: 6px 6px 0 0;
+          border-radius: 6px 6px 0 0;
+}
+.bs-docs-sidenav > li:last-child > a {
+  -webkit-border-radius: 0 0 6px 6px;
+     -moz-border-radius: 0 0 6px 6px;
+          border-radius: 0 0 6px 6px;
+}
+.bs-docs-sidenav > .active > a {
+  position: relative;
+  z-index: 2;
+  padding: 9px 15px;
+  border: 0;
+  text-shadow: 0 1px 0 rgba(0,0,0,.15);
+  -webkit-box-shadow: inset 1px 0 0 rgba(0,0,0,.1), inset -1px 0 0 rgba(0,0,0,.1);
+     -moz-box-shadow: inset 1px 0 0 rgba(0,0,0,.1), inset -1px 0 0 rgba(0,0,0,.1);
+          box-shadow: inset 1px 0 0 rgba(0,0,0,.1), inset -1px 0 0 rgba(0,0,0,.1);
+}
+/* Chevrons */
+.bs-docs-sidenav .icon-chevron-right {
+  float: right;
+  margin-top: 2px;
+  margin-right: -6px;
+  opacity: .25;
+}
+.bs-docs-sidenav > li > a:hover {
+  background-color: #f5f5f5;
+}
+.bs-docs-sidenav a:hover .icon-chevron-right {
+  opacity: .5;
+}
+.bs-docs-sidenav .active .icon-chevron-right,
+.bs-docs-sidenav .active a:hover .icon-chevron-right {
+  opacity: 1;
+}
+
+.operations {
+    margin-bottom: 0;
+}
+
+table.operations {
+    table-layout: fixed;
+}
+
+.operations .http-method {
+    width: 100px;
+}
+
+.operations .path {
+    vertical-align: middle;
+}
+
+.operations .operation-GET .http-method a.btn, .http-method-GET {
+    /* copied from success button */
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #5bb75b;
+    background-image: linear-gradient(to bottom, #62c462, #51a351);
+    background-repeat: repeat-x;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+.operations .operation-POST .http-method a.btn, .http-method-POST {
+    /* copied from success button */
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #ee8505;
+    background-image: linear-gradient(to bottom,#ff9008,#d47500);
+    background-repeat: repeat-x;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+.operations .operation-PUT .http-method a.btn, .http-method-PUT {
+    /* copied from success button */
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #0aaaf1;
+    background-image: linear-gradient(to bottom,#11b6ff,#09d);
+    background-repeat: repeat-x;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+.operations .operation-DELETE .http-method a.btn, .http-method-DELETE {
+    /* copied from success button */
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #eb0301;
+    background-image: linear-gradient(to bottom,#ff0301,#cd0200);
+    background-repeat: repeat-x;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+
+
+.http-method{
+    padding: 3px 10px;
+    border-radius: 4px;
+}
+
+h1 .http-method {
+    font-size: 22px;
+}
+
+.operation h1 .path {
+    font-size: 22px;
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+
+.operation label {
+    display: inline-block;
+    width: 180px;
+    font-weight: bold;
+}
+
+.operation .send {
+    min-height: 40px;
+}
+
+.operation textarea {
+    width: 400px;
+    height: 250px;
+}
+
+.try-example {
+    margin-top: 5px;
+}
+
+.operation h2 {
+    font-size: 20px;
+    color: #fff;
+    padding-left: 10px;
+    border-radius: 2px;
+    box-shadow: 0 1px 10px rgba(0,0,0,0.1);
+    background-color: #a9a9a9;
+    background-image: linear-gradient(to bottom,#AAA,#BBB);
+    background-repeat: repeat-x;
+    border: 1px solid #999;
+}
+
+.operation h3 {
+    font-size: 18px;
+}
+
+.operation h4 {
+    font-size: 16px;
+}
+
+.operation td.name {
+    font-weight: bold;
+}
+
+.operation td.dataType, .operation td.paramType, .operation td.required {
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+
+.operation .request-example {
+    margin-bottom: 30px;
+    border-top: 2px solid #e5e5e5;
+}

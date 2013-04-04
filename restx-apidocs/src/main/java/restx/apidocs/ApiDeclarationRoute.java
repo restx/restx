@@ -1,4 +1,4 @@
-package restx.swagger;
+package restx.apidocs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
@@ -39,13 +39,13 @@ import java.util.List;
  * See <a href="https://github.com/wordnik/swagger-core/wiki/API-Declaration">API Declaration</a>
  */
 @Component
-public class SwaggerApiDeclarationRoute extends StdEntityRoute {
+public class ApiDeclarationRoute extends StdEntityRoute {
     private final Factory factory;
 
     @Inject
-    public SwaggerApiDeclarationRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
-                                      Factory factory) {
-        super("SwaggerApiDeclarationRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs/{router}"));
+    public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
+                               Factory factory) {
+        super("ApiDeclarationRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs/{router}"));
         this.factory = factory;
     }
 

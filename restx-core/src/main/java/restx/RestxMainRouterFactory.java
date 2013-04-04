@@ -56,7 +56,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
                 (mainRouter != null ? (" -- " + mainRouter.getNbFilters() + " filters\n") : "") +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
                 " -- for api documentation,\n" +
-                " --   VISIT " + baseUri + "/@/api-docs-ui\n" +
+                " --   VISIT " + baseUri + "/@/api-docs-ui/\n" +
                 " --\n");
     }
 

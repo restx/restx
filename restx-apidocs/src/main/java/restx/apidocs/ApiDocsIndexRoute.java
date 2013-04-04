@@ -1,4 +1,4 @@
-package restx.swagger;
+package restx.apidocs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
@@ -36,12 +36,12 @@ import java.util.Set;
  * }
  */
 @Component
-public class SwaggerIndexRoute extends StdEntityRoute {
+public class ApiDocsIndexRoute extends StdEntityRoute {
     private final Factory factory;
 
     @Inject
-    public SwaggerIndexRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper, Factory factory) {
-        super("SwaggerIndexRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs"));
+    public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper, Factory factory) {
+        super("ApiDocsIndexRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs"));
         this.factory = factory;
     }
 
@@ -59,8 +59,10 @@ public class SwaggerIndexRoute extends StdEntityRoute {
         Set<NamedComponent<RestxRouter>> routers = factory.queryByClass(RestxRouter.class).find();
         List<ImmutableMap<String, String>> apis = Lists.newArrayList();
         for (NamedComponent<RestxRouter> router : routers) {
-            apis.add(ImmutableMap.of("path", "/@/api-docs/" +
-                    getRouterApiPath(router.getName().getName()),
+            String routerApiPath = getRouterApiPath(router.getName().getName());
+            apis.add(ImmutableMap.of(
+                    "path", "/@/api-docs/" + routerApiPath,
+                    "name", routerApiPath,
                     "description", ""));
         }
         return apis;

@@ -1,0 +1,60 @@
+<div class="container operation">
+    <h1><span class="http-method http-method-{{operation.httpMethod}}">{{operation.httpMethod}}</span> <span class="path">{{opApi.path}}</span></h1>
+    <section>
+        <h2>Description</h2>
+        <button ng-click="toggleTry()" class="btn pull-right" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
+        <p><label>Nick name:</label> {{operation.nickname}}</p>
+        <p><label>Response class:</label> {{operation.responseClass}}</p>
+        <section>
+            <h3>Parameters</h3>
+            <table class="table table-condensed parameters">
+                <thead>
+                    <th class="name">Name</th>
+                    <th class="value" ng-show="try">Value</th>
+                    <th class="paramType">Param Type</th>
+                    <th class="dataType">Data Type</th>
+                    <th class="required">Required</th>
+                </thead>
+                <tr ng-repeat="param in operation.parameters">
+                    <td class="name">{{param.name}}</td>
+                    <td class="value" ng-show="try">
+                        <input ng-hide="param.paramType == 'body'" type="text" ng-model="param.value">
+                        <textarea ng-show="param.paramType == 'body'" ng-model="param.value"></textarea>
+                    </td>
+                    <td class="paramType">{{param.paramType}}</td>
+                    <td class="dataType">{{param.dataType}}</td>
+                    <td class="required">{{param.required}}</td>
+                </tr>
+            </table>
+        </section>
+        <section ng-show="try" class="send">
+            <button ng-click="send()" class="btn btn-primary pull-right">Send</button>
+            <div ng-show="request">
+                <h3>Result</h3>
+                <h4>Request</h4>
+                <pre><code>{{request.httpMethod}} {{request.path}}</code></pre>
+                <div ng-show="request.body">Body: <pre><code>{{request.body}}</code></pre> </div>
+                <div ng-show="request.response.status">
+                    <h4>Response</h4>
+                    <pre><code>{{request.response.status}}</code></pre>
+                    <pre><code>{{request.response.body}}</code></pre>
+                </div>
+            </div>
+        </section>
+    </section>
+
+
+    <h2>Examples</h2>
+    <section ng-repeat="spec in specs">
+        <h3>{{spec.title}}</h3>
+        <div ng-repeat="request in spec.requests" class="request-example">
+            <button ng-click="tryExample(request)" class="btn btn-primary pull-right try-example">Try</button>
+            <h4>Request:</h4>
+            <pre><code>{{request.httpMethod}} {{request.path}}</code></pre>
+            <div ng-show="request.showBody">Body: <pre><code>{{request.body}}</code></pre> </div>
+            <h4>Response:</h4>
+            <pre><code>{{request.response.status}}</code></pre>
+            <pre><code>{{request.response.body}}</code></pre>
+        </div>
+    </section>
+</div>

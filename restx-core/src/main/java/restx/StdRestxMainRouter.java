@@ -96,7 +96,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                         .append("no restx route found for ")
                         .append(restxRequest.getHttpMethod()).append(" ").append(path).append("\n");
                 if (hasApiDocs()) {
-                    sb.append("go to ").append(restxRequest.getBaseUri()).append("/@/api-docs-ui")
+                    sb.append("go to ").append(restxRequest.getBaseUri()).append("/@/api-docs-ui/")
                             .append(" for API documentation\n\n");
                 }
                 sb.append("routes:\n")

@@ -1,4 +1,4 @@
-package restx.swagger;
+package restx.apidocs;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;

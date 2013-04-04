@@ -1,4 +1,4 @@
-package restx.swagger;
+package restx.apidocs;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * Time: 1:50 PM
  */
 @Module
-public class SwaggerModule {
+public class ApiDocsModule {
     @Provides
     public CORSAuthorizer getSwaggerAuthorizer() {
         return new StdCORSAuthorizer(

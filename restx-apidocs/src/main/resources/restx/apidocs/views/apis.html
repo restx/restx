@@ -1,0 +1,24 @@
+<div class="container">
+    <div class="row">
+        <div class="span3 bs-docs-sidebar">
+            <ul class="nav nav-list bs-docs-sidenav">
+                 <li ng-repeat="api in doc.apis"><a href="#{{api.name}}" ng-click="scrollTo(api.name)" eat-click>
+                     <i class="icon-chevron-right"></i> {{api.name}}</a></li>
+            </ul>
+        </div>
+            <div class="span1"></div>
+        <div class="span8">
+            <section id="{{api.name}}"  ng-repeat="api in doc.apis"  ng-hide="api.filtered()">
+                <h2>{{api.name}}</h2>
+                <table class="table table-condensed operations" ng-repeat="opApi in api.model.apis" ng-hide="opApi.filtered()">
+                    <tr class="operation operation-{{operation.httpMethod}}" ng-repeat="operation in opApi.operations">
+                        <td class="http-method">
+                            <a class="btn" href="#/operation/{{api.name}}/{{operation.httpMethod}}/{{opApi.encodedPath}}">{{operation.httpMethod}}</a>
+                        </td>
+                        <td class="path">{{opApi.path}}</td>
+                    </tr>
+                </table>
+            </section>
+        </div>
+    </div>
+</div>

@@ -47,7 +47,7 @@
         </dependency>
         <dependency>
             <groupId>restx</groupId>
-            <artifactId>restx-swagger</artifactId>
+            <artifactId>restx-apidocs</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>

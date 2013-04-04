@@ -1,4 +1,4 @@
-package restx.swagger;
+package restx.apidocs;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
