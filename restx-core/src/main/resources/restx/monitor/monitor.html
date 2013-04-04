@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="http://mleibman.github.com/SlickGrid/examples/examples.css" type="text/css"/>
 </head>
 <body style="background: #302E30; ">
-  <div style="width:960px; margin-bottom: 5px; margin-left: auto; margin-right: auto; color: #F3F7E4;">Search: <input id="search"></div>
+  <div style="width:960px; margin-bottom: 5px; margin-left: auto; margin-right: auto; color: #F3F7E4;">Search: <input id="search"> <input type="button" value="Refresh" id="refresh"></div>
   <div id="myGrid" style="width:960px;height:800px; margin-left: auto; margin-right: auto; "></div>
 
 <script src="http://mleibman.github.com/SlickGrid/lib/jquery-1.7.min.js"></script>
@@ -35,7 +35,7 @@
   ];
 
   var sortcol = "label";
-  var sortdir = 1;
+  var sortAsc = true;
   var searchString = "";
 
   var options = {
@@ -57,18 +57,13 @@
   }
 
   $(function () {
-    var data = [
-        // { id: 0, label: "BUILD/xxxx xxx xxx", "hits": 8, "avg": 30, "lastVal": 30, "min": 20, "max": 40, "active": 0, "avgActive": 1, "maxActive": 3, "firstAccess": "", "lastAccess": "" },
-        {{{data}}}
-    ];
-
     dataView = new Slick.Data.DataView({ inlineFilters: true });
     grid = new Slick.Grid("#myGrid", dataView, columns, options);
 
     grid.onSort.subscribe(function (e, args) {
-      sortdir = args.sortAsc ? 1 : -1;
+      sortAsc = args.sortAsc;
       sortcol = args.sortCol.field;
-      dataView.sort(comparer, args.sortAsc);
+      dataView.sort(comparer, sortAsc);
     });
 
       dataView.onRowCountChanged.subscribe(function (e, args) {
@@ -99,13 +94,24 @@
           dataView.refresh();
         }
 
-      dataView.beginUpdate();
-        dataView.setItems(data);
-        dataView.setFilterArgs({
-          searchString: searchString
-        });
-        dataView.setFilter(myFilter);
-        dataView.endUpdate();
+      function setData(data) {
+          dataView.beginUpdate();
+          dataView.setItems(data);
+          dataView.setFilterArgs({
+            searchString: searchString
+          });
+          dataView.setFilter(myFilter);
+          dataView.sort(comparer, sortAsc);
+          dataView.endUpdate();
+          grid.invalidateAllRows();
+          grid.render();
+      }
+
+      $.getJSON('../monitor', setData);
+
+      $('#refresh').click(function() {
+        $.getJSON('../monitor', setData);
+      })
   })
 </script>
 </body>
