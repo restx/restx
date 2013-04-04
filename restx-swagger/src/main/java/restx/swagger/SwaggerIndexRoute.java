@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 import restx.*;
 import restx.factory.Component;
 import restx.factory.Factory;
+import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
 
 import javax.inject.Inject;
@@ -55,22 +56,18 @@ public class SwaggerIndexRoute extends StdEntityRoute {
     }
 
     private List<ImmutableMap<String, String>> buildApis() {
-        Set<RestxRouter> routers = factory.queryByClass(RestxRouter.class).findAsComponents();
+        Set<NamedComponent<RestxRouter>> routers = factory.queryByClass(RestxRouter.class).find();
         List<ImmutableMap<String, String>> apis = Lists.newArrayList();
-        for (RestxRouter route : routers) {
-            apis.add(ImmutableMap.of("path", "/@/api-docs/" + getRouterApiPath(route.getName()),
+        for (NamedComponent<RestxRouter> router : routers) {
+            apis.add(ImmutableMap.of("path", "/@/api-docs/" +
+                    getRouterApiPath(router.getName().getName()),
                     "description", ""));
         }
         return apis;
     }
 
     private String getRouterApiPath(String path) {
-        if (path.endsWith("Router")) {
-            path = path.substring(0, path.length() - "Router".length());
-        }
-        if (path.endsWith("Resource")) {
-            path = path.substring(0, path.length() - "Resource".length());
-        }
+        path = path.replaceAll("Router$", "").replaceAll("Resource$", "");
         path = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, path);
         return path;
     }
