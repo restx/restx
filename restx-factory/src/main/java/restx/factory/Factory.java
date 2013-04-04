@@ -259,7 +259,7 @@ public class Factory implements AutoCloseable {
 
         @Override
         public Query<T> setMandatory(boolean mandatory) {
-            return new NameQuery(mayGetFactory(), isMandatory(), getName());
+            return new NameQuery(mayGetFactory(), mandatory, getName());
         }
 
         @Override
@@ -314,7 +314,7 @@ public class Factory implements AutoCloseable {
 
         @Override
         public Query<T> setMandatory(boolean mandatory) {
-            return new ClassQuery(mayGetFactory(), isMandatory(), getComponentClass());
+            return new ClassQuery(mayGetFactory(), mandatory, getComponentClass());
         }
 
         public Class<T> getComponentClass() {
