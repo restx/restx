@@ -8,9 +8,9 @@ import restx.factory.Component;
 import java.io.IOException;
 
 @Component
-public class SwaggerUIRoute extends StaticRoute {
+public class SwaggerUIRoute extends StdRoute {
     public SwaggerUIRoute() {
-        super("SwaggerUIRoute", "GET", "/@/api-docs-ui");
+        super("SwaggerUIRoute", new StdRouteMatcher("GET", "/@/api-docs-ui"));
     }
 
     @Override

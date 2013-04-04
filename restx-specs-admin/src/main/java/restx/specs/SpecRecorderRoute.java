@@ -23,7 +23,7 @@ import static restx.common.Mustaches.compile;
 public class SpecRecorderRoute extends RestxRouter {
     public SpecRecorderRoute(final RestxSpecRecorder specRecorder) {
         super("SpecRecorderRouter",
-                new StaticRoute("RecorderRoute", "GET", "/@/recorder") {
+                new StdRoute("RecorderRoute", new StdRouteMatcher("GET", "/@/recorder")) {
                     @Override
                     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         Mustache tpl = compile(SpecRecorderRoute.class, "recorder.mustache");

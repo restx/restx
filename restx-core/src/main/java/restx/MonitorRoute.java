@@ -19,9 +19,9 @@ import static restx.common.Mustaches.compile;
  * Time: 12:44 AM
  */
 @Component
-public class MonitorRoute extends StaticRoute {
+public class MonitorRoute extends StdRoute {
     public MonitorRoute() {
-        super("MonitorRoute", "GET", "/@/monitor");
+        super("MonitorRoute",  new StdRouteMatcher("GET", "/@/monitor"));
     }
 
     @Override

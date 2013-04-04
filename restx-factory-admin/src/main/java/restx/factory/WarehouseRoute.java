@@ -15,7 +15,7 @@ import java.util.List;
 import static restx.common.Mustaches.compile;
 
 @Component
-public class WarehouseRoute extends StaticRoute {
+public class WarehouseRoute extends StdRoute {
     private final Warehouse warehouse;
 
     @Inject
@@ -24,7 +24,7 @@ public class WarehouseRoute extends StaticRoute {
     }
 
     public WarehouseRoute(Warehouse warehouse) {
-        super("WarehouseRoute", "GET", "/@/warehouse");
+        super("WarehouseRoute", new StdRouteMatcher("GET", "/@/warehouse"));
         this.warehouse = warehouse;
     }
 

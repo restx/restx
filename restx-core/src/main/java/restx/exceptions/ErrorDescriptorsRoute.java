@@ -13,12 +13,12 @@ import java.util.Map;
  * Date: 3/18/13
  * Time: 9:37 PM
  */
-public class ErrorDescriptorsRoute extends StaticRoute {
+public class ErrorDescriptorsRoute extends StdRoute {
 
     private final ImmutableMap<String, ErrorDescriptor> errorDescriptors;
 
     public ErrorDescriptorsRoute(Iterable<ErrorDescriptor> errorDescriptors) {
-        super("ErrorDescriptorsRoute", "GET", "/@/errors/descriptors");
+        super("ErrorDescriptorsRoute", new StdRouteMatcher("GET", "/@/errors/descriptors"));
         Map<String, ErrorDescriptor> map = Maps.newLinkedHashMap();
         for (ErrorDescriptor errorDescriptor : errorDescriptors) {
             if (map.containsKey(errorDescriptor.getErrorCode())) {
