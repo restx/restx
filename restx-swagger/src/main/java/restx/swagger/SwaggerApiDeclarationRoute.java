@@ -57,7 +57,7 @@ public class SwaggerApiDeclarationRoute extends StdEntityRoute {
         Optional<NamedComponent<RestxRouter>> router = Optional.absent();
         ImmutableList<String> suffixes = ImmutableList.of("ResourceRouter", "", "Resource", "Router");
         for (int i = 0; i < suffixes.size() && !router.isPresent(); i++) {
-            router = factory.queryByName(Name.of(RestxRouter.class, routerName + suffixes.get(i))).findOne();
+            router = factory.queryByName(Name.of(RestxRouter.class, routerName + suffixes.get(i))).optional().findOne();
         }
 
         if (!router.isPresent()) {
