@@ -52,6 +52,10 @@ public class SimpleRestxResponse implements RestxResponse {
 
     @Override
     public PrintWriter getWriter() throws IOException {
+        if (writer != null) {
+            return writer;
+        }
+
         if (charset == null) {
             logger.warn("no charset defined while getting writer to write http response." +
                     " Make sure you call setContentType() before calling getWriter(). Using UTF-8 charset.");
@@ -63,6 +67,9 @@ public class SimpleRestxResponse implements RestxResponse {
 
     @Override
     public OutputStream getOutputStream() throws IOException {
+        if (outputStream != null) {
+            return outputStream;
+        }
         return outputStream = response.getOutputStream();
     }
 
