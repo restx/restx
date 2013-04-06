@@ -45,4 +45,12 @@ public class SingleNameFactoryMachine<C> implements FactoryMachine {
         return priority;
     }
 
+    @Override
+    public String toString() {
+        return "SingleNameFactoryMachine{" +
+                "priority=" + priority +
+                ", engine=" + engine +
+                ", name=" + name +
+                '}';
+    }
 }

@@ -46,4 +46,11 @@ public class JongoCollectionFactory implements FactoryMachine {
     public int priority() {
         return 0;
     }
+
+    @Override
+    public String toString() {
+        return "JongoCollectionFactory{" +
+                "jongoQuery=" + jongoQuery +
+                '}';
+    }
 }

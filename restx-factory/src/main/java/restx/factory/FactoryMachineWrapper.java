@@ -110,4 +110,11 @@ public class FactoryMachineWrapper implements FactoryMachine {
     public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
         return original.nameBuildableComponents(componentClass);
     }
+
+    @Override
+    public String toString() {
+        return "FactoryMachineWrapper{" +
+                "original=" + original +
+                '}';
+    }
 }

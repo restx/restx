@@ -3,9 +3,13 @@ package restx.factory;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
+import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +17,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static restx.common.MorePreconditions.checkPresent;
+import static restx.common.MoreStrings.indent;
 
 /**
  * User: xavierhanin
@@ -23,6 +28,7 @@ import static restx.common.MorePreconditions.checkPresent;
  * Time: 5:42 PM
  */
 public class Factory implements AutoCloseable {
+    private static final String SERVICE_LOADER = "ServiceLoader";
     private final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
     private static final Comparator<ComponentCustomizer> customizerComparator = new Comparator<ComponentCustomizer>() {
@@ -31,6 +37,8 @@ public class Factory implements AutoCloseable {
             return Ordering.natural().compare(o1.priority(), o2.priority());
         }
     };
+    private static final AtomicLong ID = new AtomicLong();
+    private final boolean usedServiceLoader;
 
     public Warehouse getWarehouse() {
         return warehouse;
@@ -40,18 +48,24 @@ public class Factory implements AutoCloseable {
         private static final ThreadLocal<LocalMachines> threadLocals = new ThreadLocal() {
             @Override
             protected LocalMachines initialValue() {
-                return new LocalMachines();
+                return new LocalMachines("");
             }
         };
 
-        private static ConcurrentMap<String, LocalMachines> contextLocals = new ConcurrentHashMap<>();
+        private static final ConcurrentMap<String, LocalMachines> contextLocals = new ConcurrentHashMap<>();
+        private static final AtomicLong IDS = new AtomicLong();
+        private final String id;
+
+        public LocalMachines(String ctxName) {
+            id = String.format("CTX[%s][$03d]", ctxName, IDS.incrementAndGet());
+        }
 
         public static LocalMachines threadLocal() {
             return threadLocals.get();
         }
 
         public static LocalMachines contextLocal(String ctxName) {
-            contextLocals.putIfAbsent(ctxName, new LocalMachines());
+            contextLocals.putIfAbsent(ctxName, new LocalMachines(ctxName));
             return contextLocals.get(ctxName);
         }
 
@@ -69,28 +83,35 @@ public class Factory implements AutoCloseable {
         ImmutableList<FactoryMachine> get() {
             return ImmutableList.copyOf(machines);
         }
+
+        public String getId() {
+            return id;
+        }
     }
 
     public static class Builder {
-        private List<FactoryMachine> machines = Lists.newArrayList();
+        private boolean usedServiceLoader;
+        private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
 
         public Builder addFromServiceLoader() {
-            Iterables.addAll(machines, ServiceLoader.load(FactoryMachine.class));
+            usedServiceLoader = true; // we have to store separately, in case the list is empty multimap
+                                      // doesn't keep the key
+            machines.putAll(SERVICE_LOADER, ServiceLoader.load(FactoryMachine.class));
             return this;
         }
 
         public Builder addLocalMachines(LocalMachines localMachines) {
-            machines.addAll(localMachines.get());
+            machines.putAll(localMachines.getId(), localMachines.get());
             return this;
         }
 
         public Builder addMachine(FactoryMachine machine) {
-            machines.add(machine);
+            machines.put("IndividualMachines", machine);
             return this;
         }
 
         public Factory build() {
-            return new Factory(machines, new Warehouse());
+            return new Factory(usedServiceLoader, machines, new Warehouse());
         }
     }
 
@@ -146,27 +167,45 @@ public class Factory implements AutoCloseable {
 
         public abstract boolean isMultiple();
         public final  Optional<NamedComponent<T>> findOne() {
-            Optional<NamedComponent<T>> one = doFindOne();
-            if (isMandatory()) {
-                checkPresent(one,
-                       "component satisfying %s not found.\n%s", this, factory);
+            try {
+                checkSatisfy();
+            } catch (IllegalStateException e) {
+                throw new IllegalStateException(String.format(
+                        "%s\n%s", e.getMessage(), factory.dump()));
             }
-            return one;
+            return doFindOne();
         }
         public final Set<NamedComponent<T>> find() {
-            Set<NamedComponent<T>> namedComponents = doFind();
-            if (isMandatory() && namedComponents.isEmpty()) {
-
+            try {
+                checkSatisfy();
+            } catch (IllegalStateException e) {
+                throw new IllegalStateException(String.format(
+                        "%s\n%s", e.getMessage(), factory.dump()));
             }
-            return namedComponents;
+            return doFind();
         }
         public final Set<T> findAsComponents() {
             return Sets.newLinkedHashSet(
                         Iterables.transform(find(), NamedComponent.<T>toComponent()));
         }
+        public abstract Set<Name<T>> findNames();
 
         protected abstract Optional<NamedComponent<T>> doFindOne();
         protected abstract Set<NamedComponent<T>> doFind();
+
+        public void checkSatisfy() {
+            if (!isMandatory()) {
+                return;
+            }
+            Set<Name<T>> names = findNames();
+            if (names.isEmpty()) {
+                throw new IllegalStateException(String.format("component satisfying %s not found.", this));
+            }
+            Factory f = factory();
+            for (Name<T> name : names) {
+                f.checkSatisfy(name);
+            }
+        }
     }
 
     static abstract class MultipleQuery<T> extends Query<T> {
@@ -235,6 +274,11 @@ public class Factory implements AutoCloseable {
         }
 
         @Override
+        public Set<Name<Factory>> findNames() {
+            return Collections.singleton(FACTORY_NAME);
+        }
+
+        @Override
         public String toString() {
             return "FactoryQuery";
         }
@@ -285,6 +329,11 @@ public class Factory implements AutoCloseable {
                 }
             }
             return Optional.absent();
+        }
+
+        @Override
+        public Set<Name<T>> findNames() {
+            return Collections.singleton(name);
         }
 
         @Override
@@ -348,6 +397,11 @@ public class Factory implements AutoCloseable {
         }
 
         @Override
+        public Set<Name<T>> findNames() {
+            return factory().collectAllBuildableNames(componentClass);
+        }
+
+        @Override
         public String toString() {
             return "QueryByClass{" +
                     "componentClass=" + componentClass +
@@ -355,19 +409,40 @@ public class Factory implements AutoCloseable {
         }
     }
 
+    private static final class CanBuildPredicate implements Predicate<FactoryMachine> {
+        private final Name<?> name;
+
+        private CanBuildPredicate(Name<?> name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean apply(FactoryMachine input) {
+            return input != null && input.canBuild(name);
+        }
+    }
+
     private final ImmutableList<FactoryMachine> machines;
+    private final ImmutableMultimap<String, FactoryMachine> machinesByBuilder;
     private final Warehouse warehouse;
     private final List<ComponentCustomizerEngine> customizerEngines = new CopyOnWriteArrayList<>();
+    private final String id;
+    private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
 
-    private Factory(List<FactoryMachine> machines, Warehouse warehouse) {
-        machines.add(new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)));
+    private Factory(boolean usedServiceLoader, Multimap<String, FactoryMachine> machines, Warehouse warehouse) {
+        this.usedServiceLoader = usedServiceLoader;
+        machines.put("FactoryMachine",
+                new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)));
+        machinesByBuilder = ImmutableMultimap.copyOf(machines);
+
         this.machines = ImmutableList.copyOf(
                 Ordering.from(new Comparator<FactoryMachine>() {
                     @Override
                     public int compare(FactoryMachine o1, FactoryMachine o2) {
                         return Integer.compare(o1.priority(), o2.priority());
                     }
-                }).sortedCopy(machines));
+                }).sortedCopy(machines.values()));
+        this.id = String.format("%03d(%d)", ID.incrementAndGet(), machines.size());
         this.warehouse = checkNotNull(warehouse);
         buildCustomizerEngines();
     }
@@ -380,6 +455,10 @@ public class Factory implements AutoCloseable {
                 customizerEngines.add(customizer.get().getComponent());
             }
         }
+    }
+
+    public String getId() {
+        return id;
     }
 
     public int getNbMachines() {
@@ -400,15 +479,160 @@ public class Factory implements AutoCloseable {
 
     @Override
     public String toString() {
-        return  "---------------------------------------------\n" +
-                "                 Factory\n" +
-                "--> Machines\n" +
-                Joiner.on("\n").join(machines) +
-                "\n--\n" +
-                "--> Warehouse\n" +
-                warehouse +
-                "\n--\n" +
-                "---------------------------------------------";
+        return  "Factory[" + id + "]";
+    }
+
+    /**
+     * Returns an object which toString method dumps the factory.
+     *
+     * This is useful in logger or check messages, to prevent actually calling dump() if log is disabled
+     * or check does not raise exception.
+     *
+     * @return a dumper for the factory.
+     */
+    public Object dumper() {
+        return dumper;
+    }
+
+    public String dump() {
+        StringBuilder sb = new StringBuilder()
+                .append("---------------------------------------------\n")
+                .append("             Factory ").append(id).append("\n");
+
+        sb.append("--> Machines by priority\n  ");
+        Joiner.on("\n  ").appendTo(sb, machines);
+        sb.append("\n--\n");
+
+        sb.append("--> Machines by builder\n");
+        for (String builder : machinesByBuilder.keySet()) {
+            ImmutableCollection<FactoryMachine> machinesForBuilder = machinesByBuilder.get(builder);
+            sb.append("  = ").append(builder).append("(").append(machinesForBuilder.size()).append(" machines) =\n");
+            for (FactoryMachine machine : machinesForBuilder) {
+                sb.append("     ").append(machine).append("\n");
+            }
+        }
+        sb.append("--\n");
+
+        dumpBuidableComponents(sb);
+
+        Set<String> undeclaredMachines = findUndeclaredMachines();
+        if (!undeclaredMachines.isEmpty()) {
+            sb.append("--> WARNING: classes annotated with @Machine were found in classpath\n")
+              .append("             but not in service declaration files `META-INF/services/restx.factory.FactoryMachine`.\n")
+              .append("             Do a clean build and check your annotation processing.\n")
+              .append("             List of missing machines:\n");
+            for (String undeclaredMachine : undeclaredMachines) {
+                sb.append("  ").append(undeclaredMachine).append("\n");
+            }
+            sb.append("\n--\n");
+        }
+
+        sb.append("--> Warehouse\n  ")
+            .append(warehouse)
+            .append("\n--\n");
+
+        sb.append("---------------------------------------------");
+        return sb.toString();
+    }
+
+    private void dumpBuidableComponents(StringBuilder sb) {
+        sb.append("--> Buildable Components\n");
+        Iterable<Name<Object>> buildableNames = collectAllBuildableNames(Object.class);
+        for (Name<?> buildableName : buildableNames) {
+            sb.append("   ").append(buildableName).append("\n");
+            List<FactoryMachine> allMachinesFor = findAllMachinesFor(buildableName);
+            if (allMachinesFor.isEmpty()) {
+                sb.append("      ERROR: machine ").append(findAllMachinesListing(buildableName))
+                        .append("\n       lists this name in nameBuildableComponents() ")
+                        .append("but doesn't properly implement canBuild()\n");
+            } else {
+                FactoryMachine machineFor = allMachinesFor.get(0);
+                MachineEngine<?> engine = machineFor.getEngine(buildableName);
+                sb.append("      BUILD BY: ").append(engine).append("\n");
+                if (allMachinesFor.size() > 1) {
+                    sb.append("      OVERRIDING:\n");
+                    for (FactoryMachine machine : allMachinesFor.subList(1, allMachinesFor.size())) {
+                        sb.append("         ").append(machine).append("\n");
+                    }
+                }
+
+                ImmutableSet<Query<?>> bomQueries = engine.getBillOfMaterial().getQueries();
+                if (!bomQueries.isEmpty()) {
+                    sb.append("      BOM:\n");
+                    for (Query<?> query : bomQueries) {
+                        query = query.bind(this);
+                        sb.append("        - ").append(query).append("\n");
+                        try {
+                            query.checkSatisfy();
+                            for (Name<?> name : query.findNames()) {
+                                sb.append("          -> ").append(name).append("\n");
+                            }
+                        } catch (IllegalStateException ex) {
+                            sb.append("          ERROR: CAN'T BE SATISFIED: ").append(ex.getMessage()).append("\n");
+                        }
+                    }
+                }
+            }
+        }
+        sb.append("--\n");
+    }
+
+    /**
+     * Look for classes with @Machine annotation which are not part of factory, if it has been loaded with ServiceLoader.
+     *
+     * It may happen that annotation processing has not generated the META-INF/services/restx.factory.FactoryMachine
+     * properly, am be due to failed incremental compilation.
+     */
+    private Set<String> findUndeclaredMachines() {
+        if (!usedServiceLoader) {
+            return Collections.emptySet();
+        }
+        Set<Class<?>> annotatedMachines = new ConfigurationBuilder()
+                .setUrls(ClasspathHelper.forPackage(""))
+                .setScanners(new TypeAnnotationsScanner())
+                .build()
+                .getTypesAnnotatedWith(Machine.class);
+
+        Set<String> undeclared = Sets.newLinkedHashSet();
+        for (Class<?> annotatedMachine : annotatedMachines) {
+            boolean found = false;
+            for (FactoryMachine machine : machines) {
+                if (annotatedMachine.isAssignableFrom(machine.getClass())) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                undeclared.add(annotatedMachine.getName());
+            }
+        }
+        return undeclared;
+    }
+
+    private List<FactoryMachine> findAllMachinesListing(Name<?> name) {
+        List<FactoryMachine> machinesFor = Lists.newArrayList();
+        for (FactoryMachine machine : machines) {
+            if (machine.nameBuildableComponents(Object.class).contains(name)) {
+                machinesFor.add(machine);
+            }
+        }
+        return machinesFor;
+    }
+
+    private List<FactoryMachine> findAllMachinesFor(Name<?> name) {
+        return Lists.newArrayList(Iterables.filter(machines, new CanBuildPredicate(name)));
+    }
+
+    private Optional<FactoryMachine> findMachineFor(Name<?> name) {
+        return Optional.fromNullable(Iterables.find(machines, new CanBuildPredicate(name), null));
+    }
+
+    private <T> Set<Name<T>> collectAllBuildableNames(Class<T> componentClass) {
+        Set<Name<T>> buildableNames = Sets.newLinkedHashSet();
+        for (FactoryMachine machine : machines) {
+            buildableNames.addAll(machine.nameBuildableComponents(componentClass));
+        }
+        return buildableNames;
     }
 
     private <T> Optional<NamedComponent<T>> buildAndStore(Name<T> name, FactoryMachine machine) {
@@ -467,6 +691,27 @@ public class Factory implements AutoCloseable {
         }
 
         return new SatisfiedBOM(bom, materials.build());
+    }
+
+    private <T> void checkSatisfy(Name<T> name) {
+        Optional<FactoryMachine> machineFor = findMachineFor(name);
+        if (!machineFor.isPresent()) {
+            throw new IllegalStateException(name + " can't be satisfied: no machine found to build it");
+        }
+
+        BillOfMaterials billOfMaterial = machineFor.get().getEngine(name).getBillOfMaterial();
+        StringBuilder notSatisfied = new StringBuilder();
+        for (Query<?> query : billOfMaterial.getQueries()) {
+            try {
+                query.bind(this).checkSatisfy();
+            } catch (IllegalStateException e) {
+                notSatisfied.append(name).append("\n")
+                        .append(indent("-> " + e.getMessage(), 2)).append("\n");
+            }
+        }
+        if (notSatisfied.length() > 0) {
+            throw new IllegalStateException(notSatisfied.toString());
+        }
     }
 
 

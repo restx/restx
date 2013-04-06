@@ -23,4 +23,11 @@ public class MachineEngineWrapper<T> implements MachineEngine<T> {
     public ComponentBox<T> newComponent(SatisfiedBOM satisfiedBOM) {
         return original.newComponent(satisfiedBOM);
     }
+
+    @Override
+    public String toString() {
+        return "MachineEngineWrapper{" +
+                "original=" + original +
+                '}';
+    }
 }

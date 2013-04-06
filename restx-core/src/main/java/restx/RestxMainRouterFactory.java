@@ -72,7 +72,7 @@ public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
         }
         factory = builder.build();
 
-        logger.debug("restx factory ready: {}", factory);
+        logger.debug("restx factory ready: {}", factory.dumper());
 
         mainRouter = new StdRestxMainRouter(factory.queryByClass(RestxRouting.class).findOne().get().getComponent());
     }

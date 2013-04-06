@@ -25,4 +25,13 @@ public abstract class StdMachineEngine<T> implements MachineEngine<T> {
     public ComponentBox<T> newComponent(SatisfiedBOM satisfiedBOM) {
         return boxFactory.of(new NamedComponent(name, doNewComponent(satisfiedBOM)));
     }
+
+    @Override
+    public String toString() {
+        return "StdMachineEngine{" +
+                "name=" + name +
+                ", boxFactory=" + boxFactory +
+                ", bom=" + getBillOfMaterial() +
+                '}';
+    }
 }

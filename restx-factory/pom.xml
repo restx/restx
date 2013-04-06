@@ -62,6 +62,14 @@
             <version>2.7</version>
         </dependency>
 
+        <!-- classpath scanning; used for debugging / dumping only -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.9-RC1</version>
+        </dependency>
+
+
         <!-- test -->
         <dependency>
             <groupId>junit</groupId>

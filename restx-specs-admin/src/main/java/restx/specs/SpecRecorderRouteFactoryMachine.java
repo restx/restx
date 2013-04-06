@@ -31,6 +31,11 @@ public class SpecRecorderRouteFactoryMachine extends SingleNameFactoryMachine<Sp
                 return BoundlessComponentBox.FACTORY.of(new NamedComponent(NAME,
                         new SpecRecorderRoute(recorder.get().getComponent())));
             }
+
+            @Override
+            public String toString() {
+                return "SpecRecorderRouteFactoryMachineEngine";
+            }
         });
     }
 

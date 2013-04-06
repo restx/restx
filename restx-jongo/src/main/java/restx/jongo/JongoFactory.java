@@ -52,6 +52,11 @@ public class JongoFactory extends SingleNameFactoryMachine<Jongo> {
                     throw new RuntimeException(e);
                 }
             }
+
+            @Override
+            public String toString() {
+                return "JongoFactoryMachineEngine";
+            }
         });
     }
 }
