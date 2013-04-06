@@ -55,6 +55,10 @@ public class SimpleWebServer implements WebServer {
     public void start() throws Exception {
         logger.info("starting web server");
 
+        if (router instanceof RestxMainRouterFactory) {
+            RestxMainRouterFactory mainRouterFactory = (RestxMainRouterFactory) router;
+            mainRouterFactory.init();
+        }
         Container container = new Container() {
             @Override
             public void handle(Request request, Response response) {
@@ -105,7 +109,6 @@ public class SimpleWebServer implements WebServer {
     private static RestxMainRouterFactory buildRestxMainRouterFactory(int port) {
         RestxMainRouterFactory router = new RestxMainRouterFactory();
         router.setContextName(RestxMainRouterFactory.getFactoryContextName(port));
-        router.init();
         return router;
     }
 }
