@@ -42,7 +42,7 @@
         </dependency>
         <dependency>
             <groupId>restx</groupId>
-            <artifactId>restx-server-jetty</artifactId>
+            <artifactId>restx-server-simple</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>

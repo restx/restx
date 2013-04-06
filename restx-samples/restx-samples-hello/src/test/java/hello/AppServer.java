@@ -1,7 +1,7 @@
 package hello;
 
-import restx.server.JettyWebServer;
 import restx.server.WebServer;
+import restx.server.simple.simple.SimpleWebServer;
 
 /**
  * User: xavierhanin
@@ -13,7 +13,7 @@ public class AppServer {
     public static final String WEB_APP_LOCATION = "src/main/webapp";
 
     public static void main(String[] args) throws Exception {
-        WebServer server = new JettyWebServer(WEB_INF_LOCATION, WEB_APP_LOCATION, 8086, "localhost");
+        WebServer server = new SimpleWebServer(WEB_APP_LOCATION, 8086);
         System.setProperty("restx.baseUri", server.baseUrl() + "/api");
         server.startAndAwait();
     }
