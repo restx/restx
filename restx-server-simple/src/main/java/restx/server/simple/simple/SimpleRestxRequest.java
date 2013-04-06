@@ -20,13 +20,19 @@ import java.util.Map;
  * Time: 1:57 PM
  */
 public class SimpleRestxRequest implements RestxRequest {
-    private String apiPath;
-    private Request request;
+    private final String restxPath;
+    private final String apiPath;
+    private final Request request;
     private BufferedInputStream bufferedInputStream;
 
     public SimpleRestxRequest(String apiPath, Request request) {
         this.apiPath = apiPath;
         this.request = request;
+        String path = request.getTarget().substring(apiPath.length());
+        if (path.indexOf("?") != -1) {
+            path = path.substring(0, path.indexOf("?"));
+        }
+        this.restxPath = path;
     }
 
     @Override
@@ -36,7 +42,7 @@ public class SimpleRestxRequest implements RestxRequest {
 
     @Override
     public String getRestxPath() {
-        return request.getPath().getRelative(apiPath + "/");
+        return restxPath;
     }
 
     @Override

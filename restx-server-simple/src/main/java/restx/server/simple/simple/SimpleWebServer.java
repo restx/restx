@@ -63,7 +63,7 @@ public class SimpleWebServer implements WebServer {
             @Override
             public void handle(Request request, Response response) {
                 try {
-                    if (request.getPath().getPath().startsWith(routerPath)) {
+                    if (request.getTarget().startsWith(routerPath)) {
                         router.route(
                                 new SimpleRestxRequest(routerPath, request), new SimpleRestxResponse(response));
                     } else {
