@@ -17,5 +17,6 @@
 
     <modules>
         <module>restx-samples-hello</module>
+        <module>restx-samples-beersample</module>
     </modules>
 </project>
