@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<html lang="en-US" ng-app="admin">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESTX :: Errors</title>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/admin.css"/>
+    <link rel="stylesheet" type="text/css" href="css/app.css"/>
+</head>
+<body>
+    <div id="navbar-main" class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <a class="brand" href="../">RESTX</a>
+        <ul class="nav">
+            <li class="dropdown" ng-controller="AdminController">
+                          <a id="main-menu" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b></a>
+                          <ul class="dropdown-menu" role="menu" aria-labelledby="main-menu">
+                              <li ng-repeat="page in pages" role="presentation"><a role="menuitem" tabindex="-1" href="{{page.path}}">{{page.title}}</a></li>
+                          </ul>
+                      </li>
+            <li class="active"><a href="#">Errors</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="span12">
+                <table ng-controller="ErrorDescriptorsController" class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>HTTP Code</th>
+                        <th>Desciption</th>
+                        <th>Fields</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="descriptor in errors">
+                        <td class="errorCode">{{descriptor.errorCode}}</td>
+                        <td class="errorStatus">{{descriptor.errorStatus}}</td>
+                        <td class="description">{{descriptor.description}}</td>
+                        <td class="fields">
+                            <ul>
+                            <li ng-repeat="field in descriptor.fields">
+                                <span class="key">{{field.field}}</span>
+                                <span class="description">{{field.description}}</span>
+                            </li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular-resource.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+
+  <script src="js/app.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>

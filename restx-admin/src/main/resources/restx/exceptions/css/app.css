@@ -1,0 +1,20 @@
+body {
+    padding-top: 60px;
+}
+#errors {
+    word-break: normal;
+    word-wrap: normal;
+    white-space: pre;
+    overflow: scroll;
+    margin: 10px;
+}
+
+.errorCode, .key {
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+    font-size: 14px;
+}
+
+.key {
+    color: #f7f7f7;
+    background-color: #09d;
+}
