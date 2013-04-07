@@ -16,16 +16,12 @@ import java.util.Collection;
 public class RoutingMachine extends SingleNameFactoryMachine<RestxRouting> {
     public RoutingMachine() {
         super(0, new StdMachineEngine<RestxRouting>(Name.of(RestxRouting.class), BoundlessComponentBox.FACTORY) {
-
-            private Factory.Query<RestxFilter> filters;
-            private Factory.Query<RestxRouter> routers;
-            private Factory.Query<RestxRoute> routes;
+            private final Factory.Query<RestxFilter> filters = Factory.Query.byClass(RestxFilter.class);
+            private final Factory.Query<RestxRouter> routers = Factory.Query.byClass(RestxRouter.class);
+            private final Factory.Query<RestxRoute> routes = Factory.Query.byClass(RestxRoute.class);
 
             @Override
             public BillOfMaterials getBillOfMaterial() {
-                filters = Factory.Query.byClass(RestxFilter.class);
-                routers = Factory.Query.byClass(RestxRouter.class);
-                routes = Factory.Query.byClass(RestxRoute.class);
                 return BillOfMaterials.of(filters, routers, routes);
             }
 
