@@ -14,7 +14,7 @@ public class ErrorDescriptorsRouteMachine extends SingleNameFactoryMachine<Error
 
     public ErrorDescriptorsRouteMachine() {
         super(0, new StdMachineEngine<ErrorDescriptorsRoute>(
-                Name.of(ErrorDescriptorsRoute.class, "SpecRecorderRoute"), BoundlessComponentBox.FACTORY) {
+                Name.of(ErrorDescriptorsRoute.class, "ErrorDescriptorsRoute"), BoundlessComponentBox.FACTORY) {
             @Override
             protected ErrorDescriptorsRoute doNewComponent(SatisfiedBOM satisfiedBOM) {
                 return new ErrorDescriptorsRoute(satisfiedBOM.getAsComponents(ERROR_DESCRIPTOR_QUERY));
