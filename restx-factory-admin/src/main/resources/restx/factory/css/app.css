@@ -1,0 +1,10 @@
+body {
+    padding-top: 60px;
+}
+#factory {
+    word-break: normal;
+    word-wrap: normal;
+    white-space: pre;
+    overflow: scroll;
+    margin: 10px;
+}

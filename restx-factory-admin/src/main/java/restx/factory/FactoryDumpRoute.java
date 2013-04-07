@@ -17,7 +17,7 @@ public class FactoryDumpRoute extends StdRoute {
 
     @Override
     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        resp.setContentType("text/html");
-        resp.getWriter().println("<pre>" + factory.dump() + "</pre>");
+        resp.setContentType("text/plain");
+        resp.getWriter().println(factory.dump());
     }
 }
