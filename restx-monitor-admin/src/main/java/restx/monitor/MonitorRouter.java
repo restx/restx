@@ -17,8 +17,8 @@ import java.io.IOException;
 public class MonitorRouter extends RestxRouter {
     public MonitorRouter() {
         super("MonitorRouter",
-                new ResourcesRoute("MonitorUIRoute", "/@/monitor-ui",
-                    MonitorRouter.class.getPackage().getName(), ImmutableMap.of("", "monitor.html")),
+                new ResourcesRoute("MonitorUIRoute", "/@/ui/monitor",
+                    MonitorRouter.class.getPackage().getName(), ImmutableMap.of("", "index.html")),
 
                 new StdRoute("MonitorRoute", new StdRouteMatcher("GET", "/@/monitor")) {
                     @Override
