@@ -8,3 +8,8 @@ body {
     overflow: scroll;
     margin: 10px;
 }
+#warehouse .graph {
+    width: 700px;
+    height: 700px;
+    background: #f7f7f7;
+}

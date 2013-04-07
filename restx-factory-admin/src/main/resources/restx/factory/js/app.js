@@ -1,9 +1,13 @@
 angular.module('admin', ['ngResource']);
 
-
-
-$(function () {
-    $.get('../../factory', function(data) {
-        $('#factory').text(data);
-    });
-})
+angular.module('admin').config(function($routeProvider) {
+  $routeProvider.
+      when('/', {
+        controller: 'FactoryController',
+        templateUrl: 'views/factory.html'
+      }).
+      when('/warehouse', {
+        controller: 'WarehouseController',
+        templateUrl: 'views/warehouse.html'
+      });
+});

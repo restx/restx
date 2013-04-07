@@ -1,8 +1,6 @@
 package restx.factory;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
 import restx.annotations.RestxResource;
@@ -10,9 +8,8 @@ import restx.converters.StringConverter;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
-
-import static restx.common.Mustaches.compile;
 
 @Component
 public class WarehouseRoute extends StdRoute {
@@ -30,22 +27,27 @@ public class WarehouseRoute extends StdRoute {
 
     @Override
     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        resp.setContentType("text/html");
+        resp.setContentType("application/json");
 
         List<String> nodesCode = Lists.newArrayList();
         List<String> linksCode = Lists.newArrayList();
         for (Name<?> name : warehouse.listNames()) {
-            nodesCode.add(String.format("graph.addNode('%s', { name: '%s', type: '%s' });", name.asId(), name.getSimpleName(), getType(name)));
+            nodesCode.add(String.format("{ \"id\": \"%s\", \"name\": \"%s\", \"type\": \"%s\" }", name.asId(), name.getSimpleName(), getType(name)));
             Iterable<Name<?>> deps = warehouse.listDependencies(name);
             for (Name<?> dep : deps) {
-                linksCode.add(String.format("graph.addLink('%s', '%s');", name.asId(), dep.asId()));
+                linksCode.add(String.format("{ \"origin\": \"%s\", \"target\": \"%s\" }", name.asId(), dep.asId()));
             }
         }
 
-        Mustache tpl = compile(WarehouseRoute.class, "factory.mustache");
-        tpl.execute(resp.getWriter(), ImmutableMap.of(
-                "nodes", Joiner.on("\n").join(nodesCode),
-                "links", Joiner.on("\n").join(linksCode)));
+        PrintWriter writer = resp.getWriter();
+        writer.println("{");
+        writer.println("\"nodes\": [");
+        Joiner.on(",\n").appendTo(writer, nodesCode);
+        writer.println("\n],");
+        writer.println("\"links\": [");
+        Joiner.on(",\n").appendTo(writer, linksCode);
+        writer.println("\n]");
+        writer.println("}");
     }
 
     private String getType(Name<?> name) {
