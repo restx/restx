@@ -1,6 +1,5 @@
 package restx.specs;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -13,8 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static restx.common.Mustaches.compile;
-
 /**
  * User: xavierhanin
  * Date: 3/18/13
@@ -23,27 +20,25 @@ import static restx.common.Mustaches.compile;
 public class SpecRecorderRoute extends RestxRouter {
     public SpecRecorderRoute(final RestxSpecRecorder specRecorder) {
         super("SpecRecorderRouter",
-                new StdRoute("RecorderRoute", new StdRouteMatcher("GET", "/@/recorder")) {
+                new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs", ImmutableMap.of("", "index.html")),
+                new StdRoute("RecorderRoute", new StdRouteMatcher("GET", "/@/recorders")) {
                     @Override
                     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        Mustache tpl = compile(SpecRecorderRoute.class, "recorder.mustache");
-                        resp.setContentType("text/html");
-
+                        resp.setContentType("application/json");
                         List<String> data = Lists.newArrayList();
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
-                            data.add(String.format("{ id: \"%03d\", method: \"%s\", path: \"%s\", recordTime: \"%s\", duration: %d, " +
-                                    "capturedItems: %d, capturedRequestSize: %d, capturedResponseSize: %d }",
+                            data.add(String.format("{ \"id\": \"%03d\", \"method\": \"%s\", \"path\": \"%s\", \"recordTime\": \"%s\", \"duration\": %d, " +
+                                    "\"capturedItems\": %d, \"capturedRequestSize\": %d, \"capturedResponseSize\": %d }",
                                     spec.getId(), spec.getMethod(), spec.getPath(), spec.getRecordTime(), spec.getDuration().getMillis(),
                                     spec.getCapturedItems(), spec.getCapturedRequestSize(), spec.getCapturedResponseSize()));
                         }
-
-                        tpl.execute(resp.getWriter(), ImmutableMap.of(
-                                "baseUrl", req.getBaseUri(),
-                                "data", Joiner.on(",\n").join(data)));
+                        resp.getWriter().print("[\n");
+                        Joiner.on(",\n").appendTo(resp.getWriter(), data);
+                        resp.getWriter().print("\n]");
                     }
                 },
 
-                new StdRoute("RecorderRecord", new StdRouteMatcher("GET", "/@/recorder/{id}")) {
+                new StdRoute("RecorderRecord", new StdRouteMatcher("GET", "/@/recorders/{id}")) {
                     @Override
                     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         int id = Integer.parseInt(match.getPathParams().get("id"));
@@ -59,7 +54,7 @@ public class SpecRecorderRoute extends RestxRouter {
                     }
                 },
 
-                new StdRoute("RecorderRecordStorage", new StdRouteMatcher("POST", "/@/recorder/storage/{id}")) {
+                new StdRoute("RecorderRecordStorage", new StdRouteMatcher("POST", "/@/recorders/storage/{id}")) {
                     @Override
                     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         int id = Integer.parseInt(match.getPathParams().get("id"));

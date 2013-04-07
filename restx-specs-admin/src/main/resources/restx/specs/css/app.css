@@ -1,0 +1,41 @@
+body {
+    padding-top: 60px;
+}
+
+#myGrid {
+    width:960px;
+    height:400px;
+    margin-left: auto;
+    margin-right: auto;
+    background: white;
+    outline: 0;
+    border: 1px solid gray;
+}
+#header {
+    width:960px; margin-bottom: 5px; margin-left: auto; margin-right: auto;
+}
+#spec-commands {
+    width:960px; margin-left: auto; margin-right: auto;
+    position: relative;
+    top: 40px;
+    margin-top: -20px;
+    padding-right: 60px;
+}
+
+.slick-row.active {
+    background-color: #0aaaf1;
+    color: white;
+}
+
+#spec {
+    width:900px;height:400px; margin-left: auto; margin-right: auto; overflow: auto;
+}
+
+#saveToFolder {
+    margin-right: 10px;
+}
+
+.slick-header-columns {
+    background: #333333;
+    color: #e1e1e1;
+}
