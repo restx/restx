@@ -111,6 +111,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
             ComponentClass componentClass = new ComponentClass(
                     component.getQualifiedName().toString(),
                     getInjectionName(component.getAnnotation(Named.class)),
+                    component.getAnnotation(Component.class).priority(),
                     component);
 
             buildInjectableParams(exec, componentClass.parameters);
@@ -184,6 +185,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("machine", componentClass.name + "FactoryMachine")
                 .put("componentFqcn", componentClass.fqcn)
                 .put("componentType", componentClass.name)
+                .put("priority", String.valueOf(componentClass.priority))
                 .put("componentInjectionName", componentClass.injectionName.isPresent() ?
                         componentClass.injectionName.get() : componentClass.name)
                 .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(componentClass.parameters)))
@@ -236,11 +238,13 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         final Element originatingElement;
         final String pack;
         final String name;
+        final int priority;
         final Optional<String> injectionName;
 
-        ComponentClass(String fqcn, Optional<String> injectionName, Element originatingElement) {
+        ComponentClass(String fqcn, Optional<String> injectionName, int priority, Element originatingElement) {
             this.fqcn = fqcn;
             this.injectionName = injectionName;
+            this.priority = priority;
             this.pack = fqcn.substring(0, fqcn.lastIndexOf('.'));
             this.name = fqcn.substring(fqcn.lastIndexOf('.') + 1);
             this.originatingElement = originatingElement;

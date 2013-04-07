@@ -9,7 +9,7 @@ public class {{machine}} extends SingleNameFactoryMachine<{{componentType}}> {
     public static final Name<{{componentType}}> NAME = Name.of({{componentType}}.class, "{{componentInjectionName}}");
 
     public {{machine}}() {
-        super(0, new StdMachineEngine(NAME, BoundlessComponentBox.FACTORY) {
+        super({{priority}}, new StdMachineEngine(NAME, BoundlessComponentBox.FACTORY) {
 {{{queriesDeclarations}}}
 
             @Override

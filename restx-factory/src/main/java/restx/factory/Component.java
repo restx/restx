@@ -6,4 +6,5 @@ package restx.factory;
  * Time: 5:38 PM
  */
 public @interface Component {
+    int priority() default 0;
 }
