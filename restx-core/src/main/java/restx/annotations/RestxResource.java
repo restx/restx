@@ -6,5 +6,5 @@ package restx.annotations;
  * Time: 10:48 PM
  */
 public @interface RestxResource {
-    String group();
+    String group() default "default";
 }
