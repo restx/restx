@@ -1,0 +1,8 @@
+body {
+    padding-top: 40px;
+}
+
+#navbar-main > .navbar-inner {
+    padding-left: 20px;
+    padding-right: 20px;
+}

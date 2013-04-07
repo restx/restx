@@ -3,44 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RESTX :: API DOCS</title>
-    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/docs.css"/>
+    <title>RESTX :: Admin Console</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/admin.css">
 </head>
-<body data-spy="scroll" data-target=".bs-docs-sidebar">
+<body data-spy="scroll" data-target=".bs-docs-sidebar" ng-controller="AdminController">
     <div id="navbar-main" class="navbar navbar-fixed-top">
       <div class="navbar-inner">
-        <a class="brand" href="../">RESTX</a>
+        <a class="brand" href="#">RESTX</a>
         <ul class="nav">
-            <li class="dropdown" ng-controller="AdminController">
+            <li class="dropdown">
                           <a id="main-menu" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b></a>
                           <ul class="dropdown-menu" role="menu" aria-labelledby="main-menu">
                               <li ng-repeat="page in pages" role="presentation"><a role="menuitem" tabindex="-1" href="{{page.path}}">{{page.title}}</a></li>
                           </ul>
                       </li>
-            <li class="active"><a href="#">API DOCS</a></li>
+            <li class="active"><a href="#">Admin Console</a></li>
         </ul>
-          <form class="navbar-search pull-right">
-            <input type="text" class="search-query" placeholder="Search" ng-model="searchQuery" ng-change="$broadcast('search')">
-          </form>
       </div>
     </div>
 
-    <ng-view>
-
-    </ng-view>
+    <div class="container">
+        <div class="row">
+            <div class="span8">
+                <h1>Welcome to RESTX admin console</h1>
+                <p>RESTX is an open source, lightweight and robust REST framework.</p>
+                <p>Choose the admin page you want in the header menu or on the menu on the right.</p>
+            </div>
+            <div class="span1"></div>
+            <div class="span3">
+                <ul class="nav nav-list">
+                    <li ng-repeat="page in pages"><a href="{{page.path}}">
+                        <i class="icon-chevron-right"></i> {{page.title}}</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular-resource.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
-    <script src="lib/jquery.scrollto.js"></script>
 
-    <script src="js/app.js"></script>
-    <script src="../js/admin.js"></script>
-    <script src="js/services/Api.js"></script>
-    <script src="js/controllers/ApisController.js"></script>
-    <script src="js/controllers/OperationController.js"></script>
+    <script type="text/javascript">angular.module('admin', ['ngResource'])</script>
+    <script src="js/admin.js"></script>
 </body>
 </html>

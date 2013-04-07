@@ -11,17 +11,16 @@
     </parent>
 
     <groupId>restx</groupId>
-    <artifactId>restx-apidocs</artifactId>
+    <artifactId>restx-admin</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>restx-apidocs</name>
+    <name>restx-admin</name>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <slf4j-api.version>1.7.2</slf4j-api.version>
-        <logback-classic.version>1.0.9</logback-classic.version>
     </properties>
 
     <dependencies>
@@ -39,16 +38,6 @@
             <groupId>restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
             <version>0.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>restx</groupId>
-            <artifactId>restx-admin</artifactId>
-            <version>0.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.9-RC1</version>
         </dependency>
     </dependencies>
     <build>

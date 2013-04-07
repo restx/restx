@@ -20,6 +20,7 @@
         <module>restx-factory</module>
         <module>restx-core</module>
         <module>restx-core-annotation-processor</module>
+        <module>restx-admin</module>
         <module>restx-apidocs</module>
         <module>restx-factory-admin</module>
         <module>restx-specs-tests</module>
