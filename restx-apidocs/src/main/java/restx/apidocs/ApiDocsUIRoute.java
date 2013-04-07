@@ -7,6 +7,6 @@ import restx.factory.Component;
 @Component
 public class ApiDocsUIRoute extends ResourcesRoute {
     public ApiDocsUIRoute() {
-        super("ApiDocsUIRoute", "/@/api-docs-ui", "restx/apidocs", ImmutableMap.of("", "index.html"));
+        super("ApiDocsUIRoute", "/@/ui/api-docs", "restx/apidocs", ImmutableMap.of("", "index.html"));
     }
 }

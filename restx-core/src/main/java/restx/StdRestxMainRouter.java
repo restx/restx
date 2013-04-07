@@ -96,7 +96,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                         .append("no restx route found for ")
                         .append(restxRequest.getHttpMethod()).append(" ").append(path).append("\n");
                 if (hasApiDocs()) {
-                    sb.append("go to ").append(restxRequest.getBaseUri()).append("/@/api-docs-ui/")
+                    sb.append("go to ").append(restxRequest.getBaseUri()).append("/@/ui/api-docs/")
                             .append(" for API documentation\n\n");
                 }
                 sb.append("routes:\n")
@@ -201,7 +201,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         for (RestxRoute route : routing.getRoutes()) {
             // maybe we should find a more pluggable way to detect this feature..
             // we don't use the class itself, we don't want to have a strong dependency on swagger route
-            if (route.getClass().getName().endsWith("SwaggerUIRoute")) {
+            if (route.getClass().getName().endsWith("ApiDocsUIRoute")) {
                 return true;
             }
         }

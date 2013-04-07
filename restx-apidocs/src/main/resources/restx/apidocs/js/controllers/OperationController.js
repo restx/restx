@@ -73,10 +73,10 @@ adminApp.controller('OperationController', function OperationController($scope, 
         $scope.operation = _.find($scope.opApi.operations, findOpByHttpMethod) || {};
 
         $scope.specs = [];
-        $http.get('../specs', {params: {httpMethod: $routeParams.httpMethod, path: path}}).
+        $http.get('../../specs', {params: {httpMethod: $routeParams.httpMethod, path: path}}).
               success(function(data) {
                   data.forEach(function(spec) {
-                      $http.get('../specs/' + encodeURIComponent(spec)).
+                      $http.get('../../specs/' + encodeURIComponent(spec)).
                           success(function(data) {
                               spec = { title: data.title, requests: [] };
                               data.whens.forEach(function(when) {
