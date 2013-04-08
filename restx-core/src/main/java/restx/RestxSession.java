@@ -77,7 +77,11 @@ public class RestxSession {
     private static final ThreadLocal<RestxSession> current = new ThreadLocal<>();
 
     static void setCurrent(RestxSession ctx) {
-        current.set(ctx);
+        if (ctx == null) {
+            current.remove();
+        } else {
+            current.set(ctx);
+        }
     }
 
     public static RestxSession current() {
