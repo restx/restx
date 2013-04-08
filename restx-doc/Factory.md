@@ -87,6 +87,35 @@ Optional<NamedComponent<MyComponent>> component =
             factory.queryByName(Name.of(MyComponent.class, "MyComponent")).findOne();
 ```
 
+### Defining a component customizer
+
+To customize components produced in the factory before they are stored in the warehouse and returned to queries, you just need to provide a component implementing `ComponentCustomizerEngine` or subclassing/using one of its implementation classes.
+
+Here is an example:
+```java
+@Component
+public class FrontObjectMapperCustomizer extends SingleComponentNameCustomizerEngine<ObjectMapper> {
+    public FrontObjectMapperCustomizer() {
+        super(0, FrontObjectMapperFactory.NAME);
+    }
+
+    @Override
+    public NamedComponent<ObjectMapper> customize(NamedComponent<ObjectMapper> namedComponent) {
+        namedComponent.getComponent().setPropertyNamingStrategy(PASCAL_CASE_TO_CAMEL_CASE);
+        return namedComponent;
+    }
+}
+```
+
+### Overriding a component produced by another machine
+
+Overriding other machines is easy: all you need to is define your component with the same `restx.factory.Name`, in a machine with more priority.
+
+Machines being ordered by order of priority in ascending order, lower priorities override higher priorities.
+The priority by default is 0, so usually you override with a negative priority.
+
+Beware that a `Name` is composed of the name as a string, and a class. So to override a component you need to produce it as a NamedComponent with the exact same `Name`.
+
 ### Declaring a machine using `@Machine` (Advanced)
 
 You can declare a whole machine using the `@Machine` annotation. You shouldn't use it too often since it's more complex than other options, but it opens a lot of possibilities:
