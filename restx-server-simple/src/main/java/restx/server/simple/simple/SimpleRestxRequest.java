@@ -71,6 +71,11 @@ public class SimpleRestxRequest implements RestxRequest {
     }
 
     @Override
+    public String getContentType() {
+        return request.getContentType().getType();
+    }
+
+    @Override
     public Map<String, String> getCookiesMap() {
         Map<String, String> cookies = Maps.newLinkedHashMap();
         for (Cookie cookie : request.getCookies()) {

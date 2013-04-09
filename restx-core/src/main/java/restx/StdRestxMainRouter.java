@@ -135,27 +135,38 @@ public class StdRestxMainRouter implements RestxMainRouter {
                     restxRequest.getContentStream().reset();
                     out.println(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, ex.getClass().getSimpleName()) + "." +
                             " Please verify your input:");
-                    out.println("<-- JSON -->");
                     List<String> lines = CharStreams.readLines(
                             new InputStreamReader(restxRequest.getContentStream()));
-                    for (int i = 0; i < lines.size(); i++) {
-                        String line = lines.get(i);
-                        out.println(line);
-                        if (i + 1 == location.getLineNr()) {
-                            boolean farColumn = location.getColumnNr() > 80;
-                            /*
-                             * if error column is too far, we precede the error message with >> to show
-                             * that there is an error message on the line
-                             */
-                            out.println(
-                                    Strings.repeat(" ", Math.max(0, location.getColumnNr() - 2)) + "^");
-                            out.println(Strings.repeat(farColumn ? ">" : " ", Math.max(0, location.getColumnNr()
-                                    - (ex.getOriginalMessage().length() / 2) - 3))
-                                    + ">> " + ex.getOriginalMessage() + " <<");
-                            out.println();
+
+                    if (lines.isEmpty()) {
+                        if ("application/x-www-form-urlencoded".equalsIgnoreCase(restxRequest.getContentType())) {
+                            out.println("Body was considered as parameter due to Content-Type: " +
+                                    restxRequest.getContentType() + ". " +
+                                    "Setting your Content-Type to \"application/json\" may resolve the problem");
+                        } else {
+                            out.println("Empty body. Content-type was \"" + restxRequest.getContentType() + "\"");
                         }
+                    } else {
+                        out.println("<-- JSON -->");
+                        for (int i = 0; i < lines.size(); i++) {
+                            String line = lines.get(i);
+                            out.println(line);
+                            if (i + 1 == location.getLineNr()) {
+                                boolean farColumn = location.getColumnNr() > 80;
+                                /*
+                                 * if error column is too far, we precede the error message with >> to show
+                                 * that there is an error message on the line
+                                 */
+                                out.println(
+                                        Strings.repeat(" ", Math.max(0, location.getColumnNr() - 2)) + "^");
+                                out.println(Strings.repeat(farColumn ? ">" : " ", Math.max(0, location.getColumnNr()
+                                        - (ex.getOriginalMessage().length() / 2) - 3))
+                                        + ">> " + ex.getOriginalMessage() + " <<");
+                                out.println();
+                            }
+                        }
+                        out.println("</- JSON -->");
                     }
-                    out.println("</- JSON -->");
 
                     restxRequest.getContentStream().reset();
                     logger.debug(ex.getClass().getSimpleName() + " on " + restxRequest + "." +

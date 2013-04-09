@@ -139,6 +139,11 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     @Override
+    public String getContentType() {
+        return request.getContentType();
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[RESTX REQUEST] ");
         sb.append(getHttpMethod()).append(" ").append(getRestxPath());

@@ -172,6 +172,7 @@ public class RestxSpec {
             }
 
             if (!Strings.isNullOrEmpty(getBody())) {
+                httpRequest.contentType("application/json");
                 httpRequest.send(getBody());
                 System.out.println(getBody());
             }

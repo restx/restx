@@ -55,6 +55,11 @@ public class RestxRequestWrapper implements RestxRequest {
     }
 
     @Override
+    public String getContentType() {
+        return original.getContentType();
+    }
+
+    @Override
     public Map<String, String> getCookiesMap() {
         return original.getCookiesMap();
     }

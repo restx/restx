@@ -48,6 +48,7 @@ public interface RestxRequest {
     Optional<String> getQueryParam(String param);
     List<String> getQueryParams(String param);
     Optional<String> getHeader(String headerName);
+    String getContentType();
 
     String getCookieValue(String cookie, String defaultValue);
     boolean isPersistentCookie(String cookie);

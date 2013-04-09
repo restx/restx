@@ -90,6 +90,11 @@ public class StdRequest implements RestxRequest {
     }
 
     @Override
+    public String getContentType() {
+        return headers.get("Content-type");
+    }
+
+    @Override
     public String getCookieValue(String cookie, String defaultValue) {
         return Optional.fromNullable(cookiesMap.get(cookie)).or(defaultValue);
     }
