@@ -17,7 +17,7 @@ import java.util.Set;
 public class RestxShell {
     public static void main(String[] args) throws Exception {
         ConsoleReader consoleReader = new ConsoleReader();
-        consoleReader.setPrompt("rx> ");
+        consoleReader.setPrompt("restx> ");
         consoleReader.setHistoryEnabled(true);
         consoleReader.println("===============================================================================");
         consoleReader.println("== WELCOME TO RESTX SHELL - type `help` for help on available commands");
@@ -41,9 +41,9 @@ public class RestxShell {
             String line = consoleReader.readLine();
             boolean found = false;
             for (ShellCommand command : commands) {
-                Optional<ShellCommandMatch> match = command.match(consoleReader, line);
+                Optional<? extends ShellCommandRunner> match = command.match(line);
                 if (match.isPresent()) {
-                    exit = command.run(consoleReader, match.get());
+                    exit = match.get().run(consoleReader);
                     found = true;
                     break;
                 }
@@ -56,4 +56,5 @@ public class RestxShell {
         consoleReader.println("Bye.");
         consoleReader.shutdown();
     }
+
 }

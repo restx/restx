@@ -1,5 +1,6 @@
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${restx.shell.home}/restx-shell.log</file>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%-17thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
@@ -10,7 +11,7 @@
     <logger name="org.hibernate.validator.internal.engine.ConfigurationImpl" level="WARN" />
     <logger name="restx.factory.Factory" level="WARN" />
 
-    <root level="info">
-        <appender-ref ref="STDOUT"/>
+    <root level="warn">
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>

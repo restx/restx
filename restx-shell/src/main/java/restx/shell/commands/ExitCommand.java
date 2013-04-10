@@ -1,10 +1,13 @@
 package restx.shell.commands;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import jline.console.ConsoleReader;
 import restx.factory.Component;
-import restx.shell.ShellCommandMatch;
+import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
+
+import java.io.IOException;
 
 /**
  * User: xavierhanin
@@ -18,7 +21,12 @@ public class ExitCommand extends StdShellCommand {
     }
 
     @Override
-    public boolean run(ConsoleReader reader, ShellCommandMatch match) {
-        return true;
+    protected Optional<? extends ShellCommandRunner> doMatch(String line) {
+        return Optional.of(new ShellCommandRunner() {
+            @Override
+            public boolean run(ConsoleReader reader) throws IOException {
+                return true;
+            }
+        });
     }
 }

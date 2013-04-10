@@ -3,13 +3,17 @@ package restx.shell;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * User: xavierhanin
@@ -30,10 +34,10 @@ public abstract class StdShellCommand implements ShellCommand {
     }
 
     @Override
-    public Optional<ShellCommandMatch> match(ConsoleReader reader, String line) {
+    public Optional<? extends ShellCommandRunner> match(String line) {
         for (String alias : aliases) {
             if (matchCommand(line, alias)) {
-                return Optional.of(newMatch(reader, line));
+                return doMatch(line);
             }
         }
 
@@ -44,9 +48,7 @@ public abstract class StdShellCommand implements ShellCommand {
         return line.equals(commandName) || line.startsWith(commandName + " ");
     }
 
-    protected ShellCommandMatch newMatch(ConsoleReader reader, String line) {
-        return new StdShellCommandMatch(line);
-    }
+    protected abstract Optional<? extends ShellCommandRunner> doMatch(String line);
 
     @Override
     public void help(ConsoleReader reader) throws IOException {
@@ -82,6 +84,36 @@ public abstract class StdShellCommand implements ShellCommand {
 
     protected void printIn(ConsoleReader reader, String msg, String ansiCode) throws IOException {
         reader.print(ansiCode + msg + AnsiCodes.ANSI_RESET);
+    }
+
+    protected List<String> splitArgs(String line) {
+        return ImmutableList.copyOf(Splitter.on(" ").omitEmptyStrings().split(line));
+    }
+
+    protected <T> T openSubSession(ConsoleReader consoleReader,
+                                   String prompt, ImmutableList<StringsCompleter> completers, Callable<T> callable) throws Exception {
+        String storedPrompt = consoleReader.getPrompt();
+        consoleReader.setPrompt(prompt);
+        // store completers and set ours
+        Collection<Completer> storedCompleters = ImmutableList.copyOf(consoleReader.getCompleters());
+        for (Completer completer : storedCompleters) {
+            consoleReader.removeCompleter(completer);
+        }
+        for (StringsCompleter completer : completers) {
+            consoleReader.addCompleter(completer);
+        }
+
+        try {
+            return callable.call();
+        } finally {
+            for (Completer completer : ImmutableList.copyOf(consoleReader.getCompleters())) {
+                consoleReader.removeCompleter(completer);
+            }
+            for (Completer completer : storedCompleters) {
+                consoleReader.addCompleter(completer);
+            }
+            consoleReader.setPrompt(storedPrompt);
+        }
     }
 
     public static class AnsiCodes {

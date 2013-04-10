@@ -13,8 +13,7 @@ import java.io.IOException;
  * Time: 10:06 PM
  */
 public interface ShellCommand {
-    Optional<ShellCommandMatch> match(ConsoleReader reader, String line);
-    boolean run(ConsoleReader reader, ShellCommandMatch match) throws IOException;
+    Optional<? extends ShellCommandRunner> match(String line);
     void help(ConsoleReader reader) throws IOException;
     void man(ConsoleReader reader) throws IOException;
     Iterable<Completer> getCompleters();
