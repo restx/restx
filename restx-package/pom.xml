@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>fr.4sh.pom-parents</groupId>
+        <artifactId>4sh-uberpom</artifactId>
+        <version>0.8</version>
+    </parent>
+
+    <groupId>restx</groupId>
+    <artifactId>restx-package</artifactId>
+    <version>0.2-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-shell</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+         <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-core</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-core-annotation-processor</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-specs-server</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+     </dependencies>
+
+    <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.7</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+	      <outputDirectory>${project.build.directory}/dist/lib</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
