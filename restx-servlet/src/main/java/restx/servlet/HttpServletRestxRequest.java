@@ -2,6 +2,8 @@ package restx.servlet;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import restx.RestxRequest;
@@ -22,6 +24,7 @@ import java.util.Map;
 public class HttpServletRestxRequest implements RestxRequest {
     private final HttpServletRequest request;
     private BufferedInputStream bufferedInputStream;
+    private ImmutableMap<String, ImmutableList<String>> queryParams;
 
     public HttpServletRestxRequest(HttpServletRequest request) {
         this.request = request;
@@ -56,6 +59,19 @@ public class HttpServletRestxRequest implements RestxRequest {
     @Override
     public List<String> getQueryParams(String param) {
         return Lists.newArrayList(request.getParameterValues(param));
+    }
+
+    @Override
+    public ImmutableMap<String, ImmutableList<String>> getQueryParams() {
+        if (queryParams == null) {
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            ImmutableMap.Builder<String, ImmutableList<String>> paramsBuilder = ImmutableMap.builder();
+            for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+                paramsBuilder.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
+            }
+            queryParams = paramsBuilder.build();
+        }
+        return queryParams;
     }
 
     @Override

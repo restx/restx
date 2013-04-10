@@ -11,17 +11,14 @@
     </parent>
 
     <groupId>restx</groupId>
-    <artifactId>restx-apidocs</artifactId>
+    <artifactId>restx-specs-server</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
-    <name>restx-apidocs</name>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <slf4j-api.version>1.7.2</slf4j-api.version>
-        <logback-classic.version>1.0.9</logback-classic.version>
     </properties>
 
     <dependencies>
@@ -37,13 +34,13 @@
         </dependency>
         <dependency>
             <groupId>restx</groupId>
-            <artifactId>restx-core-annotation-processor</artifactId>
+            <artifactId>restx-server-simple</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
-            <artifactId>restx-admin</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.9</version>
         </dependency>
     </dependencies>
     <build>

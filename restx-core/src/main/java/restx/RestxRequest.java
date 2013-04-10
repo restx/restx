@@ -1,6 +1,8 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +49,8 @@ public interface RestxRequest {
 
     Optional<String> getQueryParam(String param);
     List<String> getQueryParams(String param);
+    ImmutableMap<String, ImmutableList<String>> getQueryParams();
+
     Optional<String> getHeader(String headerName);
     String getContentType();
 

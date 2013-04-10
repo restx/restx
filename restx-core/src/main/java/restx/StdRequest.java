@@ -1,12 +1,15 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,13 +30,13 @@ public class StdRequest implements RestxRequest {
     private final String restxPath;
     private final String httpMethod;
     private final ImmutableMap<String, String> headers;
-    private final ImmutableMap<String, List<String>> queryParams;
+    private final ImmutableMap<String, ImmutableList<String>> queryParams;
     private final ImmutableMap<String, String> cookiesMap;
     private final Supplier<InputStream> inputStreamSupplier;
     private InputStream inputStream;
 
     private StdRequest(String baseUri, String restxPath, String httpMethod,
-                      ImmutableMap<String, String> headers, ImmutableMap<String, List<String>> queryParams,
+                      ImmutableMap<String, String> headers, ImmutableMap<String, ImmutableList<String>> queryParams,
                       ImmutableMap<String, String> cookiesMap, Supplier<InputStream> inputStreamSupplier) {
         this.baseUri = checkNotNull(baseUri, "baseUri is required");
         this.restxPath = checkNotNull(restxPath, "restxPath is required");
@@ -60,7 +63,7 @@ public class StdRequest implements RestxRequest {
             return restxPath;
         }
         StringBuilder sb = new StringBuilder(restxPath).append("?");
-        for (Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
+        for (Map.Entry<String, ImmutableList<String>> entry : queryParams.entrySet()) {
             for (String val : entry.getValue()) {
                 sb.append(entry.getKey()).append("=").append(val).append("&");
             }
@@ -80,8 +83,12 @@ public class StdRequest implements RestxRequest {
     }
 
     @Override
-    public List<String> getQueryParams(String param) {
-        return Optional.fromNullable(queryParams.get(param)).or(Collections.<String>emptyList());
+    public ImmutableList<String> getQueryParams(String param) {
+        return Optional.fromNullable(queryParams.get(param)).or(ImmutableList.<String>of());
+    }
+
+    public ImmutableMap<String, ImmutableList<String>> getQueryParams() {
+        return queryParams;
     }
 
     @Override
@@ -130,7 +137,7 @@ public class StdRequest implements RestxRequest {
         private String restxPath;
         private String httpMethod = "GET";
         private ImmutableMap<String, String> headers = ImmutableMap.of();
-        private ImmutableMap<String, List<String>> queryParams = ImmutableMap.of();
+        private ImmutableMap<String, ImmutableList<String>> queryParams = ImmutableMap.of();
         private ImmutableMap<String, String> cookiesMap = ImmutableMap.of();
         private Supplier<InputStream> inputStreamSupplier = new Supplier<InputStream>() {
             @Override
@@ -138,6 +145,50 @@ public class StdRequest implements RestxRequest {
                 throw new UnsupportedOperationException();
             }
         };
+
+        /**
+         * Sets a full restx path for the request, properly handling the query string.
+         *
+         * So calling <code>setFullPath("/message?who=xavier")</code> is equivalent to
+         * <code>setRestxPath("/message").setQueryParams(ImmutableMap.of("who", "xavier"))</code>.
+         *
+         * @param fullPath the full path.
+         * @return the current builder.
+         */
+        public StdRequestBuilder setFullPath(String fullPath) {
+            int queryStringIndex = fullPath.indexOf('?');
+            if (queryStringIndex == -1) {
+                restxPath = fullPath;
+                return this;
+            }
+
+            restxPath = fullPath.substring(0, queryStringIndex);
+
+            Map<String, List<String>> params = Maps.newLinkedHashMap();
+            for (String queryParam : Splitter.on("&").split(fullPath.substring(queryStringIndex + 1))) {
+                String param = queryParam;
+                String val = "";
+                int eqIndex = queryParam.indexOf('=');
+                if (eqIndex != -1) {
+                    param = queryParam.substring(0, eqIndex);
+                    val = queryParam.substring(eqIndex + 1);
+                }
+
+                List<String> paramValues = params.get(param);
+                if (paramValues == null) {
+                    params.put(param, paramValues = Lists.<String>newArrayList());
+                }
+                paramValues.add(val);
+            }
+
+            ImmutableMap.Builder<String, ImmutableList<String>> paramsBuilder = ImmutableMap.builder();
+            for (Map.Entry<String, List<String>> entry : params.entrySet()) {
+                paramsBuilder.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
+            }
+            queryParams = paramsBuilder.build();
+
+            return this;
+        }
 
         public StdRequestBuilder setBaseUri(String baseUri) {
             this.baseUri = baseUri;
@@ -159,7 +210,7 @@ public class StdRequest implements RestxRequest {
             return this;
         }
 
-        public StdRequestBuilder setQueryParams(ImmutableMap<String, List<String>> queryParams) {
+        public StdRequestBuilder setQueryParams(ImmutableMap<String, ImmutableList<String>> queryParams) {
             this.queryParams = queryParams;
             return this;
         }

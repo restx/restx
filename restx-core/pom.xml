@@ -93,6 +93,13 @@
             <version>5.0.0.Alpha2</version>
         </dependency>
 
+        <!-- classpath scanning; used for specs discovery only -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.9-RC1</version>
+        </dependency>
+
         <!-- test -->
         <!-- following dependencies are not in test scope because RestxSpec is not in test sources
              to be able to be used for documentation. once we clean uprestx in separate modules and clean

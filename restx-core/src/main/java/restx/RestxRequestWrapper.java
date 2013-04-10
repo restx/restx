@@ -1,6 +1,8 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +49,11 @@ public class RestxRequestWrapper implements RestxRequest {
     @Override
     public List<String> getQueryParams(String param) {
         return original.getQueryParams(param);
+    }
+
+    @Override
+    public ImmutableMap<String, ImmutableList<String>> getQueryParams() {
+        return original.getQueryParams();
     }
 
     @Override

@@ -2,9 +2,12 @@ package restx.server.simple.simple;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.simpleframework.http.Cookie;
+import org.simpleframework.http.Query;
 import org.simpleframework.http.Request;
 import restx.RestxRequest;
 
@@ -24,6 +27,7 @@ public class SimpleRestxRequest implements RestxRequest {
     private final String apiPath;
     private final Request request;
     private BufferedInputStream bufferedInputStream;
+    private ImmutableMap<String, ImmutableList<String>> queryParams;
 
     public SimpleRestxRequest(String apiPath, Request request) {
         this.apiPath = apiPath;
@@ -62,7 +66,20 @@ public class SimpleRestxRequest implements RestxRequest {
 
     @Override
     public List<String> getQueryParams(String param) {
-        return Lists.newArrayList(request.getQuery().keySet());
+        return Lists.newArrayList(request.getQuery().getAll(param));
+    }
+
+    @Override
+    public ImmutableMap<String, ImmutableList<String>> getQueryParams() {
+        if (queryParams == null) {
+            ImmutableMap.Builder<String, ImmutableList<String>> paramsBuilder = ImmutableMap.builder();
+            Query query = request.getQuery();
+            for (String param : query.keySet()) {
+                paramsBuilder.put(param, ImmutableList.copyOf(query.getAll(param)));
+            }
+            queryParams = paramsBuilder.build();
+        }
+        return queryParams;
     }
 
     @Override
