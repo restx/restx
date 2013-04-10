@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>fr.4sh.pom-parents</groupId>
+        <artifactId>4sh-uberpom</artifactId>
+        <version>0.8</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>{{groupId}}</groupId>
+    <artifactId>{{artifactId}}</artifactId>
+    <version>{{version}}</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <restx.version>{{restxVersion}}</restx.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-factory</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-core</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-core-annotation-processor</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-server-jetty</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-apidocs</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-factory-admin</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-monitor-admin</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-specs-admin</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-specs-tests</artifactId>
+            <version>${restx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>target/generated-sources/annotations</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- Run annotation processors on src/main/java sources -->
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
+                <artifactId>maven-processor-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>process</id>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <!-- source output directory -->
+                            <outputDirectory>target/generated-sources/annotations</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Disable annotation processors during normal compilation -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgument>-proc:none</compilerArgument>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

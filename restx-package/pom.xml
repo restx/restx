@@ -32,7 +32,12 @@
         </dependency>
         <dependency>
             <groupId>restx</groupId>
-            <artifactId>restx-specs-server</artifactId>
+            <artifactId>restx-specs-shell</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+         <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-core-shell</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
      </dependencies>

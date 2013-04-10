@@ -5,9 +5,8 @@ import com.github.mustachejava.Mustache;
 import com.google.common.base.Charsets;
 import com.google.common.io.InputSupplier;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
+import java.io.*;
+import java.nio.file.Path;
 
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.io.Resources.newReaderSupplier;
@@ -32,5 +31,18 @@ public class Mustaches {
         mustache.execute(w, scope);
         w.flush();
         return w.toString();
+    }
+
+    public static void execute(Mustache mustache, Object scope, Path path) throws IOException {
+        File file = path.toFile();
+        if (!file.getParentFile().exists()) {
+            if (!file.getParentFile().mkdirs()) {
+                throw new IOException(String.format("can't generate file to `%s`: can't create directory `%s`",
+                        file.getAbsolutePath(), file.getParentFile().getAbsolutePath()));
+            }
+        }
+        try (FileWriter w = new FileWriter(file)) {
+            mustache.execute(w, scope);
+        }
     }
 }

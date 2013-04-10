@@ -1,0 +1,14 @@
+package {{mainPackage}};
+
+import com.google.common.base.Charsets;
+import restx.SignatureKey;
+import restx.factory.Module;
+import restx.factory.Provides;
+
+@Module
+public class AppModule {
+    @Provides
+    public SignatureKey signatureKey() {
+         return new SignatureKey("{{signatureKey}}".getBytes(Charsets.UTF_8));
+    }
+}

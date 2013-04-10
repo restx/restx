@@ -1,12 +1,14 @@
 package restx.shell;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
 import restx.factory.Factory;
 import restx.shell.commands.HelpCommand;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -43,8 +45,25 @@ public class RestxShell {
             for (ShellCommand command : commands) {
                 Optional<? extends ShellCommandRunner> match = command.match(line);
                 if (match.isPresent()) {
-                    exit = match.get().run(consoleReader);
-                    found = true;
+                    String storedPrompt = consoleReader.getPrompt();
+                    // store current completers and clean them, so that executing command can perform in a clean env
+                    Collection<Completer> storedCompleters = ImmutableList.copyOf(consoleReader.getCompleters());
+                    for (Completer completer : storedCompleters) {
+                        consoleReader.removeCompleter(completer);
+                    }
+
+                    try {
+                        exit = match.get().run(consoleReader);
+                        found = true;
+                    } finally {
+                        for (Completer completer : ImmutableList.copyOf(consoleReader.getCompleters())) {
+                            consoleReader.removeCompleter(completer);
+                        }
+                        for (Completer completer : storedCompleters) {
+                            consoleReader.addCompleter(completer);
+                        }
+                        consoleReader.setPrompt(storedPrompt);
+                    }
                     break;
                 }
             }

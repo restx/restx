@@ -1,19 +1,28 @@
 package restx.shell;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
+import restx.common.Mustaches;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.io.StringReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Locale;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 /**
  * User: xavierhanin
@@ -90,30 +99,43 @@ public abstract class StdShellCommand implements ShellCommand {
         return ImmutableList.copyOf(Splitter.on(" ").omitEmptyStrings().split(line));
     }
 
-    protected <T> T openSubSession(ConsoleReader consoleReader,
-                                   String prompt, ImmutableList<StringsCompleter> completers, Callable<T> callable) throws Exception {
-        String storedPrompt = consoleReader.getPrompt();
-        consoleReader.setPrompt(prompt);
-        // store completers and set ours
-        Collection<Completer> storedCompleters = ImmutableList.copyOf(consoleReader.getCompleters());
-        for (Completer completer : storedCompleters) {
-            consoleReader.removeCompleter(completer);
+    protected String ask(ConsoleReader reader, String msg, String defaultValue) throws IOException {
+        String value = reader.readLine(String.format(msg, defaultValue));
+        if (value.trim().isEmpty()) {
+            return defaultValue;
+        } else {
+            return value.trim();
         }
-        for (StringsCompleter completer : completers) {
-            consoleReader.addCompleter(completer);
+    }
+
+    protected boolean askBoolean(ConsoleReader reader, String message, String defaultValue) throws IOException {
+        return asList("y", "yes", "true", "on").contains(ask(reader, message, defaultValue).toLowerCase(Locale.ENGLISH));
+    }
+
+    protected <T> ImmutableMap<Mustache, String> buildTemplates(Class<T> clazz, ImmutableMap<String, String> tpls) {
+        ImmutableMap.Builder<Mustache, String> builder = ImmutableMap.builder();
+
+        for (Map.Entry<String, String> entry : tpls.entrySet()) {
+            builder.put(Mustaches.compile(clazz, entry.getKey()), entry.getValue());
         }
 
-        try {
-            return callable.call();
-        } finally {
-            for (Completer completer : ImmutableList.copyOf(consoleReader.getCompleters())) {
-                consoleReader.removeCompleter(completer);
-            }
-            for (Completer completer : storedCompleters) {
-                consoleReader.addCompleter(completer);
-            }
-            consoleReader.setPrompt(storedPrompt);
+        return builder.build();
+    }
+
+    protected void generate(ImmutableMap<Mustache, String> templates, Path path, Object scope) throws IOException {
+        for (Map.Entry<Mustache, String> entry : templates.entrySet()) {
+            Mustaches.execute(entry.getKey(), scope, resolvePath(path, entry.getValue(), scope));
         }
+
+    }
+
+    private Path resolvePath(Path path, String relative, Object scope) {
+        return path.resolve(Mustaches.execute(
+                new DefaultMustacheFactory().compile(new StringReader(relative), relative), scope));
+    }
+
+    protected Path currentLocation() {
+        return Paths.get(".");
     }
 
     public static class AnsiCodes {

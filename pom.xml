@@ -18,7 +18,9 @@
     <modules>
         <module>restx-common</module>
         <module>restx-factory</module>
+        <module>restx-shell</module>
         <module>restx-core</module>
+        <module>restx-core-shell</module>
         <module>restx-core-annotation-processor</module>
         <module>restx-admin</module>
         <module>restx-apidocs</module>
@@ -27,13 +29,13 @@
         <module>restx-specs-tests</module>
         <module>restx-specs-admin</module>
         <module>restx-specs-server</module>
+        <module>restx-specs-shell</module>
         <module>restx-jongo</module>
         <module>restx-jongo-specs-tests</module>
         <module>restx-servlet</module>
         <module>restx-server-jetty</module>
         <module>restx-server-tomcat</module>
         <module>restx-server-simple</module>
-        <module>restx-shell</module>
         <module>restx-samples</module>
     </modules>
 </project>

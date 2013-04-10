@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * User: xavierhanin
@@ -79,32 +78,27 @@ public class SpecsShellCommand extends StdShellCommand {
             final SimpleWebServer webServer = new SimpleWebServer(routerPath, ".", port);
             webServer.startAndAwait();
 
-            openSubSession(consoleReader,
-                    "spec-server> ",
-                    ImmutableList.of(new StringsCompleter("stop", "open", "help")),
-                    new Callable<Object>() {
-                        public Object call() throws Exception {
-                            boolean exit = false;
-                            while (!exit) {
-                                String line = consoleReader.readLine().trim();
-                                switch (line) {
-                                    case "stop":
-                                        exit = stop(consoleReader, webServer);
-                                        break;
-                                    case "open":
-                                        openInBrowser(consoleReader, webServer.baseUrl() + routerPath);
-                                        break;
-                                    case "help":
-                                        help(consoleReader);
-                                        break;
-                                    default:
-                                        consoleReader.println(
-                                                "command not found. use `help` to get the list of commands.");
-                                }
-                            }
-                            return null;
-                        }
-                    });
+            consoleReader.setPrompt("spec-server> ");
+            consoleReader.addCompleter(new StringsCompleter("stop", "open", "help"));
+
+            boolean exit = false;
+            while (!exit) {
+                String line = consoleReader.readLine().trim();
+                switch (line) {
+                    case "stop":
+                        exit = stop(consoleReader, webServer);
+                        break;
+                    case "open":
+                        openInBrowser(consoleReader, webServer.baseUrl() + routerPath);
+                        break;
+                    case "help":
+                        help(consoleReader);
+                        break;
+                    default:
+                        consoleReader.println(
+                                "command not found. use `help` to get the list of commands.");
+                }
+            }
 
             return false;
         }
