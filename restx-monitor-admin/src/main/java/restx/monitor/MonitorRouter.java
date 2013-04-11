@@ -7,6 +7,7 @@ import restx.*;
 import restx.factory.Component;
 
 import java.io.IOException;
+import java.util.Locale;
 
 /**
  * User: xavierhanin
@@ -35,7 +36,7 @@ public class MonitorRouter extends RestxRouter {
                             if (i != 0) {
                                 resp.getWriter().print(",");
                             }
-                            resp.getWriter().print(String.format(
+                            resp.getWriter().print(String.format(Locale.ENGLISH,
                                 "{ \"id\": %s, \"label\": \"%s\", \"hits\": %.2f, \"avg\": %.2f, \"lastVal\": %.2f, \"min\": %.2f, \"max\": %.2f," +
                                         " \"active\": %.2f, \"avgActive\": %.2f, \"maxActive\": %.2f, \"firstAccess\": \"%tF %tT\", \"lastAccess\": \"%tF %tT\" }",
                                 i++, monitor.getLabel(), monitor.getHits(), monitor.getAvg(), monitor.getLastValue(), monitor.getMin(), monitor.getMax(),
