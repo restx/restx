@@ -68,7 +68,7 @@ public class SpecRecorderRoute extends RestxRouter {
                                 endIndex = endIndex == -1 ? spec.getPath().length() : endIndex;
                                 File destFile = new File(basePath + "/" + path.or("") + "/"
                                         + title.or(String.format("%03d_%s_%s", spec.getId(), spec.getMethod(), spec.getPath().substring(0, endIndex)))
-                                            .replace(' ', '_').replace('/', '_') + ".yaml");
+                                            .replace(' ', '_').replace('/', '_') + ".spec.yaml");
                                 destFile.getParentFile().mkdirs();
                                 Files.append(spec.getSpec().toString(), destFile, Charsets.UTF_8);
 
