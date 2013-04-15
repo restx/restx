@@ -22,6 +22,11 @@ public class RestxBuildTest {
     }
 
     @Test
+    public void should_generate_pom_with_fragment() throws Exception {
+        shouldGenerate(json, "Module3.restx.json", maven, "Module3.pom.xml");
+    }
+
+    @Test
     public void should_parse_simple_pom() throws Exception {
         shouldGenerate(maven, "Module1.pom.xml", json, "Module1.restx.json");
     }

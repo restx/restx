@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -98,7 +99,38 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
                 }
             }
 
-            return new ModuleDescriptor(parent, gav, packaging, properties, dependencies);
+            Map<String, List<ModuleFragment>> fragments = new LinkedHashMap<>();
+            if (jsonObject.has("fragments")) {
+                JSONObject jsonFragments = jsonObject.getJSONObject("fragments");
+                for (Object key : jsonFragments.keySet()) {
+                    String type = (String) key;
+                    List<ModuleFragment> fragmentsForType = new ArrayList<>();
+
+                    JSONArray array = jsonFragments.getJSONArray(type);
+                    for (int i = 0; i < array.length(); i++) {
+                        String url = array.getString(i);
+
+                        if (url.startsWith("classpath://")) {
+                            String path = url.substring("classpath://".length());
+                            InputStream stream = getClass().getResourceAsStream(path);
+                            if (stream == null) {
+                                throw new IllegalArgumentException("classpath fragment not found: '" + path + "'" +
+                                        ". Check your classpath.");
+                            }
+                            fragmentsForType.add(new ModuleFragment(RestxBuild.toString(stream)));
+                        } else {
+                            URL fragmentUrl = new URL(url);
+                            try (InputStream stream = fragmentUrl.openStream()) {
+                                fragmentsForType.add(new ModuleFragment(RestxBuild.toString(stream)));
+                            }
+                        }
+                    }
+
+                    fragments.put(type, fragmentsForType);
+                }
+            }
+
+            return new ModuleDescriptor(parent, gav, packaging, properties, fragments, dependencies);
         }
     }
 

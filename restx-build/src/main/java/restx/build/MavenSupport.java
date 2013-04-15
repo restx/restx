@@ -7,10 +7,7 @@ import org.json.XML;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * User: xavierhanin
@@ -64,7 +61,8 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                 }
             }
 
-            return new ModuleDescriptor(parent, gav, packaging, properties, dependencies);
+            return new ModuleDescriptor(parent, gav, packaging,
+                    properties, new HashMap<String,List<ModuleFragment>>(), dependencies);
         }
 
         private GAV getGav(JSONObject jsonObject) {
@@ -110,6 +108,10 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                 }
             }
             w.write("    </dependencies>\n");
+
+            for (ModuleFragment fragment : md.getFragments("maven")) {
+                fragment.write(md, w);
+            }
 
             w.write(FOOTER);
         }

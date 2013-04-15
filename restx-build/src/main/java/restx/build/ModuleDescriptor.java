@@ -15,14 +15,17 @@ public class ModuleDescriptor {
     private final GAV gav;
     private final String packaging;
     private final Map<String,String> properties;
+    private final Map<String, List<ModuleFragment>> fragments;
     private final Map<String, List<ModuleDependency>> dependencies;
 
     public ModuleDescriptor(GAV parent, GAV gav, String packaging,
-                            Map<String,String> properties,
+                            Map<String, String> properties,
+                            Map<String, List<ModuleFragment>> fragments,
                             Map<String, List<ModuleDependency>> dependencies) {
         this.parent = parent;
         this.gav = gav;
         this.packaging = packaging;
+        this.fragments = Collections.unmodifiableMap(fragments);
         this.properties = Collections.unmodifiableMap(properties);
         this.dependencies = Collections.unmodifiableMap(dependencies);
     }
@@ -49,5 +52,10 @@ public class ModuleDescriptor {
 
     public List<ModuleDependency> getDependencies(String scope) {
         return dependencies.get(scope);
+    }
+
+    public List<ModuleFragment> getFragments(String s) {
+        List<ModuleFragment> moduleFragments = fragments.get(s);
+        return moduleFragments == null ? Collections.<ModuleFragment>emptyList() : moduleFragments;
     }
 }
