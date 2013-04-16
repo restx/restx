@@ -35,12 +35,17 @@
             <artifactId>restx-specs-shell</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
-         <dependency>
+           <dependency>
             <groupId>restx</groupId>
             <artifactId>restx-core-shell</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
-     </dependencies>
+         <dependency>
+            <groupId>restx</groupId>
+            <artifactId>restx-build-shell</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
     <build>
     <plugins>
