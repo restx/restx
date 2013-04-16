@@ -12,6 +12,7 @@
     <groupId>restx</groupId>
     <artifactId>restx-samples-beersample</artifactId>
     <packaging>war</packaging>
+    <version>0.2-SNAPSHOT</version>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
