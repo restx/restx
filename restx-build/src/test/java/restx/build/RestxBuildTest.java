@@ -27,13 +27,28 @@ public class RestxBuildTest {
     }
 
     @Test
+    public void should_generate_pom_with_war() throws Exception {
+        shouldGenerate(json, "Module4.restx.json", maven, "Module4.pom.xml");
+    }
+
+    @Test
     public void should_parse_simple_pom() throws Exception {
         shouldGenerate(maven, "Module1.pom.xml", json, "Module1.restx.json");
     }
 
     @Test
+    public void should_parse_simple_pom_with_war() throws Exception {
+        shouldGenerate(maven, "Module4.pom.xml", json, "Module4.restx.json");
+    }
+
+    @Test
     public void should_generate_simple_ivy() throws Exception {
         shouldGenerate(json, "Module1.restx.json", ivy, "Module1.ivy");
+    }
+
+    @Test
+    public void should_generate_simple_ivy_war() throws Exception {
+        shouldGenerate(json, "Module4.restx.json", ivy, "Module4.ivy");
     }
 
     @Test

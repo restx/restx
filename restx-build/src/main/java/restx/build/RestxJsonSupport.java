@@ -25,7 +25,11 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
             if (md.getParent() != null) {
                 w.write(String.format("    \"parent\": \"%s\",\n", md.getParent()));
             }
-            w.write(String.format("    \"module\": \"%s\",\n\n", md.getGav()));
+            w.write(String.format("    \"module\": \"%s\",\n", md.getGav()));
+            if (!"jar".equals(md.getPackaging())) {
+                w.write(String.format("    \"packaging\": \"%s\",\n", md.getPackaging()));
+            }
+            w.write("\n");
 
             w.write("    \"properties\": {\n");
             for (Iterator<Map.Entry<String, String>> iterator = md.getProperties().entrySet().iterator(); iterator.hasNext(); ) {
@@ -74,7 +78,7 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
             }
             GAV gav = GAV.parse(jsonObject.getString("module"));
 
-            String packaging = "jar";
+            String packaging = jsonObject.has("packaging") ? jsonObject.getString("packaging") : "jar";
             Map<String, String> properties = new LinkedHashMap<>();
             if (jsonObject.has("properties")) {
                 JSONObject props = jsonObject.getJSONObject("properties");
