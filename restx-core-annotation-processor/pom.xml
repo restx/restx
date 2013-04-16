@@ -14,7 +14,6 @@
     <artifactId>restx-core-annotation-processor</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <name>restx-core-annotation-processor</name>
 
     <properties>
@@ -34,13 +33,11 @@
             <version>0.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${version.compiler.plugin}</version>
                 <configuration>
                     <compilerArgument>-proc:none</compilerArgument>
                 </configuration>

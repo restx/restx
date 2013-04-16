@@ -7,10 +7,13 @@
     <groupId>restx</groupId>
     <artifactId>restx-build</artifactId>
     <version>0.2-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>restx-build</name>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
+        <project.main.classname>restx.build.RestxBuild</project.main.classname>
     </properties>
 
     <dependencies>
@@ -27,7 +30,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -36,7 +38,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>restx.build.RestxBuild</mainClass>
+                            <mainClass>${project.main.classname}</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

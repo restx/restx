@@ -14,7 +14,6 @@
     <artifactId>restx-specs</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <name>restx-specs</name>
 
     <properties>
@@ -35,13 +34,10 @@
             <artifactId>restx-core</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
-
-        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j-api.version}</version>
         </dependency>
     </dependencies>
-
 </project>

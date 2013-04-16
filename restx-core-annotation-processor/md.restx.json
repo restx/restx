@@ -1,0 +1,21 @@
+{
+    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
+    "module": "restx:restx-core-annotation-processor:0.2-SNAPSHOT",
+
+    "properties": {
+        "java.version": "1.7"
+    },
+
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/annotation-processing-disable.xml"
+        ]
+    },
+
+    "dependencies": {
+        "compile": [
+            "restx:restx-factory:0.2-SNAPSHOT",
+            "restx:restx-core:0.2-SNAPSHOT"
+        ]
+    }
+}

@@ -1,0 +1,29 @@
+<ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
+    <info organisation="restx" module="restx-jongo" revision="0.2" status="integration">
+        <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
+            compile.java.source.version="1.7"
+            compile.java.target.version="1.7"
+            slf4j-api.version="1.7.2"
+            jackson.version="2.1.2"
+        />
+    </info>
+    <configurations>
+        <conf name="default"/>
+        <conf name="test"/>
+    </configurations>
+    <publications>
+        <artifact type="jar"/>
+    </publications>
+    <dependencies>
+        <dependency org="restx" name="restx-factory" rev="latest.integration" conf="default" />
+        <dependency org="restx" name="restx-core" rev="latest.integration" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="${jackson.version}" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="${jackson.version}" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="${jackson.version}" conf="default" />
+        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="${jackson.version}" conf="default" />
+        <dependency org="de.undercouch" name="bson4jackson" rev="2.1.1" conf="default" />
+        <dependency org="org.mongodb" name="mongo-java-driver" rev="2.10.1" conf="default" />
+        <dependency org="org.jongo" name="jongo" rev="0.3" conf="default" />
+        <dependency org="org.slf4j" name="slf4j-api" rev="${slf4j-api.version}" conf="default" />
+    </dependencies>
+</ivy-module>

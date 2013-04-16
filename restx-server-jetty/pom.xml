@@ -14,7 +14,6 @@
     <artifactId>restx-server-jetty</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <name>restx-server-jetty</name>
 
     <properties>
@@ -40,8 +39,6 @@
             <artifactId>restx-servlet</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
-
-        <!-- Jetty embedded dependencies -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -73,6 +70,4 @@
             <version>${jetty.version}</version>
         </dependency>
     </dependencies>
-
-    
 </project>

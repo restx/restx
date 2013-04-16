@@ -1,0 +1,5 @@
+<ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
+    <info organisation="restx" module="restx" revision="0.2" status="integration">
+        <ea:build module="meta-build" revision="0.9"/>
+    </info>
+</ivy-module>

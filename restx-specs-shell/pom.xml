@@ -13,8 +13,8 @@
     <groupId>restx</groupId>
     <artifactId>restx-specs-shell</artifactId>
     <version>0.2-SNAPSHOT</version>
-
     <packaging>jar</packaging>
+    <name>restx-specs-shell</name>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>
@@ -77,5 +77,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

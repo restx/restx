@@ -1,0 +1,16 @@
+{
+    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
+    "module": "restx:restx-servlet:0.2-SNAPSHOT",
+
+    "properties": {
+        "java.version": "1.7",
+        "slf4j-api.version": "1.7.2"
+    },
+
+    "dependencies": {
+        "compile": [
+            "restx:restx-core:0.2-SNAPSHOT",
+            "javax.servlet:javax.servlet-api:3.0.1"
+        ]
+    }
+}

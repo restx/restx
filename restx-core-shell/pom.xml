@@ -14,6 +14,7 @@
     <artifactId>restx-core-shell</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>restx-core-shell</name>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>
@@ -38,7 +39,6 @@
             <version>0.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
     <build>
         <resources>
             <resource>

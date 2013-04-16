@@ -1,0 +1,23 @@
+{
+    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
+    "module": "restx:restx-specs-shell:0.2-SNAPSHOT",
+
+    "properties": {
+        "java.version": "1.7",
+        "slf4j-api.version": "1.7.2"
+    },
+
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/annotation-processing-enable.xml"
+        ]
+    },
+
+    "dependencies": {
+        "compile": [
+            "restx:restx-factory:0.2-SNAPSHOT",
+            "restx:restx-shell:0.2-SNAPSHOT",
+            "restx:restx-specs-server:0.2-SNAPSHOT"
+        ]
+    }
+}

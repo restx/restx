@@ -1,0 +1,20 @@
+<ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
+    <info organisation="restx" module="restx-build" revision="0.2" status="integration">
+        <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
+            compile.java.source.version="1.7"
+            compile.java.target.version="1.7"
+            project.main.classname="restx.build.RestxBuild"
+        />
+    </info>
+    <configurations>
+        <conf name="default"/>
+        <conf name="test"/>
+    </configurations>
+    <publications>
+        <artifact type="jar"/>
+    </publications>
+    <dependencies>
+        <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
+        <dependency org="org.easytesting" name="fest-assert-core" rev="2.0M8" conf="test->default" />
+    </dependencies>
+</ivy-module>

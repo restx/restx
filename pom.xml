@@ -19,6 +19,8 @@
         <module>restx-common</module>
         <module>restx-factory</module>
         <module>restx-shell</module>
+        <module>restx-build</module>
+        <module>restx-build-shell</module>
         <module>restx-core</module>
         <module>restx-core-shell</module>
         <module>restx-core-annotation-processor</module>

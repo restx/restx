@@ -14,7 +14,6 @@
     <artifactId>restx-factory-admin</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <name>restx-factory-admin</name>
 
     <properties>

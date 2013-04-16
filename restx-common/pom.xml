@@ -14,7 +14,6 @@
     <artifactId>restx-common</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <name>restx-common</name>
 
     <properties>
@@ -34,12 +33,10 @@
             <version>2.0</version>
         </dependency>
         <dependency>
-          <groupId>com.github.spullara.mustache.java</groupId>
-          <artifactId>compiler</artifactId>
-          <version>0.8.10</version>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.8.10</version>
         </dependency>
-
-        <!-- test -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

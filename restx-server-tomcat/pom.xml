@@ -14,7 +14,6 @@
     <artifactId>restx-server-tomcat</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <name>restx-server-tomcat</name>
 
     <properties>
@@ -35,30 +34,20 @@
             <artifactId>restx-core</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
-        <!-- Tomcat embedded dependencies -->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-catalina</artifactId>
             <version>${embedded.tomcat.version}</version>
-
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>${embedded.tomcat.version}</version>
-
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-jasper</artifactId>
             <version>${embedded.tomcat.version}</version>
-
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jdt.core.compiler</groupId>
-                    <artifactId>ecj</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 </project>

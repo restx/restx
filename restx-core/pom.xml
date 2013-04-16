@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,7 +14,6 @@
     <artifactId>restx-core</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
-
     <name>restx-core</name>
 
     <properties>
@@ -24,7 +24,6 @@
     </properties>
 
     <dependencies>
-        <!-- JSON Mapping -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
@@ -45,8 +44,6 @@
             <artifactId>jackson-datatype-joda</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-
-        <!-- for factory -->
         <dependency>
             <groupId>restx</groupId>
             <artifactId>restx-factory</artifactId>
@@ -57,10 +54,6 @@
             <artifactId>javax.inject</artifactId>
             <version>1</version>
         </dependency>
-
-
-
-        <!-- No brainers -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -71,39 +64,26 @@
             <artifactId>joda-time</artifactId>
             <version>2.0</version>
         </dependency>
-
-        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j-api.version}</version>
         </dependency>
-
-        <!-- perfs / monitoring -->
         <dependency>
             <groupId>com.google.code.maven-play-plugin.com.jamonapi</groupId>
             <artifactId>jamon</artifactId>
             <version>2.7</version>
         </dependency>
-
-        <!-- validation -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>5.0.0.Alpha2</version>
         </dependency>
-
-        <!-- classpath scanning; used for specs discovery only -->
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.9-RC1</version>
         </dependency>
-
-        <!-- test -->
-        <!-- following dependencies are not in test scope because RestxSpec is not in test sources
-             to be able to be used for documentation. once we clean uprestx in separate modules and clean
-             up these responsibilities, we would need to clean this up too -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -135,9 +115,9 @@
             <version>1.12</version>
         </dependency>
         <dependency>
-          <groupId>com.github.kevinsawicki</groupId>
-          <artifactId>http-request</artifactId>
-          <version>4.1</version>
+            <groupId>com.github.kevinsawicki</groupId>
+            <artifactId>http-request</artifactId>
+            <version>4.1</version>
         </dependency>
     </dependencies>
     <build>
