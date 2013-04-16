@@ -1,8 +1,12 @@
 package restx.build;
 
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 /**
  * User: xavierhanin
@@ -29,31 +33,70 @@ public class RestxBuild {
         return sb.toString();
     }
 
-    /**
-     * Usage: restx-build module.restx.json pom.xml
-     */
     public static void main(String[] args) throws IOException {
+        final PrintStream out = System.out;
         if (args.length != 3 || !args[0].equalsIgnoreCase("convert")) {
-            System.out.println("usage: restx-build convert <from> <to>\n" +
-                    "\teg: restx-build convert module.restx.json pom.xml");
+            out.println("usage: restx-build convert <from> <to>\n" +
+                    "\teg: restx-build convert md.restx.json pom.xml\n\n" +
+                    "you can also use **/ syntax to convert a bunch of files:" +
+                    "\t    restx-build convert **/md.restx.json module.ivy");
             System.exit(1);
         }
 
-        Path from = Paths.get(args[1]);
-        Path to = Paths.get(args[2]);
+        convert(args[1], args[2]);
+        out.println("conversion done.");
+    }
 
-        Parser parser = guessParserFor(from);
-        Generator generator = guessGeneratorFor(to);
+    /**
+     * Converts one or a bunch of module descriptor to another format.
+     *
+     * @param from either a module descriptor path, or a path using <code>**</code> notation a la Ant
+     * @param to the name of the target module descriptor, relative to where from module descriptors are found
+     * @return the list of paths converted
+     * @throws IOException
+     */
+    public static List<Path> convert(String from, final String to) throws IOException {
+        final List<Path> converted = new ArrayList<>();
+        int idx = from.indexOf("**/");
+        if (idx != -1) {
+            Path startFrom = Paths.get(from.substring(0, idx));
+            final String name = from.substring(idx + "**/".length());
+            Files.walkFileTree(startFrom, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (attrs.isRegularFile() && file.endsWith(name)) {
+                        convert(file, file.getParent().resolve(to));
+                        converted.add(file);
+                    }
+                    return CONTINUE;
+                }
+            });
+        } else {
+            Path fromPath = Paths.get(from);
+            Path toPath = Paths.get(to);
 
-        System.out.println("using parser:    " + parser.getClass().getSimpleName());
-        System.out.println("using generator: " + generator.getClass().getSimpleName());
+            convert(fromPath, toPath);
+            converted.add(fromPath);
+        }
+        return converted;
+    }
 
-        try (FileInputStream inputStream = new FileInputStream(from.toFile());
-                FileWriter writer = new FileWriter(to.toFile())) {
+    /**
+     * Converts one module descriptor to another format.
+     *
+     * @param fromPath the path of the module descriptor to convert
+     * @param toPath the path of the target module descriptor
+     * @throws IOException
+     */
+    public static void convert(Path fromPath, Path toPath) throws IOException {
+        Parser parser = guessParserFor(fromPath);
+        Generator generator = guessGeneratorFor(toPath);
+
+        try (FileInputStream inputStream = new FileInputStream(fromPath.toFile());
+                FileWriter writer = new FileWriter(toPath.toFile())) {
             ModuleDescriptor md = parser.parse(inputStream);
             generator.generate(md, writer);
         }
-        System.out.println("conversion done.");
     }
 
     private static Generator guessGeneratorFor(Path path) {

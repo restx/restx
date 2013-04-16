@@ -6,15 +6,11 @@ import jline.console.ConsoleReader;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
-import restx.build.*;
+import restx.build.RestxBuild;
 import restx.factory.Component;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -40,9 +36,9 @@ public class BuildShellCommand extends StdShellCommand {
             case "generate":
                 switch (args.get(2)) {
                     case "ivy":
-                        return Optional.<ShellCommandRunner>of(new GenerateModuleCommandRunner(new IvySupport()));
+                        return Optional.<ShellCommandRunner>of(new GenerateModuleCommandRunner("module.ivy"));
                     case "pom":
-                        return Optional.<ShellCommandRunner>of(new GenerateModuleCommandRunner(new MavenSupport()));
+                        return Optional.<ShellCommandRunner>of(new GenerateModuleCommandRunner("pom.xml"));
 
                 }
         }
@@ -57,21 +53,25 @@ public class BuildShellCommand extends StdShellCommand {
     }
 
     private class GenerateModuleCommandRunner implements ShellCommandRunner {
-        private final RestxBuild.Generator generator;
+        private final String target;
 
-        public GenerateModuleCommandRunner(RestxBuild.Generator generator) {
-            this.generator = generator;
+        public GenerateModuleCommandRunner(String target) {
+            this.target = target;
         }
 
         @Override
         public boolean run(ConsoleReader reader) throws Exception {
-            Path target = currentLocation().resolve(generator.getDefaultFileName());
-            try (InputStream input = new FileInputStream(currentLocation().resolve("md.restx.json").toFile());
-                    Writer writer = new FileWriter(target.toFile())) {
-                ModuleDescriptor md = new RestxJsonSupport().parse(input);
-                generator.generate(md, writer);
-                reader.println("generated " + target);
+            Path currentLocationAbsolutePath = currentLocation().toAbsolutePath();
+            List<Path> convert = RestxBuild.convert(currentLocationAbsolutePath + "/**/md.restx.json", target);
+            if (convert.isEmpty()) {
+                reader.println("no mathing file found. module descriptors should be named `md.restx.json`");
+            } else {
+                reader.println("converted:");
+                for (Path path : convert) {
+                    reader.println("\t" + currentLocationAbsolutePath.relativize(path));
+                }
             }
+
             return false;
         }
     }
