@@ -1,10 +1,9 @@
 {
     "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
-    "module": "restx:restx-shell:0.2-SNAPSHOT",
+    "module": "restx:restx-shell:${restx.version}",
 
     "properties": {
-        "java.version": "1.7",
-        "slf4j-api.version": "1.7.2"
+        "@files": ["../restx.build.properties.json"]
     },
 
     "fragments": {
@@ -15,9 +14,9 @@
 
     "dependencies": {
         "compile": [
-            "restx:restx-factory:0.2-SNAPSHOT",
-            "jline:jline:2.10",
-            "ch.qos.logback:logback-classic:1.0.9"
+            "restx:restx-factory:${restx.version}",
+            "jline:jline:${jline.version}",
+            "ch.qos.logback:logback-classic:${logback.version}"
         ]
     }
 }

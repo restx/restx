@@ -1,8 +1,8 @@
 {
-    "module": "restx:restx-build:0.2-SNAPSHOT",
+    "module": "restx:restx-build:${restx.version}",
 
     "properties": {
-        "java.version": "1.7",
+        "@files": ["../restx.build.properties.json"],
         "project.main.classname": "restx.build.RestxBuild"
     },
 
@@ -14,8 +14,8 @@
 
     "dependencies": {
         "test": [
-            "junit:junit:4.11",
-            "org.easytesting:fest-assert-core:2.0M8"
+            "junit:junit:${junit.version}",
+            "org.easytesting:fest-assert-core:${fest-assert-core.version}"
         ]
     }
 }

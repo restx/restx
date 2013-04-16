@@ -1,11 +1,9 @@
 {
     "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
-    "module": "restx:restx-factory:0.2-SNAPSHOT",
+    "module": "restx:restx-factory:${restx.version}",
 
     "properties": {
-        "java.version": "1.7",
-        "slf4j-api.version": "1.7.2",
-        "logback-classic.version": "1.0.9"
+        "@files": ["../restx.build.properties.json"]
     },
 
     "fragments": {
@@ -16,17 +14,17 @@
 
     "dependencies": {
         "compile": [
-            "restx:restx-common:0.2-SNAPSHOT",
-            "javax.inject:javax.inject:1",
-            "com.google.guava:guava:14.0-rc2",
-            "joda-time:joda-time:2.0",
+            "restx:restx-common:${restx.version}",
+            "javax.inject:javax.inject:${javax.inject.version}",
+            "com.google.guava:guava:${guava.version}",
+            "joda-time:joda-time:${joda-time.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}",
-            "com.google.code.maven-play-plugin.com.jamonapi:jamon:2.7",
-            "org.reflections:reflections:0.9.9-RC1"
+            "com.google.code.maven-play-plugin.com.jamonapi:jamon:${jamon.version}",
+            "org.reflections:reflections:${reflections.version}"
         ],
         "test": [
-            "junit:junit:4.11",
-            "org.easytesting:fest-assert-core:2.0M8"
+            "junit:junit:${junit.version}",
+            "org.easytesting:fest-assert-core:${fest-assert-core.version}"
         ]
     }
 }

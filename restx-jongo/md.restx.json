@@ -1,11 +1,9 @@
 {
     "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
-    "module": "restx:restx-jongo:0.2-SNAPSHOT",
+    "module": "restx:restx-jongo:${restx.version}",
 
     "properties": {
-        "java.version": "1.7",
-        "slf4j-api.version": "1.7.2",
-        "jackson.version": "2.1.2"
+        "@files": ["../restx.build.properties.json"]
     },
 
     "fragments": {
@@ -16,15 +14,15 @@
 
     "dependencies": {
         "compile": [
-            "restx:restx-factory:0.2-SNAPSHOT",
-            "restx:restx-core:0.2-SNAPSHOT",
+            "restx:restx-factory:${restx.version}",
+            "restx:restx-core:${restx.version}",
             "com.fasterxml.jackson.core:jackson-core:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
             "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson.version}",
-            "de.undercouch:bson4jackson:2.1.1",
-            "org.mongodb:mongo-java-driver:2.10.1",
-            "org.jongo:jongo:0.3",
+            "de.undercouch:bson4jackson:${bson4jackson.version}",
+            "org.mongodb:mongo-java-driver:${mongo-java-driver.version}",
+            "org.jongo:jongo:${jongo.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}"
         ]
     }
