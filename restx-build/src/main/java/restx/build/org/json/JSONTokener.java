@@ -1,4 +1,4 @@
-package org.json;
+package restx.build.org.json;
 
 import java.io.BufferedReader;
 import java.io.IOException;

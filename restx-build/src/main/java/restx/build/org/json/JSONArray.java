@@ -1,4 +1,4 @@
-package org.json;
+package restx.build.org.json;
 
 /*
  Copyright (c) 2002 JSON.org

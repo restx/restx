@@ -1,8 +1,8 @@
 package restx.build;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import restx.build.org.json.JSONArray;
+import restx.build.org.json.JSONTokener;
+import restx.build.org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -143,5 +143,10 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
 
     public ModuleDescriptor parse(InputStream inputStream) throws IOException {
         return parser.parse(inputStream);
+    }
+
+    @Override
+    public String getDefaultFileName() {
+        return "md.restx.json";
     }
 }

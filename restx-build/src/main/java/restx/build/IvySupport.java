@@ -75,4 +75,9 @@ public class IvySupport implements RestxBuild.Generator {
     private String expandProperty(String s, String key, String value) {
         return s.replace("${" + key + "}", value);
     }
+
+    @Override
+    public String getDefaultFileName() {
+        return "module.ivy";
+    }
 }

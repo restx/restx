@@ -15,6 +15,7 @@ public class RestxBuild {
     }
     public static interface Generator {
         public void generate(ModuleDescriptor md, Writer w) throws IOException;
+        public String getDefaultFileName();
     }
 
     // don't want to introduce a dependency just for that

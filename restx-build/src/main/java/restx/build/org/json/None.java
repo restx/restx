@@ -1,4 +1,4 @@
-package org.json;
+package restx.build.org.json;
 
 public interface None {
     /**

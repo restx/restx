@@ -1,8 +1,8 @@
 package restx.build;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.XML;
+import restx.build.org.json.JSONArray;
+import restx.build.org.json.JSONObject;
+import restx.build.org.json.XML;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -150,5 +150,10 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
 
     public void generate(ModuleDescriptor md, Writer w) throws IOException {
         generator.generate(md, w);
+    }
+
+    @Override
+    public String getDefaultFileName() {
+        return "pom.xml";
     }
 }
