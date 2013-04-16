@@ -15,22 +15,12 @@ import static java.nio.file.FileVisitResult.CONTINUE;
  */
 public class RestxBuild {
     public static interface Parser {
+        public ModuleDescriptor parse(Path path) throws IOException;
         public ModuleDescriptor parse(InputStream stream) throws IOException;
     }
     public static interface Generator {
         public void generate(ModuleDescriptor md, Writer w) throws IOException;
         public String getDefaultFileName();
-    }
-
-    // don't want to introduce a dependency just for that
-    public static String toString(InputStream inputStream) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                sb.append(line).append("\n");
-            }
-        }
-        return sb.toString();
     }
 
     public static void main(String[] args) throws IOException {
@@ -92,9 +82,8 @@ public class RestxBuild {
         Parser parser = guessParserFor(fromPath);
         Generator generator = guessGeneratorFor(toPath);
 
-        try (FileInputStream inputStream = new FileInputStream(fromPath.toFile());
-                FileWriter writer = new FileWriter(toPath.toFile())) {
-            ModuleDescriptor md = parser.parse(inputStream);
+        try (FileWriter writer = new FileWriter(toPath.toFile())) {
+            ModuleDescriptor md = parser.parse(fromPath);
             generator.generate(md, writer);
         }
     }

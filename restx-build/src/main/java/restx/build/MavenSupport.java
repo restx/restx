@@ -7,6 +7,8 @@ import restx.build.org.json.XML;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -17,7 +19,7 @@ import java.util.*;
 public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
     static class Parser {
         public ModuleDescriptor parse(InputStream stream) throws IOException {
-            JSONObject jsonObject = XML.toJSONObject(RestxBuild.toString(stream)).getJSONObject("project");
+            JSONObject jsonObject = XML.toJSONObject(RestxBuildHelper.toString(stream)).getJSONObject("project");
 
             GAV parent;
             if (jsonObject.has("parent")) {
@@ -144,10 +146,19 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
     private final Parser parser = new Parser();
     private final Generator generator = new Generator();
 
+    @Override
+    public ModuleDescriptor parse(Path path) throws IOException {
+        try (InputStream inputStream = Files.newInputStream(path)) {
+            return parse(inputStream);
+        }
+    }
+
+    @Override
     public ModuleDescriptor parse(InputStream stream) throws IOException {
         return parser.parse(stream);
     }
 
+    @Override
     public void generate(ModuleDescriptor md, Writer w) throws IOException {
         generator.generate(md, w);
     }

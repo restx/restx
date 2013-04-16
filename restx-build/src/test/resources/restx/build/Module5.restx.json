@@ -1,0 +1,21 @@
+{
+    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
+    "module": "restx:restx-common:${restx.version}",
+
+    "properties": {
+        "@files": ["Module5.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "restx:restx-dummy:${restx.version}",
+            "com.google.guava:guava:14.0-rc2",
+            "joda-time:joda-time:${joda-time.version}",
+            "com.github.spullara.mustache.java:compiler:0.8.10"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.easytesting:fest-assert-core:2.0M8"
+        ]
+    }
+}

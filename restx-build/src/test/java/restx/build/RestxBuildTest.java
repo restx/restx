@@ -2,7 +2,12 @@ package restx.build;
 
 import org.junit.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
@@ -19,6 +24,11 @@ public class RestxBuildTest {
     @Test
     public void should_generate_simple_pom() throws Exception {
         shouldGenerate(json, "Module1.restx.json", maven, "Module1.pom.xml");
+    }
+
+    @Test
+    public void should_generate_simple_pom_with_external_properties() throws Exception {
+        shouldGenerate(json, "Module5.restx.json", maven, "Module5.pom.xml");
     }
 
     @Test
@@ -47,6 +57,11 @@ public class RestxBuildTest {
     }
 
     @Test
+    public void should_generate_simple_ivy_with_external_properties() throws Exception {
+        shouldGenerate(json, "Module5.restx.json", ivy, "Module5.ivy");
+    }
+
+    @Test
     public void should_generate_simple_ivy_war() throws Exception {
         shouldGenerate(json, "Module4.restx.json", ivy, "Module4.ivy");
     }
@@ -57,10 +72,24 @@ public class RestxBuildTest {
     }
 
     private void shouldGenerate(RestxBuild.Parser parser, String module, RestxBuild.Generator generator, String expected) throws IOException {
-        ModuleDescriptor md = parser.parse(getClass().getResourceAsStream(module));
+        URL resource = getClass().getResource(module);
+        ModuleDescriptor md;
+        if (resource.getProtocol().equals("file")) {
+            File f;
+            try {
+              f = new File(resource.toURI());
+            } catch(URISyntaxException e) {
+              f = new File(resource.getPath());
+            }
+            md = parser.parse(f.toPath());
+        } else {
+            try (InputStream stream = resource.openStream()) {
+                md = parser.parse(stream);
+            }
+        }
         StringWriter w = new StringWriter();
         generator.generate(md, w);
-        assertThat(w.toString()).isEqualTo(RestxBuild.toString(getClass().getResourceAsStream(expected)));
+        assertThat(w.toString()).isEqualTo(RestxBuildHelper.toString(getClass().getResourceAsStream(expected)));
     }
 
 }

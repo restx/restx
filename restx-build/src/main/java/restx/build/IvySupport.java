@@ -48,10 +48,11 @@ public class IvySupport implements RestxBuild.Generator {
         for (String scope : md.getDependencyScopes()) {
             for (ModuleDependency dependency : md.getDependencies(scope)) {
                 String groupId = dependency.getGav().getGroupId();
-                String version = expandProperty(dependency.getGav().getVersion(), "module.version", md.getGav().getVersion());
-                if (expandProperties(md.getProperties(), version).endsWith("-SNAPSHOT")
+                String version = RestxBuildHelper.expandProperty(dependency.getGav().getVersion(), "module.version", md.getGav().getVersion());
+                String expandedVersion = RestxBuildHelper.expandProperties(md.getProperties(), version);
+                if (expandedVersion.endsWith("-SNAPSHOT")
                         && groupId.equals(md.getGav().getGroupId())
-                        && version.equals(md.getGav().getVersion())) {
+                        && expandedVersion.equals(md.getGav().getVersion())) {
                     version = "latest.integration";
                 }
                 w.write(String.format("        <dependency org=\"%s\" name=\"%s\" rev=\"%s\" conf=\"%s\" />\n",
@@ -63,17 +64,6 @@ public class IvySupport implements RestxBuild.Generator {
         w.write("    </dependencies>\n");
 
         w.write("</ivy-module>\n");
-    }
-
-    private String expandProperties(Map<String, String> properties, String s) {
-        for (Map.Entry<String, String> entry : properties.entrySet()) {
-            s = expandProperty(s, entry.getKey(), entry.getValue());
-        }
-        return s;
-    }
-
-    private String expandProperty(String s, String key, String value) {
-        return s.replace("${" + key + "}", value);
     }
 
     @Override
