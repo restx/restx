@@ -1,0 +1,34 @@
+{
+    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
+    "module": "{{groupId}}:{{artifactId}}:{{version}}",
+    "packaging": "war",
+
+    "properties": {
+        "java.version": "1.7",
+        "restx.version": "{{restxVersion}}"
+    },
+
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/annotation-processing-enable.xml"
+        ]
+    },
+
+    "dependencies": {
+        "compile": [
+            "restx:restx-core:${restx.version}",
+            "restx:restx-core-annotation-processor:${restx.version}",
+            "restx:restx-factory:${restx.version}",
+            "restx:restx-factory-admin:${restx.version}",
+            "restx:restx-monitor-admin:${restx.version}",
+            "restx:restx-server-jetty:${restx.version}",
+            "restx:restx-apidocs:${restx.version}",
+            "restx:restx-specs-admin:${restx.version}",
+            "ch.qos.logback:logback-classic:1.0.9"
+        ],
+        "test": [
+            "restx:restx-specs-tests:${restx.version}",
+            "junit:junit:4.11"
+        ]
+    }
+}

@@ -58,7 +58,7 @@ public class AppShellCommand extends StdShellCommand {
 
         private ImmutableMap<Mustache, String> mainTemplates = buildTemplates(
                 AppShellCommand.class, ImmutableMap.<String,String>builder()
-                .put("pom.xml.mustache", "pom.xml")
+                .put("md.restx.json.mustache", "md.restx.json")
                 .put("AppModule.java.mustache", "src/main/java/{{packagePath}}/AppModule.java")
                 .put("AppServer.java.mustache", "src/main/java/{{packagePath}}/AppServer.java")
                 .put("web.xml.mustache", "src/main/webapp/WEB-INF/web.xml")
