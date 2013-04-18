@@ -2,7 +2,7 @@ package restx.shell.commands;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import jline.console.ConsoleReader;
+import restx.shell.RestxShell;
 import restx.shell.ShellCommand;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
@@ -30,36 +30,36 @@ public class HelpCommand extends StdShellCommand {
         if (args.size() > 1) {
             return Optional.of(new ShellCommandRunner() {
                 @Override
-                public void run(ConsoleReader reader) throws IOException {
-                    man(reader, args.get(1));
+                public void run(RestxShell shell) throws IOException {
+                    man(shell, args.get(1));
                 }
             });
         } else {
             return Optional.of(new ShellCommandRunner() {
                 @Override
-                public void run(ConsoleReader reader) throws IOException {
+                public void run(RestxShell shell) throws IOException {
                     for (ShellCommand command : commands) {
-                        command.help(reader);
+                        command.help(shell);
                     }
-                    reader.println("");
-                    reader.println("use `help <command>` with any of these commands to get a detailed man on the command");
+                    shell.println("");
+                    shell.println("use `help <command>` with any of these commands to get a detailed man on the command");
                 }
             });
         }
     }
 
-    private void man(ConsoleReader reader, String command) throws IOException {
+    private void man(RestxShell shell, String command) throws IOException {
         for (ShellCommand shellCommand : commands) {
             if (shellCommand.getAliases().contains(command)) {
-                shellCommand.man(reader);
+                shellCommand.man(shell);
                 return;
             }
         }
 
         if (getAliases().contains(command)) {
-            man(reader);
+            man(shell);
         } else {
-            reader.println("command not found: `" + command + "`. use `help` to get the list of available commands.");
+            shell.println("command not found: `" + command + "`. use `help` to get the list of available commands.");
         }
     }
 }

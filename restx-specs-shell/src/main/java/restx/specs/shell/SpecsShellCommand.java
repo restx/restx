@@ -2,12 +2,12 @@ package restx.specs.shell;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import jline.console.ConsoleReader;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.factory.Component;
 import restx.server.simple.simple.SimpleWebServer;
+import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
@@ -59,7 +59,7 @@ public class SpecsShellCommand extends StdShellCommand {
         }
 
         @Override
-        public void run(final ConsoleReader consoleReader) throws Exception {
+        public void run(final RestxShell shell) throws Exception {
             final String routerPath;
             if (args.size() > 2) {
                 routerPath = args.get(2);
@@ -71,49 +71,49 @@ public class SpecsShellCommand extends StdShellCommand {
                 port = Integer.parseInt(args.get(3));
             }
 
-            printIn(consoleReader, "LAUNCHING SPECS SERVER on port " + port + "...\n", AnsiCodes.ANSI_GREEN);
-            consoleReader.println("type `stop` to stop the server, `help` to get help on available commands");
+            shell.printIn("LAUNCHING SPECS SERVER on port " + port + "...\n", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println("type `stop` to stop the server, `help` to get help on available commands");
 
             System.setProperty("restx.factory.load", "onrequest");
             final SimpleWebServer webServer = new SimpleWebServer(routerPath, ".", port);
             webServer.startAndAwait();
 
-            consoleReader.setPrompt("spec-server> ");
-            consoleReader.addCompleter(new StringsCompleter("stop", "open", "help"));
+            shell.getConsoleReader().setPrompt("spec-server> ");
+            shell.getConsoleReader().addCompleter(new StringsCompleter("stop", "open", "help"));
 
             boolean exit = false;
             while (!exit) {
-                String line = consoleReader.readLine().trim();
+                String line = shell.getConsoleReader().readLine().trim();
                 switch (line) {
                     case "stop":
-                        exit = stop(consoleReader, webServer);
+                        exit = stop(shell, webServer);
                         break;
                     case "open":
-                        openInBrowser(consoleReader, webServer.baseUrl() + routerPath);
+                        openInBrowser(shell, webServer.baseUrl() + routerPath);
                         break;
                     case "help":
-                        help(consoleReader);
+                        help(shell);
                         break;
                     default:
-                        consoleReader.println(
+                        shell.println(
                                 "command not found. use `help` to get the list of commands.");
                 }
             }
         }
 
-        private void openInBrowser(ConsoleReader consoleReader, String uri) throws IOException {
+        private void openInBrowser(RestxShell shell, String uri) throws IOException {
             try {
                 Desktop.getDesktop().browse(new URI(uri));
             } catch (UnsupportedOperationException e) {
-                printIn(consoleReader, "can't open browser: " + e.getMessage(), AnsiCodes.ANSI_RED);
+                shell.printIn("can't open browser: " + e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
             } catch (IOException e) {
-                printIn(consoleReader, "can't open browser: " + e.getMessage(), AnsiCodes.ANSI_RED);
+                shell.printIn("can't open browser: " + e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
             } catch (URISyntaxException e) {
-                printIn(consoleReader, "can't open browser: " + e.getMessage(), AnsiCodes.ANSI_RED);
+                shell.printIn("can't open browser: " + e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
             }
         }
 
-        private boolean stop(ConsoleReader consoleReader, SimpleWebServer webServer) {
+        private boolean stop(RestxShell consoleReader, SimpleWebServer webServer) {
             boolean exit;
             try {
                 consoleReader.println("stopping server...");
@@ -125,19 +125,19 @@ public class SpecsShellCommand extends StdShellCommand {
             return exit;
         }
 
-        private void help(ConsoleReader consoleReader) throws IOException {
-            printIn(consoleReader, "stop", AnsiCodes.ANSI_GREEN);
-            consoleReader.println(" - to stop the server");
+        private void help(RestxShell shell) throws IOException {
+            shell.printIn("stop", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println(" - to stop the server");
 
-            printIn(consoleReader, "open", AnsiCodes.ANSI_GREEN);
-            consoleReader.println(" - open a browser on the spec server");
+            shell.printIn("open", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println(" - open a browser on the spec server");
 
-            printIn(consoleReader, "help", AnsiCodes.ANSI_GREEN);
-            consoleReader.println(" - this help");
+            shell.printIn("help", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println(" - this help");
 
-            consoleReader.println("");
-            consoleReader.println("to add new routes simply create/edit .spec.yaml file in\n" +
-                                  "current directory or subdirectories.");
+            shell.println("");
+            shell.println("to add new routes simply create/edit .spec.yaml file in\n" +
+                    "current directory or subdirectories.");
         }
     }
 }

@@ -2,12 +2,12 @@ package restx.build.shell;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import jline.console.ConsoleReader;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.build.RestxBuild;
 import restx.factory.Component;
+import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
@@ -60,15 +60,15 @@ public class BuildShellCommand extends StdShellCommand {
         }
 
         @Override
-        public void run(ConsoleReader reader) throws Exception {
-            Path currentLocationAbsolutePath = currentLocation().toAbsolutePath();
+        public void run(RestxShell shell) throws Exception {
+            Path currentLocationAbsolutePath = shell.currentLocation().toAbsolutePath();
             List<Path> convert = RestxBuild.convert(currentLocationAbsolutePath + "/**/md.restx.json", target);
             if (convert.isEmpty()) {
-                reader.println("no mathing file found. module descriptors should be named `md.restx.json`");
+                shell.println("no mathing file found. module descriptors should be named `md.restx.json`");
             } else {
-                reader.println("converted:");
+                shell.println("converted:");
                 for (Path path : convert) {
-                    reader.println("\t" + currentLocationAbsolutePath.relativize(path));
+                    shell.println("\t" + currentLocationAbsolutePath.relativize(path));
                 }
             }
         }

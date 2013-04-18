@@ -6,12 +6,12 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import jline.console.ConsoleReader;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.common.UUIDGenerator;
 import restx.factory.Component;
+import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
@@ -75,25 +75,25 @@ public class AppShellCommand extends StdShellCommand {
         );
 
         @Override
-        public void run(ConsoleReader reader) throws Exception {
-            String appName = reader.readLine("App name? ");
-            String groupId = ask(reader, "group id [%s]? ",
+        public void run(RestxShell shell) throws Exception {
+            String appName = shell.getConsoleReader().readLine("App name? ");
+            String groupId = shell.ask("group id [%s]? ",
                     appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH));
-            String artifactId = ask(reader, "artifact id [%s]? ",
+            String artifactId = shell.ask("artifact id [%s]? ",
                                         appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH))
                     .replaceAll("\\s+", "-");
-            String mainPackage = ask(reader, "main package [%s]? ",
+            String mainPackage = shell.ask("main package [%s]? ",
                     artifactId.replaceAll("\\-", ".").toLowerCase(Locale.ENGLISH));
-            String version = ask(reader, "version [%s]? ", "0.1-SNAPSHOT");
+            String version = shell.ask("version [%s]? ", "0.1-SNAPSHOT");
 
             List<String> list = Lists.newArrayList(UUIDGenerator.generate(),
                     String.valueOf(new Random().nextLong()), appName, artifactId);
             Collections.shuffle(list);
-            String signatureKey = ask(reader, "signature key (to sign cookies) [%s]? ",
+            String signatureKey = shell.ask("signature key (to sign cookies) [%s]? ",
                     Joiner.on(" ").join(list));
 
-            String defaultPort = ask(reader, "default port [%s]? ", "8080");
-            String basePath = ask(reader, "base path [%s]? ", "/api");
+            String defaultPort = shell.ask("default port [%s]? ", "8080");
+            String basePath = shell.ask("base path [%s]? ", "/api");
 
             String restxVersion = "0.2-SNAPSHOT";
 
@@ -110,11 +110,11 @@ public class AppShellCommand extends StdShellCommand {
                     .put("restxVersion", restxVersion)
                     .build();
 
-            boolean generateHelloResource = askBoolean(reader, "generate hello resource example [Y/n]? ", "y");
+            boolean generateHelloResource = shell.askBoolean("generate hello resource example [Y/n]? ", "y");
 
-            Path appPath = currentLocation().resolve(artifactId);
+            Path appPath = shell.currentLocation().resolve(artifactId);
 
-            reader.println("scaffolding app to `" + appPath.toAbsolutePath() + "` ...");
+            shell.println("scaffolding app to `" + appPath.toAbsolutePath() + "` ...");
             generate(mainTemplates, appPath, scope);
 
             if (generateHelloResource) {
