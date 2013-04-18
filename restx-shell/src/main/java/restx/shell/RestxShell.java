@@ -11,12 +11,14 @@ import restx.factory.Factory;
 import restx.shell.commands.HelpCommand;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.util.Arrays.asList;
 
@@ -29,6 +31,10 @@ public class RestxShell implements Appendable {
     private final ConsoleReader consoleReader;
     private final Factory factory;
     private final ImmutableSet<ShellCommand> commands;
+
+    private WatchDir watcher;
+    private final List<WatchListener> listeners = new CopyOnWriteArrayList<>();
+    private final ExecutorService watcherExecutorService = Executors.newSingleThreadExecutor();
 
     public RestxShell(ConsoleReader consoleReader) {
         this(consoleReader, Factory.builder().addFromServiceLoader().build());
@@ -67,6 +73,12 @@ public class RestxShell implements Appendable {
         }
 
         consoleReader.println("Bye.");
+        synchronized (this) {
+            if (watcher != null) {
+                watcherExecutorService.shutdownNow();
+                watcher = null;
+            }
+        }
         consoleReader.shutdown();
     }
 
@@ -115,16 +127,55 @@ public class RestxShell implements Appendable {
         return asList("y", "yes", "true", "on").contains(ask(message, defaultValue).toLowerCase(Locale.ENGLISH));
     }
 
+
+    public void print(String s) throws IOException {
+        append(s);
+    }
+
     public void println(String msg) throws IOException {
         consoleReader.println(msg);
+    }
+
+    public void printError(String msg, Exception ex) {
+        System.err.println(msg);
+        ex.printStackTrace();
     }
 
     public Path currentLocation() {
         return Paths.get(".");
     }
 
-
-
+    public void watchFile(WatchListener listener) {
+        synchronized (this) {
+            if (watcher == null) {
+                final Path dir = currentLocation();
+                watcherExecutorService.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            watcher = new WatchDir(dir, true) {
+                                @Override
+                                protected void onEvent(WatchEvent.Kind<?> kind, Path path) {
+                                    for (WatchListener watchListener : listeners) {
+                                        try {
+                                            watchListener.onEvent(RestxShell.this, kind, path);
+                                        } catch (Exception ex) {
+                                            printError("FS event propagation to " + watchListener +
+                                                    " raised an exception: " + ex, ex);
+                                        }
+                                    }
+                                }
+                            };
+                            watcher.processEvents();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            }
+        }
+        listeners.add(listener);
+    }
 
 
     protected void initConsole(ConsoleReader consoleReader) {
@@ -213,5 +264,9 @@ public class RestxShell implements Appendable {
         public static final String ANSI_PURPLE = "\u001B[35m";
         public static final String ANSI_CYAN = "\u001B[36m";
         public static final String ANSI_WHITE = "\u001B[37m";
+    }
+
+    public static interface WatchListener {
+        public void onEvent(RestxShell shell, WatchEvent.Kind<?> kind, Path path);
     }
 }
