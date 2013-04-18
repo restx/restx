@@ -71,12 +71,12 @@ public class SpecsShellCommand extends StdShellCommand {
                 port = Integer.parseInt(args.get(3));
             }
 
-            shell.printIn("LAUNCHING SPECS SERVER on port " + port + "...\n", RestxShell.AnsiCodes.ANSI_GREEN);
-            shell.println("type `stop` to stop the server, `help` to get help on available commands");
-
             System.setProperty("restx.factory.load", "onrequest");
             final SimpleWebServer webServer = new SimpleWebServer(routerPath, ".", port);
-            webServer.startAndAwait();
+            webServer.start();
+            String uri = webServer.baseUrl() + routerPath;
+            shell.printIn("SPECS SERVER READY on " + uri + "/\n", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println("type `stop` to stop the server, `help` to get help on available commands");
 
             shell.getConsoleReader().setPrompt("spec-server> ");
             shell.getConsoleReader().addCompleter(new StringsCompleter("stop", "open", "help"));
@@ -89,7 +89,7 @@ public class SpecsShellCommand extends StdShellCommand {
                         exit = stop(shell, webServer);
                         break;
                     case "open":
-                        openInBrowser(shell, webServer.baseUrl() + routerPath);
+                        openInBrowser(shell, uri);
                         break;
                     case "help":
                         help(shell);
