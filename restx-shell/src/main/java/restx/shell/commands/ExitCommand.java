@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import jline.console.ConsoleReader;
 import restx.factory.Component;
+import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
@@ -24,8 +25,8 @@ public class ExitCommand extends StdShellCommand {
     protected Optional<? extends ShellCommandRunner> doMatch(String line) {
         return Optional.of(new ShellCommandRunner() {
             @Override
-            public boolean run(ConsoleReader reader) throws IOException {
-                return true;
+            public void run(ConsoleReader reader) throws IOException {
+                throw new RestxShell.ExitShell();
             }
         });
     }

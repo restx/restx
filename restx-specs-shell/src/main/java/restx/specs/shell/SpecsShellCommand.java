@@ -59,7 +59,7 @@ public class SpecsShellCommand extends StdShellCommand {
         }
 
         @Override
-        public boolean run(final ConsoleReader consoleReader) throws Exception {
+        public void run(final ConsoleReader consoleReader) throws Exception {
             final String routerPath;
             if (args.size() > 2) {
                 routerPath = args.get(2);
@@ -99,8 +99,6 @@ public class SpecsShellCommand extends StdShellCommand {
                                 "command not found. use `help` to get the list of commands.");
                 }
             }
-
-            return false;
         }
 
         private void openInBrowser(ConsoleReader consoleReader, String uri) throws IOException {

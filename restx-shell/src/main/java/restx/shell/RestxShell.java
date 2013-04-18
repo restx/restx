@@ -17,6 +17,8 @@ import java.util.Set;
  * Time: 9:42 PM
  */
 public class RestxShell {
+    public static final class ExitShell extends RuntimeException { }
+
     public static void main(String[] args) throws Exception {
         ConsoleReader consoleReader = new ConsoleReader();
         consoleReader.setPrompt("restx> ");
@@ -53,8 +55,13 @@ public class RestxShell {
                     }
 
                     try {
-                        exit = match.get().run(consoleReader);
+                        match.get().run(consoleReader);
                         found = true;
+                    } catch (ExitShell e) {
+                        exit = true;
+                    } catch (Exception e) {
+                        consoleReader.println("command " + line + " raised an exception: " + e.getMessage());
+                        e.printStackTrace();
                     } finally {
                         for (Completer completer : ImmutableList.copyOf(consoleReader.getCompleters())) {
                             consoleReader.removeCompleter(completer);

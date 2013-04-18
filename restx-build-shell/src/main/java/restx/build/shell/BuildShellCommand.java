@@ -60,7 +60,7 @@ public class BuildShellCommand extends StdShellCommand {
         }
 
         @Override
-        public boolean run(ConsoleReader reader) throws Exception {
+        public void run(ConsoleReader reader) throws Exception {
             Path currentLocationAbsolutePath = currentLocation().toAbsolutePath();
             List<Path> convert = RestxBuild.convert(currentLocationAbsolutePath + "/**/md.restx.json", target);
             if (convert.isEmpty()) {
@@ -71,8 +71,6 @@ public class BuildShellCommand extends StdShellCommand {
                     reader.println("\t" + currentLocationAbsolutePath.relativize(path));
                 }
             }
-
-            return false;
         }
     }
 }

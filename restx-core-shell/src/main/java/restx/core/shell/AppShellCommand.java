@@ -75,7 +75,7 @@ public class AppShellCommand extends StdShellCommand {
         );
 
         @Override
-        public boolean run(ConsoleReader reader) throws Exception {
+        public void run(ConsoleReader reader) throws Exception {
             String appName = reader.readLine("App name? ");
             String groupId = ask(reader, "group id [%s]? ",
                     appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH));
@@ -120,8 +120,6 @@ public class AppShellCommand extends StdShellCommand {
             if (generateHelloResource) {
                 generate(helloResourceTemplates, appPath, scope);
             }
-
-            return false;
         }
     }
 }

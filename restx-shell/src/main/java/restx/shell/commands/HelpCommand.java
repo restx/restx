@@ -30,21 +30,19 @@ public class HelpCommand extends StdShellCommand {
         if (args.size() > 1) {
             return Optional.of(new ShellCommandRunner() {
                 @Override
-                public boolean run(ConsoleReader reader) throws IOException {
+                public void run(ConsoleReader reader) throws IOException {
                     man(reader, args.get(1));
-                    return false;
                 }
             });
         } else {
             return Optional.of(new ShellCommandRunner() {
                 @Override
-                public boolean run(ConsoleReader reader) throws IOException {
+                public void run(ConsoleReader reader) throws IOException {
                     for (ShellCommand command : commands) {
                         command.help(reader);
                     }
                     reader.println("");
                     reader.println("use `help <command>` with any of these commands to get a detailed man on the command");
-                    return false;
                 }
             });
         }
