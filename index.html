@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Restx : RESTX, the lightweight Java REST framework" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Restx</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/restx/restx">View on GitHub</a>
+
+          <h1 id="project_title">Restx</h1>
+          <h2 id="project_tagline">RESTX, the lightweight Java REST framework</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/restx/restx/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/restx/restx/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>Welcome to RESTX.IO</h3>
+
+<p>This is the home page of the RESTX project, the lightweight Java REST framework:</p>
+
+<ul>
+<li><p><strong>focused on REST, not a general web framework</strong>
+it means no templating mechanism, use it with your favorite JS framework!</p></li>
+<li><p><strong>no reflection</strong>
+we prefer annotation processing, so that even with some magic you can always view the source.</p></li>
+<li>
+<p><strong>good performance</strong>
+everything is compiled, we always keep performance into account during the design, especially startup time.
+Still the framework is not async oriented, this is a design choice: most data access API are synchronous anyway (JDBC, Mongo java driver, ...) and it's easier to program, especially for Java developers.
+Async support is planned:</p>
+
+<ul>
+<li>through web socket with fallback support (probably with Atmosphere)</li>
+<li>through JavaRX support (not a priority)
+If what you want is a truly async oriented framework, have a look at vert.x or Play2</li>
+</ul>
+</li>
+<li><p><strong>amazing integration with MongoDB...</strong>
+relying on Jackson and Jongo gives true symmetry between client and datastore payloads, plus some very cool features like data recording for easy integration testing </p></li>
+<li><p><strong>... but not only</strong>
+restx is not specific to MongoDB, you can use it with any datastore with a Java API</p></li>
+<li><p><strong>easy testing</strong>
+a human readable declarative end 2 end tests support with a recording feature easing non regression tests</p></li>
+<li><p><strong>REST API documentation</strong>
+leveraging a customized version of swagger, as soon as you declare a end point it is documented</p></li>
+<li><p><strong>... with innovation inside</strong>
+the declarative tests are also used as a source of documentation, giving always working examples!</p></li>
+<li><p><strong>admin web console</strong>
+monitoring, DI container exploration, API documentation, recording console, ...</p></li>
+<li><p><strong>enterprise friendly</strong>
+pure Java, can be deployed as a simple servlet, you can even use it alongside another framework, good maven support, relationnal DB support (soon)</p></li>
+<li><p><strong>... but not only</strong>
+strong support for embedded launch, starts up in less than 0.5s (depends mostly on DB connection and class loading, by itself a restx server can start in less than 100ms)</p></li>
+<li><p><strong>type safe DI</strong>
+features a small dependency injection engine, based on annotation processing and code generation</p></li>
+<li><p><strong>strong integration with google guava and joda time</strong>
+because we can't live without them</p></li>
+<li><p><strong>cloud friendly (soon)</strong>
+ready to deploy on many cloud offerings (Cloudbees, heroku, ...)</p></li>
+<li><p><strong>easy to setup</strong>
+a command line helps to create new apps, run and deploy them on the cloud</p></li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Restx maintained by <a href="https://github.com/restx">restx</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-40641346-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+
+  </body>
+</html>
