@@ -10,7 +10,7 @@
 
     <groupId>io.restx</groupId>
     <artifactId>restx-package</artifactId>
-    <version>0.2.3</version>
+    <version>0.2.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <build>
