@@ -108,6 +108,7 @@
         <module>restx-common</module>
         <module>restx-factory</module>
         <module>restx-shell</module>
+        <module>restx-package</module>
         <module>restx-build</module>
         <module>restx-build-shell</module>
         <module>restx-core</module>

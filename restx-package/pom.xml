@@ -13,67 +13,41 @@
     <groupId>io.restx</groupId>
     <artifactId>restx-package</artifactId>
     <version>0.2-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-    <properties>
-        <restx.version>0.2-SNAPSHOT</restx.version>
-    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/shell.xml</descriptor>
+                    </descriptors>
+                    <finalName>restx-${project.version}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <outputDirectory>target/assembly/out</outputDirectory>
+                    <workDirectory>target/assembly/work</workDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-         <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-core</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-core-annotation-processor</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-specs-shell</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-           <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-core-shell</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-         <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-build-shell</artifactId>
-            <version>${restx.version}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
-
-    <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.7</version>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-	      <outputDirectory>${project.build.directory}/dist/lib</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
 </project>
