@@ -49,5 +49,10 @@
             <artifactId>restx-shell</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-shell-manager</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

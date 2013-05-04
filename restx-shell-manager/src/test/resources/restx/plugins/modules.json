@@ -1,0 +1,5 @@
+[
+    { "id": "io.restx:restx-build-shell:0.2", "description": "This is a test description", "category": "shell"},
+    { "id": "io.restx:restx-core-shell:0.2", "description": "This is a test description 2", "category": "shell"},
+    { "id": "io.restx:restx-jongo:0.2", "description": "This is a test description 3", "category": "app"}
+]

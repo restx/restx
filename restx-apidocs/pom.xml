@@ -36,6 +36,7 @@
         <mongo-java-driver.version>2.11.1</mongo-java-driver.version>
         <bson4jackson.version>2.1.1</bson4jackson.version>
         <jongo.version>0.3</jongo.version>
+        <ivy.version>2.3.0</ivy.version>
         <servlet-api.version>3.0.1</servlet-api.version>
         <jetty.version>8.1.8.v20121106</jetty.version>
         <embedded.tomcat.version>7.0.35</embedded.tomcat.version>

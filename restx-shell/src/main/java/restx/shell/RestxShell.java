@@ -10,8 +10,11 @@ import jline.console.completer.Completer;
 import restx.factory.Factory;
 import restx.shell.commands.HelpCommand;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -145,6 +148,21 @@ public class RestxShell implements Appendable {
         return Paths.get(".");
     }
 
+    public Path installLocation() {
+        return Paths.get(System.getProperty("restx.shell.home", "."));
+    }
+
+    public void restart() {
+        try {
+            new File(installLocation().toFile(), ".restart").createNewFile();
+            printIn("RESTARTING SHELL...", AnsiCodes.ANSI_RED);
+            println("");
+            throw new ExitShell();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void watchFile(WatchListener listener) {
         synchronized (this) {
             if (watcher == null) {
@@ -176,7 +194,6 @@ public class RestxShell implements Appendable {
         }
         listeners.add(listener);
     }
-
 
     protected void initConsole(ConsoleReader consoleReader) {
         consoleReader.setPrompt("restx> ");
@@ -227,6 +244,9 @@ public class RestxShell implements Appendable {
         return false;
     }
 
+
+
+
     protected void installCompleters() {
         for (ShellCommand command : commands) {
             for (Completer completer : command.getCompleters()) {
@@ -242,9 +262,6 @@ public class RestxShell implements Appendable {
         commands.add(helpCommand);
         return commands;
     }
-
-
-
 
     public static void main(String[] args) throws Exception {
         ConsoleReader consoleReader = new ConsoleReader();

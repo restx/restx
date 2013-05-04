@@ -1,0 +1,26 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-shell-manager:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/annotation-processing-enable.xml"
+        ]
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-shell:${restx.version}",
+            "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
+            "org.apache.ivy:ivy:${ivy.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.easytesting:fest-assert-core:${fest-assert-core.version}"
+        ]
+    }
+}

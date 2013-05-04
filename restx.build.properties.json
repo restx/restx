@@ -28,6 +28,8 @@
     "bson4jackson.version": "2.1.1",
     "jongo.version": "0.3",
 
+    "ivy.version": "2.3.0",
+
     "servlet-api.version": "3.0.1",
 
     "jetty.version": "8.1.8.v20121106",
