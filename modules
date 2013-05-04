@@ -1,0 +1,4 @@
+[
+    { "id": "io.restx:restx-build-shell:0.2.4", "description": "build commands: generate pom, ivy, ...", "category": "shell"},
+    { "id": "commons-httpclient:commons-httpclient:2.0", "description": "test plugin installation", "category": "shell"}
+]
