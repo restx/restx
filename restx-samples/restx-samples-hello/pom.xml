@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>fr.4sh.pom-parents</groupId>
-        <artifactId>4sh-uberpom</artifactId>
-        <version>0.8</version>
+        <groupId>io.restx</groupId>
+        <artifactId>restx-samples</artifactId>
+        <version>0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>restx</groupId>
+    <groupId>io.restx</groupId>
     <artifactId>restx-samples-hello</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>war</packaging>
@@ -21,42 +21,42 @@
 
     <dependencies>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-factory-admin</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-monitor-admin</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-server-simple</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-apidocs</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-specs-admin</artifactId>
             <version>0.2-SNAPSHOT</version>
         </dependency>
@@ -68,7 +68,7 @@
         </dependency>
 
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-specs-tests</artifactId>
             <version>0.2-SNAPSHOT</version>
             <scope>test</scope>

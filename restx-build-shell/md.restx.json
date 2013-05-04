@@ -1,6 +1,6 @@
 {
-    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
-    "module": "restx:restx-build-shell:${restx.version}",
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-build-shell:${restx.version}",
 
     "properties": {
         "@files": ["../restx.build.properties.json"]
@@ -14,9 +14,9 @@
 
     "dependencies": {
         "compile": [
-            "restx:restx-factory:${restx.version}",
-            "restx:restx-shell:${restx.version}",
-            "restx:restx-build:${restx.version}"
+            "io.restx:restx-factory:${restx.version}",
+            "io.restx:restx-shell:${restx.version}",
+            "io.restx:restx-build:${restx.version}"
         ]
     }
 }

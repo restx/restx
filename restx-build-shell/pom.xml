@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>fr.4sh.pom-parents</groupId>
-        <artifactId>4sh-uberpom</artifactId>
-        <version>0.8</version>
+        <groupId>io.restx</groupId>
+        <artifactId>restx-parent</artifactId>
+        <version>0.2-SNAPSHOT</version>
     </parent>
 
-    <groupId>restx</groupId>
+    <groupId>io.restx</groupId>
     <artifactId>restx-build-shell</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -48,17 +48,17 @@
 
     <dependencies>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
             <version>${restx.version}</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-shell</artifactId>
             <version>${restx.version}</version>
         </dependency>
         <dependency>
-            <groupId>restx</groupId>
+            <groupId>io.restx</groupId>
             <artifactId>restx-build</artifactId>
             <version>${restx.version}</version>
         </dependency>

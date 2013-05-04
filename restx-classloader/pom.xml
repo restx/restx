@@ -10,7 +10,7 @@
         <version>0.8</version>
     </parent>
 
-    <groupId>restx</groupId>
+    <groupId>io.restx</groupId>
     <artifactId>restx-classloader</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>jar</packaging>

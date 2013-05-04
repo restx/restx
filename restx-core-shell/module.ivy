@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="restx" module="restx-core-shell" revision="0.2" status="integration">
+    <info organisation="io.restx" module="restx-core-shell" revision="0.2" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             restx.version="0.2-SNAPSHOT"
             compile.java.source.version="1.7"
@@ -38,8 +38,8 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="restx" name="restx-factory" rev="latest.integration" conf="default" />
-        <dependency org="restx" name="restx-core" rev="latest.integration" conf="default" />
-        <dependency org="restx" name="restx-shell" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-shell" rev="latest.integration" conf="default" />
     </dependencies>
 </ivy-module>
