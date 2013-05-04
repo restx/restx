@@ -1,6 +1,6 @@
 {
-    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
-    "module": "restx:restx-core:0.2-SNAPSHOT",
+    "parent": "com.example:example-parent:0.8",
+    "module": "com.example:example-core:0.2-SNAPSHOT",
 
     "properties": {
         "java.version": "1.7",
@@ -14,7 +14,7 @@
             "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
             "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson.version}",
-            "restx:restx-factory:${module.version}",
+            "com.example:example-factory:${module.version}",
             "javax.inject:javax.inject:1",
             "com.google.guava:guava:14.0-rc2",
             "joda-time:joda-time:2.0",

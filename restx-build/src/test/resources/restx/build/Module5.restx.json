@@ -1,6 +1,6 @@
 {
-    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
-    "module": "restx:restx-common:${restx.version}",
+    "parent": "com.example:example-parent:0.8",
+    "module": "com.example:example-common:${restx.version}",
 
     "properties": {
         "@files": ["Module5.properties.json"]
@@ -8,7 +8,7 @@
 
     "dependencies": {
         "compile": [
-            "restx:restx-dummy:${restx.version}",
+            "com.example:example-dummy:${restx.version}",
             "com.google.guava:guava:14.0-rc2",
             "joda-time:joda-time:${joda-time.version}",
             "com.github.spullara.mustache.java:compiler:0.8.10"

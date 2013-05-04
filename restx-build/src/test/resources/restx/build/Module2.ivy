@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="restx" module="restx-core" revision="0.2" status="integration">
+    <info organisation="com.example" module="example-core" revision="0.2" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -19,7 +19,7 @@
         <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="${jackson.version}" conf="default" />
         <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="${jackson.version}" conf="default" />
         <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="${jackson.version}" conf="default" />
-        <dependency org="restx" name="restx-factory" rev="latest.integration" conf="default" />
+        <dependency org="com.example" name="example-factory" rev="latest.integration" conf="default" />
         <dependency org="javax.inject" name="javax.inject" rev="1" conf="default" />
         <dependency org="com.google.guava" name="guava" rev="14.0-rc2" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.0" conf="default" />

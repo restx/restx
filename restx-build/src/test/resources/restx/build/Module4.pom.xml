@@ -5,16 +5,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>fr.4sh.pom-parents</groupId>
-        <artifactId>4sh-uberpom</artifactId>
+        <groupId>com.example</groupId>
+        <artifactId>example-parent</artifactId>
         <version>0.8</version>
     </parent>
 
-    <groupId>restx</groupId>
-    <artifactId>restx-common</artifactId>
+    <groupId>com.example</groupId>
+    <artifactId>example-common</artifactId>
     <version>0.2-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>restx-common</name>
+    <name>example-common</name>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>

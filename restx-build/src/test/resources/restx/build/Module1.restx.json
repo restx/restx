@@ -1,6 +1,6 @@
 {
-    "parent": "fr.4sh.pom-parents:4sh-uberpom:0.8",
-    "module": "restx:restx-common:0.2-SNAPSHOT",
+    "parent": "com.example:example-parent:0.8",
+    "module": "com.example:example-common:0.2-SNAPSHOT",
 
     "properties": {
         "java.version": "1.7",
