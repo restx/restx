@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
+import restx.common.Version;
 import restx.factory.Factory;
 import restx.shell.commands.HelpCommand;
 
@@ -137,6 +138,7 @@ public class RestxShell implements Appendable {
 
     public void println(String msg) throws IOException {
         consoleReader.println(msg);
+        consoleReader.flush();
     }
 
     public void printError(String msg, Exception ex) {
@@ -202,7 +204,7 @@ public class RestxShell implements Appendable {
 
     protected void banner() throws IOException {
         consoleReader.println("===============================================================================");
-        consoleReader.println("== WELCOME TO RESTX SHELL - type `help` for help on available commands");
+        consoleReader.println("== WELCOME TO RESTX SHELL - " + version() + " - type `help` for help on available commands");
         consoleReader.println("===============================================================================");
     }
 
@@ -268,6 +270,9 @@ public class RestxShell implements Appendable {
         new RestxShell(consoleReader).start();
     }
 
+    public String version() {
+        return Version.getVersion("io.restx", "restx-shell");
+    }
 
     public static final class ExitShell extends RuntimeException { }
 

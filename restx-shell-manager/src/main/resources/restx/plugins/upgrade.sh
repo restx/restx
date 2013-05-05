@@ -9,6 +9,7 @@ done
 
 dir=`dirname $PRG`
 
+rm -rf "$dir/lib"
 tar xzvf "$dir/upgrade.tgz" -C "$dir"
 
 rm -f "$dir/upgrade.tgz"

@@ -5,6 +5,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
@@ -16,6 +18,9 @@ import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -51,7 +56,7 @@ public class PluginsShellCommand extends StdShellCommand {
     @Override
     public Iterable<Completer> getCompleters() {
         return ImmutableList.<Completer>of(
-                new ArgumentCompleter(new StringsCompleter("shell"), new StringsCompleter("install")));
+                new ArgumentCompleter(new StringsCompleter("shell"), new StringsCompleter("install", "upgrade")));
     }
 
     private class InstallPluginRunner implements ShellCommandRunner {
@@ -119,7 +124,37 @@ public class PluginsShellCommand extends StdShellCommand {
     private class UpgradeShellRunner implements ShellCommandRunner {
         @Override
         public void run(RestxShell shell) throws Exception {
-            shell.println("TODO: checking for upgrade of restx shell...");
+            shell.println("checking for upgrade of restx shell...");
+
+            try (Reader reader = new InputStreamReader(new URL("http://restx.io/version").openStream(), Charsets.UTF_8)) {
+                List<String> parts = CharStreams.readLines(reader);
+                if (parts.size() < 2) {
+                    shell.printIn(
+                            "unexpected content at http://restx.io/version, try again later or contact the group.\n",
+                            RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("content: ");
+                    shell.println(Joiner.on("\n").join(parts));
+                    return;
+                }
+
+                String version = parts.get(0);
+                String url = parts.get(1);
+
+                if (!version.equals(shell.version())) {
+                    shell.printIn("upgrading to " + version, RestxShell.AnsiCodes.ANSI_GREEN);
+                    shell.println("");
+                    shell.println("please wait while downloading new version, this may take a while...");
+
+                    try (InputStream stream = new URL(url + ".tar.gz").openStream()) {
+                        ByteStreams.copy(stream, Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade.tgz").toFile()));
+                        ByteStreams.copy(PluginsShellCommand.class.getResourceAsStream("upgrade.sh"),
+                                Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade.sh").toFile()));
+
+                        shell.println("downloaded version " + version + ", restarting");
+                        shell.restart();
+                    }
+                }
+            }
         }
     }
 }
