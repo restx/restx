@@ -1,7 +1,7 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-shell-manager" revision="0.2" status="integration">
+    <info organisation="io.restx" module="restx-shell-manager" revision="0.2.4" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
-            restx.version="0.2-SNAPSHOT"
+            restx.version="0.2.4-SNAPSHOT"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
             slf4j-api.version="1.7.5"

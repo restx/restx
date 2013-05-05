@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.2.3</version>
+        <version>0.2.4-SNAPSHOT</version>
     </parent>
 
     <groupId>io.restx</groupId>
@@ -50,6 +50,11 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell-manager</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-build-shell</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
