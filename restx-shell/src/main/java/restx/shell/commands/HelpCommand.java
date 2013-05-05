@@ -43,6 +43,8 @@ public class HelpCommand extends StdShellCommand {
                     }
                     shell.println("");
                     shell.println("use `help <command>` with any of these commands to get a detailed man on the command");
+                    shell.println("");
+                    shell.println("you can use command completion with <TAB> and command history with <UP> <DOWN> and CTRL+R");
                 }
             });
         }
