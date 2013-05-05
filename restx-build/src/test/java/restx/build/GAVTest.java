@@ -1,7 +1,8 @@
 package restx.build;
 
-import org.fest.assertions.api.Assertions;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * User: xavierhanin
@@ -17,6 +18,6 @@ public class GAVTest {
     }
 
     private void shouldBeConsistent(String gav) {
-        Assertions.assertThat(GAV.parse(gav).toString()).isEqualTo(gav);
+        assertThat(GAV.parse(gav).toString()).isEqualTo(gav);
     }
 }

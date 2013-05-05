@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import restx.StdRequest;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

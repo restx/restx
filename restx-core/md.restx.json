@@ -30,7 +30,7 @@
             "org.hamcrest:hamcrest-core:${hamcrest.version}",
             "org.hamcrest:hamcrest-library:${hamcrest.version}",
             "uk.co.datumedge:hamcrest-json:${hamcrest-json.version}",
-            "org.easytesting:fest-assert-core:${fest-assert-core.version}",
+            "org.assertj:assertj-core:${assertj-core.version}",
             "org.yaml:snakeyaml:${snakeyaml.version}",
             "com.github.kevinsawicki:http-request:${http-request.version}"
         ]

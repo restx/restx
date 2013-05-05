@@ -3,7 +3,7 @@ package restx.common;
 import com.google.common.base.Charsets;
 import org.junit.Test;
 
-import static org.fest.assertions.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

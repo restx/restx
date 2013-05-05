@@ -20,7 +20,7 @@
         ],
         "test": [
             "junit:junit:${junit.version}",
-            "org.easytesting:fest-assert-core:${fest-assert-core.version}"
+            "org.assertj:assertj-core:${assertj-core.version}"
         ]
     }
 }

@@ -3,7 +3,7 @@ package restx.server;
 import com.google.common.base.Optional;
 import org.junit.Test;
 
-import static org.fest.assertions.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 
 /**

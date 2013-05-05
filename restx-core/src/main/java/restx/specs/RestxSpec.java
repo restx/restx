@@ -7,7 +7,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.fest.assertions.api.Assertions;
 import org.hamcrest.MatcherAssert;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static restx.common.MoreStrings.indent;
 
 /**
@@ -186,7 +186,7 @@ public class RestxSpec {
             System.out.println(body);
             System.out.println();
 
-            Assertions.assertThat(code).isEqualTo(getThen().getExpectedCode());
+            assertThat(code).isEqualTo(getThen().getExpectedCode());
             MatcherAssert.assertThat(body,
                     SameJSONAs.sameJSONAs(getThen().getExpected()).allowingExtraUnexpectedFields());
             System.out.printf("checked %s /%s -- %s%n", getMethod(), getPath(), stopwatch.stop().toString());

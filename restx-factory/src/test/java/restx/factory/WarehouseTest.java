@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.jamonapi.MonitorFactory;
 import org.junit.Test;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

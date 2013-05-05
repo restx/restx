@@ -5,7 +5,7 @@ import org.junit.Test;
 import restx.server.WebServer;
 import restx.server.WebServers;
 
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

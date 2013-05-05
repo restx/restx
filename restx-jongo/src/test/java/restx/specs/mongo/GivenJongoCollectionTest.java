@@ -2,13 +2,12 @@ package restx.specs.mongo;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import org.fest.assertions.data.MapEntry;
+import org.assertj.core.data.MapEntry;
 import org.junit.Test;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.extractProperty;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin
