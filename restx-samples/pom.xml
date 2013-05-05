@@ -7,12 +7,12 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.2.5-SNAPSHOT</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-samples</artifactId>
-    <version>0.2.4-SNAPSHOT</version>
+    <version>0.2.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
