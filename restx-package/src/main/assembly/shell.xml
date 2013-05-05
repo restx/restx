@@ -15,9 +15,20 @@
         <fileSet>
             <directory>src/main/script</directory>
             <outputDirectory></outputDirectory>
+            <lineEnding>unix</lineEnding>
+            <fileMode>0755</fileMode>
             <includes>
                 <include>restx</include>
                 <include>launch.sh</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>src/main/script</directory>
+            <outputDirectory></outputDirectory>
+            <lineEnding>windows</lineEnding>
+            <includes>
+                <include>restx.bat</include>
+                <include>launch.bat</include>
             </includes>
         </fileSet>
         <fileSet>

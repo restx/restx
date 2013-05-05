@@ -145,10 +145,14 @@ public class PluginsShellCommand extends StdShellCommand {
                     shell.println("");
                     shell.println("please wait while downloading new version, this may take a while...");
 
-                    try (InputStream stream = new URL(url + ".tar.gz").openStream()) {
-                        ByteStreams.copy(stream, Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade.tgz").toFile()));
-                        ByteStreams.copy(PluginsShellCommand.class.getResourceAsStream("upgrade.sh"),
-                                Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade.sh").toFile()));
+                    boolean isWindows = System.getProperty("os.name").toLowerCase().indexOf("win") >= 0;
+                    String archiveExt = isWindows ? ".zip" : ".tar.gz";
+                    String scriptExt = isWindows ? ".bat" : ".sh";
+
+                    try (InputStream stream = new URL(url + archiveExt).openStream()) {
+                        ByteStreams.copy(stream, Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade" + archiveExt).toFile()));
+                        ByteStreams.copy(PluginsShellCommand.class.getResourceAsStream("upgrade" + scriptExt),
+                                Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade" + scriptExt).toFile()));
 
                         shell.println("downloaded version " + version + ", restarting");
                         shell.restart();

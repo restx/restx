@@ -10,7 +10,7 @@ done
 dir=`dirname $PRG`
 
 rm -rf "$dir/lib"
-tar xzvf "$dir/upgrade.tgz" -C "$dir"
+tar xzvf "$dir/upgrade.tar.gz" -C "$dir"
 
-rm -f "$dir/upgrade.tgz"
+rm -f "$dir/upgrade.tar.gz"
 
