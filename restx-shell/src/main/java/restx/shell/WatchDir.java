@@ -68,9 +68,6 @@ public class WatchDir {
         } else {
             register(dir);
         }
- 
-        // enable trace after initial registration
-        this.trace = true;
     }
  
     /**
