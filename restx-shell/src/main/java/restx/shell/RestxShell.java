@@ -2,17 +2,21 @@ package restx.shell;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteProcessor;
+import com.google.common.io.ByteStreams;
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
 import restx.common.Version;
 import restx.factory.Factory;
 import restx.shell.commands.HelpCommand;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
@@ -25,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.util.Arrays.asList;
+import static jline.console.ConsoleReader.RESET_LINE;
 
 /**
  * User: xavierhanin
@@ -273,6 +278,58 @@ public class RestxShell implements Appendable {
     public String version() {
         return Version.getVersion("io.restx", "restx-shell");
     }
+
+    public void download(final URL source, File destination) throws IOException {
+        final String name = source.toString();
+        println("downloading " + (name.length() <= 70 ? name : "[...]" + name.substring(name.length() - 65)));
+        URLConnection connection = source.openConnection();
+        final int total = connection.getContentLength();
+        final int[] progress = new int[]{0};
+        startProgress(name, total);
+        try (InputStream stream = connection.getInputStream();
+             final OutputStream out = new FileOutputStream(destination)) {
+            ByteStreams.readBytes(stream,
+                    new ByteProcessor<Void>() {
+                        public boolean processBytes(byte[] buffer, int offset, int length)
+                                throws IOException {
+                            out.write(buffer, offset, length);
+                            progress[0] += length;
+                            updateProgress(name, progress[0], total);
+                            return true;
+                        }
+
+                        public Void getResult() {
+                            return null;
+                        }
+                    });
+            endProgress(name);
+        }
+    }
+
+    private void endProgress(String name) throws IOException {
+        consoleReader.println();
+    }
+
+    private void startProgress(String name, int total) throws IOException {
+        updateProgress(name, 0, total);
+    }
+
+    private void updateProgress(String name, int progress, int total) throws IOException {
+        int barWidth = 70;
+        StringBuilder line = new StringBuilder();
+
+        if (progress >= total) {
+            line.append("[").append(Strings.repeat("=", barWidth)).append("]");
+        } else {
+            int p = Math.min(progress * barWidth / total, barWidth - 1);
+            line.append("[").append(Strings.repeat("=", p)).append(">").append(Strings.repeat(" ", barWidth - p - 1)).append("]");
+        }
+
+        line.append(String.format(" %3d", progress * 100 / total)).append("%");
+
+        consoleReader.print("" + RESET_LINE + line);
+    }
+
 
     public static final class ExitShell extends RuntimeException { }
 

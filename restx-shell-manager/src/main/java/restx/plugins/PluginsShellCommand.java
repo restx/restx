@@ -17,10 +17,7 @@ import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -149,14 +146,14 @@ public class PluginsShellCommand extends StdShellCommand {
                     String archiveExt = isWindows ? ".zip" : ".tar.gz";
                     String scriptExt = isWindows ? ".bat" : ".sh";
 
-                    try (InputStream stream = new URL(url + archiveExt).openStream()) {
-                        ByteStreams.copy(stream, Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade" + archiveExt).toFile()));
-                        ByteStreams.copy(PluginsShellCommand.class.getResourceAsStream("upgrade" + scriptExt),
-                                Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade" + scriptExt).toFile()));
+                    URL source = new URL(url + archiveExt);
+                    shell.download(source, shell.installLocation().resolve("upgrade" + archiveExt).toFile());
 
-                        shell.println("downloaded version " + version + ", restarting");
-                        shell.restart();
-                    }
+                    ByteStreams.copy(PluginsShellCommand.class.getResourceAsStream("upgrade" + scriptExt),
+                            Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade" + scriptExt).toFile()));
+
+                    shell.println("downloaded version " + version + ", restarting");
+                    shell.restart();
                 }
             }
         }
