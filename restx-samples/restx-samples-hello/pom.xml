@@ -5,60 +5,61 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-samples</artifactId>
-        <version>0.2-SNAPSHOT</version>
+        <version>0.2.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-samples-hello</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2.4-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
+        <restx.version>0.2.4-SNAPSHOT</restx.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory-admin</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-monitor-admin</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-server-simple</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-apidocs</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-specs-admin</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
         </dependency>
 
         <dependency>
@@ -70,7 +71,7 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-specs-tests</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>${restx.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
