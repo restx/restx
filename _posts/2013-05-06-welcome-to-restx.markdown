@@ -92,8 +92,10 @@ Transfer-Encoding: chunked
 - an admin console with...
 
 - basic monitoring UI
+![monitoring UI with RESTX](/images/posts/monitoring.png)
 
 - beans graph visualization
+![monitoring UI with RESTX](/images/posts/beans-graph.png)
 
 - and more...
 
