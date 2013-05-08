@@ -1,6 +1,7 @@
 /*******************************************************************************
 Slate Theme for GitHub Pages
 by Jason Costello, @jsncostello
+adapted for RESTX project
 *******************************************************************************/
 
 @import url(pygment_trac.css);
@@ -272,7 +273,7 @@ Full-Width Styles
 
 .inner {
   position: relative;
-  max-width: 640px;
+  max-width: 960px;
   padding: 20px 10px;
   margin: 0 auto;
 }
