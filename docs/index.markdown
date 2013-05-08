@@ -8,3 +8,4 @@ title:  "Documentation"
 - [Installation](install.html)
 - [Getting Started](getting-started.html)
 - [Manually setup your Java app to use RESTX](manual-app-bootstrap.html)
+- [IDE: Setup in Eclipse](ide-eclipse-setup.html)
