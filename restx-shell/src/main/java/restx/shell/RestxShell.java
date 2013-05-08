@@ -124,16 +124,30 @@ public class RestxShell implements Appendable {
     }
 
     public String ask(String msg, String defaultValue) throws IOException {
-        String value = consoleReader.readLine(String.format(msg, defaultValue));
-        if (value.trim().isEmpty()) {
-            return defaultValue;
-        } else {
-            return value.trim();
+        return ask(msg, defaultValue,
+                "No help provided for that question, sorry, try to figure it out or ask to the community...");
+    }
+
+    public String ask(String msg, String defaultValue, String help) throws IOException {
+        while (true) {
+            String value = consoleReader.readLine(String.format(msg, defaultValue));
+            if (value.trim().isEmpty()) {
+                return defaultValue;
+            } else if (value.trim().equals("??")) {
+                printIn(help, AnsiCodes.ANSI_YELLOW);
+                println("");
+            } else {
+                return value.trim();
+            }
         }
     }
 
     public boolean askBoolean(String message, String defaultValue) throws IOException {
         return asList("y", "yes", "true", "on").contains(ask(message, defaultValue).toLowerCase(Locale.ENGLISH));
+    }
+
+    public boolean askBoolean(String message, String defaultValue, String help) throws IOException {
+        return asList("y", "yes", "true", "on").contains(ask(message, defaultValue, help).toLowerCase(Locale.ENGLISH));
     }
 
 
@@ -152,11 +166,11 @@ public class RestxShell implements Appendable {
     }
 
     public Path currentLocation() {
-        return Paths.get(".");
+        return Paths.get(".").normalize();
     }
 
     public Path installLocation() {
-        return Paths.get(System.getProperty("restx.shell.home", "."));
+        return Paths.get(System.getProperty("restx.shell.home", ".")).normalize();
     }
 
     public void restart() {
