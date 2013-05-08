@@ -1,15 +1,18 @@
 package restx.plugins;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * User: xavierhanin
@@ -37,14 +40,23 @@ public class ModulesManagerTest {
     }
 
     @Test
+    public void should_parse_mid() throws Exception {
+        ModuleId id = manager.toModuleId("io.restx:restx-common");
+        assertThat(id).isNotNull();
+        assertThat(id.getOrganisation()).isEqualTo("io.restx");
+        assertThat(id.getName()).isEqualTo("restx-common");
+    }
+
+    @Test
     public void should_download_module() throws Exception {
         File toDir = new File("target/tmp");
         delete(toDir);
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("com.github.kevinsawicki:http-request:0.1", "shell", "")),
-                toDir);
+                toDir,
+                Collections.<String>emptyList());
 
-        assertThat(toDir.list()).containsExactly("http-request-0.1.jar");
+        assertThat(toDir.list()).containsExactly("http-request.jar");
         delete(toDir);
     }
 
@@ -54,9 +66,23 @@ public class ModulesManagerTest {
         delete(toDir);
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("commons-httpclient:commons-httpclient:2.0", "shell", "")),
-                toDir);
+                toDir,
+                Collections.<String>emptyList());
 
-        assertThat(toDir.list()).containsExactly("commons-httpclient-2.0.jar", "commons-lang-1.0.1.jar", "commons-logging-1.0.3.jar");
+        assertThat(toDir.list()).containsExactly("commons-httpclient.jar", "commons-lang.jar", "commons-logging.jar");
+        delete(toDir);
+    }
+
+    @Test
+    public void should_download_module_excluding_some_dependencies() throws Exception {
+        File toDir = new File("target/tmp");
+        delete(toDir);
+        manager.download(
+                ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("commons-httpclient:commons-httpclient:2.0", "shell", "")),
+                toDir,
+                Arrays.asList("commons-logging:commons-logging"));
+
+        assertThat(toDir.list()).containsExactly("commons-httpclient.jar", "commons-lang.jar");
         delete(toDir);
     }
 

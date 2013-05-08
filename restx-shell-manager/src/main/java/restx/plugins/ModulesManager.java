@@ -6,10 +6,15 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.LogOptions;
+import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.id.ArtifactId;
+import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
+import org.apache.ivy.plugins.matcher.ExactOrRegexpPatternMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +66,7 @@ public class ModulesManager {
         }
     }
 
-    public List<File> download(List<ModuleDescriptor> modules, File toDir) throws IOException {
+    public List<File> download(List<ModuleDescriptor> modules, File toDir, List<String> excluding) throws IOException {
         if (!toDir.exists()) {
             if (!toDir.mkdirs()) {
                 throw new IOException("can't create directory " + toDir);
@@ -70,13 +75,25 @@ public class ModulesManager {
         List<File> files = new ArrayList<>();
         for (ModuleDescriptor module : modules) {
             try {
-                ResolveReport report = ivy.resolve(toMrid(module.getId()),
+                DefaultModuleDescriptor md = DefaultModuleDescriptor.newCallerInstance(
+                        toMrid(module.getId()), new String[]{"master", "runtime"}, true, false);
+                for (String exclude : excluding) {
+                    DefaultExcludeRule rule = new DefaultExcludeRule(
+                            new ArtifactId(toModuleId(exclude), ".*", ".*", ".*"),
+                            new ExactOrRegexpPatternMatcher(),
+                            null);
+                    rule.addConfiguration("master");
+                    rule.addConfiguration("runtime");
+                    md.addExcludeRule(rule);
+                }
+
+                ResolveReport report = ivy.resolve(md,
                         (ResolveOptions) new ResolveOptions()
-                            .setConfs(new String[]{"master", "runtime"})
-                            .setLog(LogOptions.LOG_QUIET), false);
+                                .setLog(LogOptions.LOG_QUIET)
+                        );
                 for (ArtifactDownloadReport artifactDownloadReport : report.getAllArtifactsReports()) {
                     File localFile = artifactDownloadReport.getLocalFile();
-                    File to = new File(toDir, localFile.getName());
+                    File to = new File(toDir, artifactDownloadReport.getName() + "." + artifactDownloadReport.getExt());
                     Files.copy(localFile, to);
                     files.add(to);
                 }
@@ -87,10 +104,18 @@ public class ModulesManager {
         return files;
     }
 
+    ModuleId toModuleId(String id) {
+        String[] parts = id.split(":");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("can't parse module id '" + id + "': it must be of the form groupId:artifactId");
+        }
+        return ModuleId.newInstance(parts[0], parts[1]);
+    }
+
     ModuleRevisionId toMrid(String id) {
         String[] parts = id.split(":");
         if (parts.length != 3) {
-            throw new IllegalArgumentException("can't parse module id '" + id + "': it must be of the form groupId:artifactId:version");
+            throw new IllegalArgumentException("can't parse module revision id '" + id + "': it must be of the form groupId:artifactId:version");
         }
         return ModuleRevisionId.newInstance(parts[0], parts[1], parts[2]);
     }
