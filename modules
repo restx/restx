@@ -1,4 +1,5 @@
 [
+    { "id": "io.restx:restx-core-shell:0.2.4", "description": "core commands: generate new app, ...", "category": "shell"},
     { "id": "io.restx:restx-build-shell:0.2.4", "description": "build commands: generate pom, ivy, ...", "category": "shell"},
-    { "id": "commons-httpclient:commons-httpclient:2.0", "description": "test plugin installation", "category": "shell"}
+    { "id": "io.restx:restx-specs-shell:0.2.4", "description": "specs commands: run a specs server, ...", "category": "shell"}
 ]
