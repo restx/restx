@@ -4,7 +4,7 @@ by Jason Costello, @jsncostello
 adapted for RESTX project
 *******************************************************************************/
 
-@import url(pygment_trac.css);
+@import url(pygment_desert.css);
 
 /*******************************************************************************
 MeyerWeb Reset
@@ -161,8 +161,6 @@ img {
 
 pre, code {
   width: 100%;
-  color: #222;
-  background-color: #fff;
 
   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
   font-size: 14px;
@@ -170,21 +168,16 @@ pre, code {
   border-radius: 2px;
   -moz-border-radius: 2px;
   -webkit-border-radius: 2px;
-
-
-
 }
 
 pre {
+  padding: 5px;
   width: 100%;
-  padding: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,.1);
   overflow: auto;
 }
 
 code {
-  padding: 3px;
-  margin: 0 3px;
   box-shadow: 0 0 10px rgba(0,0,0,.1);
 }
 
@@ -322,43 +315,29 @@ Full-Width Styles
   text-shadow: #111 0px 0px 10px;
 }
 
-#downloads {
+#menu {
   position: absolute;
-  width: 210px;
+  width: 810px;
   z-index: 10;
   bottom: -40px;
   right: 0;
   height: 70px;
-  background: url('../images/icon_download.png') no-repeat 0% 90%;
+  margin-right: 20px;
 }
 
-.zip_download_link {
+#menu a {
   display: block;
   float: right;
-  width: 90px;
-  height:70px;
-  text-indent: -5000px;
-  overflow: hidden;
-  background: url(../images/sprite_download.png) no-repeat bottom left;
-}
-
-.tar_download_link {
-  display: block;
-  float: right;
-  width: 90px;
-  height:70px;
-  text-indent: -5000px;
-  overflow: hidden;
-  background: url(../images/sprite_download.png) no-repeat bottom right;
-  margin-left: 10px;
-}
-
-.zip_download_link:hover {
-  background: url(../images/sprite_download.png) no-repeat top left;
-}
-
-.tar_download_link:hover {
-  background: url(../images/sprite_download.png) no-repeat top right;
+  height: 40px;
+  padding: 2px 20px;
+  font-size: 24px;
+  margin-left: 16px;
+  color: #fff;
+  background: #0090ff no-repeat 95% 50%;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0,0,0,.5);
+  border-radius: 2px;
+  border-top-left-radius: 0px;
 }
 
 #main_content_wrap {
@@ -381,18 +360,33 @@ Full-Width Styles
 Small Device Styles
 *******************************************************************************/
 
+@media screen and (min-width: 480px) and (max-width: 820px) {
+  #menu {
+    width: 480px;
+  }
+}
+
 @media screen and (max-width: 480px) {
   body {
     font-size:14px;
   }
 
-  #downloads {
-    display: none;
-  }
-
   .inner {
     min-width: 320px;
     max-width: 480px;
+  }
+
+  #menu {
+    width: 180px;
+    bottom: 0px;
+    margin-right: 5px;
+  }
+
+  #menu a {
+    padding: 2px 10px;
+    font-size: 16px;
+    height: 26px;
+    margin-left: 6px;
   }
 
   #project_title {

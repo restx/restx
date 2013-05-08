@@ -1,2 +1,3 @@
 name: RESTX, the lightweight Java REST framework
 pygments: true
+restx-version: 0.2.4
