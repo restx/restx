@@ -63,6 +63,11 @@
             <artifactId>restx-shell</artifactId>
             <version>${restx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-build</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>

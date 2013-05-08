@@ -42,5 +42,6 @@
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-shell" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-build" rev="latest.integration" conf="default" />
     </dependencies>
 </ivy-module>
