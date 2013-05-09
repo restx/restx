@@ -6,7 +6,7 @@ layout: docs
 
 ## Using Apache Ivy support
 
-By default restx shell generates an Ivy file for dependency management, here a re the instructions to setup your IDE with the corresponding project.
+By default restx shell generates an Ivy file for dependency management, here are the instructions to setup your IDE with the corresponding project.
 
 You will need to:
 
@@ -62,7 +62,7 @@ Your IDE is ready, still we recommend to add the sources generation targets as s
 ![setup source paths for a RESTX project in IDEA](/images/docs/idea-sources-paths-2.png)
 
 
-## Using Maven Support
+## Using Apache Maven Support
 
 If you have chosen to use Maven and [have generated a pom](getting-started.html) for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use IDEA built in Maven support to import the project.
 
