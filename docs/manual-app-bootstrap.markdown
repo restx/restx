@@ -9,6 +9,8 @@ Though note that in that case you won't benefit from the power of the shell whic
 
 But if you want to remain independent from the shell, stay in control of the framework, or simply because you want to introduce it in an existing app, this documentation is made for you.
 
+Once you will have performed these steps, also have a look at [IDE setup documentation](ide.html), you may need to enable annotation processing manually depending on your IDE.
+
 ## Declaring dependencies 
 
 The minimum in most cases if you want to use RESTX REST support is to declare a dependency on [restx-core](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22restx-core%22) and [restx-core-annotation-processor](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22restx-core-annotation-processor%22).
@@ -58,52 +60,6 @@ If you want to use RESTX inside a JavaEE / servlet container, you will have to:
 {% endhighlight %}
 
 Note that you can change the servlet path to the one of your choice, mounting RESTX on `/api/*` is only what we use most of the time.
-
-## Setting up annotation processing with Maven
-
-When using Maven, you will also need to properly configure the annotation processor and the resources path. This is because RESTX generates resources as part of the annotation processing, and Maven does not recognize them by default.
-
-Here is the snippet to use:
-{% highlight xml %}
-<build>
-    <resources>
-        <resource>
-            <directory>src/main/resources</directory>
-        </resource>
-        <resource>
-            <directory>target/generated-sources/annotations</directory>
-        </resource>
-    </resources>
-    <plugins>
-        <!-- Run annotation processors on src/main/java sources -->
-        <plugin>
-            <groupId>org.bsc.maven</groupId>
-            <artifactId>maven-processor-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>process</id>
-                    <goals>
-                        <goal>process</goal>
-                    </goals>
-                    <phase>generate-sources</phase>
-                    <configuration>
-                        <!-- source output directory -->
-                        <outputDirectory>target/generated-sources/annotations</outputDirectory>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
-        <!-- Disable annotation processors during normal compilation -->
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-                <compilerArgument>-proc:none</compilerArgument>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-{% endhighlight %}
 
 ## configure logs
 
