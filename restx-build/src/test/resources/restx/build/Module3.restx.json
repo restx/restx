@@ -10,7 +10,7 @@
 
     "fragments": {
         "maven": [
-            "classpath:///restx/build/fragments/maven/annotation-processing-enable.xml"
+            "classpath:///restx/build/fragments/maven/annotation-processing-disable.xml"
         ]
     },
 

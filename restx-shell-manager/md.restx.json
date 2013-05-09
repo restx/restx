@@ -6,12 +6,6 @@
         "@files": ["../restx.build.properties.json"]
     },
 
-    "fragments": {
-        "maven": [
-            "classpath:///restx/build/fragments/maven/annotation-processing-enable.xml"
-        ]
-    },
-
     "dependencies": {
         "compile": [
             "io.restx:restx-shell:${restx.version}",
