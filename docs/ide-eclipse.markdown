@@ -6,7 +6,12 @@ layout: docs
 
 ## Using Maven Support
 
-If you have chosen to use Maven and have generated a pom for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use Eclipse Maven support (through the m2e plugin) to import the project.
+If you have chosen to use Maven and [have generated a pom](getting-started.html) for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use Eclipse Maven support (through the m2e plugin) to import the project.
+
+What you will need to do:
+
+- setup maven annotation processing in preferences
+- import the project as a regular maven project
 
 ### setup maven annotation processing in preferences
 
