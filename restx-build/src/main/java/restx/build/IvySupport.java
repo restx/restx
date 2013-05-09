@@ -50,14 +50,12 @@ public class IvySupport implements RestxBuild.Generator {
                 String groupId = dependency.getGav().getGroupId();
                 String version = RestxBuildHelper.expandProperty(dependency.getGav().getVersion(), "module.version", md.getGav().getVersion());
                 String expandedVersion = RestxBuildHelper.expandProperties(md.getProperties(), version);
-                if (expandedVersion.endsWith("-SNAPSHOT")
-                        && groupId.equals(md.getGav().getGroupId())
-                        && expandedVersion.equals(md.getGav().getVersion())) {
-                    version = "latest.integration";
+                if (expandedVersion.endsWith("-SNAPSHOT")) {
+                    expandedVersion = "latest.integration";
                 }
                 w.write(String.format("        <dependency org=\"%s\" name=\"%s\" rev=\"%s\" conf=\"%s\" />\n",
                             groupId, dependency.getGav().getArtifactId(),
-                            version,
+                            expandedVersion,
                             "compile".equals(scope) ? "default" : scope +"->default"));
             }
         }

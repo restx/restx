@@ -15,15 +15,15 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="${jackson.version}" conf="default" />
-        <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="${jackson.version}" conf="default" />
-        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="${jackson.version}" conf="default" />
-        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="${jackson.version}" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.1.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.1.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.1.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="2.1.2" conf="default" />
         <dependency org="com.example" name="example-factory" rev="latest.integration" conf="default" />
         <dependency org="javax.inject" name="javax.inject" rev="1" conf="default" />
         <dependency org="com.google.guava" name="guava" rev="14.0-rc2" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.0" conf="default" />
-        <dependency org="org.slf4j" name="slf4j-api" rev="${slf4j-api.version}" conf="default" />
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.2" conf="default" />
         <dependency org="com.google.code.maven-play-plugin.com.jamonapi" name="jamon" rev="2.7" conf="default" />
         <dependency org="org.hibernate" name="hibernate-validator" rev="5.0.0.Alpha2" conf="default" />
         <dependency org="org.reflections" name="reflections" rev="0.9.9-RC1" conf="default" />
