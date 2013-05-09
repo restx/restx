@@ -17,7 +17,6 @@ First you need to install the [IvyDE](http://ant.apache.org/ivy/ivyde/) plugin i
 To do so, use the **Help -> Install new software** action, add the IvyDE update site `http://www.apache.org/dist/ant/ivyde/updatesite` and install the IvyDE plugin.
 
 ![Install IvyDE](/images/docs/eclipse-install-ivyde-add-repo.png)
-
 ![Install IvyDE](/images/docs/eclipse-install-ivyde.png)
 
 ### Create and configure the project
@@ -33,11 +32,8 @@ Then configure the source folders. Eclipse should detect `src/main/java` and `sr
 Now open the Libraries tab and add an IvyDE Managed Dependencies library, selecting `module.ivy` as Ivy file:
 
 ![Configure RESTX project libraries in Eclipse](/images/docs/eclipse-new-project-libraries-1.png)
-
 ![Add IvyDE Managed Dependencies for RESTX](/images/docs/eclipse-new-project-add-library.png)
-
 ![Options for IvyDE Managed Dependencies for RESTX](/images/docs/eclipse-new-project-add-library-options.png)
-
 ![Configure RESTX project libraries in Eclipse](/images/docs/eclipse-new-project-libraries-2.png)
 
 You're now ready to hit the finish button!

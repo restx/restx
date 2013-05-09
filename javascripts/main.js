@@ -1,1 +1,1 @@
-console.log('This would be the main JS file.');
+$('.docs img').click(function() { $(this).toggleClass('large') })
