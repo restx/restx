@@ -128,12 +128,10 @@ a {
 
 #main_content a:hover {
   color: #0069ba;
-  text-shadow: #0090ff 0px 0px 2px;
 }
 
 footer a:hover {
   color: #43adff;
-  text-shadow: #0090ff 0px 0px 2px;
 }
 
 em {
@@ -261,6 +259,50 @@ img {
 	max-width: 800px;	
 }
 
+#toc {
+	display: none; /* displayed by js only */
+    top: 200px;
+    right: 0px;
+    position: fixed;
+    background: #333;
+    box-shadow: inset -5px 0 5px 0px #000;
+    width: 200px;
+    padding: 20px;
+    color: #fff;
+	transition: right 0.5s ease;	
+}
+
+#toc ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#toc li {
+    padding: 5px 10px;
+}
+
+#toc a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+}
+
+#toc .toc-h2 {
+    padding-left: 10px;
+}
+
+#toc .toc-h3 {
+    padding-left: 20px;
+}
+
+#toc .toc-active {
+    background: #336699;
+    box-shadow: inset -5px 0px 10px -5px #000;
+}
+
+
+
 /*******************************************************************************
 Full-Width Styles
 *******************************************************************************/
@@ -274,6 +316,11 @@ Full-Width Styles
   max-width: 960px;
   padding: 20px 10px;
   margin: 0 auto;
+}
+
+article.docs {
+	margin-left: -200px;
+	transition: margin-left 0.5s ease;
 }
 
 #forkme_banner {
@@ -352,7 +399,7 @@ Full-Width Styles
 }
 
 #main_content {
-  padding-top: 40px;
+  padding-top: 20px;
 }
 
 #footer_wrap {
@@ -365,9 +412,60 @@ Full-Width Styles
 Small Device Styles
 *******************************************************************************/
 
+@media screen and (min-width: 1300px) and (max-width: 1420px) {
+  .inner.docs {
+	max-width: 850px;
+  }
+}
+
+
+@media screen and (min-width: 1220px) and (max-width: 1320px) {
+  .inner.docs {
+	max-width: 750px;
+  }
+}
+
+@media screen and (min-width: 1120px) and (max-width: 1220px) {
+  .inner.docs {
+	max-width: 650px;
+  }
+}
+
+
+@media screen and (max-width: 1120px) {
+	#toc {
+		right: -220px;
+	}
+	#toc:hover {
+	  right: 0px;
+	}
+	article.docs {
+		margin-left: 0px;
+		padding-right: 20px;
+	}
+}
+
+@media screen and (min-width: 820px) and (max-width: 1100px) {
+  .inner.docs {
+		max-width: 750px;
+  }
+}
+
+@media screen and (max-width: 820px) {
+	#main_content {
+	  padding-top: 40px;
+	}
+}
+
 @media screen and (min-width: 480px) and (max-width: 820px) {
   #menu {
     width: 480px;
+		margin-right: 40px;
+  }
+	
+  #menu a {
+    font-size: 20px;
+    height: 30px;
   }
 }
 
@@ -375,6 +473,15 @@ Small Device Styles
   body {
     font-size:14px;
   }
+	
+	#toc {
+		right: -1000px;
+	}
+	
+	#project_tagline {
+		display: block;
+		font-size: 16px;
+	}
 
   .inner {
     min-width: 320px;
