@@ -74,6 +74,10 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -1px;
 }
 
+.docs.index h1, .docs.index h2, .docs.index h3, .docs.index h4, .docs.index h5, .docs.index h6 {
+  margin: 2px 0;
+}
+
 h1 {
   font-size: 36px;
   font-weight: 700;
@@ -85,17 +89,37 @@ h2 {
   background: url('../images/bg_hr.png') repeat-x bottom;
 }
 
+.docs.index h2 {
+	font-size: 18px;
+}
+
 h3 {
   font-size: 24px;
+}
+
+.docs.index h3 {
+	font-size: 16px;
+	padding-left: 10px;
 }
 
 h4 {
   font-size: 21px;
 }
 
+.docs.index h4 {
+	font-size: 14px;
+	padding-left: 20px;
+}
+
 h5 {
   font-size: 18px;
 }
+
+.docs.index h5 {
+	font-size: 12px;
+	padding-left: 30px;
+}
+
 
 h6 {
   font-size: 16px;
@@ -182,6 +206,33 @@ blockquote {
   margin-bottom: 20px;
   padding: 0 0 0 20px;
   border-left: 3px solid #bbb;
+}
+
+.note {
+	margin: 30px 20px;
+	padding: 10px 20px;
+	padding-left: 50px;
+	border-radius: 0 5px 5px 0;
+	position: relative;
+	box-shadow: 0 1px 5px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 0 rgba(0,0,0,.3);
+	background: #0090ff;
+	color: white;
+	font-weight: 700;
+}
+.note a {
+	color: white;
+	text-decoration: underline;
+}
+
+.note:after {
+	content: "ⓘ";
+	color: #fff;
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	font-size: 28px;
+	font-weight: bold;
+	text-shadow: 0 -1px 0 rgba(0,0,0,.5);
 }
 
 ul, ol, dl {
