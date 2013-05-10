@@ -62,6 +62,9 @@ Your IDE is ready, still we recommend to add the sources generation targets as s
 
 ![setup source paths for a RESTX project in IDEA](/images/docs/idea-sources-paths-2.png)
 
+You can start coding now, enjoy!
+
+If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)
 
 ## Using Apache Maven Support
 
@@ -84,3 +87,4 @@ You may need to double check the annotation processor settings to make sure it i
 
 ![annotation processor settings in IDEA](/images/docs/idea-annotation-processor-preferences.png)
  
+If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)

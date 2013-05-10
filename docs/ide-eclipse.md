@@ -56,6 +56,8 @@ Then add it to the annotation processing factory path:
 
 Your project is now setup, you're ready to start coding!
 
+If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)
+
 ## Using Apache Maven Support
 
 If you have chosen to use Maven and [have generated a pom](getting-started.html) for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use Eclipse Maven support (through the m2e plugin) to import the project.
@@ -76,3 +78,5 @@ Open eclipse preferences, go to **Maven -> Annotation processing** and select `A
 Use the **File -> Import** menu and choose `Existing Maven Projects`:
 
 ![import existing maven project into eclipse](/images/docs/eclipse-import-maven-project.png)
+
+If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)
