@@ -3,6 +3,8 @@ layout: post
 title:  "Welcome to RESTX!"
 date:   2013-05-06 21:43:24
 categories: news
+author: "Xavier Hanin"
+authorId: xhanin
 ---
 
 RESTX is a brand new REST framework, we are happy you're stopping by!

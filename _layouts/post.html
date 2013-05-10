@@ -1,9 +1,14 @@
 ---
 layout: default
 ---
-<h2>{{ page.title }}</h2>
-<p class="meta">{{ page.date | date_to_string }}</p>
+<article class="post">
+<h1>{{ page.title }}</h1>
+<div class="meta">
+<span class="time"><i class="icon-time"></i>&nbsp;<time>{{ page.date | date_to_string }}</time></span>
+<span class="author"><i class="icon-user"></i>&nbsp;<a href="http://github.com/{{ page.authorId }}" rel="author">{{ page.author }}</a></span>
+</div>
 
 <div id="post">
 {{ content }}
 </div>
+</article>
