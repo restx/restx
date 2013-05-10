@@ -1,4 +1,5 @@
 ---
+filename: ref-factory.md
 layout: docs
 title:  "RESTX Factory"
 ---

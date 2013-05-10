@@ -1,4 +1,5 @@
 ---
+filename: index.md
 layout: docs-index
 title:  "Documentation"
 ---

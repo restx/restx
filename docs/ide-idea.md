@@ -1,4 +1,5 @@
 ---
+filename: ide-idea.md
 title: Intellij IDEA Setup
 layout: docs
 ---

@@ -1,4 +1,5 @@
 ---
+filename: manual-app-bootstrap.md
 layout: docs
 title:  "Bootstrapping a project manually"
 ---

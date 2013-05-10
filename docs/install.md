@@ -1,4 +1,5 @@
 ---
+filename: install.md
 layout: docs
 title:  "Install"
 ---

@@ -1,4 +1,5 @@
 ---
+filename: ide-netbeans.md
 title: Netbeans
 layout: docs
 ---

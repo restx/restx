@@ -1,4 +1,5 @@
 ---
+filename: getting-started.md
 layout: docs
 title:  "Getting Started"
 ---

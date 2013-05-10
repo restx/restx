@@ -1,4 +1,5 @@
 ---
+filename: ref-core.md
 layout: docs
 title:  "RESTX Core"
 ---

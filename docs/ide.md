@@ -1,4 +1,5 @@
 ---
+filename: ide.md
 title: IDE Setup
 layout: docs
 ---

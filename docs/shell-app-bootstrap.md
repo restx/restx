@@ -1,4 +1,5 @@
 ---
+filename: shell-app-bootstrap.md
 layout: docs
 title:  "Bootstrapping a project with the shell"
 ---

@@ -1,4 +1,5 @@
 ---
+filename: ide-eclipse.md
 title: Eclipse Setup
 layout: docs
 ---

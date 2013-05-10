@@ -1,6 +1,7 @@
 ---
 layout: docs
 title:  "Features"
+filename: features.md
 ---
 # Features
 

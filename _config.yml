@@ -1,3 +1,4 @@
 name: RESTX, the lightweight Java REST framework
 pygments: true
+pullrequesturl: https://github.com/restx/restx/edit/gh-pages/docs/
 restx-version: 0.2.4

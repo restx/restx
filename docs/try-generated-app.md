@@ -1,4 +1,5 @@
 ---
+filename: try-generated-app.md
 layout: docs
 title:  "Try and understand generated app"
 ---
