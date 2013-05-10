@@ -23,7 +23,7 @@ found 3 available plugins
 Which plugin would you like to install (eg '1 3 5')?
 {% endhighlight %}
 
-Then install at least the `restx-core-shell plugin by typing `1`:
+Then install at least the `restx-core-shell` plugin by typing `1`:
 
 {% highlight console %}
 1
@@ -39,7 +39,11 @@ RESTARTING SHELL...
 restx>
 {% endhighlight %}
 
-the restx-core-shell plugin is now ready to use!
+the `restx-core-shell` plugin is now ready to use! 
+
+<div class="note">
+	<p>As you can see installing plugins in the shell is super easy, remember to check periodically if there are new plugins to try out!</p>
+</div>
 
 ## Steady
 
@@ -69,10 +73,20 @@ generating hello resource ...
 Congratulations! - Your app is now ready in `/Users/xavierhanin/Documents/tmp/myapp`
 {% endhighlight %}
 
-If you want to learn more about this [app generation, check the related doc](shell-app-bootstrap.html).
+<div class="note">
+<p>If you want to learn more about this app generation, <a href="shell-app-bootstrap.html">check the related doc</a>.</p>
+</div>
 
 ## Go!
 
-Your app is now ready, you can open it in your favorite IDE, launch its main class and use the generated example resource!
+Your app is now ready, you can open it in your favorite IDE, simply follow the instrutions provided here:
 
-TODO: improve doc / UX on this step.
+- [Intellij IDEA](ide-idea.html)
+- [Eclipse](ide-eclipse.html)
+- [Netbeans](ide-netbeans.html)
+
+<div class="note">
+	<p>Don't want to use an IDE? running the app directly from the shell is planned, watch <a href="https://github.com/restx/restx/issues/4">this issue</a> to show your interest!</p>
+</div>
+
+Once your IDE is properly setup, go on and [try out the generated app](try-generated-app.html)

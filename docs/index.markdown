@@ -28,3 +28,7 @@ Here is the full table of contents of the documentation:
 ### [IntellIJ IDEA](ide-idea.html) 
 ### [Eclipse](ide-eclipse.html)
 ### [Netbeans](ide-netbeans.html)
+## [Try and understand generated App](try-generated-app.html)
+## Reference
+### [RESTX Factory](ref-factory.html)
+### [RESTX HTTP](ref-core.html)
