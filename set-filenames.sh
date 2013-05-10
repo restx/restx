@@ -1,4 +1,6 @@
 #!/bin/sh
+# script to update filename entry in all docs page, used for the pull request button
+# thanks to brunosan for the code: http://brunosan.eu/2012/07/01/jekyll-pull-requests/
 cd docs
 for file in $(ls *.md)
 do
