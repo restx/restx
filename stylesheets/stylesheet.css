@@ -415,6 +415,72 @@ img {
 }
 
 /*******************************************************************************
+http://unslider.com/
+*******************************************************************************/
+
+.banner { position: relative; overflow: auto; }
+    .banner li { list-style: none; }
+        .banner ul li { float: left; padding-left: 0; min-height: 250px;}
+
+.banner ul li h4 {
+	color: #fff;
+	background: #0090ff no-repeat 95% 50%;
+	font-weight: 700;
+	box-shadow: 0 0 10px rgba(0,0,0,.5);
+	margin: 0;
+	padding: 3px 10px;
+}
+
+.banner h5 {
+	text-align: center;
+}
+
+
+.unslider-arrow {
+	position: absolute;
+	color: white;
+	z-index: 10;
+	top: 9px;
+}
+
+.unslider-arrow.next {
+	right: 15px;	
+}
+
+.unslider-arrow.prev {
+	right: 30px;	
+}
+	
+.banner .dots {
+		position: absolute;
+		right: 45px;
+		top: 10px;
+	}
+		.banner .dots li {
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			margin: 0 4px;
+			padding-left: 0;
+
+			text-indent: -999em;
+
+			border: 2px solid #fff;
+			border-radius: 6px;
+
+			cursor: pointer;
+			opacity: .4;
+
+			-webkit-transition: background .5s, opacity .5s;
+			-moz-transition: background .5s, opacity .5s;
+			transition: background .5s, opacity .5s;
+		}
+			.banner .dots li.active {
+				background: #fff;
+				opacity: 1;
+			}
+							
+/*******************************************************************************
 Full-Width Styles
 *******************************************************************************/
 

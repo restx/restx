@@ -6,7 +6,131 @@ title: Home
 <div id="home">
   <h1>Introducing RESTX</h1>
   <div>the lightweight, modular, feature rich, blazing fast, open source Java REST framework</div>
-  <div>RESTX is still in its early infancy, check the news to see what is coming here...</div>
+
+	<h3 id='write_this'>Write this:</h3>
+
+	<div class="banner">
+		<a href="#" class="unslider-arrow prev"><i class="icon-chevron-left"></i></a>
+		<a href="#" class="unslider-arrow next"><i class="icon-chevron-right"></i></a>
+		<ul>
+			<li>
+				<h4>a simple resource definition</h4>
+{% highlight java %}
+@Component @RestxResource
+public class HelloResource {
+    @GET("/message")
+    public Message sayHello(String who) {
+        return new Message().setMessage(String.format(
+                "hello %s, it's %s",
+                who, DateTime.now().toString("HH:mm:ss")));
+    }
+}
+{% endhighlight %}
+    	</li>
+			<li>
+				<h4>a RESTX spec</h4>
+{% highlight yaml %}
+title: should say hello
+given:
+  - time: 2013-03-31T14:33:18.272+02:00
+wts:
+  - when: GET message?who=xavier
+    then: |
+      {"message":"hello xavier, it's 14:33:18"}
+{% endhighlight %}
+    	</li>
+		</ul>
+	</div>
+	
+	<h3 id='and_get_that'>and get that:</h3>
+
+	<div class="banner" data-init='3000'>
+		<a href="#" class="unslider-arrow prev"><i class="icon-chevron-left"></i></a>
+		<a href="#" class="unslider-arrow next"><i class="icon-chevron-right"></i></a>
+	<ul>
+	<li>
+		<h4>a server starting blazingly fast</h4>
+	
+{% highlight console %}
+22:22:33.015 [main             ] INFO  r.s.simple.simple.SimpleWebServer - starting web server
+22:22:33.605 [main             ] INFO  restx.RestxMainRouterFactory - 
+--------------------------------------
+ -- RESTX READY
+ -- 2 filters
+ -- 15 routes
+ -- for admin console,
+ --   VISIT http://localhost:8086/api/@/ui/
+ --
+{% endhighlight %}
+		</li>
+		
+	<li>
+		<h4>a working implementation of your REST endpoint</h4>
+
+{% highlight console %}
+[restx] http "http://localhost:8086/api/message?who=xavier"
+HTTP/1.1 200 OK
+Cache-Control: no-cache
+Connection: keep-alive
+Content-Type: application/json; charset=UTF-8
+Transfer-Encoding: chunked
+
+{
+    "message": "hello xavier, it's 22:25:00"
+}
+{% endhighlight %}
+	</li>
+	
+	<li>
+	<h4>documentation of your API with examples inside&#8230;</h4>
+	<img alt='REST API documentation with RESTX example' src='/images/posts/api-doc-1.png' />
+	</li>
+
+	<li>
+	<h4>&#8230; that you can try directly within the browser </h4>
+	<img alt='trying REST API with RESTX example' src='/images/posts/api-doc-2.png' />
+	</li>
+
+	<li>
+	<h4>an automated integration test </h4>
+	<img alt='automated integration test with RESTX' src='/images/posts/hello-integration-test.png' />
+	</li>
+
+	<li>
+	<h4>an admin console with&#8230;</h4>
+	<img alt='monitoring UI with RESTX' src='/images/docs/admin-home.png' />
+  </li>
+	
+	<li>
+	<h4>basic monitoring UI</h4>
+	<img alt='monitoring UI with RESTX' src='/images/posts/monitoring.png' />
+	</li>
+
+	<li>
+	<h4>beans graph visualization</h4>
+	<img alt='monitoring UI with RESTX' src='/images/posts/beans-graph.png' />
+	</li>
+
+	<li>
+	<h4>and more&#8230;</h4>
+		<h5>a pluggable shell with scaffolding</h5>
+		<h5>HTTP requests mocking based on spec files</h5>
+		<h5>a type safe, blazing fast DI container</h5>
+		<h5>amazing support for MongoDB</h5>
+		<h5>&#8230;</h5>
+	</li>	
+
+	<li>
+	<h4>Try it out</h4>
+		<h5><a href="/docs/install.html"><i class="icon-download-alt"></i> Install</a></h5>
+		<h5><a href="/docs/getting-started.html"><i class="icon-play"></i> Get started</a></h5>
+		<h5><a href="/docs/features.html"><i class="icon-tags"></i> Check the features</a></h5>
+		<h5><a href="/docs/"><i class="icon-book"></i> Check out the doc</a></h5>
+		<h5><a href="/community/"><i class="icon-beer"></i> Join the community</a></h5>
+	</li>	
+	
+	</ul>
+  </div>
 
   <h2>News</h2>
   <ul class="posts">
