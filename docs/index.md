@@ -10,9 +10,7 @@ Welcome to RESTX documentation!
 <div class="note">
 	<p>This documentation is still a work in progress, expect many improvements here in a near future.</p>
 
-	<p>And feel free to contribute by submitting a pull request on github, the sources are here:<br>
-		<a href="https://github.com/restx/restx/tree/gh-pages/docs">https://github.com/restx/restx/tree/gh-pages/docs</a>
-  </p>
+	<p>And feel free to contribute, it's super easy: use the 'Improve This Page' button at the top of any doc page, edit the page, and submit a pull request!</p>
 </div>
 
 <div class="note">
