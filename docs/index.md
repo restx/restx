@@ -29,6 +29,7 @@ Here is the full table of contents of the documentation:
 ### [Netbeans](ide-netbeans.html)
 ## [Try generated App](try-generated-app.html)
 ## [Generated App Explained](generated-app-explained.html)
+## [External docs](external-docs.html)
 ## Reference
 ### [RESTX Factory](ref-factory.html)
 ### [RESTX HTTP](ref-core.html)
