@@ -188,7 +188,6 @@ pre, code {
 pre {
   padding: 5px;
   width: 100%;
-  box-shadow: 0 0 10px rgba(0,0,0,.1);
   overflow: auto;
 }
 
@@ -414,6 +413,35 @@ img {
 	transition: all 0.5s ease;
 }
 
+
+[class*="span"] {
+float: left;
+min-height: 1px;
+margin-left: 20px;
+}
+
+.row:after {
+clear: both;
+}
+.row:before, .row:after {
+display: table;
+line-height: 0;
+content: "";
+}
+
+.span8 {width:600px;}
+
+.span8 img {max-width: 580px;}
+
+.span4 {width:300px;}
+
+.posts time {
+	background: #212121;
+	color: white;
+	padding: 0 5px;
+	border-radius: 4px;	
+}
+
 /*******************************************************************************
 http://unslider.com/
 *******************************************************************************/
@@ -424,17 +452,15 @@ http://unslider.com/
 
 .banner ul li h4 {
 	color: #fff;
-	background: #0090ff no-repeat 95% 50%;
 	font-weight: 700;
 	box-shadow: 0 0 10px rgba(0,0,0,.5);
 	margin: 0;
 	padding: 3px 10px;
 }
 
-.banner h5 {
-	text-align: center;
+.banner h5 i {
+	margin: 0 10px;
 }
-
 
 .unslider-arrow {
 	position: absolute;
@@ -515,7 +541,7 @@ article.docs {
   border-bottom-right-radius: 2px;
 }
 
-#header_wrap {
+#header_wrap, .banner h4 {
   background: #212121;
   background: -moz-linear-gradient(top, #373737, #212121);
   background: -webkit-linear-gradient(top, #373737, #212121);
@@ -675,10 +701,64 @@ Small Device Styles
 	}
 }
 
+@media screen and (min-width: 480px) and (max-width: 640px) {
+	
+	[class*="span"] {
+		margin-left: 2px;
+	}
+	
+	.span8 {width:460px;}
+
+	.span8 img {max-width: 440px;}
+
+	.span4 {width:400px;}
+	
+	.banner ul li h4 {
+		font-size: 16px;
+	}
+	
+	pre {
+		font-size: 11px;		
+	}
+	
+	.banner pre, .banner code {
+		max-width: 440px;
+	}
+	
+	.banner .dots { display:none;}
+	.banner .unslider-arrow {font-size: 12px;}
+	
+}
+
 @media screen and (max-width: 480px) {
   body {
     font-size:14px;
   }
+	
+	[class*="span"] {
+		margin-left: 2px;
+	}
+	
+	.span8 {width:340px;}
+
+	.span8 img {max-width: 320px;}
+
+	.span4 {width:300px;}
+	
+	.banner ul li h4 {
+		font-size: 14px;
+	}
+	
+	pre {
+		font-size: 10px;		
+	}
+	
+	.banner pre, .banner code {
+		max-width: 320px;
+	}
+	
+	.banner .dots { display:none;}
+	.banner .unslider-arrow {font-size: 10px;}
 	
 	#toc {
 		right: -1000px;
