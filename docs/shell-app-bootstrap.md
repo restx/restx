@@ -20,46 +20,48 @@ App name? ??
 This is the name of the application you are creating.
 It can contain spaces, it's used mainly for documentation and to provide default for other values.
 Examples: Todo, Foo Bar, ...
-App name? Todo
-group id [todo]? ??
+App name? MyApp
+group id [myapp]? ??
 This is the identifier of the group or organization producing the application.
 In the Maven world this is called a groupId, in Ivy it's called organization.
 It MUST NOT contain spaces nor columns (':'), and is usually a reversed domain name.
 Examples: io.restx, com.example, ...
-group id [todo]?
-artifact id [todo]? ??
+group id [myapp]?
+artifact id [myapp]? ??
 This is the identifier of the app module.
 In the Maven world this is called an artifactId, in Ivy it's called module.
 It MUST NOT contain spaces nor columns (':'), and is usually a dash separated lower case word.
 Examples: myapp, todo, foo-app, ...
-artifact id [todo]?
-main package [todo]? ??
+artifact id [myapp]?
+main package [myapp]? ??
 This is the main package in which you will develop your application.
 In Java convention it should start with a reversed domain name followed by the app name
 but for applications (as opposed to APIs) we prefer to use a short name, like that app name.
 It MUST follow Java package names restrictions, so MUST NOT contain spaces
 Examples: myapp, com.example.todoapp, ...
-main package [todo]?
+main package [myapp]?
 version [0.1-SNAPSHOT]? ??
 This is the name of the first version of the app you are targetting.
 It's recommended to use Maven convention to suffix it with -SNAPSHOT if you plan to use Maven for your app
 Examples: 0.1-SNAPSHOT, 1.0, ...
 version [0.1-SNAPSHOT]?
-generate ivy file [yes]? ??
-Answer yes to get an Easyant compatible Ivy file generated for you.
-If you don't know what dependency management is, answer yes, RESTX will help you with that matter.
-If you know what you want, note that RESTX can also generate a Maven POM for you.
-generate ivy file [yes]?
-generate maven pom [no]? ??
-Answer yes to get a Maven POM generated for you.
-If you don't know what dependency management, use default answer.
-If you know what you want, you probably shouldn't be reading this help message :).
-generate maven pom [no]? yes
+generate module descriptor (ivy/pom/none/all) [all]? ??
+This allows to generate a module descriptor for your app.
+Options:
+    - 'ivy': get an Easyant compatible Ivy file generated for you.
+    - 'pom': get a Maven POM generated for you.
+    - 'all': get both a POM and an Ivy file.
+    - 'none': get no module descriptor generated. WARNING: this will make it harder to build your app.
+If you don't know these tools, use default answer.
+
+generate module descriptor (ivy/pom/none/all) [all]?
+restx version [0.2.5-SNAPSHOT]? ??
+No help provided for that question, sorry, try to figure it out or ask to the community...
 restx version [0.2.5-SNAPSHOT]?
-signature key (to sign cookies) [7686162983702601318 bd91a655-beb4-4ca6-a053-1b4869bd35cd Todo todo]? ??
+signature key (to sign cookies) [ca8aee0f-0981-4785-a4c6-da5241ba148e -8559572878909826860 myapp MyApp]? ??
 This is used as salt for signing stuff exchanged with the client.
 Use something fancy or keep what is proposed by default, but make sure to not share that publicly.
-signature key (to sign cookies) [7686162983702601318 bd91a655-beb4-4ca6-a053-1b4869bd35cd Todo todo]?
+signature key (to sign cookies) [ca8aee0f-0981-4785-a4c6-da5241ba148e -8559572878909826860 myapp MyApp]?
 default port [8080]? ??
 This is the default port used when using embedded version.
 Usually Java web containers use 8080, it may be a good idea to use a different port to avoid
@@ -84,10 +86,10 @@ If this is the first app you generate with RESTX, it's probably a good idea to g
 this example resource.
 If you already know RESTX by heart you shouldn't be reading this message anyway :)
 generate hello resource example [Y/n]?
-scaffolding app to `/Users/xavierhanin/Documents/tmp/todo` ...
+scaffolding app to `/Users/xavierhanin/projects/myapp` ...
 generating module.ivy ...
 generating pom.xml ...
 generating hello resource ...
-DONE - Your app should now be ready in todo
+Congratulations! - Your app is now ready in /Users/xavierhanin/projects/myapp
 {% endhighlight %}
 

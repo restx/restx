@@ -61,8 +61,7 @@ group id [myapp]?
 artifact id [myapp]?
 main package [myapp]?
 version [0.1-SNAPSHOT]?
-generate ivy file [yes]?
-generate maven pom [no]?
+generate module descriptor (ivy/pom/none/all) [all]?
 restx version [0.2.5-SNAPSHOT]?
 signature key (to sign cookies) [4695455274730382645 myapp 45cbde67-4700-485b-b0ce-b1b161c0cf94 MyApp]?
 default port [8080]?
