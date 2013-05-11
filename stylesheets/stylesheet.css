@@ -347,6 +347,7 @@ img {
     width: 200px;
     padding: 20px;
     color: #fff;
+		z-index: 9999;
 	transition: right 0.5s ease;	
 }
 
