@@ -117,14 +117,17 @@ public class AppShellCommand extends StdShellCommand {
                             "It's recommended to use Maven convention to suffix it with -SNAPSHOT if you plan to use Maven for your app\n" +
                             "Examples: 0.1-SNAPSHOT, 1.0, ...");
 
-            boolean generateIvy = shell.askBoolean("generate ivy file [%s]? ", "yes",
-                    "Answer yes to get an Easyant compatible Ivy file generated for you.\n" +
-                            "If you don't know what dependency management is, answer yes, RESTX will help you with that matter.\n" +
-                            "If you know what you want, note that RESTX can also generate a Maven POM for you.");
-            boolean generatePom = shell.askBoolean("generate maven pom [%s]? ", generateIvy ? "no" : "yes",
-                    "Answer yes to get a Maven POM generated for you.\n" +
-                            "If you don't know what dependency management, use default answer.\n" +
-                            "If you know what you want, you probably shouldn't be reading this help message :).");
+            String buildFile = shell.ask("generate module descriptor (ivy/pom/none/all) [%s]? ", "all",
+                    "This allows to generate a module descriptor for your app.\n" +
+                            "Options:\n" +
+                            "\t- 'ivy': get an Easyant compatible Ivy file generated for you.\n" +
+                            "\t- 'pom': get a Maven POM generated for you.\n" +
+                            "\t- 'all': get both a POM and an Ivy file.\n" +
+                            "\t- 'none': get no module descriptor generated. WARNING: this will make it harder to build your app.\n" +
+                            "If you don't know these tools, use default answer.\n"
+            );
+            boolean generateIvy = "ivy".equalsIgnoreCase(buildFile) || "all".equalsIgnoreCase(buildFile);
+            boolean generatePom = "pom".equalsIgnoreCase(buildFile) || "all".equalsIgnoreCase(buildFile);
 
             String restxVersion = shell.ask("restx version [%s]? ", Version.getVersion("io.restx", "restx-core"));
 
