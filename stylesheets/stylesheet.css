@@ -234,6 +234,47 @@ blockquote {
 	text-shadow: 0 -1px 0 rgba(0,0,0,.5);
 }
 
+.go-next {
+	margin: 30px 20px;
+	padding: 10px 20px;
+	padding-left: 50px;
+	border-radius: 0 5px 5px 0;
+	position: relative;
+	box-shadow: 0 1px 5px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 0 rgba(0,0,0,.3);
+	background: #ED982E;
+	color: white;
+	font-weight: 700;
+}
+.go-next a {
+	color: white;
+}
+
+.go-next a:after {
+	content: " ⚓";
+}
+
+.go-next:after {
+	content: "⎘";
+	color: #fff;
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	font-size: 42px;
+	font-weight: bold;
+	text-shadow: 0 -1px 0 rgba(0,0,0,.5);
+}
+.go-next ul {
+	margin-bottom: 0;
+}
+.go-next ul:before {
+	content:"Where to go next?";
+	font-size: 24px;
+	margin-left: 10px;
+}
+.go-next ul li {
+	list-style: none;
+}
+
 .btn {
 display: inline-block;
 padding: 4px 12px;
