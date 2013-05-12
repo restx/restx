@@ -518,6 +518,9 @@ content: "";
 .step-title { float: left; width: 200px; }
 .step { float:right; width: 630px; margin: 15px 0; }
 
+footer {
+	color: #fff;
+}
 
 /*******************************************************************************
 http://unslider.com/
