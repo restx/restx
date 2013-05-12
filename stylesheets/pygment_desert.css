@@ -18,11 +18,11 @@
 .highlight .gr { color: #c0c0c0; font-weight: bold; background-color: #c00000 } /* Generic.Error */
 .highlight .gh { color: #cd5c5c} /* Generic.Heading */
 .highlight .gi { color: #ffffff; background-color: #0000c0 } /* Generic.Inserted */
-.highlight .go { color: #add8e6; font-weight: bold; background-color: #4d4d4d } /* Generic.Output */
+.highlight .go { color: #add8e6; font-weight: bold; } /* Generic.Output */
 .highlight .gp { color: #ffffff} /* Generic.Prompt */
 .highlight .gs { color: #ffffff} /* Generic.Strong */
 .highlight .gu { color: #cd5c5c} /* Generic.Subheading */
-.highlight .gt { color: #c0c0c0; font-weight: bold; background-color: #c00000 } /* Generic.Traceback */
+.highlight .gt { color: #0090ff; font-weight: bold; } /* Generic.Traceback */
 .highlight .kc { color: #f0e68c} /* Keyword.Constant */
 .highlight .kd { color: #f0e68c} /* Keyword.Declaration */
 .highlight .kn { color: #f0e68c} /* Keyword.Namespace */
