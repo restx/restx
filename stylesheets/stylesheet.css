@@ -443,6 +443,10 @@ content: "";
 	border-radius: 4px;	
 }
 
+.step-title { float: left; width: 200px; }
+.step { float:right; width: 630px; margin: 15px 0; }
+
+
 /*******************************************************************************
 http://unslider.com/
 *******************************************************************************/
@@ -653,6 +657,7 @@ Small Device Styles
   .inner.docs {
 		max-width: 750px;
   }
+	.step { width: 530px; }
 }
 
 @media screen and (max-width: 820px) {
@@ -667,6 +672,7 @@ Small Device Styles
   }	
 }
 @media screen and (min-width: 480px) and (max-width: 820px) {
+	.step { width: 530px; }
   #menu {
     width: 480px;
 		margin-right: 40px;
@@ -697,6 +703,7 @@ Small Device Styles
 }
 
 @media screen and (min-width: 480px) and (max-width: 560px) {
+	.step { width: 450px; }
 	#project_tagline {
 		font-size: 18px;
 	}
@@ -745,6 +752,8 @@ Small Device Styles
 	.span8 img {max-width: 320px;}
 
 	.span4 {width:300px;}
+	
+	.step { width: 340px; }	
 	
 	.banner ul li h4 {
 		font-size: 14px;

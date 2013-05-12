@@ -1,0 +1,134 @@
+---
+filename: getting-started.html
+layout: docs
+title:  "Getting Started"
+---
+<STYLE type="text/css">
+
+.more-details {
+	display: block;
+	margin: 0 10px;
+}
+.view-source {
+	display: block;
+	position: absolute;
+	right: 50px;
+}
+.or {
+	display: block;
+	text-align: center;
+	font-weight: 700;
+	margin-top: 20px;
+}
+p.download {
+	font-size: 1.4em;
+	display: block;
+	text-align: center;
+}
+.ides { text-align: center; background:white; }
+.ides img { width: 80px; }
+
+</STYLE>
+<h1>Getting Started</h1>
+
+Follow these steps to get started in 5 minutes:
+
+<div class="steps">
+<div class="step-title">	
+<h2><i class="icon-cloud-download"></i> Install</h2>
+<a class="more-details btn btn-primary" href="install.html">More details <i class="icon-chevron-right"></i></a>
+</div>
+<section class="step">
+	<div class='highlight'><pre><code class='console'><span class='gp'>$</span> <span class="gt">curl -s http://restx.io/install.sh | sh</span>
+</code></pre></div>
+	<a class="view-source" href='https://github.com/restx/restx/blob/gh-pages/install.sh'>View source</a>
+	
+	<span class="or">OR</span>
+	<p class="download"><a href="http://repo1.maven.org/maven2/io/restx/restx-package/{{ site.restx-version }}/restx-package-{{ site.restx-version }}.zip"><i class="icon-download-alt"></i> Download</a> and add to your <code>PATH</code>.</p>
+</section>
+<br clear='all'>
+
+<div class="step-title">	
+<h2><i class="icon-terminal"></i> Install core plugin</h2>
+</div>
+<section class="step">
+<div class='highlight small'><pre><code class='console'><span class='gp'>$</span> <span class='gt'>restx</span>
+<span class='go'>==========================================================</span>
+<span class='go'>== WELCOME TO RESTX SHELL - {{ site.restx-version }} - type `help` for help</span>
+<span class='go'>==========================================================</span>
+<span class='gp'>restx&gt;</span> <span class='gt'>shell install</span>
+<span class='go'>looking for plugins...</span>
+<span class='go'>found 3 available plugins</span>
+<span class='go'> [  1] io.restx:restx-core-shell:0.2.4</span>
+<span class='go'>        core commands: generate new app, ...</span>
+<span class='go'> [  2] io.restx:restx-build-shell:0.2.4</span>
+<span class='go'>        build commands: generate pom, ivy, ...</span>
+<span class='go'> [  3] io.restx:restx-specs-shell:0.2.4</span>
+<span class='go'>        specs commands: run a specs server, ...</span>
+
+<span class='go'>Which plugin would you like to install (eg &#39;1 3 5&#39;)?</span>
+<span class='gt'>1</span>
+<span class='go'>installing io.restx:restx-core-shell:0.2.4...</span>
+<span class='go'>installed io.restx:restx-core-shell:0.2.4</span>
+<span class='go'>installed 1 plugin, restarting shell to take them into account</span>
+<span class='go'>RESTARTING SHELL...</span>
+
+<span class='gp'>restx&gt;</span>
+</code></pre></div>
+</section>
+<br clear='all'>
+
+<div class="step-title">	
+<h2><i class="icon-magic"></i> Bootstrap</h2>
+<a class="more-details btn btn-primary" href="shell-app-bootstrap.html">More details <i class="icon-chevron-right"></i></a>
+</div>
+<section class="step">
+<div class='highlight small'><pre><code class='console'><span class='gp'>restx&gt;</span> <span class="gt">app new</span>
+<span class='go'>Welcome to RESTX APP bootstrap!</span>
+<span class='go'>This command will ask you a few questions to generate your app.</span>
+<span class='go'>For any question you can get help by answering &#39;??&#39;</span>
+
+<span class='gp'>App name? </span><span class="gt">MyApp</span>
+<span class='gp'>group id [myapp]?</span>
+<span class='gp'>artifact id [myapp]?</span>
+<span class='gp'>main package [myapp]?</span>
+<span class='gp'>version [0.1-SNAPSHOT]?</span>
+<span class='gp'>generate module descriptor (ivy/pom/none/all) [all]?</span>
+<span class='gp'>restx version [{{ site.restx-version }}]?</span>
+<span class='gp'>signature key (to sign cookies) [4695455274730382645 myapp 45cbde67-4700-485b-b0ce-b1b161c0cf94 MyApp]?</span>
+<span class='gp'>default port [8080]?</span>
+<span class='gp'>base path [/api]?</span>
+<span class='gp'>generate hello resource example [Y/n]?</span>
+<span class='go'>scaffolding app to `~/projects/myapp` ...</span>
+<span class='go'>generating module.ivy ...</span>
+<span class='go'>generating pom.xml ...</span>
+<span class='go'>generating hello resource ...</span>
+<span class='go'>Congratulations! - Your app is now ready in `~/projects/myapp`</span>
+</code></pre></div>
+</section>
+<br clear='all'>
+
+<div class="step-title">	
+<h2><i class="icon-desktop"></i> Import in your IDE</h2>
+<a class="more-details btn btn-primary" href="ide.html">More details <i class="icon-chevron-right"></i></a>
+</div>
+<section class="step">
+	<p class="ides">
+	<a href="ide-idea.html"><img alt="import RESTX project in Intellij IDEA" src="/images/docs/idea-logo.png"></a>
+	<a href="ide-eclipse.html"><img alt="import RESTX project in Eclipse" src="/images/docs/eclipse-logo.png"></a>
+	<a href="ide-netbeans.html"><img alt="import RESTX project in Netbeans" src="/images/docs/netbeans-logo.png"></a>
+	</p>
+</section>
+<br clear='all'>
+	
+<div class="step-title">	
+<h2><i class="icon-rocket"></i> Run</h2>
+<a class="more-details btn btn-primary" href="try-generated-app.html">More details <i class="icon-chevron-right"></i></a>
+</div>
+<section class="step">
+	Launch <code>myapp.AppServer</code> class and open a browser on <code>http://localhost:8080/api/@/ui/</code>
+	<img alt="api docs" src="/images/docs/admin-apidocs-home.png">
+</section>
+<br clear='all'>
+
+</div>
