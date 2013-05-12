@@ -310,4 +310,12 @@ This file is used at build time only, its the source used by RESTX to:
 
 The file format is pretty straightforward to understand if you are familiar with Maven, Ivy or similar build / dependency management tools.
 
+<div class="go-next">
+	<ul>
+		<li><a href="ref-core.html"><i class="icon-beer"> </i> REST support reference</a></li>
+		<li><a href="ref-factory.html"><i class="icon-beer"> </i> RESTX Factory reference</a></li>
+		<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+		<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+	</ul>	
+</div>
 

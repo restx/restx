@@ -71,6 +71,16 @@ You can start coding now, enjoy!
 
 If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)
 
+<div class="go-next">
+	<ul>
+		<li><a href="try-generated-app.html"><i class="icon-rocket"> </i> Try the generated app</a></li>
+		<li><a href="generated-app-explained.html"><i class="icon-cogs"> </i> Understand generated app</a></li>
+		<li><a href="getting-started.html"><i class="icon-play"> </i> Getting started</a></li>
+		<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+		<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+	</ul>	
+</div>
+
 <a class="tab-head" href="#maven"><h2>Maven</h2></a>
 
 If you have chosen to use Maven and [have generated a pom](getting-started.html) for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use IDEA built in Maven support to import the project.
@@ -93,3 +103,13 @@ You may need to double check the annotation processor settings to make sure it i
 ![annotation processor settings in IDEA](/images/docs/idea-annotation-processor-preferences.png)
  
 If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)
+
+<div class="go-next">
+	<ul>
+		<li><a href="try-generated-app.html"><i class="icon-rocket"> </i> Try the generated app</a></li>
+		<li><a href="generated-app-explained.html"><i class="icon-cogs"> </i> Understand generated app</a></li>
+		<li><a href="getting-started.html"><i class="icon-play"> </i> Getting started</a></li>
+		<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+		<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+	</ul>	
+</div>

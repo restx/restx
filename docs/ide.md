@@ -18,3 +18,13 @@ You will find setup instructions for the 3 major Java IDE here:
 - [Using RESTX with Intellij IDEA](ide-idea.html)
 - [Using RESTX with Eclipse](ide-eclipse.html)
 - [Using RESTX with Netbeans](ide-netbeans.html)
+
+<div class="go-next">
+	<ul>
+		<li><a href="try-generated-app.html"><i class="icon-rocket"> </i> Try the generated app</a></li>
+		<li><a href="generated-app-explained.html"><i class="icon-cogs"> </i> Understand generated app</a></li>
+		<li><a href="getting-started.html"><i class="icon-play"> </i> Getting started</a></li>
+		<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+		<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+	</ul>	
+</div>

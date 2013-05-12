@@ -80,3 +80,13 @@ filename: features.md
 ## easy to setup
 
    a command line helps to create new apps, run and deploy them on the cloud
+	 
+<div class="go-next">
+<ul>
+	<li><a href="install.html"><i class="icon-cloud-download"> </i> Install</a></li>
+	<li><a href="getting-started.html"><i class="icon-play"> </i> Getting started</a></li>
+	<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+	<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+</ul>	
+</div>
+	 

@@ -104,3 +104,11 @@ All you need to do is:
 </configuration>
 {% endhighlight %}
 
+<div class="go-next">
+	<ul>
+		<li><a href="ide.html"><i class="icon-cog"> </i> Setup your IDE</a></li>
+		<li><a href="getting-started.html"><i class="icon-play"> </i> Getting started</a></li>
+		<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+		<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+	</ul>	
+</div>

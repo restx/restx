@@ -110,3 +110,11 @@ You should see something like that:
 </div>
 
 Now that you have tried the generated app, it's time to [understand its sources](generated-app-explained.html).
+
+<div class="go-next">
+	<ul>
+		<li><a href="generated-app-explained.html"><i class="icon-cogs"> </i> Understand generated app</a></li>
+		<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+		<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+	</ul>	
+</div>

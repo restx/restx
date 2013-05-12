@@ -60,3 +60,11 @@ $ restx
 == WELCOME TO RESTX SHELL - {{ site.restx-version }} - type `help` for help on available commands
 ===============================================================================
 {% endhighlight %}
+
+<div class="go-next">
+	<ul>
+		<li><a href="getting-started.html"><i class="icon-play"> </i> Getting started</a></li>
+		<li><a href="/community/"><i class="icon-beer"> </i> Community</a></li>
+		<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
+	</ul>	
+</div>
