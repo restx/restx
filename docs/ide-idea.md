@@ -3,11 +3,16 @@ filename: ide-idea.md
 title: Intellij IDEA Setup
 layout: docs
 ---
-# Setting up a restx project in Intellij IDEA
+# Project setup in Intellij IDEA
 
-## Using Apache Ivy support
+<div class="note">
+	<p>Instructions are provided here for each of supported build tools: Ivy and Maven.</p>
+	<p>If you don't want to use any of these, follow the instructions for Ivy, they include more manual steps.</p>
+</div>
 
-By default restx shell generates an Ivy file for dependency management, here are the instructions to setup your IDE with the corresponding project.
+<a class="tab-head" href="#ivy"><h2>Ivy</h2></a>
+
+By default restx shell generates an Ivy file for your project, here are the instructions to setup your IDE with the corresponding project.
 
 You will need to:
 
@@ -66,7 +71,7 @@ You can start coding now, enjoy!
 
 If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)
 
-## Using Apache Maven Support
+<a class="tab-head" href="#maven"><h2>Maven</h2></a>
 
 If you have chosen to use Maven and [have generated a pom](getting-started.html) for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use IDEA built in Maven support to import the project.
 

@@ -1,4 +1,5 @@
 $(function() {
+
 	$('.docs img').click(function() { $(this).toggleClass('large') });
 	
 	if ($('.docs').size() > 0) {
@@ -21,5 +22,19 @@ $(function() {
 			
 			return false;
   });
+
+	var tabs = $('a.tab-head');
+	if (tabs.size() > 0) {
+		var tabsEl = $('<div class="tab-container"></div>').insertBefore($(tabs[0]));
+		var ul = $('<ul class="etabs"></ul>').appendTo(tabsEl);
+	  tabs.each(function() { 
+			var id = $(this).attr('href').substring(1);
+			var title = $(this).text();
+			$('<div></div>').attr('id', id).append($(this).nextUntil('.tab-head').detach()).appendTo(tabsEl);
+			$('<li class="tab"></li>').append($('<a href="#'+ id +'"></a>').html($(this).html())).appendTo(ul);
+			$(this).remove();
+		});
+		tabsEl.easytabs();
+	}
 	
 })

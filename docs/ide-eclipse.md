@@ -3,9 +3,16 @@ filename: ide-eclipse.md
 title: Eclipse Setup
 layout: docs
 ---
-# Setting up a restx project in Eclipse
+# Project setup in Eclipse
 
-## Using Apache Ivy Support
+<div class="note">
+	<p>Instructions are provided here for each of supported build tools: Ivy and Maven.</p>
+	<p>If you don't want to use any of these, follow the instructions for Ivy, they include more manual steps.</p>
+</div>
+
+<a class="tab-head" href="#ivy"><h2>Ivy</h2></a>
+
+To setup your RESTX project inside Eclipse with Ivy support you will need to:
 
 - install IvyDE
 - create and configure the project
@@ -58,7 +65,7 @@ Your project is now setup, you're ready to start coding!
 
 If this is your first time with RESTX and followed this doc with the generated app, you probably want to [try it out now!](try-generated-app.html)
 
-## Using Apache Maven Support
+<a class="tab-head" href="#maven"><h2>Maven</h2></a>
 
 If you have chosen to use Maven and [have generated a pom](getting-started.html) for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use Eclipse Maven support (through the m2e plugin) to import the project.
 

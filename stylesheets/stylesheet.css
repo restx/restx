@@ -262,6 +262,37 @@ border-color: #0044cc #0044cc #002a80;
 border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
 }
 
+.etabs { margin-left: 0; list-style: none; margin-bottom: 48px;font-size: 24px;font-weight: 700;}
+.etabs > li { float: left; list-style: none; }
+.etabs:before {display: table;line-height: 0;content: "";}
+.etabs:after {clear: both;}
+.etabs > li > a {display: block;}
+.etabs > li > a {
+	padding-right: 20px;
+	padding-left: 20px;
+	margin-right: 2px;
+	line-height: 24px;
+}
+.etabs > li > a {
+padding-top: 8px;
+padding-bottom: 8px;
+margin-top: 2px;
+margin-bottom: 2px;
+-webkit-border-radius: 5px;
+-moz-border-radius: 5px;
+border-radius: 5px;
+}
+.etabs > .active > a, .etabs > .active > a:hover, .etabs > .active > a:focus, .etabs > .active > a h2 {
+color: #ffffff;
+background-color: #0090ff;
+}
+.etabs > li > a h2 {
+	font-size: 24px;
+	background: initial;
+	padding-bottom: 0;
+	margin: 0;
+}
+
 ul, ol, dl {
   margin-bottom: 15px
 }
