@@ -1,8 +1,8 @@
 ---
 published: true
+filename: external-docs.md
 layout: docs
 title: External docs
-
 ---
 
 # External docs and articles
