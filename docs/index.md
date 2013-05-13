@@ -33,3 +33,4 @@ Here is the full table of contents of the documentation:
 ## Reference
 ### [RESTX Factory](ref-factory.html)
 ### [RESTX HTTP](ref-core.html)
+### [RESTX Specs](ref-specs.html)

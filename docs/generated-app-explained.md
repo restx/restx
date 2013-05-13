@@ -147,6 +147,10 @@ This spec is used for 2 things:
 	<p>The principle of scenario is there mainly to avoid repeating the `given` part too frequently, or also to be able to verify that the system state change after an HTTP request, for example issue a `GET` after a `PUT` to verify that the new resource representation has been stored.</p>
 </div>
 
+<div class="note">
+	<p>To get more information on RESTX spec concept and related features, check <a href="ref-specs.html">RESTX Specs reference documentation</a>.</p>
+</div>
+
 ## Resource Spec Test
 
 To actually be able to run this spec as a test, it is necessary to write a JUnit test to run it:
@@ -165,6 +169,10 @@ public class HelloResourceSpecTest {
 {% endhighlight %}
 
 As you can see this code is very basic thanks to junit rule power, it merely tells basic information to start the server and to run the spec.
+
+<div class="note">
+	<p>To get more information on RESTX spec concept and related features, check <a href="ref-specs.html">RESTX Specs reference documentation</a>.</p>
+</div>
 
 ## AppServer
 
