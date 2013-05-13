@@ -1,8 +1,11 @@
 ---
+published: true
 filename: install.md
 layout: docs
-title:  "Install"
+title: Install
+
 ---
+
 # Install
 
 Installing RESTX is very straightforward as soon as you have a [Oracle Java 7 JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) properly installed on your machine.
@@ -13,7 +16,7 @@ Note that installing RESTX is not necessary to use it, you can also [manually se
 Installation can be done in 3 simple steps:
 - [download](/download.html) the package (either as a zip or tar.gz, though we recommend zip for Windows)
 - unpack the package in the directory of your choice, preferably a directory without a space. Beware, the package has no root directory. Example of installation directory: `c:\dev\tools\restx`, `c:\restx`
-- add the directory to your PATH ([Windows](http://www.computerhope.com/issues/ch000549.htm)
+- add the directory to your PATH ([HowTo](http://www.computerhope.com/issues/ch000549.htm))
 - open a terminal and run `restx`, you should be welcomed with a prompt like this one:
 {% highlight console %}
 ===============================================================================
