@@ -234,6 +234,14 @@ blockquote {
 	text-shadow: 0 -1px 0 rgba(0,0,0,.5);
 }
 
+.note.troubleshooting {
+	background: #E01D4A;
+}
+
+.note.troubleshooting:after {
+	content: "⧰";
+}
+
 .go-next {
 	margin: 30px 20px;
 	padding: 10px 20px;
