@@ -71,6 +71,16 @@ Here is an example of the web UI:
 
 All you need to do to get that feature is include the `restx-apidocs` module in your dependencies and name your spec files with a `.spec.yaml` and it will be automatically discovered ([Implementation source](https://github.com/restx/restx/blob/master/restx-core/src/main/java/restx/specs/RestxSpecRepository.java)).
 
+<div class="note troubleshooting">
+	<p>Possible reasons for not discovering a spec as example:
+		<ul>
+			<li>your file is not named with a .spec.yaml extension</li>
+			<li>your file is not in the classpath (maybe because your IDE didn't copy it to your target/classes or bin directory)</li>
+			<li>the spec does not match the REST operation (if you are using the generated app, it eliminates this option)</li>
+		</ul>
+	</p>
+</div>
+
 ### Mock your HTTP requests
 
 Last but not least the spec can be used to mock your HTTP requests ([Implementation source](https://github.com/restx/restx/blob/master/restx-specs-server/src/main/java/restx/specs/server/SpecsServerRoute.java)). 
