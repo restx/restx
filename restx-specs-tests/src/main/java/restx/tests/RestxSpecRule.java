@@ -9,6 +9,7 @@ import org.junit.runners.model.Statement;
 import restx.factory.Factory;
 import restx.server.JettyWebServer;
 import restx.server.WebServer;
+import restx.server.WebServerSupplier;
 import restx.server.WebServers;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
@@ -28,28 +29,58 @@ import static restx.factory.Factory.LocalMachines.contextLocal;
  * Time: 1:58 PM
  */
 public class RestxSpecRule implements TestRule {
-    private WebServer server;
-
-    private final String webInfLocation;
-    private final String appBase;
-
-    private RestxSpec restxSpec;
-    private RestxSpecLoader specLoader = new RestxSpecLoader();
-    private Iterable<GivenSpecRule> givenSpecRules;
-
-
-    public RestxSpecRule(String webInfLocation, String appBase) {
-        this(webInfLocation, appBase, Factory.builder()
+    public static Factory defaultFactory() {
+        return Factory.builder()
                 .addLocalMachines(LocalMachines.threadLocal())
                 .addLocalMachines(contextLocal(RestxSpecRule.class.getSimpleName()))
                 .addFromServiceLoader()
-                .build());
+                .build();
     }
 
-    public RestxSpecRule(String webInfLocation, String appBase, Factory factory) {
-        this.webInfLocation = webInfLocation;
-        this.appBase = appBase;
+    public static WebServerSupplier jettyWebServerSupplier(final String webInfLocation, final String appBase) {
+        return new WebServerSupplier() {
+            @Override
+            public WebServer newWebServer(int port) {
+                return new JettyWebServer(webInfLocation, appBase, port, "localhost");
+            }
+        };
+    }
 
+    private final WebServerSupplier webServerSupplier;
+    private final String routerPath;
+
+    private WebServer server;
+    private RestxSpec restxSpec;
+
+    private RestxSpecLoader specLoader = new RestxSpecLoader();
+
+    private Iterable<GivenSpecRule> givenSpecRules;
+
+    /**
+     * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
+     */
+    public RestxSpecRule(String webInfLocation, String appBase) {
+        this(webInfLocation, appBase, defaultFactory());
+    }
+
+    /**
+     * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), factory)
+     */
+    public RestxSpecRule(final String webInfLocation, final String appBase, Factory factory) {
+        this("/api", jettyWebServerSupplier(webInfLocation, appBase), factory);
+    }
+
+    /**
+     * Constructs a new RestxSpecRule.
+     *
+     * @param routerPath the path at which restx router is mounted. eg '/api'
+     * @param webServerSupplier a supplier of WebServer, you can use #jettyWebServerSupplier for jetty.
+     * @param factory the restx Factory to use to find GivenSpecRuleSupplier s when executing the spec.
+     *                This is not used for the server itself.
+     */
+    public RestxSpecRule(String routerPath, WebServerSupplier webServerSupplier, Factory factory) {
+        this.routerPath = routerPath;
+        this.webServerSupplier = webServerSupplier;
         givenSpecRules = newArrayList(transform(factory.queryByClass(GivenSpecRuleSupplier.class).findAsComponents(),
                 Suppliers.<GivenSpecRule>supplierFunction()));
     }
@@ -65,7 +96,7 @@ public class RestxSpecRule implements TestRule {
             params.putAll(givenSpecRule.getRunParams());
         }
         params.put(RestxSpec.WhenHttpRequest.CONTEXT_NAME, getFactoryContextName(server.getPort()));
-        params.put(RestxSpec.WhenHttpRequest.BASE_URL, server.baseUrl() + "/api");
+        params.put(RestxSpec.WhenHttpRequest.BASE_URL, server.baseUrl() + routerPath);
 
         restxSpec.run(ImmutableMap.copyOf(params));
     }
@@ -77,7 +108,7 @@ public class RestxSpecRule implements TestRule {
                     public void evaluate() throws Throwable {
                         System.out.println("starting server");
                         System.setProperty("restx.factory.load", "onrequest");
-                        server = new JettyWebServer(webInfLocation, appBase, WebServers.findAvailablePort(), "localhost");
+                        server = webServerSupplier.newWebServer(WebServers.findAvailablePort());
                         server.start();
                         for (GivenSpecRule givenSpecRule : givenSpecRules) {
                             givenSpecRule.onSetup(localMachines());
