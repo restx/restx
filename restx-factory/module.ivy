@@ -40,13 +40,13 @@
     </publications>
     <dependencies>
         <dependency org="io.restx" name="restx-common" rev="latest.integration" conf="default" />
-        <dependency org="javax.inject" name="javax.inject" rev="${javax.inject.version}" conf="default" />
-        <dependency org="com.google.guava" name="guava" rev="${guava.version}" conf="default" />
-        <dependency org="joda-time" name="joda-time" rev="${joda-time.version}" conf="default" />
-        <dependency org="org.slf4j" name="slf4j-api" rev="${slf4j-api.version}" conf="default" />
-        <dependency org="com.google.code.maven-play-plugin.com.jamonapi" name="jamon" rev="${jamon.version}" conf="default" />
-        <dependency org="org.reflections" name="reflections" rev="${reflections.version}" conf="default" />
-        <dependency org="junit" name="junit" rev="${junit.version}" conf="test->default" />
-        <dependency org="org.assertj" name="assertj-core" rev="${assertj-core.version}" conf="test->default" />
+        <dependency org="javax.inject" name="javax.inject" rev="1" conf="default" />
+        <dependency org="com.google.guava" name="guava" rev="14.0.1" conf="default" />
+        <dependency org="joda-time" name="joda-time" rev="2.2" conf="default" />
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.5" conf="default" />
+        <dependency org="com.google.code.maven-play-plugin.com.jamonapi" name="jamon" rev="2.7" conf="default" />
+        <dependency org="org.reflections" name="reflections" rev="0.9.9-RC1" conf="default" />
+        <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
+        <dependency org="org.assertj" name="assertj-core" rev="1.1.0" conf="test->default" />
     </dependencies>
 </ivy-module>

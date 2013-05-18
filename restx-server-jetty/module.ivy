@@ -42,11 +42,11 @@
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-servlet" rev="latest.integration" conf="default" />
-        <dependency org="org.eclipse.jetty" name="jetty-server" rev="${jetty.version}" conf="default" />
-        <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="${jetty.version}" conf="default" />
-        <dependency org="org.eclipse.jetty" name="jetty-security" rev="${jetty.version}" conf="default" />
-        <dependency org="org.eclipse.jetty" name="jetty-util" rev="${jetty.version}" conf="default" />
-        <dependency org="org.eclipse.jetty" name="jetty-webapp" rev="${jetty.version}" conf="default" />
-        <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="${jetty.version}" conf="default" />
+        <dependency org="org.eclipse.jetty" name="jetty-server" rev="8.1.8.v20121106" conf="default" />
+        <dependency org="org.eclipse.jetty" name="jetty-servlet" rev="8.1.8.v20121106" conf="default" />
+        <dependency org="org.eclipse.jetty" name="jetty-security" rev="8.1.8.v20121106" conf="default" />
+        <dependency org="org.eclipse.jetty" name="jetty-util" rev="8.1.8.v20121106" conf="default" />
+        <dependency org="org.eclipse.jetty" name="jetty-webapp" rev="8.1.8.v20121106" conf="default" />
+        <dependency org="org.eclipse.jetty" name="jetty-servlets" rev="8.1.8.v20121106" conf="default" />
     </dependencies>
 </ivy-module>

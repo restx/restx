@@ -40,9 +40,9 @@
     </publications>
     <dependencies>
         <dependency org="io.restx" name="restx-shell" rev="latest.integration" conf="default" />
-        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="${jackson.version}" conf="default" />
-        <dependency org="org.apache.ivy" name="ivy" rev="${ivy.version}" conf="default" />
-        <dependency org="junit" name="junit" rev="${junit.version}" conf="test->default" />
-        <dependency org="org.assertj" name="assertj-core" rev="${assertj-core.version}" conf="test->default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.1.2" conf="default" />
+        <dependency org="org.apache.ivy" name="ivy" rev="2.3.0" conf="default" />
+        <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
+        <dependency org="org.assertj" name="assertj-core" rev="1.1.0" conf="test->default" />
     </dependencies>
 </ivy-module>

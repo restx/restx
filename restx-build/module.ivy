@@ -40,7 +40,7 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="junit" name="junit" rev="${junit.version}" conf="test->default" />
-        <dependency org="org.assertj" name="assertj-core" rev="${assertj-core.version}" conf="test->default" />
+        <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
+        <dependency org="org.assertj" name="assertj-core" rev="1.1.0" conf="test->default" />
     </dependencies>
 </ivy-module>

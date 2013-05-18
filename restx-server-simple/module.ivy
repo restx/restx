@@ -41,6 +41,6 @@
     <dependencies>
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
-        <dependency org="org.simpleframework" name="simple" rev="${simple.version}" conf="default" />
+        <dependency org="org.simpleframework" name="simple" rev="5.1.1" conf="default" />
     </dependencies>
 </ivy-module>

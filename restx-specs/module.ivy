@@ -41,6 +41,6 @@
     <dependencies>
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
-        <dependency org="org.slf4j" name="slf4j-api" rev="${slf4j-api.version}" conf="default" />
+        <dependency org="org.slf4j" name="slf4j-api" rev="1.7.5" conf="default" />
     </dependencies>
 </ivy-module>
