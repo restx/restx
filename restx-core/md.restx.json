@@ -20,13 +20,11 @@
             "com.google.code.maven-play-plugin.com.jamonapi:jamon:${jamon.version}",
             "org.hibernate:hibernate-validator:${hibernate-validator.version}",
             "org.reflections:reflections:${reflections.version}",
+            "org.yaml:snakeyaml:${snakeyaml.version}"
+        ],
+        "test": [
             "junit:junit:${junit.version}",
-            "org.hamcrest:hamcrest-core:${hamcrest.version}",
-            "org.hamcrest:hamcrest-library:${hamcrest.version}",
-            "uk.co.datumedge:hamcrest-json:${hamcrest-json.version}",
-            "org.assertj:assertj-core:${assertj-core.version}",
-            "org.yaml:snakeyaml:${snakeyaml.version}",
-            "com.github.kevinsawicki:http-request:${http-request.version}"
+            "org.assertj:assertj-core:${assertj-core.version}"
         ]
     }
 }

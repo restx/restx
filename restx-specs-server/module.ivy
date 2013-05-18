@@ -42,6 +42,6 @@
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-server-simple" rev="latest.integration" conf="default" />
-        <dependency org="ch.qos.logback" name="logback-classic" rev="${logback.version}" conf="default" />
+        <dependency org="ch.qos.logback" name="logback-classic" rev="1.0.11" conf="default" />
     </dependencies>
 </ivy-module>

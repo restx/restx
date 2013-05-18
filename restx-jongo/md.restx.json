@@ -18,6 +18,10 @@
             "org.mongodb:mongo-java-driver:${mongo-java-driver.version}",
             "org.jongo:jongo:${jongo.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.assertj:assertj-core:${assertj-core.version}"
         ]
     }
 }

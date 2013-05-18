@@ -1,22 +1,13 @@
 package restx.specs;
 
-import com.github.kevinsawicki.http.HttpRequest;
-import com.google.common.base.Charsets;
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import org.hamcrest.MatcherAssert;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
-import uk.co.datumedge.hamcrest.json.SameJSONAs;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.assertj.core.api.Assertions.assertThat;
 import static restx.common.MoreStrings.indent;
 
 /**
@@ -34,21 +25,6 @@ public class RestxSpec {
         this.title = title;
         this.given = given;
         this.whens = whens;
-    }
-
-    public void run(ImmutableMap<String, String> params) {
-        List<GivenCleaner> givenCleaners = Lists.newArrayList();
-        for (Given given : getGiven()) {
-            givenCleaners.add(given.run(params));
-        }
-
-        for (When when : getWhens()) {
-            when.check(params);
-        }
-
-        for (GivenCleaner givenCleaner : givenCleaners) {
-            givenCleaner.cleanUp();
-        }
     }
 
     @Override
@@ -82,11 +58,6 @@ public class RestxSpec {
 
     public static interface Given {
         void toString(StringBuilder sb);
-        public GivenCleaner run(ImmutableMap<String, String> params);
-    }
-
-    public static interface GivenCleaner {
-        public void cleanUp();
     }
 
     public static class GivenTime implements Given {
@@ -95,18 +66,6 @@ public class RestxSpec {
 
         public GivenTime(DateTime time) {
             this.time = time;
-        }
-
-        @Override
-        public GivenCleaner run(ImmutableMap<String, String> params) {
-            DateTimeUtils.setCurrentMillisFixed(time.getMillis());
-
-            return new GivenCleaner() {
-                @Override
-                public void cleanUp() {
-                    DateTimeUtils.setCurrentMillisSystem();
-                }
-            };
         }
 
         public DateTime getTime() {
@@ -125,8 +84,6 @@ public class RestxSpec {
         When(T then) {
             this.then = then;
         }
-
-        public abstract void check(ImmutableMap<String, String> params);
 
         public T getThen() {
             return then;
@@ -150,46 +107,6 @@ public class RestxSpec {
             this.path = path;
             this.body = body;
             this.cookies = cookies;
-        }
-
-        public void check(ImmutableMap<String, String> params) {
-            Stopwatch stopwatch = new Stopwatch().start();
-            String url = checkNotNull(params.get(BASE_URL),
-                    BASE_URL + " param is required") + "/" + getPath();
-            System.out.println("---------------------------------------------------------------------------------");
-            System.out.println(">> REQUEST");
-            System.out.println(getMethod() + " " + url);
-            System.out.println();
-            HttpRequest httpRequest = new HttpRequest(url, getMethod());
-
-            if (!cookies.isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-                for (Map.Entry<String, String> entry : cookies.entrySet()) {
-                    sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
-                }
-                sb.setLength(sb.length() - 2);
-                httpRequest.header("Cookie", sb.toString());
-            }
-
-            if (!Strings.isNullOrEmpty(getBody())) {
-                httpRequest.contentType("application/json");
-                httpRequest.send(getBody());
-                System.out.println(getBody());
-            }
-            System.out.println();
-
-            int code = httpRequest.code();
-            System.out.println("<< RESPONSE");
-            System.out.println(code);
-            System.out.println();
-            String body = httpRequest.body(Charsets.UTF_8.name());
-            System.out.println(body);
-            System.out.println();
-
-            assertThat(code).isEqualTo(getThen().getExpectedCode());
-            MatcherAssert.assertThat(body,
-                    SameJSONAs.sameJSONAs(getThen().getExpected()).allowingExtraUnexpectedFields());
-            System.out.printf("checked %s /%s -- %s%n", getMethod(), getPath(), stopwatch.stop().toString());
         }
 
         @Override

@@ -12,6 +12,11 @@
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-server-simple:${restx.version}",
             "ch.qos.logback:logback-classic:${logback.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.assertj:assertj-core:${assertj-core.version}",
+            "com.github.kevinsawicki:http-request:${http-request.version}"
         ]
     }
 }
