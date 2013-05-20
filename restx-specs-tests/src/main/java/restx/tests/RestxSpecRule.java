@@ -4,14 +4,8 @@ import com.google.common.base.Optional;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
 import restx.factory.Factory;
-import restx.server.JettyWebServer;
-import restx.server.WebServer;
 import restx.server.WebServerSupplier;
-import restx.server.WebServers;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
 
@@ -30,7 +24,7 @@ import static restx.factory.Factory.LocalMachines.contextLocal;
  * Date: 3/17/13
  * Time: 1:58 PM
  */
-public class RestxSpecRule implements TestRule {
+public class RestxSpecRule extends RestxServerRule {
 
     public static Factory defaultFactory() {
         return Factory.builder()
@@ -40,26 +34,12 @@ public class RestxSpecRule implements TestRule {
                 .build();
     }
 
-    public static WebServerSupplier jettyWebServerSupplier(final String webInfLocation, final String appBase) {
-        return new WebServerSupplier() {
-            @Override
-            public WebServer newWebServer(int port) {
-                return new JettyWebServer(webInfLocation, appBase, port, "localhost");
-            }
-        };
-    }
-
-    private final WebServerSupplier webServerSupplier;
-
     private final String routerPath;
-    private WebServer server;
+    private final RestxSpecLoader specLoader = new RestxSpecLoader();
 
-    private RestxSpec restxSpec;
-    private RestxSpecLoader specLoader = new RestxSpecLoader();
-
-    private Iterable<GivenSpecRule> givenSpecRules;
-    private Iterable<GivenRunner> givenRunners;
-    private Iterable<WhenChecker> whenCheckers;
+    private final Iterable<GivenSpecRule> givenSpecRules;
+    private final Iterable<GivenRunner> givenRunners;
+    private final Iterable<WhenChecker> whenCheckers;
 
     /**
      * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
@@ -84,20 +64,23 @@ public class RestxSpecRule implements TestRule {
      *                This is not used for the server itself.
      */
     public RestxSpecRule(String routerPath, WebServerSupplier webServerSupplier, Factory factory) {
+        super(webServerSupplier);
         this.routerPath = routerPath;
-        this.webServerSupplier = webServerSupplier;
         givenSpecRules = newArrayList(transform(factory.queryByClass(GivenSpecRuleSupplier.class).findAsComponents(),
                 Suppliers.<GivenSpecRule>supplierFunction()));
         givenRunners = factory.queryByClass(GivenRunner.class).findAsComponents();
         whenCheckers = factory.queryByClass(WhenChecker.class).findAsComponents();
     }
 
-    protected LocalMachines localMachines() {
-        return contextLocal(getFactoryContextName(server.getPort()));
+    public void runTest(String spec) throws IOException {
+        runTest(loadSpec(spec));
     }
 
-    public void runTest(String spec) throws IOException {
-        restxSpec = specLoader.load(spec);
+    public RestxSpec loadSpec(String spec) throws IOException {
+        return specLoader.load(spec);
+    }
+
+    public void runTest(RestxSpec restxSpec) {
         Map<String, String> params = Maps.newLinkedHashMap();
         for (GivenSpecRule givenSpecRule : givenSpecRules) {
             params.putAll(givenSpecRule.getRunParams());
@@ -105,35 +88,41 @@ public class RestxSpecRule implements TestRule {
         params.put(RestxSpec.WhenHttpRequest.CONTEXT_NAME, getFactoryContextName(server.getPort()));
         params.put(RestxSpec.WhenHttpRequest.BASE_URL, server.baseUrl() + routerPath);
 
-        runSpec(ImmutableMap.copyOf(params));
+        runSpec(restxSpec, ImmutableMap.copyOf(params));
     }
 
-    private void runSpec(ImmutableMap<String, String> params) {
+    private void runSpec(RestxSpec restxSpec, ImmutableMap<String, String> params) {
         List<GivenCleaner> givenCleaners = newArrayList();
-        for (RestxSpec.Given given : restxSpec.getGiven()) {
-            Optional<GivenRunner> runnerFor = findRunnerFor(given);
-            if (!runnerFor.isPresent()) {
-                throw new IllegalStateException(
-                        "no runner found for given " + given + ". double check your classpath and factory settings.");
+        try {
+            for (RestxSpec.Given given : restxSpec.getGiven()) {
+                Optional<GivenRunner> runnerFor = findRunnerFor(given);
+                if (!runnerFor.isPresent()) {
+                    throw new IllegalStateException(
+                            "no runner found for given " + given + ". double check your classpath and factory settings.");
+                }
+                givenCleaners.add(runnerFor.get().run(given, params));
             }
-            givenCleaners.add(runnerFor.get().run(given, params));
+
+            for (RestxSpec.When when : restxSpec.getWhens()) {
+                Optional<WhenChecker> checkerFor = findCheckerFor(when);
+                if (!checkerFor.isPresent()) {
+                    throw new IllegalStateException("no checker found for when " + when + "." +
+                            " double check your classpath and factory settings.");
+                }
+                checkerFor.get().check(when, params);
+            }
+        } finally {
+            for (GivenCleaner givenCleaner : givenCleaners) {
+                givenCleaner.cleanUp();
+            }
         }
 
-        for (RestxSpec.When when : restxSpec.getWhens()) {
-            Optional<WhenChecker> checkerFor = findCheckerFor(when);
-            if (!checkerFor.isPresent()) {
-                throw new IllegalStateException("no checker found for when " + when + "." +
-                        " double check your classpath and factory settings.");
-            }
-            checkerFor.get().check(when, params);
-        }
-
-        for (GivenCleaner givenCleaner : givenCleaners) {
-            givenCleaner.cleanUp();
-        }
     }
 
     private Optional<WhenChecker> findCheckerFor(RestxSpec.When when) {
+        if (when instanceof WhenChecker) {
+            return Optional.of((WhenChecker) when);
+        }
         for (WhenChecker whenChecker : whenCheckers) {
             if (whenChecker.getWhenClass().isAssignableFrom(when.getClass())) {
                 return Optional.of(whenChecker);
@@ -144,6 +133,9 @@ public class RestxSpecRule implements TestRule {
     }
 
     private Optional<GivenRunner> findRunnerFor(RestxSpec.Given given) {
+        if (given instanceof GivenRunner) {
+            return Optional.of((GivenRunner) given);
+        }
         for (GivenRunner givenRunner : givenRunners) {
             if (givenRunner.getGivenClass().isAssignableFrom(given.getClass())) {
                 return Optional.of(givenRunner);
@@ -154,31 +146,16 @@ public class RestxSpecRule implements TestRule {
     }
 
     @Override
-    public Statement apply(final Statement statement, Description description) {
-        return new Statement() {
-                    @Override
-                    public void evaluate() throws Throwable {
-                        System.out.println("starting server");
-                        System.setProperty("restx.factory.load", "onrequest");
-                        server = webServerSupplier.newWebServer(WebServers.findAvailablePort());
-                        server.start();
-                        for (GivenSpecRule givenSpecRule : givenSpecRules) {
-                            givenSpecRule.onSetup(localMachines());
-                        }
-
-                        System.out.println("server started");
-                        try {
-                            statement.evaluate();
-                        } finally {
-                            for (GivenSpecRule givenSpecRule : givenSpecRules) {
-                                givenSpecRule.onTearDown(localMachines());
-                            }
-                            System.out.println("stopping server");
-                            server.stop();
-                            System.out.println("DONE");
-                        }
-                    }
-                };
+    protected void afterServerStarted() {
+        for (GivenSpecRule givenSpecRule : givenSpecRules) {
+            givenSpecRule.onSetup(localMachines());
+        }
     }
 
+    @Override
+    protected void beforeServerStop() {
+        for (GivenSpecRule givenSpecRule : givenSpecRules) {
+            givenSpecRule.onTearDown(localMachines());
+        }
+    }
 }
