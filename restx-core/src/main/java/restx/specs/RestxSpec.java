@@ -81,7 +81,7 @@ public class RestxSpec {
     public static abstract class When<T extends Then> {
         private final T then;
 
-        When(T then) {
+        protected When(T then) {
             this.then = then;
         }
 
@@ -148,12 +148,10 @@ public class RestxSpec {
         }
     }
 
-    public static class Then {
-        Then() {
-        }
+    public static interface Then {
     }
 
-    public static class ThenHttpResponse extends Then {
+    public static class ThenHttpResponse implements Then {
         private final int expectedCode;
         private final String expected;
 
