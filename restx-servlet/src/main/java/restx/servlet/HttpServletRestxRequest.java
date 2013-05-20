@@ -31,6 +31,11 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     @Override
+    public int getPort() {
+        return request.getServerPort();
+    }
+
+    @Override
     public String getBaseUri() {
         String url = request.getRequestURL().toString();
         return url.substring(0, url.lastIndexOf(getRestxPath()));

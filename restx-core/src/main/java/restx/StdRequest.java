@@ -10,6 +10,8 @@ import com.google.common.collect.Maps;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,10 +24,12 @@ import static com.google.common.collect.Iterables.getFirst;
  * Time: 9:16 PM
  */
 public class StdRequest implements RestxRequest {
+
     public static StdRequestBuilder builder() {
         return new StdRequestBuilder();
     }
 
+    private final int port;
     private final String baseUri;
     private final String restxPath;
     private final String httpMethod;
@@ -45,6 +49,20 @@ public class StdRequest implements RestxRequest {
         this.cookiesMap = checkNotNull(cookiesMap, "cookies map is required");
         this.headers = checkNotNull(headers, "headers is required");
         this.inputStreamSupplier = checkNotNull(inputStreamSupplier, "inputstream supplier is required");
+        this.port = getPortFromBaseUri(baseUri);
+    }
+
+    private int getPortFromBaseUri(String baseUri) {
+        try {
+            return new URI(baseUri).getPort();
+        } catch (URISyntaxException e) {
+            return 80;
+        }
+    }
+
+    @Override
+    public int getPort() {
+        return port;
     }
 
     @Override

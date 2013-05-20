@@ -17,11 +17,21 @@ import java.util.Map;
 public interface RestxRequest {
     /**
      * Returns the base URI of this request.
-     * Eg http://mydomain.com/api
+     * Eg http://mydomain.com/api or http://mydomain.com:8080
      *
      * @return the base URI of this request.
      */
     String getBaseUri();
+
+    /**
+     * The port on which the request was received.
+     *
+     * This is the port on which the server is listening.
+     *
+     * @return the port on which the request was received.
+     */
+    int getPort();
+
     /**
      * Returns the restx portion of the request path.
      * <p>
