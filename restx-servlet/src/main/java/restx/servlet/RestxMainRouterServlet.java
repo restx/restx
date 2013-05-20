@@ -4,30 +4,30 @@ import restx.RestxMainRouterFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.Collection;
 
-/**
- * User: xavierhanin
- * Date: 1/18/13
- * Time: 2:46 PM
- */
 public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
-    private final RestxMainRouterFactory mainRouter = new RestxMainRouterFactory();
+    public RestxMainRouterServlet() {
+    }
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
 
-        mainRouter.init();
+        String baseUri = System.getProperty("restx.baseUri", "");
+        String baseServer = config.getServletContext().getInitParameter("restx.baseServerUri");
+        if (baseUri.isEmpty() && baseServer != null) {
+            Collection<String> mappings = config.getServletContext()
+                    .getServletRegistration(config.getServletName()).getMappings();
+            if (!mappings.isEmpty()) {
+                String routerPath = mappings.iterator().next();
+                if (routerPath.endsWith("/*")) {
+                    routerPath = routerPath.substring(0, routerPath.length() - 2);
+                }
+                baseUri = baseServer + routerPath;
+            }
+        }
 
-        init(mainRouter);
-    }
-
-    @Override
-    protected void service(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        mainRouter.setContextName(RestxMainRouterFactory.getFactoryContextName(req.getServerPort()));
-        super.service(req, resp);
+        init(RestxMainRouterFactory.newInstance(baseUri));
     }
 }

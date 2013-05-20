@@ -25,11 +25,11 @@ import java.net.SocketAddress;
 public class SimpleWebServer implements WebServer {
     private final Logger logger = LoggerFactory.getLogger(SimpleWebServer.class);
 
-    private String routerPath;
+    private final String routerPath;
     private final String appBase;
     private final int port;
+    private final RestxMainRouter router;
     private Connection connection;
-    private RestxMainRouter router;
 
 
     public SimpleWebServer(String appBase, int port) {
@@ -37,7 +37,8 @@ public class SimpleWebServer implements WebServer {
     }
 
     public SimpleWebServer(String routerPath, String appBase, int port) {
-        this(buildRestxMainRouterFactory(port), routerPath, appBase, port);
+        this(RestxMainRouterFactory.newInstance(String.format("http://localhost:%s", port) + routerPath),
+                routerPath, appBase, port);
     }
 
     public SimpleWebServer(RestxMainRouter router, String routerPath, String appBase, int port) {
@@ -53,12 +54,8 @@ public class SimpleWebServer implements WebServer {
 
     @Override
     public void start() throws Exception {
-        logger.info("starting web server");
+        logger.debug("starting web server");
 
-        if (router instanceof RestxMainRouterFactory) {
-            RestxMainRouterFactory mainRouterFactory = (RestxMainRouterFactory) router;
-            mainRouterFactory.init();
-        }
         Container container = new Container() {
             @Override
             public void handle(Request request, Response response) {
@@ -106,9 +103,4 @@ public class SimpleWebServer implements WebServer {
         return port;
     }
 
-    private static RestxMainRouterFactory buildRestxMainRouterFactory(int port) {
-        RestxMainRouterFactory router = new RestxMainRouterFactory();
-        router.setContextName(RestxMainRouterFactory.getFactoryContextName(port));
-        return router;
-    }
 }

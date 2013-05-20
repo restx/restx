@@ -17,109 +17,108 @@ import static restx.StdRestxMainRouter.getMode;
  * Date: 2/16/13
  * Time: 3:40 PM
  */
-public class RestxMainRouterFactory implements AutoCloseable, RestxMainRouter {
-    private final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
+public class RestxMainRouterFactory {
+    private static final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
 
-    private Factory factory;
-    private StdRestxMainRouter mainRouter;
-    private String contextName = "";
-    private RestxSpecRecorder restxSpecRecorder;
-
-    public void setContextName(String contextName) {
-        this.contextName = contextName;
-    }
-
-    public void init() {
-        String baseUri = System.getProperty("restx.baseUri", "");
-        if (RestxContext.Modes.RECORDING.equals(getMode())) {
-            restxSpecRecorder = new RestxSpecRecorder();
-            restxSpecRecorder.install();
-        }
+    public static RestxMainRouter newInstance(String baseUri) {
+        logger.info("LOADING MAIN ROUTER");
         if (getLoadFactoryMode().equals("onstartup")) {
-            loadFactory();
-            if (!baseUri.isEmpty()) {
-                logPrompt(baseUri, "READY");
-            } else {
-                logger.info("RESTX READY");
+            StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder()));
+            logPrompt(baseUri, "READY", mainRouter);
+
+            return mainRouter;
+        } else if (getLoadFactoryMode().equals("onrequest")) {
+            final RestxSpecRecorder restxSpecRecorder = RestxContext.Modes.RECORDING.equals(getMode()) ?
+                    new RestxSpecRecorder() : null;
+            if (restxSpecRecorder != null) {
+                restxSpecRecorder.install();
             }
+
+            logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
+
+            return new RestxMainRouter() {
+                @Override
+                public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+                    RestxSpecTape tape = null;
+                    if (restxSpecRecorder != null
+                            && !restxRequest.getRestxPath().startsWith("/@/")) {
+                        tape = restxSpecRecorder.record(restxRequest, restxResponse);
+                        restxRequest = tape.getRecordingRequest();
+                        restxResponse = tape.getRecordingResponse();
+                    }
+
+                    Factory factory = loadFactory(newFactoryBuilder(getFactoryContextName(restxRequest.getPort()),
+                                                                    restxSpecRecorder));
+
+                    try {
+                        newStdRouter(factory).route(restxRequest, restxResponse);
+                    } finally {
+                        if (tape != null) {
+                            restxSpecRecorder.stop(tape);
+                        }
+                        factory.close();
+                    }
+                }
+            };
         } else {
-            if (!baseUri.isEmpty()) {
-                logPrompt(baseUri, "LOAD ON REQUEST");
-            }
+            throw new IllegalStateException("illegal load factory mode: '" + getLoadFactoryMode() + "'. " +
+                    "It must be either 'onstartup' or 'onrequest'.");
         }
     }
 
-    private void logPrompt(String baseUri, String state) {
+    private static void logPrompt(String baseUri, String state, StdRestxMainRouter mainRouter) {
         logger.info("\n" +
                 "--------------------------------------\n" +
                 " -- RESTX " + state + (RestxContext.Modes.RECORDING.equals(getMode()) ? " >> RECORDING MODE <<" : "") + "\n" +
                 (mainRouter != null ? (" -- " + mainRouter.getNbFilters() + " filters\n") : "") +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
-                " -- for admin console,\n" +
-                " --   VISIT " + baseUri + "/@/ui/\n" +
+                (baseUri == null || baseUri.isEmpty() ? "" :
+                        " -- for admin console,\n" +
+                        " --   VISIT " + baseUri + "/@/ui/\n") +
                 " --\n");
     }
 
-    private void loadFactory() {
-        Factory.Builder builder = Factory.builder()
-                .addFromServiceLoader()
-                .addLocalMachines(Factory.LocalMachines.threadLocal())
-                .addLocalMachines(Factory.LocalMachines.contextLocal(contextName));
-        if (restxSpecRecorder != null) {
-            builder.addLocalMachines(Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING));
-            builder.addMachine(new SingletonFactoryMachine<>(
-                    0, NamedComponent.of(RestxSpecRecorder.class, "specRecorder", restxSpecRecorder)));
-        }
-        factory = builder.build();
-
+    private static Factory loadFactory(Factory.Builder builder) {
+        Factory factory = builder.build();
         logger.debug("restx factory ready: {}", factory.dumper());
 
-        mainRouter = new StdRestxMainRouter(factory.queryByClass(RestxRouting.class).findOne().get().getComponent());
+        return factory;
     }
 
-    private void closeFactory() {
-        close();
+    private static Factory.Builder newFactoryBuilder(String contextName, RestxSpecRecorder specRecorder) {
+        Factory.Builder builder = newFactoryBuilder(contextName);
+        if (specRecorder != null) {
+            builder
+                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING))
+                .addMachine(new SingletonFactoryMachine<>(
+                        0, NamedComponent.of(RestxSpecRecorder.class, "specRecorder", specRecorder)));
+        }
+        return builder;
     }
 
-    private String getLoadFactoryMode() {
-        return System.getProperty("restx.factory.load", "onstartup");
+    private static Factory.Builder newFactoryBuilder(String contextName) {
+        return newFactoryBuilder()
+                    .addLocalMachines(Factory.LocalMachines.contextLocal(contextName));
     }
 
-    @Override
-    public void close() {
-        if (factory != null) {
-            factory.close();
-            factory = null;
-            logger.debug("closed restx factory");
-        }
+    private static Factory.Builder newFactoryBuilder() {
+        return Factory.builder()
+                    .addFromServiceLoader()
+                    .addLocalMachines(Factory.LocalMachines.threadLocal());
     }
 
-    public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-        RestxSpecTape tape = null;
-        if (restxSpecRecorder != null
-                && !restxRequest.getRestxPath().startsWith("/@/")) {
-            tape = restxSpecRecorder.record(restxRequest, restxResponse);
-            restxRequest = tape.getRecordingRequest();
-            restxResponse = tape.getRecordingResponse();
-        }
+    private static StdRestxMainRouter newStdRouter(Factory factory) {
+        return new StdRestxMainRouter(factory.queryByClass(RestxRouting.class).findOne().get().getComponent());
+    }
 
-        if (getLoadFactoryMode().equals("onrequest")) {
-            loadFactory();
-        }
-
-        try {
-            mainRouter.route(restxRequest, restxResponse);
-        } finally {
-            if (tape != null) {
-                restxSpecRecorder.stop(tape);
-            }
-            if (getLoadFactoryMode().equals("onrequest")) {
-                closeFactory();
-            }
-        }
+    private static String getLoadFactoryMode() {
+        return System.getProperty("restx.factory.load", RestxContext.Modes.RECORDING.equals(getMode())
+                ? "onrequest" : "onstartup");
     }
 
     public static String getFactoryContextName(int port) {
         return String.format("RESTX@%s", port);
     }
+
+    private RestxMainRouterFactory() {}
 }

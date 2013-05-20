@@ -1,5 +1,6 @@
 package restx.server;
 
+import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.core.StandardServer;
@@ -33,7 +34,8 @@ public class TomcatWebServer implements WebServer {
         AprLifecycleListener listener = new AprLifecycleListener();
         server.addLifecycleListener(listener);
 
-        tomcat.addWebapp(contextPath, appBase);
+        Context context = tomcat.addWebapp(contextPath, appBase);
+        context.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
     }
 
 

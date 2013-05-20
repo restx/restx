@@ -14,8 +14,6 @@ public class AppServer {
 
     public static void main(String[] args) throws Exception {
         WebServer server = new SimpleWebServer(WEB_APP_LOCATION, 8086);
-        System.setProperty("restx.baseUri", server.baseUrl() + "/api");
-        System.setProperty("restx.mode", "recording");
         server.startAndAwait();
     }
 }

@@ -8,6 +8,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -49,7 +51,7 @@ public class JettyWebServer implements WebServer {
 
         server.setThreadPool(createThreadPool());
         server.addConnector(createConnector());
-        server.setHandler(createHandlers());
+        server.setHandler(createHandlers(createContext()));
         server.setStopAtShutdown(true);
 
         server.start();
@@ -78,8 +80,19 @@ public class JettyWebServer implements WebServer {
         return connector;
     }
 
-    private HandlerCollection createHandlers() {
-        WebAppContext ctx = new WebAppContext();
+    private HandlerCollection createHandlers(WebAppContext webAppContext) {
+
+        HandlerList contexts = new HandlerList();
+        contexts.setHandlers(new Handler[]{webAppContext});
+
+        HandlerCollection result = new HandlerCollection();
+        result.setHandlers(new Handler[]{contexts});
+
+        return result;
+    }
+
+    private WebAppContext createContext() {
+        final WebAppContext ctx = new WebAppContext();
         ctx.setContextPath("/");
         ctx.setWar(appBase);
         if(!Strings.isNullOrEmpty(webInfLocation)) {
@@ -92,13 +105,14 @@ public class JettyWebServer implements WebServer {
         ctx.getSecurityHandler().setLoginService(loginService);
         ctx.getSecurityHandler().setIdentityService(loginService.getIdentityService());
 
-        HandlerList contexts = new HandlerList();
-        contexts.setHandlers(new Handler[]{ ctx });
+        ctx.addLifeCycleListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
+            @Override
+            public void lifeCycleStarting(LifeCycle event) {
+                ctx.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
+            }
+        });
 
-        HandlerCollection result = new HandlerCollection();
-        result.setHandlers(new Handler[]{contexts});
-
-        return result;
+        return ctx;
     }
 
 }
