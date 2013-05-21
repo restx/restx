@@ -15,7 +15,6 @@ import java.util.Map;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
-import static restx.RestxMainRouterFactory.getFactoryContextName;
 import static restx.factory.Factory.LocalMachines;
 import static restx.factory.Factory.LocalMachines.contextLocal;
 
@@ -85,7 +84,7 @@ public class RestxSpecRule extends RestxServerRule {
         for (GivenSpecRule givenSpecRule : givenSpecRules) {
             params.putAll(givenSpecRule.getRunParams());
         }
-        params.put(RestxSpec.WhenHttpRequest.CONTEXT_NAME, getFactoryContextName(server.getPort()));
+        params.put(RestxSpec.WhenHttpRequest.CONTEXT_NAME, server.getServerId());
         params.put(RestxSpec.WhenHttpRequest.BASE_URL, server.baseUrl() + routerPath);
 
         runSpec(restxSpec, ImmutableMap.copyOf(params));
@@ -146,7 +145,7 @@ public class RestxSpecRule extends RestxServerRule {
     }
 
     @Override
-    protected void afterServerStarted() {
+    protected void afterServerCreated() {
         for (GivenSpecRule givenSpecRule : givenSpecRules) {
             givenSpecRule.onSetup(localMachines());
         }

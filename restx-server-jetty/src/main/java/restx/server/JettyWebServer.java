@@ -16,7 +16,11 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class JettyWebServer implements WebServer {
+    private static final AtomicLong SERVER_ID = new AtomicLong();
+
     private final Logger logger = LoggerFactory.getLogger(JettyWebServer.class);
 
     private Server server;
@@ -24,9 +28,10 @@ public class JettyWebServer implements WebServer {
     private String bindInterface;
     private String appBase;
     private String webInfLocation;
+    private String serverId;
 
     public JettyWebServer(String appBase, int aPort) {
-        this(appBase, appBase, aPort, null);
+        this(null, appBase, aPort, null);
     }
 
     public JettyWebServer(String webInfLocation, String appBase, int port, String bindInterface) {
@@ -34,6 +39,12 @@ public class JettyWebServer implements WebServer {
         this.bindInterface = bindInterface;
         this.appBase = appBase;
         this.webInfLocation = webInfLocation;
+        this.serverId = "Jetty#" + SERVER_ID.incrementAndGet();
+    }
+
+    @Override
+    public String getServerId() {
+        return serverId;
     }
 
     @Override
@@ -43,7 +54,7 @@ public class JettyWebServer implements WebServer {
 
     @Override
     public String baseUrl() {
-        return String.format("http://localhost:%s", port);
+        return WebServers.baseUri("localhost", port);
     }
 
     public void start() throws Exception {
@@ -109,6 +120,7 @@ public class JettyWebServer implements WebServer {
             @Override
             public void lifeCycleStarting(LifeCycle event) {
                 ctx.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
+                ctx.getServletContext().setInitParameter("restx.serverId", getServerId());
             }
         });
 

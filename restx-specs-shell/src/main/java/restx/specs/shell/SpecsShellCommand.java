@@ -72,7 +72,8 @@ public class SpecsShellCommand extends StdShellCommand {
             }
 
             System.setProperty("restx.factory.load", "onrequest");
-            final SimpleWebServer webServer = new SimpleWebServer(routerPath, ".", port);
+            final SimpleWebServer webServer = SimpleWebServer.builder()
+                    .setRouterPath(routerPath).setAppBase(".").setPort(port).build();
             webServer.start();
             String uri = webServer.baseUrl() + routerPath;
             shell.printIn("SPECS SERVER READY on " + uri + "/\n", RestxShell.AnsiCodes.ANSI_GREEN);

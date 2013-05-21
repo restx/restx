@@ -9,18 +9,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * TomcatWebServer allow to run embedded tomcat. But its startup time is much slower than JettyWebServer.
  */
 public class TomcatWebServer implements WebServer {
+    private static final AtomicLong SERVER_ID = new AtomicLong();
+
     private final Logger logger = LoggerFactory.getLogger(TomcatWebServer.class);
 
     private final Tomcat tomcat;
     private final int port;
+    private final String serverId;
 
     public TomcatWebServer(String appBase, int port) throws ServletException {
         this.port = port;
+        this.serverId = "Tomcat#" + SERVER_ID.incrementAndGet();
         tomcat = new Tomcat();
         tomcat.setPort(port);
 
@@ -36,8 +41,13 @@ public class TomcatWebServer implements WebServer {
 
         Context context = tomcat.addWebapp(contextPath, appBase);
         context.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
+        context.getServletContext().setInitParameter("restx.serverId", serverId);
     }
 
+    @Override
+    public String getServerId() {
+        return serverId;
+    }
 
     @Override
     public int getPort() {
@@ -46,7 +56,7 @@ public class TomcatWebServer implements WebServer {
 
     @Override
     public String baseUrl() {
-        return String.format("http://localhost:%s", port);
+        return WebServers.baseUri("localhost", port);
     }
 
     public void start() throws LifecycleException {

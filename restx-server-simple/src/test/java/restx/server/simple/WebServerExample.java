@@ -40,7 +40,6 @@ public class WebServerExample {
 
 
     public static void main(String[] args) throws Exception {
-      new SimpleWebServer(ROUTER, "/api", "", 8080).startAndAwait();
+        SimpleWebServer.builder().setRouter(ROUTER).setRouterPath("/api").setPort(8080).build().startAndAwait();
     }
-
 }

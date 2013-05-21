@@ -10,5 +10,6 @@ public interface WebServer {
     public void startAndAwait() throws Exception;
     public void stop() throws Exception;
     public String baseUrl();
+    public String getServerId();
     public int getPort();
 }

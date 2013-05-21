@@ -28,6 +28,8 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
             }
         }
 
-        init(RestxMainRouterFactory.newInstance(baseUri));
+        String serverId = config.getServletContext().getInitParameter("restx.serverId");
+
+        init(RestxMainRouterFactory.newInstance(serverId, baseUri));
     }
 }

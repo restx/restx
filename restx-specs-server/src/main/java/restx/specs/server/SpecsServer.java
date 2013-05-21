@@ -18,6 +18,6 @@ public class SpecsServer {
     }
 
     static WebServer getServer(int port, String routerPath, String appBase) {
-        return new SimpleWebServer(routerPath, appBase, port);
+        return SimpleWebServer.builder().setRouterPath(routerPath).setAppBase(appBase).setPort(port).build();
     }
 }

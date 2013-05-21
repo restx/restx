@@ -13,7 +13,7 @@ public class AppServer {
     public static final String WEB_APP_LOCATION = "src/main/webapp";
 
     public static void main(String[] args) throws Exception {
-        WebServer server = new SimpleWebServer(WEB_APP_LOCATION, 8086);
+        WebServer server = SimpleWebServer.builder().setAppBase(WEB_APP_LOCATION).setPort(8086).build();
         server.startAndAwait();
     }
 }

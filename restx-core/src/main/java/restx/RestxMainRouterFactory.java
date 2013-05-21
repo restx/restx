@@ -20,10 +20,10 @@ import static restx.StdRestxMainRouter.getMode;
 public class RestxMainRouterFactory {
     private static final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
 
-    public static RestxMainRouter newInstance(String baseUri) {
+    public static RestxMainRouter newInstance(final String serverId, String baseUri) {
         logger.info("LOADING MAIN ROUTER");
         if (getLoadFactoryMode().equals("onstartup")) {
-            StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder()));
+            StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder(serverId)));
             logPrompt(baseUri, "READY", mainRouter);
 
             return mainRouter;
@@ -47,7 +47,7 @@ public class RestxMainRouterFactory {
                         restxResponse = tape.getRecordingResponse();
                     }
 
-                    Factory factory = loadFactory(newFactoryBuilder(getFactoryContextName(restxRequest.getPort()),
+                    Factory factory = loadFactory(newFactoryBuilder(serverId,
                                                                     restxSpecRecorder));
 
                     try {
@@ -97,8 +97,11 @@ public class RestxMainRouterFactory {
     }
 
     private static Factory.Builder newFactoryBuilder(String contextName) {
-        return newFactoryBuilder()
-                    .addLocalMachines(Factory.LocalMachines.contextLocal(contextName));
+        Factory.Builder builder = newFactoryBuilder();
+        if (contextName != null) {
+            builder.addLocalMachines(Factory.LocalMachines.contextLocal(contextName));
+        }
+        return builder;
     }
 
     private static Factory.Builder newFactoryBuilder() {
@@ -114,10 +117,6 @@ public class RestxMainRouterFactory {
     private static String getLoadFactoryMode() {
         return System.getProperty("restx.factory.load", RestxContext.Modes.RECORDING.equals(getMode())
                 ? "onrequest" : "onstartup");
-    }
-
-    public static String getFactoryContextName(int port) {
-        return String.format("RESTX@%s", port);
     }
 
     private RestxMainRouterFactory() {}
