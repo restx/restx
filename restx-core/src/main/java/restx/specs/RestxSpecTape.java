@@ -133,6 +133,11 @@ public class RestxSpecTape {
             }
 
             @Override
+            public int getStatus() {
+                return status;
+            }
+
+            @Override
             public void setStatus(int i) {
                 super.setStatus(i);
                 status = i;

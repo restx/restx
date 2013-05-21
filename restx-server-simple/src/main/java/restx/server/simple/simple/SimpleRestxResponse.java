@@ -37,6 +37,11 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
+    public int getStatus() {
+        return response.getStatus().code;
+    }
+
+    @Override
     public void setContentType(String s) {
         if (HTTP.isTextContentType(s)) {
             Optional<String> cs = HTTP.charsetFromContentType(s);

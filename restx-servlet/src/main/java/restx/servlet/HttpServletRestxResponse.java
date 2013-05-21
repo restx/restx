@@ -28,6 +28,11 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
+    public int getStatus() {
+        return resp.getStatus();
+    }
+
+    @Override
     public void setStatus(int i) {
         resp.setStatus(i);
     }

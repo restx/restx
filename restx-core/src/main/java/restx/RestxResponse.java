@@ -13,6 +13,7 @@ import java.io.PrintWriter;
  */
 public interface RestxResponse extends AutoCloseable {
     void setStatus(int i);
+    int getStatus();
 
     void setContentType(String s);
 
