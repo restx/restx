@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -83,7 +84,8 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
     @Override
     public void route(RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
-        logger.info("<< {}", restxRequest);
+        logger.debug("<< {}", restxRequest);
+        Stopwatch stopwatch = new Stopwatch().start();
 
         Monitor monitor = MonitorFactory.start("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath());
         try {
@@ -201,6 +203,8 @@ public class StdRestxMainRouter implements RestxMainRouter {
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
             try { restxResponse.close(); } catch (Exception ex) { }
             monitor.stop();
+            stopwatch.stop();
+            logger.info("<< {} >> {} - {}", restxRequest, restxResponse.getStatus(), stopwatch);
         }
     }
 
