@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
@@ -70,6 +71,13 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
     private void processModules(RoundEnvironment roundEnv) throws IOException {
         for (Element annotation : roundEnv.getElementsAnnotatedWith(Module.class)) {
+            if (!(annotation instanceof TypeElement)) {
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "annotating element " + annotation + " of type " + annotation.getKind().name()
+                                + " with @Module is not supported");
+                continue;
+            }
             TypeElement typeElem = (TypeElement) annotation;
 
             ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem);
@@ -97,6 +105,13 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
     private void processMachines(RoundEnvironment roundEnv) throws IOException {
         for (Element annotation : roundEnv.getElementsAnnotatedWith(Machine.class)) {
+            if (!(annotation instanceof TypeElement)) {
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "annotating element " + annotation + " of type " + annotation.getKind().name()
+                                + " with @Machine is not supported");
+                continue;
+            }
             TypeElement typeElem = (TypeElement) annotation;
             machinesDeclaration.declareService(typeElem.getQualifiedName().toString());
         }
@@ -104,6 +119,13 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
     private void processComponents(RoundEnvironment roundEnv) throws IOException {
         for (Element elem : roundEnv.getElementsAnnotatedWith(Component.class)) {
+            if (!(elem instanceof TypeElement)) {
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "annotating element " + elem + " of type " + elem.getKind().name()
+                                + " with @Component is not supported");
+                continue;
+            }
             TypeElement component = (TypeElement) elem;
 
             ExecutableElement exec = findInjectableConstructor(component);
