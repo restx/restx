@@ -26,7 +26,7 @@
 
     "mongo-java-driver.version": "2.11.1",
     "bson4jackson.version": "2.1.1",
-    "jongo.version": "0.3",
+    "jongo.version": "0.4",
 
     "ivy.version": "2.3.0",
 

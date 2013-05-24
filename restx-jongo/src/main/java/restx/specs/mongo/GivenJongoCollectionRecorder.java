@@ -147,14 +147,14 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
                             public ObjectIdUpdater getObjectIdUpdater() {
                                 return new ObjectIdUpdater() {
                                     @Override
-                                    public boolean canSetObjectId(Object target) {
-                                        return objectIdUpdater.canSetObjectId(target);
+                                    public boolean isNew(Object target) {
+                                        return objectIdUpdater.isNew(target);
                                     }
 
                                     @Override
-                                    public void setDocumentGeneratedId(Object target, ObjectId id) {
+                                    public void setObjectId(Object target, ObjectId id) {
                                         Tape.TAPE.get().recordGeneratedId(collection.getName(), id);
-                                        objectIdUpdater.setDocumentGeneratedId(target, id);
+                                        objectIdUpdater.setObjectId(target, id);
                                     }
                                 };
                             }

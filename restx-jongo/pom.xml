@@ -24,7 +24,7 @@
         <jackson.version>2.1.2</jackson.version>
         <mongo-java-driver.version>2.11.1</mongo-java-driver.version>
         <bson4jackson.version>2.1.1</bson4jackson.version>
-        <jongo.version>0.3</jongo.version>
+        <jongo.version>0.4</jongo.version>
         <junit.version>4.11</junit.version>
         <assertj-core.version>1.1.0</assertj-core.version>
     </properties>

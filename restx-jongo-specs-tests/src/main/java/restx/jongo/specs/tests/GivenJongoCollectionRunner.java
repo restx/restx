@@ -151,13 +151,13 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                         public ObjectIdUpdater getObjectIdUpdater() {
                             return new ObjectIdUpdater() {
                                 @Override
-                                public boolean canSetObjectId(Object target) {
-                                    return objectIdUpdater.canSetObjectId(target);
+                                public boolean isNew(Object target) {
+                                    return objectIdUpdater.isNew(target);
                                 }
 
                                 @Override
-                                public void setDocumentGeneratedId(Object target, ObjectId id) {
-                                    objectIdUpdater.setDocumentGeneratedId(target,
+                                public void setObjectId(Object target, ObjectId id) {
+                                    objectIdUpdater.setObjectId(target,
                                             new ObjectId(iteratingSequence.next().or(id.toString())));
                                 }
                             };
