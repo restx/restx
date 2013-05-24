@@ -29,6 +29,8 @@ public class IvySupport implements RestxBuild.Generator {
             if (entry.getKey().equals("java.version")) {
                 w.write("            compile.java.source.version=\"" + entry.getValue() + "\"\n");
                 w.write("            compile.java.target.version=\"" + entry.getValue() + "\"\n");
+            } else if (entry.getKey().endsWith(".version")) {
+                // versions are inlined, no need to put them here
             } else {
                 w.write("            " + entry.getKey() + "=\"" + entry.getValue() + "\"\n");
             }

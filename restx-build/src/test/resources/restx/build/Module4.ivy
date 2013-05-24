@@ -3,8 +3,6 @@
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-webapp-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
-            joda-time.version="2.0"
-            junit.version="4.11"
         />
     </info>
     <configurations>

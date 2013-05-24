@@ -92,6 +92,10 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                 if (entry.getKey().equals("java.version")) {
                     writeXmlTag(w, "        ", "maven.compiler.target", entry.getValue());
                     writeXmlTag(w, "        ", "maven.compiler.source", entry.getValue());
+                } else if (entry.getKey().endsWith(".version")) {
+                    if (isVersionPropertyUsed(md, entry.getKey())) {
+                        writeXmlTag(w, "        ", entry.getKey(), entry.getValue());
+                    }
                 } else {
                     writeXmlTag(w, "        ", entry.getKey(), entry.getValue());
                 }
@@ -116,6 +120,17 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             }
 
             w.write(FOOTER);
+        }
+
+        private boolean isVersionPropertyUsed(ModuleDescriptor md, String property) {
+            for (String scope : md.getDependencyScopes()) {
+                for (ModuleDependency dependency : md.getDependencies(scope)) {
+                    if (dependency.getGav().getVersion().indexOf("${" + property + "}") != -1) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private void toMavenGAV(GAV gav, String indent, Writer w) throws IOException {

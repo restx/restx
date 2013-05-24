@@ -3,8 +3,6 @@
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
-            slf4j-api.version="1.7.2"
-            jackson.version="2.1.2"
         />
     </info>
     <configurations>
