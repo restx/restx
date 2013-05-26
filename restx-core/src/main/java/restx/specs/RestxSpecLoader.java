@@ -115,7 +115,10 @@ public class RestxSpecLoader {
                     String then = checkInstanceOf("then", whenThen.get("then"), String.class).trim();
                     int code = 200;
                     int endLineIndex = then.indexOf("\n");
-                    String firstLine = endLineIndex > 0 ? then.substring(0, endLineIndex) : "";
+                    if (endLineIndex == -1) {
+                        endLineIndex = then.length();
+                    }
+                    String firstLine = then.substring(0, endLineIndex);
                     Matcher respMatcher = Pattern.compile("^(\\d{3}).*$").matcher(firstLine);
                     if (respMatcher.matches()) {
                         code = Integer.parseInt(respMatcher.group(1));
