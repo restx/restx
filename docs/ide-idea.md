@@ -85,6 +85,10 @@ If this is your first time with RESTX and followed this doc with the generated a
 
 If you have chosen to use Maven and [have generated a pom](getting-started.html) for the project (or hand written one following the [provided instructions](manual-app-bootstrap.html)), then you can use IDEA built in Maven support to import the project.
 
+<div class="note">
+	<p>If you have installed idea command line launcher (through Tools > Install Command line launcher), you can simply run <code>idea pom.xml</code> in your terminal.</p>
+</div>
+
 What you will need to do:
 
 - import the project
