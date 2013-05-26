@@ -20,7 +20,7 @@ import static restx.factory.Factory.LocalMachines.contextLocal;
 public class RestxServerRule implements TestRule {
     protected final WebServerSupplier webServerSupplier;
     protected WebServer server;
-    private String factoryLoadMode = "onstartup";
+    private String factoryLoadMode = "onrequest";
 
     public RestxServerRule(WebServerSupplier webServerSupplier) {
         this.webServerSupplier = webServerSupplier;
