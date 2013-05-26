@@ -74,7 +74,7 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                             return new SingleComponentNameCustomizerEngine<JongoCollection>(0, Name.of(JongoCollection.class, given.getCollection())) {
                                 @Override
                                 public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
-                                    if (namedComponent.getName().equals(given.getCollection())) {
+                                    if (namedComponent.getName().getName().equals(given.getCollection())) {
                                         Mapper mapper = satisfiedBOM.getOne(mapperQuery).get().getComponent();
                                         return new NamedComponent<>(namedComponent.getName(),
                                                 new SequencedJongoCollection(namedComponent.getComponent(), mapper,
