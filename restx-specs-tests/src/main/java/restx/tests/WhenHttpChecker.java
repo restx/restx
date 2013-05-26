@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static restx.specs.RestxSpec.WhenHttpRequest.BASE_URL;
 
 @Component
@@ -60,8 +61,17 @@ public class WhenHttpChecker implements WhenChecker<RestxSpec.WhenHttpRequest> {
         System.out.println();
 
         assertThat(code).isEqualTo(when.getThen().getExpectedCode());
-        MatcherAssert.assertThat(body,
+        if (isJSON(when.getThen().getExpected())) {
+            MatcherAssert.assertThat(body,
                 SameJSONAs.sameJSONAs(when.getThen().getExpected()).allowingExtraUnexpectedFields());
+        } else if (!when.getThen().getExpected().trim().isEmpty()) {
+            MatcherAssert.assertThat(body, equalTo(when.getThen().getExpected()));
+        }
         System.out.printf("checked %s /%s -- %s%n", when.getMethod(), when.getPath(), stopwatch.stop().toString());
+    }
+
+    private boolean isJSON(String s) {
+        // very basic impl of this, we could also parse it to check
+        return s.trim().startsWith("{") || s.trim().startsWith("[");
     }
 }
