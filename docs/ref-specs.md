@@ -16,7 +16,7 @@ wts:
     then: |
       {"message":"hello xavier, it's 14:33:18"}
 {% endhighlight %}
-[View source in a sample project](https://github.com/restx/restx/blob/master/restx-samples/restx-samples-hello/src/test/resources/cases/hello/should_say_hello.spec.yaml)
+[View source in a sample project](https://github.com/restx/restx-samples-hello/blob/master/src/test/resources/specs/hello/should_say_hello.spec.yaml)
 
 
 This file specifies your REST API by telling what it should respond (the `then`) to a specific request (the `when`) given a current state of the system (the `given`).
@@ -46,7 +46,7 @@ public class HelloResourceSpecTest {
     }
 }
 {% endhighlight %}
-[View source in sample project](https://github.com/restx/restx/blob/master/restx-samples/restx-samples-hello/src/test/java/hello/web/HelloResourceSpecTest.java)
+[View source in sample project](https://github.com/restx/restx-samples-hello/blob/master/src/test/java/hello/rest/HelloResourceSpecTest.java)
 
 <div class="note">
 	<p>This feature could be used on a non RESTX server (if you didn't use RESTX to develop your server).</p>
