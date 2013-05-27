@@ -40,6 +40,15 @@ public class RestxSpecRule extends RestxServerRule {
     private final Iterable<GivenRunner> givenRunners;
     private final Iterable<WhenChecker> whenCheckers;
 
+
+    /**
+     * A shortcut for new RestxSpecRule("src/main/webapp/WEB-INF/web.xml", "src/main/webapp",
+     *                          "/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
+     */
+    public RestxSpecRule() {
+        this("src/main/webapp/WEB-INF/web.xml", "src/main/webapp");
+    }
+
     /**
      * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
      */
