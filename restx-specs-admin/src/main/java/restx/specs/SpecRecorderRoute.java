@@ -60,7 +60,7 @@ public class SpecRecorderRoute extends RestxRouter {
                         int id = Integer.parseInt(match.getPathParams().get("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                             if (spec.getId() == id) {
-                                String basePath = System.getProperty("restx.recorder.basePath", "specs");
+                                String basePath = System.getProperty("restx.recorder.basePath", "src/test/resources/specs");
                                 Optional<String> path = req.getQueryParam("path");
                                 Optional<String> title = req.getQueryParam("title");
 
