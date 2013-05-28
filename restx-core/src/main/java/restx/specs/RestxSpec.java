@@ -55,7 +55,7 @@ public class RestxSpec {
     }
 
     File getStoreFile(Optional<String> path, Optional<String> title) {
-        String basePath = System.getProperty("restx.recorder.basePath", "src/test/resources/specs");
+        String basePath = System.getProperty("restx.recorder.basePath", "src/main/resources/specs");
         return new File(basePath + "/" + path.or("") + "/"
                 + title.or(getTitle()).replace(' ', '_').replace('/', '_') + ".spec.yaml");
     }

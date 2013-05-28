@@ -31,10 +31,10 @@ public class RestxSpecTest {
                 ImmutableList.<RestxSpec.Given>of(),
                 ImmutableList.<RestxSpec.When>of());
         assertThat(spec.getStoreFile(Optional.<String>absent(), Optional.<String>absent()))
-                .isEqualTo(new File("src/test/resources/specs/title_1.spec.yaml"));
+                .isEqualTo(new File("src/main/resources/specs/title_1.spec.yaml"));
         assertThat(spec.getStoreFile(Optional.of("test1"), Optional.<String>absent()))
-                .isEqualTo(new File("src/test/resources/specs/test1/title_1.spec.yaml"));
+                .isEqualTo(new File("src/main/resources/specs/test1/title_1.spec.yaml"));
         assertThat(spec.getStoreFile(Optional.of("test1"), Optional.of("another title")))
-                .isEqualTo(new File("src/test/resources/specs/test1/another_title.spec.yaml"));
+                .isEqualTo(new File("src/main/resources/specs/test1/another_title.spec.yaml"));
     }
 }
