@@ -1,6 +1,7 @@
 'use strict';
 
-adminApp.controller('OperationController', function OperationController($scope, $routeParams, $http, ApiDoc, Api) {
+adminApp.controller('OperationController', function OperationController(
+        $scope, $routeParams, $http, $filter, ApiDoc, Api) {
     var path = $routeParams.path.replace(/___/g, '/');
     $scope.doc = ApiDoc.get();
     $scope.try = false;
@@ -43,10 +44,16 @@ adminApp.controller('OperationController', function OperationController($scope, 
     }
 
     function sendRequest() {
-        $http({method: $scope.request.httpMethod, url: $scope.doc.basePath + $scope.request.path, data: $scope.request.body,
-            transformResponse: function (r) {
-                return r
-            }})
+        $http(
+            {
+                method: $scope.request.httpMethod,
+                url: $scope.doc.basePath + $scope.request.path,
+                data: $scope.request.body,
+                headers: $scope.request.headers,
+                transformResponse: function (r) {
+                    return r
+                }
+            })
             .success(function (data, status, headers, config) {
                 $scope.request.response.status = status;
                 $scope.request.response.body = data;
@@ -57,13 +64,27 @@ adminApp.controller('OperationController', function OperationController($scope, 
             });
     }
 
-    $scope.send = function() {
-        $scope.request = {
+    function prepareRequest() {
+        return {
             httpMethod: $scope.operation.httpMethod,
             path: bindParams($scope.opApi.path),
+            headers: {},
             body: bodyParamValue(),
             response: { status: '', body: '' }
         };
+    }
+
+    $scope.send = function() {
+        $scope.request = prepareRequest();
+        sendRequest();
+    }
+
+    $scope.sendAndRecord = function() {
+        $scope.request = prepareRequest();
+        $scope.request.headers['RestxMode'] = 'recording';
+        $scope.request.headers['RestxRecordPath'] = $routeParams.name;
+        $scope.request.headers['RestxRecordTitle'] = $scope.operation.nickname + ' '
+            + $filter('date')(new Date(), 'yyyyMMdd HHmm');
         sendRequest();
     }
 

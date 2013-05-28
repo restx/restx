@@ -28,7 +28,10 @@
             </table>
         </section>
         <section ng-show="try" class="send">
-            <button ng-click="send()" class="btn btn-primary pull-right">Send</button>
+            <div class="pull-right">
+            <button ng-click="send()" class="btn btn-primary">Send</button>
+            <button ng-click="sendAndRecord()" class="btn btn-primary">Send & Record</button>
+            </div>
             <div ng-show="request">
                 <h3>Result</h3>
                 <h4>Request</h4>
