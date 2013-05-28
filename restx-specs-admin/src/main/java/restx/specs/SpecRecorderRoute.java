@@ -1,11 +1,9 @@
 package restx.specs;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import restx.*;
 
 import java.io.File;
@@ -60,17 +58,10 @@ public class SpecRecorderRoute extends RestxRouter {
                         int id = Integer.parseInt(match.getPathParams().get("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                             if (spec.getId() == id) {
-                                String basePath = System.getProperty("restx.recorder.basePath", "src/test/resources/specs");
                                 Optional<String> path = req.getQueryParam("path");
                                 Optional<String> title = req.getQueryParam("title");
 
-                                int endIndex = spec.getPath().indexOf('?');
-                                endIndex = endIndex == -1 ? spec.getPath().length() : endIndex;
-                                File destFile = new File(basePath + "/" + path.or("") + "/"
-                                        + title.or(String.format("%03d_%s_%s", spec.getId(), spec.getMethod(), spec.getPath().substring(0, endIndex)))
-                                            .replace(' ', '_').replace('/', '_') + ".spec.yaml");
-                                destFile.getParentFile().mkdirs();
-                                Files.append(spec.getSpec().toString(), destFile, Charsets.UTF_8);
+                                File destFile = spec.getSpec().store(path, title);
 
                                 resp.setContentType("text/plain");
                                 resp.getWriter().println(destFile.getAbsolutePath());
@@ -83,4 +74,5 @@ public class SpecRecorderRoute extends RestxRouter {
                 }
             );
     }
+
 }

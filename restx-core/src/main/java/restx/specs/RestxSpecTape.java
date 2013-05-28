@@ -155,7 +155,7 @@ public class RestxSpecTape {
 
                 int id = specId.incrementAndGet();
                 RestxSpec restxSpec = new RestxSpec(
-                        String.format("%03d %s", id, path),
+                        buildTitle(id, method, path),
                         ImmutableList.copyOf(givens.values()), ImmutableList.<RestxSpec.When>of(
                         new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), new String(requestBody, Charsets.UTF_8),
                                 new RestxSpec.ThenHttpResponse(status, baos.toString(Charsets.UTF_8.name())))));
@@ -170,6 +170,12 @@ public class RestxSpecTape {
             }
         };
         return this;
+    }
+
+    private String buildTitle(int id, String method, String path) {
+        int endIndex = path.indexOf('?');
+        endIndex = endIndex == -1 ? path.length() : endIndex;
+        return String.format("%03d %s %s", id, method, path.substring(0, endIndex));
     }
 
     public RestxRequest getRecordingRequest() {

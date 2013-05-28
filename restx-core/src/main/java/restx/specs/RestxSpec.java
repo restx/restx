@@ -1,10 +1,15 @@
 package restx.specs;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import org.joda.time.DateTime;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -27,6 +32,34 @@ public class RestxSpec {
         this.whens = whens;
     }
 
+    /**
+     * Stores this recorded spec as a .spec.yaml file.
+     *
+     * @param path the path where this spec should be stored, relative to restx.recorder.basePath system property
+     * @param title the spec title, use the recorded one if absent
+     * @return the file where the spec has been stored
+     *
+     * @throws IOException in case of IO error while saving file.
+     */
+    File store(Optional<String> path, Optional<String> title) throws IOException {
+        File destFile = getStoreFile(path, title);
+        store(destFile, title);
+        return destFile;
+    }
+
+    void store(File destFile, Optional<String> title) throws IOException {
+        destFile.getParentFile().mkdirs();
+
+        Files.write(withTitle(title.or(getTitle())).toString(),
+                destFile, Charsets.UTF_8);
+    }
+
+    File getStoreFile(Optional<String> path, Optional<String> title) {
+        String basePath = System.getProperty("restx.recorder.basePath", "src/test/resources/specs");
+        return new File(basePath + "/" + path.or("") + "/"
+                + title.or(getTitle()).replace(' ', '_').replace('/', '_') + ".spec.yaml");
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -46,6 +79,10 @@ public class RestxSpec {
 
     public String getTitle() {
         return title;
+    }
+
+    public RestxSpec withTitle(String title) {
+        return new RestxSpec(title, given, whens);
     }
 
     public ImmutableList<Given> getGiven() {
