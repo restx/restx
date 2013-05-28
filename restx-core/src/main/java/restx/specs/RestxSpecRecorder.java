@@ -1,5 +1,6 @@
 package restx.specs;
 
+import com.google.common.base.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import restx.RestxRequest;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -18,6 +20,21 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Time: 5:05 PM
  */
 public class RestxSpecRecorder {
+    private static final ThreadLocal<RestxSpecRecorder> current = new ThreadLocal<>();
+
+    public static <T> T doWithRecorder(RestxSpecRecorder recorder, Callable<T> runnable) throws Exception {
+        current.set(recorder);
+        try {
+            return runnable.call();
+        } finally {
+            current.remove();
+        }
+    }
+
+    public static Optional<RestxSpecRecorder> current() {
+        return Optional.fromNullable(current.get());
+    }
+
     private final List<RecordedSpec> recordedSpecs = new CopyOnWriteArrayList<>();
 
     private final Set<GivenRecorder> recorders;
@@ -62,9 +79,10 @@ public class RestxSpecRecorder {
         return new RestxSpecTape(restxRequest, restxResponse, recorders).doRecord();
     }
 
-    public void stop(RestxSpecTape tape) {
+    public RecordedSpec stop(RestxSpecTape tape) {
         RecordedSpec recordedSpec = tape.close();
         recordedSpecs.add(recordedSpec);
+        return recordedSpec;
     }
 
     public List<RecordedSpec> getRecordedSpecs() {

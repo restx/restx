@@ -41,20 +41,20 @@ public class RestxSpec {
      *
      * @throws IOException in case of IO error while saving file.
      */
-    File store(Optional<String> path, Optional<String> title) throws IOException {
+    public File store(Optional<String> path, Optional<String> title) throws IOException {
         File destFile = getStoreFile(path, title);
         store(destFile, title);
         return destFile;
     }
 
-    void store(File destFile, Optional<String> title) throws IOException {
+    public void store(File destFile, Optional<String> title) throws IOException {
         destFile.getParentFile().mkdirs();
 
         Files.write(withTitle(title.or(getTitle())).toString(),
                 destFile, Charsets.UTF_8);
     }
 
-    File getStoreFile(Optional<String> path, Optional<String> title) {
+    public File getStoreFile(Optional<String> path, Optional<String> title) {
         String basePath = System.getProperty("restx.recorder.basePath", "src/main/resources/specs");
         return new File(basePath + "/" + path.or("") + "/"
                 + title.or(getTitle()).replace(' ', '_').replace('/', '_') + ".spec.yaml");

@@ -1,5 +1,7 @@
 package restx;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.factory.Factory;
@@ -8,7 +10,10 @@ import restx.factory.SingletonFactoryMachine;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
+import java.util.concurrent.Callable;
 
 import static restx.StdRestxMainRouter.getMode;
 
@@ -20,46 +25,116 @@ import static restx.StdRestxMainRouter.getMode;
 public class RestxMainRouterFactory {
     private static final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
 
+    /**
+     * A main router decorator that may record all or some requests.
+     */
+    private static class RecordingMainRouter implements RestxMainRouter {
+        private final Optional<RestxSpecRecorder> restxSpecRecorder;
+        private final RestxMainRouter router;
+        private final Supplier<RestxSpecRecorder> recorderSupplier = new Supplier<RestxSpecRecorder>() {
+            @Override
+            public RestxSpecRecorder get() {
+                RestxSpecRecorder recorder = new RestxSpecRecorder();
+                recorder.install();
+                return recorder;
+            }
+        };
+
+        public RecordingMainRouter(Optional<RestxSpecRecorder> restxSpecRecorder, RestxMainRouter router) {
+            this.restxSpecRecorder = restxSpecRecorder;
+            this.router = router;
+        }
+
+
+        @Override
+        public void route(final RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
+            if (!restxRequest.getRestxPath().startsWith("/@/")
+                    && (restxSpecRecorder.isPresent() || RestxContext.Modes.RECORDING.equals(getMode(restxRequest)))) {
+                logger.debug("RECORDING {}", restxRequest);
+
+                final RestxSpecRecorder restxSpecRecorder = this.restxSpecRecorder.or(recorderSupplier);
+                try {
+                    RestxSpecRecorder.doWithRecorder(restxSpecRecorder, new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            RestxSpecTape tape = restxSpecRecorder.record(restxRequest, restxResponse);
+                            try {
+                                router.route(tape.getRecordingRequest(), tape.getRecordingResponse());
+                            } finally {
+                                RestxSpecRecorder.RecordedSpec recordedSpec = restxSpecRecorder.stop(tape);
+
+                                Optional<String> recordPath = restxRequest.getHeader("RestxRecordPath");
+                                if (recordPath.isPresent()) {
+                                    // save directly the recorded spec
+                                    Optional<String> title = restxRequest.getHeader("RestxRecordTitle");
+                                    File recordFile = recordedSpec.getSpec().store(recordPath, title);
+                                    logger.info("saved recorded spec in {}", recordFile);
+                                }
+                            }
+                            return null;
+                        }
+                    });
+                } catch (IOException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            } else if (restxSpecRecorder.isPresent()) {
+                try {
+                    RestxSpecRecorder.doWithRecorder(restxSpecRecorder.get(), new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            router.route(restxRequest, restxResponse);
+                            return null;
+                        }
+                    });
+                } catch (IOException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                router.route(restxRequest, restxResponse);
+            }
+        }
+    }
+
     public static RestxMainRouter newInstance(final String serverId, String baseUri) {
         logger.info("LOADING MAIN ROUTER");
+        Optional<RestxSpecRecorder> recorder;
+        if (RestxContext.Modes.RECORDING.equals(getMode())) {
+            recorder = Optional.of(new RestxSpecRecorder());
+            recorder.get().install();
+        } else {
+            recorder = Optional.absent();
+        }
+
         if (getLoadFactoryMode().equals("onstartup")) {
-            StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder(serverId)));
+            final StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder(serverId)));
             logPrompt(baseUri, "READY", mainRouter);
 
-            return mainRouter;
-        } else if (getLoadFactoryMode().equals("onrequest")) {
-            final RestxSpecRecorder restxSpecRecorder = RestxContext.Modes.RECORDING.equals(getMode()) ?
-                    new RestxSpecRecorder() : null;
-            if (restxSpecRecorder != null) {
-                restxSpecRecorder.install();
+            if (RestxContext.Modes.PROD.equals(getMode())) {
+                // in PROD we definitely return the main router, we will never check anything else
+                return mainRouter;
+            } else {
+                // in other modes we may record requests one by one or all of them, we use the recording decorator
+                return new RecordingMainRouter(recorder, mainRouter);
             }
-
+        } else if (getLoadFactoryMode().equals("onrequest")) {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
-            return new RestxMainRouter() {
+            return new RecordingMainRouter(recorder, new RestxMainRouter() {
                 @Override
                 public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-                    RestxSpecTape tape = null;
-                    if (restxSpecRecorder != null
-                            && !restxRequest.getRestxPath().startsWith("/@/")) {
-                        tape = restxSpecRecorder.record(restxRequest, restxResponse);
-                        restxRequest = tape.getRecordingRequest();
-                        restxResponse = tape.getRecordingResponse();
-                    }
-
                     Factory factory = loadFactory(newFactoryBuilder(serverId,
-                                                                    restxSpecRecorder));
-
+                                                                    RestxSpecRecorder.current().orNull()));
                     try {
                         newStdRouter(factory).route(restxRequest, restxResponse);
                     } finally {
-                        if (tape != null) {
-                            restxSpecRecorder.stop(tape);
-                        }
                         factory.close();
                     }
                 }
-            };
+            });
         } else {
             throw new IllegalStateException("illegal load factory mode: '" + getLoadFactoryMode() + "'. " +
                     "It must be either 'onstartup' or 'onrequest'.");
@@ -69,7 +144,7 @@ public class RestxMainRouterFactory {
     private static void logPrompt(String baseUri, String state, StdRestxMainRouter mainRouter) {
         logger.info("\n" +
                 "--------------------------------------\n" +
-                " -- RESTX " + state + (RestxContext.Modes.RECORDING.equals(getMode()) ? " >> RECORDING MODE <<" : "") + "\n" +
+                " -- RESTX " + state + " >> " + getMode().toUpperCase(Locale.ENGLISH)+ " MODE <<\n" +
                 (mainRouter != null ? (" -- " + mainRouter.getNbFilters() + " filters\n") : "") +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
                 (baseUri == null || baseUri.isEmpty() ? "" :

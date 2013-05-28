@@ -122,7 +122,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                         restxResponse.setHeader("Cache-Control", "no-cache");
                     }
                 };
-                RestxContext context = new RestxContext(getMode(), noCache, ImmutableList.copyOf(m.get().getMatches()));
+                RestxContext context = new RestxContext(getMode(restxRequest), noCache, ImmutableList.copyOf(m.get().getMatches()));
                 RestxRouteMatch match = context.nextHandlerMatch();
                 match.getHandler().handle(match, restxRequest, restxResponse, context);
             }
@@ -210,6 +210,10 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
     static String getMode() {
         return System.getProperty("restx.mode", RestxContext.Modes.PROD);
+    }
+
+    static String getMode(RestxRequest req) {
+        return req.getHeader("RestxMode").or(getMode());
     }
 
     private boolean hasApiDocs() {
