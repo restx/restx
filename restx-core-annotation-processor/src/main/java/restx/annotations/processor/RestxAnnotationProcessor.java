@@ -200,7 +200,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                             parameter.name,
                             parameter.kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
-                            String.valueOf(parameter.optional)
+                            String.valueOf(!parameter.optional)
                     ).replaceAll("\\{PARAMETER}", parameter.name));
                 }
             }
