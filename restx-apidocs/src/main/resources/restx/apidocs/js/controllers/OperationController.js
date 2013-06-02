@@ -25,7 +25,9 @@ adminApp.controller('OperationController', function OperationController(
             if (p.paramType == 'path') {
                 path = path.replace('{' + p.name + '}', encodeURIComponent(p.value));
             } else if (p.paramType == 'query') {
-                queryParams.push(encodeURIComponent(p.name) + '=' + encodeURIComponent(p.value));
+                if (p.value !== undefined && p.value !== '') {
+                    queryParams.push(encodeURIComponent(p.name) + '=' + encodeURIComponent(p.value));
+                }
             }
         });
         if (queryParams.length) {
