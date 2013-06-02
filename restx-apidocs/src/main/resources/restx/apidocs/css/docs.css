@@ -181,6 +181,8 @@ h1 .http-method {
 
 .operation h3 {
     font-size: 18px;
+    background: #DDD;
+    padding-left: 10px;
 }
 
 .operation h4 {
