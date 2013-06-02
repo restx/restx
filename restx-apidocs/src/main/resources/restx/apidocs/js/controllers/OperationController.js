@@ -1,19 +1,19 @@
 'use strict';
 
 adminApp.controller('OperationController', function OperationController(
-        $scope, $routeParams, $http, $filter, ApiDoc, Api) {
+        $rootScope, $scope, $routeParams, $http, $filter, ApiDoc, Api) {
     var path = $routeParams.path.replace(/___/g, '/');
     $scope.doc = ApiDoc.get();
-    $scope.try = false;
-    $scope.tryButtonLabel = 'Try it out';
 
     function setTry(tryMode) {
-        $scope.try = tryMode;
+        $scope.try = $rootScope.try = tryMode;
         $scope.tryButtonLabel = $scope.try ? 'Hide try' : 'Try it out!';
         if (!$scope.try) {
             $scope.request = undefined;
         }
     }
+
+    setTry($rootScope.try || false);
 
     $scope.toggleTry = function() {
         setTry(!$scope.try);
