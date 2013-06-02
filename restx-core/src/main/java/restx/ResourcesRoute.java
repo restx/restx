@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
+import restx.common.MoreResources;
 import restx.server.HTTP;
 
 import java.io.IOException;
@@ -63,7 +64,8 @@ public class ResourcesRoute implements RestxRoute {
         String relativePath = req.getRestxPath().substring(baseRestPath.length());
         relativePath = Optional.fromNullable(aliases.get(relativePath)).or(relativePath);
         try {
-            URL resource = Resources.getResource(baseResourcePath + relativePath);
+            URL resource = MoreResources.getResource(
+                    baseResourcePath + relativePath, RestxContext.Modes.DEV.equals(ctx.getMode()));
             resp.setStatus(200);
             resp.setContentType(HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream"));
             ByteStreams.copy(Resources.newInputStreamSupplier(resource), resp.getOutputStream());

@@ -10,6 +10,7 @@
         "compile": [
             "com.google.guava:guava:${guava.version}",
             "joda-time:joda-time:${joda-time.version}",
+            "org.reflections:reflections:${reflections.version}",
             "com.github.spullara.mustache.java:compiler:${mustache.version}"
         ],
         "test": [
