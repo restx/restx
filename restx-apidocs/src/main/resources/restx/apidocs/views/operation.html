@@ -17,9 +17,9 @@
                 </thead>
                 <tr ng-repeat="param in operation.parameters">
                     <td class="name">{{param.name}}</td>
-                    <td class="value" ng-show="try">
-                        <input ng-hide="param.paramType == 'body'" type="text" ng-model="param.value">
-                        <textarea ng-show="param.paramType == 'body'" ng-model="param.value"></textarea>
+                    <td class="value" ng-show="try" ng-switch="param.paramType">
+                        <textarea ng-switch-when="body" ng-model="param.value"></textarea>
+                        <input ng-switch-default type="text" ng-model="param.value">
                     </td>
                     <td class="paramType">{{param.paramType}}</td>
                     <td class="dataType">{{param.dataType}}</td>
@@ -29,7 +29,7 @@
         </section>
         <section ng-show="try" class="send">
             <div class="pull-right">
-            <button ng-click="send()" class="btn btn-primary">Send</button>
+            <button ng-click="send()" class="btn btn-primary">Send (⌘+enter)</button>
             <button ng-click="sendAndRecord()" class="btn btn-primary">Send & Record</button>
             </div>
             <div ng-show="request">

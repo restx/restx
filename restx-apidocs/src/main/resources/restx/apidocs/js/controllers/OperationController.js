@@ -1,5 +1,15 @@
 'use strict';
 
+adminApp.run(function($rootScope) {
+    key.filter = function(event){
+        // always process shortcuts
+        return true;
+    }
+    key('⌘+enter, ctrl+enter', function() {
+         $rootScope.$broadcast('ctrl+enter');
+    });
+})
+
 adminApp.controller('OperationController', function OperationController(
         $rootScope, $scope, $routeParams, $http, $filter, ApiDoc, Api) {
     var path = $routeParams.path.replace(/___/g, '/');
@@ -10,8 +20,19 @@ adminApp.controller('OperationController', function OperationController(
         $scope.tryButtonLabel = $scope.try ? 'Hide try' : 'Try it out!';
         if (!$scope.try) {
             $scope.request = undefined;
+        } else {
+            // do when dom has been updated
+            setTimeout(function() {
+                $('.parameters td.value :input').first().focus();
+            }, 250);
         }
     }
+
+    $scope.$on('ctrl+enter', function() {
+        if ($scope.try) {
+            $scope.send();
+        }
+    });
 
     setTry($rootScope.try || false);
 
