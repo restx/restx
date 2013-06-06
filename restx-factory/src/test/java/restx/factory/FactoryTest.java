@@ -1,6 +1,7 @@
 package restx.factory;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import java.util.Set;
@@ -187,6 +188,89 @@ public class FactoryTest {
         Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "test")).findOne();
         assertThat(component.isPresent()).isTrue();
         assertThat(component.get().getComponent()).isEqualTo("hello world");
+    }
+
+    @Test
+    public void should_handle_machine_factory_to_build_conditional_component() throws Exception {
+        SingleNameFactoryMachine<FactoryMachine> alternativeMachine = alternativeMachine();
+
+        Factory factory = Factory.builder()
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "mode", "dev")))
+                .addMachine(alternativeMachine)
+                .build();
+
+        Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "test")).optional().findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getComponent()).isEqualTo("hello");
+
+        factory = Factory.builder()
+                        .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "mode", "prod")))
+                        .addMachine(alternativeMachine)
+                        .build();
+
+        component = factory.queryByName(Name.of(String.class, "test")).optional().findOne();
+        assertThat(component.isPresent()).isFalse();
+    }
+
+    @Test
+    public void should_handle_machine_factory_to_build_alternative() throws Exception {
+        SingleNameFactoryMachine<FactoryMachine> alternativeMachine = alternativeMachine();
+
+        Factory factory = Factory.builder()
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "mode", "dev")))
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "test", "default")))
+                .addMachine(alternativeMachine)
+                .build();
+
+        Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "test")).optional().findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getComponent()).isEqualTo("hello");
+
+        factory = Factory.builder()
+                        .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "mode", "prod")))
+                        .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "test", "default")))
+                        .addMachine(alternativeMachine)
+                        .build();
+
+        component = factory.queryByName(Name.of(String.class, "test")).optional().findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getComponent()).isEqualTo("default");
+    }
+
+    @Test
+    public void should_handle_machine_factory_with_dependencies_on_other_machine_factory() throws Exception {
+        SingleNameFactoryMachine<FactoryMachine> alternativeMachine = alternativeMachine();
+        SingleNameFactoryMachine<FactoryMachine> dependentMachine = new SingleNameFactoryMachine<>(0, new StdMachineEngine<FactoryMachine>(
+                Name.of(FactoryMachine.class, "machineFactoryTest2"), BoundlessComponentBox.FACTORY) {
+            private Factory.Query<String> query = Factory.Query.byName(Name.of(String.class, "test"));
+
+            @Override
+            public BillOfMaterials getBillOfMaterial() {
+                return BillOfMaterials.of(query);
+            }
+
+            @Override
+            protected FactoryMachine doNewComponent(final SatisfiedBOM satisfiedBOM) {
+                return new SingletonFactoryMachine<>(0, NamedComponent.of(
+                        String.class, "test2", satisfiedBOM.getOne(query).get().getComponent() + " world"));
+            }
+        });
+
+        Factory factory = Factory.builder()
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "mode", "dev")))
+                .addMachine(alternativeMachine)
+                .addMachine(dependentMachine)
+                .build();
+
+        Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "test2")).optional().findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getComponent()).isEqualTo("hello world");
+    }
+
+    private SingleNameFactoryMachine<FactoryMachine> alternativeMachine() {
+        return new AlternativesFactoryMachine<>(0, Name.of(String.class, "mode"),
+                ImmutableMap.of("dev", new SingletonFactoryMachine<>(0, NamedComponent.of(
+                        String.class, "test", "hello"))), BoundlessComponentBox.FACTORY);
     }
 
     @Test

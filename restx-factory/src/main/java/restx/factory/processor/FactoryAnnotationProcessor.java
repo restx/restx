@@ -5,10 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
-import restx.factory.Component;
-import restx.factory.Machine;
-import restx.factory.Module;
-import restx.factory.Provides;
+import restx.factory.*;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -18,6 +15,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
@@ -38,16 +38,19 @@ import static restx.common.Mustaches.compile;
         "restx.factory.Component",
         "restx.factory.Module",
         "restx.factory.Provides",
+        "restx.factory.Alternative",
         "restx.factory.Machine"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class FactoryAnnotationProcessor extends AbstractProcessor {
     final Mustache componentMachineTpl;
+    final Mustache alternativeMachineTpl;
     final Mustache moduleMachineTpl;
     private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
         componentMachineTpl = compile(FactoryAnnotationProcessor.class, "ComponentMachine.mustache");
+        alternativeMachineTpl = compile(FactoryAnnotationProcessor.class, "AlternativeMachine.mustache");
         moduleMachineTpl = compile(FactoryAnnotationProcessor.class, "ModuleMachine.mustache");
         machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
     }
@@ -60,6 +63,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 machinesDeclaration.generate();
             } else {
                 processComponents(roundEnv);
+                processAlternatives(roundEnv);
                 processModules(roundEnv);
                 processMachines(roundEnv);
             }
@@ -142,6 +146,60 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         }
     }
 
+    private void processAlternatives(RoundEnvironment roundEnv) throws IOException {
+        for (Element elem : roundEnv.getElementsAnnotatedWith(Alternative.class)) {
+            if (!(elem instanceof TypeElement)) {
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "annotating element " + elem + " of type " + elem.getKind().name()
+                                + " with @Alternative is not supported");
+                continue;
+            }
+            TypeElement component = (TypeElement) elem;
+
+            ExecutableElement exec = findInjectableConstructor(component);
+
+            Alternative alternative = component.getAnnotation(Alternative.class);
+            TypeElement alternativeTo = null;
+            if (alternative != null) {
+                try {
+                    alternative.to();
+                } catch (MirroredTypeException mte) {
+                    alternativeTo = asTypeElement(mte.getTypeMirror());
+                }
+            }
+
+            ComponentClass componentClass = new ComponentClass(
+                    component.getQualifiedName().toString(),
+                    getInjectionName(component.getAnnotation(Named.class)),
+                    alternative.priority(),
+                    component);
+
+            ComponentClass alternativeToComponentClass = new ComponentClass(
+                    alternativeTo.getQualifiedName().toString(),
+                    getInjectionName(alternativeTo.getAnnotation(Named.class)),
+                    alternative.priority(),
+                    alternativeTo);
+
+            When when = component.getAnnotation(When.class);
+            if (when == null) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                        "an Alternative MUST be annotated with @When to tell when it must be activated",
+                        elem);
+                continue;
+            }
+
+            buildInjectableParams(exec, componentClass.parameters);
+
+            generateMachineFile(componentClass, alternativeToComponentClass, when);
+        }
+    }
+
+    private TypeElement asTypeElement(TypeMirror typeMirror) {
+        Types TypeUtils = this.processingEnv.getTypeUtils();
+        return (TypeElement)TypeUtils.asElement(typeMirror);
+    }
+
     private ExecutableElement findInjectableConstructor(TypeElement component) {
         ExecutableElement exec = null;
         for (Element element : component.getEnclosedElements()) {
@@ -173,7 +231,6 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         return named != null ? Optional.of(named.value()) : Optional.<String>absent();
     }
 
-
     private void generateMachineFile(ModuleClass moduleClass) throws IOException {
         List<ImmutableMap<String, Object>> engines = Lists.newArrayList();
 
@@ -199,6 +256,29 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
         generateJavaClass(moduleClass.fqcn + "FactoryMachine", moduleMachineTpl, ctx,
                 Collections.singleton(moduleClass.originatingElement));
+    }
+
+
+    private void generateMachineFile(ComponentClass componentClass, ComponentClass alternativeTo, When when) throws IOException {
+        ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
+                .put("package", componentClass.pack)
+                .put("machine", componentClass.name + "FactoryMachine")
+                .put("componentFqcn", componentClass.fqcn)
+                .put("componentType", componentClass.name)
+                .put("priority", String.valueOf(componentClass.priority))
+                .put("whenName", when.name())
+                .put("whenValue", when.value())
+                .put("componentInjectionName", componentClass.injectionName.or(componentClass.name))
+                .put("alternativeToComponentFqcn", alternativeTo.fqcn)
+                .put("alternativeToComponentType", alternativeTo.name)
+                .put("alternativeToComponentName", alternativeTo.injectionName.or(alternativeTo.name))
+                .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(componentClass.parameters)))
+                .put("queries", Joiner.on(",\n").join(buildQueriesNames(componentClass.parameters)))
+                .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
+                .build();
+
+        generateJavaClass(componentClass.fqcn + "FactoryMachine", alternativeMachineTpl, ctx,
+                Collections.singleton(componentClass.originatingElement));
     }
 
     private void generateMachineFile(ComponentClass componentClass) throws IOException {

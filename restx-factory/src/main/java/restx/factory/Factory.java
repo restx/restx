@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -111,8 +110,90 @@ public class Factory implements AutoCloseable {
         }
 
         public Factory build() {
-            return new Factory(usedServiceLoader, machines, new Warehouse());
+            /*
+               Building a Factory is done in several steps:
+               1) do a set of rounds until a round is not producing new FactoryMachine
+                  --> this allow machines to build other machines, which can benefit from injection
+               2) build ComponentCustomizerEngine components, which will be used to customize
+                  other components.
+
+               Therefore component customization cannot be used for dependencies of factory machines nor
+               component customizers themselves.
+
+               At each step a new factory is created. Indeed factories are immutable. This makes the construction
+               slightly less performant but then factory behavior is much more predictable and performant,
+               which is better at least in production.
+             */
+            Factory factory = new Factory(
+                    usedServiceLoader, machines, ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse());
+
+            Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> toBuild = new LinkedHashMap<>();
+            ImmutableList<FactoryMachine> factoryMachines = buildFactoryMachines(factory, factory.machines, toBuild);
+            while (!factoryMachines.isEmpty()) {
+                machines.putAll("FactoryMachines", factoryMachines);
+                factory = new Factory(usedServiceLoader, machines,
+                        ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse());
+                factoryMachines = buildFactoryMachines(factory, factoryMachines, toBuild);
+            }
+
+            factory = new Factory(usedServiceLoader, machines,
+                    buildCustomizerEngines(factory), new Warehouse());
+            return factory;
         }
+
+        private ImmutableList<ComponentCustomizerEngine> buildCustomizerEngines(Factory factory) {
+            List<ComponentCustomizerEngine> componentCustomizerEngines = new ArrayList<>();
+            for (FactoryMachine machine : factory.machines) {
+                Set<Name<ComponentCustomizerEngine>> names = machine.nameBuildableComponents(ComponentCustomizerEngine.class);
+                for (Name<ComponentCustomizerEngine> name : names) {
+                    Optional<NamedComponent<ComponentCustomizerEngine>> customizer =
+                            factory.buildAndStore(name, machine.getEngine(name));
+                    componentCustomizerEngines.add(customizer.get().getComponent());
+                }
+            }
+            return ImmutableList.copyOf(componentCustomizerEngines);
+        }
+
+        private ImmutableList<FactoryMachine> buildFactoryMachines(
+                Factory factory, ImmutableList<FactoryMachine> factoryMachines,
+                Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> toBuild) {
+            List<FactoryMachine> machines = new ArrayList<>();
+            StringBuilder notSatisfied = new StringBuilder();
+            Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> moreToBuild = new LinkedHashMap<>();
+            for (FactoryMachine machine : factoryMachines) {
+                Set<Name<FactoryMachine>> names = machine.nameBuildableComponents(FactoryMachine.class);
+                for (Name<FactoryMachine> name : names) {
+                    MachineEngine<FactoryMachine> engine = machine.getEngine(name);
+                    try {
+                        machines.add(factory.buildAndStore(name, engine).get().getComponent());
+                    } catch (IllegalStateException e) {
+                        moreToBuild.put(name, engine);
+                        notSatisfied.append(name).append("\n").append(indent("-> " + e.getMessage(), 2)).append("\n");
+                    }
+                }
+            }
+
+            for (Map.Entry<Name<FactoryMachine>, MachineEngine<FactoryMachine>> entry : new ArrayList<>(toBuild.entrySet())) {
+                try {
+                    machines.add(factory.buildAndStore(entry.getKey(), entry.getValue()).get().getComponent());
+                    toBuild.remove(entry.getKey());
+                } catch (IllegalStateException e) {
+                    notSatisfied.append(entry.getKey()).append("\n").append(indent("-> " + e.getMessage(), 2)).append("\n");
+                }
+            }
+
+            toBuild.putAll(moreToBuild);
+
+            if (notSatisfied.length() > 0 // some deps were not satisfied
+                    && machines.isEmpty() // and we produced no new machines, so there is no chance we satisfy them later
+                    ) {
+                throw new IllegalStateException(notSatisfied.toString());
+            }
+
+            return ImmutableList.copyOf(machines);
+        }
+
+
     }
 
     public static Builder builder() {
@@ -425,15 +506,17 @@ public class Factory implements AutoCloseable {
     private final ImmutableList<FactoryMachine> machines;
     private final ImmutableMultimap<String, FactoryMachine> machinesByBuilder;
     private final Warehouse warehouse;
-    private final List<ComponentCustomizerEngine> customizerEngines = new CopyOnWriteArrayList<>();
+    private final ImmutableList<ComponentCustomizerEngine> customizerEngines;
     private final String id;
     private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
 
-    private Factory(boolean usedServiceLoader, Multimap<String, FactoryMachine> machines, Warehouse warehouse) {
+    private Factory(boolean usedServiceLoader, Multimap<String, FactoryMachine> machines,
+                    ImmutableList<ComponentCustomizerEngine> customizerEngines, Warehouse warehouse) {
         this.usedServiceLoader = usedServiceLoader;
-        machines.put("FactoryMachine",
-                new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)));
-        machinesByBuilder = ImmutableMultimap.copyOf(machines);
+        this.customizerEngines = customizerEngines;
+        machinesByBuilder = ImmutableMultimap.<String, FactoryMachine>builder()
+                .put("FactoryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)))
+                .putAll(machines).build();
 
         this.machines = ImmutableList.copyOf(
                 Ordering.from(new Comparator<FactoryMachine>() {
@@ -441,20 +524,9 @@ public class Factory implements AutoCloseable {
                     public int compare(FactoryMachine o1, FactoryMachine o2) {
                         return Integer.compare(o1.priority(), o2.priority());
                     }
-                }).sortedCopy(machines.values()));
-        this.id = String.format("%03d(%d)", ID.incrementAndGet(), machines.size());
+                }).sortedCopy(machinesByBuilder.values()));
+        this.id = String.format("%03d(%d)", ID.incrementAndGet(), machinesByBuilder.size());
         this.warehouse = checkNotNull(warehouse);
-        buildCustomizerEngines();
-    }
-
-    private void buildCustomizerEngines() {
-        for (FactoryMachine machine : machines) {
-            Set<Name<ComponentCustomizerEngine>> names = machine.nameBuildableComponents(ComponentCustomizerEngine.class);
-            for (Name<ComponentCustomizerEngine> name : names) {
-                Optional<NamedComponent<ComponentCustomizerEngine>> customizer = buildAndStore(name, machine.getEngine(name));
-                customizerEngines.add(customizer.get().getComponent());
-            }
-        }
     }
 
     public String getId() {
