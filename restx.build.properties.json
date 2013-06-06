@@ -18,6 +18,7 @@
     "hibernate-validator.version": "5.0.0.Final",
 
     "reflections.version": "0.9.9-RC1",
+    "janino.version": "2.6.1",
 
     "jamon.version": "2.7",
     "javax.inject.version": "1",
@@ -30,7 +31,7 @@
 
     "ivy.version": "2.3.0",
 
-    "servlet-api.version": "3.0.1",
+    "servlet-api.version": "2.5",
 
     "jetty.version": "8.1.8.v20121106",
     "embedded.tomcat.version": "7.0.35",

@@ -21,6 +21,7 @@ public class HttpServletRestxResponse implements RestxResponse {
 
     private final HttpServletResponse resp;
     private final HttpServletRequest request;
+    private int status = 200;
 
     public HttpServletRestxResponse(HttpServletResponse resp, HttpServletRequest request) {
         this.resp = resp;
@@ -29,11 +30,14 @@ public class HttpServletRestxResponse implements RestxResponse {
 
     @Override
     public int getStatus() {
-        return resp.getStatus();
+        // HttpServletResponse#getStatus() is available in servlet 3 only.
+        //  return resp.getStatus();
+        return status;
     }
 
     @Override
     public void setStatus(int i) {
+        this.status = i;
         resp.setStatus(i);
     }
 
@@ -100,6 +104,6 @@ public class HttpServletRestxResponse implements RestxResponse {
 
     @Override
     public String toString() {
-        return "[RESTX RESPONSE] " + resp.getStatus();
+        return "[RESTX RESPONSE] " + status;
     }
 }

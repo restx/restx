@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -177,7 +178,8 @@ public class HttpServletRestxRequest implements RestxRequest {
             return;
         }
         sb.append(" ? ");
-        for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+        for (Iterator iterator = request.getParameterMap().entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<String, String[]> entry = (Map.Entry<String, String[]>) iterator.next();
             sb.append(entry.getKey()).append("=").append(
                     entry.getValue().length == 1
                             ? entry.getValue()[0]

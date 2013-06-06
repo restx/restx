@@ -15,6 +15,7 @@
     <dependencies>
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
+        <dependency org="javax.servlet" name="javax.servlet-api" rev="3.0.1" conf="default" />
         <dependency org="org.apache.tomcat" name="tomcat-catalina" rev="7.0.35" conf="default" />
         <dependency org="org.apache.tomcat.embed" name="tomcat-embed-core" rev="7.0.35" conf="default" />
         <dependency org="org.apache.tomcat" name="tomcat-jasper" rev="7.0.35" conf="default" />

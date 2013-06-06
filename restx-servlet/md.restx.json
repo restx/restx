@@ -9,7 +9,8 @@
     "dependencies": {
         "compile": [
             "io.restx:restx-core:${restx.version}",
-            "javax.servlet:javax.servlet-api:${servlet-api.version}"
+            "org.codehaus.janino:janino:${janino.version}",
+            "javax.servlet:servlet-api:${servlet-api.version}"
         ]
     }
 }
