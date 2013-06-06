@@ -1,19 +1,20 @@
 package restx.specs;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
+import com.google.common.io.InputSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.*;
+import restx.common.MoreResources;
 import restx.factory.Component;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -55,22 +56,27 @@ public class RestxSpecRepository {
 
     synchronized ImmutableMap<String, RestxSpec> findAllSpecs() {
         if (allSpecs == null) {
-            Map<String, RestxSpec> specsMap = Maps.newLinkedHashMap();
-            Set<String> specs = new ConfigurationBuilder()
-                    .setUrls(ClasspathHelper.forPackage(""))
-                    .setScanners(new ResourcesScanner())
-                    .build()
-                    .getResources(Pattern.compile(".*\\.spec\\.yaml"));
-            for (String spec : specs) {
-                try {
-                    specsMap.put(spec, specLoader.load(spec));
-                } catch (IOException e) {
-                    logger.warn("io exception while loading restx spec " + spec + ": " + e, e);
-                }
-            }
-            allSpecs = ImmutableMap.copyOf(specsMap);
+            allSpecs = ImmutableMap.copyOf(buildSpecsMap(false));
         }
         return allSpecs;
+    }
+
+    protected Map<String, RestxSpec> buildSpecsMap(boolean searchInSources) {
+        Map<String, RestxSpec> specsMap = Maps.newLinkedHashMap();
+        Map<String, URL> specs = MoreResources.findResources("", Pattern.compile(".*\\.spec\\.yaml"), searchInSources);
+        for (final Map.Entry<String, URL> spec : specs.entrySet()) {
+            try {
+                specsMap.put(spec.getKey(), specLoader.load(new InputSupplier<InputStreamReader>() {
+                    @Override
+                    public InputStreamReader getInput() throws IOException {
+                        return new InputStreamReader(spec.getValue().openStream(), Charsets.UTF_8);
+                    }
+                }));
+            } catch (IOException e) {
+                logger.warn("io exception while loading restx spec " + spec + ": " + e, e);
+            }
+        }
+        return specsMap;
     }
 
     Iterable<String> filterSpecsByOperation(ImmutableMap<String, RestxSpec> allSpecs,

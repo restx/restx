@@ -182,6 +182,7 @@ public class RestxMainRouterFactory {
     private static Factory.Builder newFactoryBuilder() {
         return Factory.builder()
                     .addFromServiceLoader()
+                    .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "restx.mode", getMode())))
                     .addLocalMachines(Factory.LocalMachines.threadLocal());
     }
 
