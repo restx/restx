@@ -147,6 +147,9 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     static Cookie getCookie(Cookie[] cookies, String cookieName) {
+        if (cookies == null) {
+            return null;
+        }
         for (int i = 0; i < cookies.length; i++) {
             Cookie cookie = cookies[i];
             if (cookieName.equals(cookie.getName()))
