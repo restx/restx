@@ -93,6 +93,53 @@ Optional<NamedComponent<MyComponent>> component =
             factory.queryByName(Name.of(MyComponent.class, "MyComponent")).findOne();
 {% endhighlight %}
 
+### Defining a component alternative
+
+Sometimes you want to define an alternative to some component that should replace the default component only under some circonstances. For instance if you want a specific component in dev mode, or have different implementations of a service which you would like to select at runtime only depending on your environment.
+
+To do so restx factory uses a concept of alternative, which can be activated depending on the value of a string component in the factory.
+
+Here is an example:
+{% highlight java %}
+@Alternative(to = RestxSpecRepository.class)
+@When(name="restx.mode", value="dev")
+public class DevRestxSpecRepository extends RestxSpecRepository {
+    @Override
+    synchronized ImmutableMap<String, RestxSpec> findAllSpecs() {
+        return ImmutableMap.copyOf(buildSpecsMap(true));
+    }
+}
+{% endhighlight %}
+
+In this case the component `DevRestxSpecRepository` is an alternative to `RestxSpecRepository`, which should be activated only when a String component named `restx.mode` has the value `dev`.
+
+### Defining a component alternative Tip
+
+If activating a component alternative based ona string component doesn't seem enough for you, first consider using the `@Provides` mechanism to put a string component in the factory depending on more complex elements, and then using this string component to activate your alternative.
+
+For instance, if you want to activate an alternative based on the content of a file in your filesystem, you could do something like this:
+{% highlight java %}
+@Module
+public class MyAppModule {
+    @Provides @Named("env.name")
+    public String envName() {
+        return Files.toString(new File("env.txt"), Charsets.UTF_8);
+    }
+}
+{% endhighlight %}
+
+And then define your alternative like this:
+{% highlight java %}
+@Alternative(to = MyComponent.class)
+@When(name="env.name", value="bordeaux")
+public class MyBordeauxComponent extends MyComponent {
+    @Override
+    String hello() {
+        return "Hello Bordeaux";
+    }
+}
+{% endhighlight %}
+
 ### Defining a component customizer
 
 To customize components produced in the factory before they are stored in the warehouse and returned to queries, you just need to provide a component implementing `ComponentCustomizerEngine` or subclassing/using one of its implementation classes.
@@ -142,6 +189,49 @@ public class MyAppModuleFactoryMachine extends DefaultFactoryMachine {
 {% endhighlight %}
 
 In the end the only thing that this annotation does is declare the machine in the `META-INF/restx.factory.FactoryMachine` service loader file.
+
+### Defining a component alternative programmatically (advanced)
+
+If you hit a wall with the simplistic approach to alternatives restx factory provides, it may be interesting to know how restx implement alternatives. The concept behind alternatives in restx is actually more powerful: restx factory supports factory of factory. So you can define a factory which builds other factories, then these factories will be available to build other components. An because when building other factory you can query the factory to find other components, you can take decisions based on the state of the factory.
+
+One thing to remember when you do that is that restx will evaluate the conditions at factory load time (ie startup time in production).
+
+As an example, here is the code generated when you use the `@Alternative` annotation:
+{% highlight java %}
+@Machine
+public class DevRestxSpecRepositoryFactoryMachine extends SingleNameFactoryMachine<FactoryMachine> {
+    public static final Name<RestxSpecRepository> NAME = Name.of(RestxSpecRepository.class, "RestxSpecRepository");
+    public DevRestxSpecRepositoryFactoryMachine() {
+        super(0, new StdMachineEngine<FactoryMachine>(
+                    Name.of(FactoryMachine.class, "DevRestxSpecRepositoryRestxSpecRepositoryAlternative"), BoundlessComponentBox.FACTORY) {
+                private Factory.Query<String> query = Factory.Query.byName(Name.of(String.class, "restx.mode")).optional();
+                @Override
+                protected FactoryMachine doNewComponent(SatisfiedBOM satisfiedBOM) {
+                    if (satisfiedBOM.getOne(query).isPresent()
+                            && satisfiedBOM.getOne(query).get().getComponent().equals("dev")) {
+                        return new SingleNameFactoryMachine<RestxSpecRepository>(-1000,
+                                        new StdMachineEngine<RestxSpecRepository>(NAME, BoundlessComponentBox.FACTORY) {
+                                            @Override
+                                            public BillOfMaterials getBillOfMaterial() {
+                                                return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of());
+                                            }
+                                            @Override
+                                            protected RestxSpecRepository doNewComponent(SatisfiedBOM satisfiedBOM) {
+                                                return new DevRestxSpecRepository();
+                                            }
+                                        });
+                    } else {
+                        return NoopFactoryMachine.INSTANCE;
+                    }
+                }
+                @Override
+                public BillOfMaterials getBillOfMaterial() {
+                    return BillOfMaterials.of(query);
+                }
+            });
+    }
+}
+{% endhighlight %}
 
 ## Vocabulary
 
@@ -217,3 +307,11 @@ The container can be queried for components by class or by names. More query typ
 
 You can easily register component customizers which can be used to customize components produced by the factory.
 This allow contributions to or transformation of components, which is very useful for decoupling and plugins.
+
+#### Alternatives
+
+You can easily declare components which are made avaiable to the factory only under some conditions.
+
+#### Factory of Factory
+
+You can define a factory machine which in turns builds other factory machines. This is the mechanism used under the hood to provide the alternatives support. 
