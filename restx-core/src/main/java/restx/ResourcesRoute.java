@@ -77,7 +77,7 @@ public class ResourcesRoute implements RestxRoute {
     private void notFound(RestxResponse resp, String relativePath) throws IOException {
         resp.setStatus(404);
         resp.setContentType("text/plain");
-        resp.getWriter().println("Resource route matched, but resource "
+        resp.getWriter().println("Resource route matched '" + this + "', but resource "
                 + relativePath + " not found in " + baseResourcePath + ".");
     }
 
