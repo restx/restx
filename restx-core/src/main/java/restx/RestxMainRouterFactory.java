@@ -27,10 +27,17 @@ public class RestxMainRouterFactory {
 
     /**
      * A main router decorator that may record all or some requests.
+     *
+     * Note that the provided router is only used for non recorded requests.
+     * The recorded requests are using a StdRestxMainRouter with a factory initialized per request,
+     * to allow recorders to be properly setup in the router factory.
+     *
+     * Therefore this class is not intended to be exposed outside the main router factory class.
      */
     private static class RecordingMainRouter implements RestxMainRouter {
         private final Optional<RestxSpecRecorder> restxSpecRecorder;
         private final RestxMainRouter router;
+        private final String serverId;
         private final Supplier<RestxSpecRecorder> recorderSupplier = new Supplier<RestxSpecRecorder>() {
             @Override
             public RestxSpecRecorder get() {
@@ -40,7 +47,8 @@ public class RestxMainRouterFactory {
             }
         };
 
-        public RecordingMainRouter(Optional<RestxSpecRecorder> restxSpecRecorder, RestxMainRouter router) {
+        public RecordingMainRouter(String serverId, Optional<RestxSpecRecorder> restxSpecRecorder, RestxMainRouter router) {
+            this.serverId = serverId;
             this.restxSpecRecorder = restxSpecRecorder;
             this.router = router;
         }
@@ -59,7 +67,15 @@ public class RestxMainRouterFactory {
                         public Void call() throws Exception {
                             RestxSpecTape tape = restxSpecRecorder.record(restxRequest, restxResponse);
                             try {
-                                router.route(tape.getRecordingRequest(), tape.getRecordingResponse());
+                                // when recording a request we don't use the provided router, we
+                                // need to load a new factory, some recorders rely on being available in the factory
+                                Factory factory = loadFactory(newFactoryBuilder(serverId,
+                                                                                restxSpecRecorder));
+                                try {
+                                    newStdRouter(factory).route(tape.getRecordingRequest(), tape.getRecordingResponse());
+                                } finally {
+                                    factory.close();
+                                }
                             } finally {
                                 RestxSpecRecorder.RecordedSpec recordedSpec = restxSpecRecorder.stop(tape);
 
@@ -79,7 +95,9 @@ public class RestxMainRouterFactory {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-            } else if (restxSpecRecorder.isPresent()) {
+            } else if (restxRequest.getRestxPath().startsWith("/@/") && restxSpecRecorder.isPresent()) {
+                // set current recorder for admin routes, some may be using it
+                // to provide information on the recorder itself
                 try {
                     RestxSpecRecorder.doWithRecorder(restxSpecRecorder.get(), new Callable<Void>() {
                         @Override
@@ -118,12 +136,12 @@ public class RestxMainRouterFactory {
                 return mainRouter;
             } else {
                 // in other modes we may record requests one by one or all of them, we use the recording decorator
-                return new RecordingMainRouter(recorder, mainRouter);
+                return new RecordingMainRouter(serverId, recorder, mainRouter);
             }
         } else if (getLoadFactoryMode().equals("onrequest")) {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
-            return new RecordingMainRouter(recorder, new RestxMainRouter() {
+            return new RecordingMainRouter(serverId, recorder, new RestxMainRouter() {
                 @Override
                 public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
                     Factory factory = loadFactory(newFactoryBuilder(serverId,
