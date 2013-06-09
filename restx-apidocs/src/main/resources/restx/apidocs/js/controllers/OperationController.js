@@ -66,7 +66,7 @@ adminApp.controller('OperationController', function OperationController(
         }
     }
 
-    function sendRequest() {
+    function sendRequest(onSuccess) {
         $http(
             {
                 method: $scope.request.httpMethod,
@@ -80,6 +80,9 @@ adminApp.controller('OperationController', function OperationController(
             .success(function (data, status, headers, config) {
                 $scope.request.response.status = status;
                 $scope.request.response.body = data;
+                if (onSuccess) {
+                    onSuccess(data, status, headers, config);
+                }
             }).
             error(function (data, status, headers, config) {
                 $scope.request.response.status = status;
@@ -108,30 +111,33 @@ adminApp.controller('OperationController', function OperationController(
         $scope.request.headers['RestxRecordPath'] = $routeParams.name;
         $scope.request.headers['RestxRecordTitle'] = _.str.humanize($scope.operation.nickname) + ' '
             + $filter('date')(new Date(), 'yyyyMMdd HHmm');
-        sendRequest();
+        sendRequest(function() { loadAllSpecs(); });
+    }
+
+    function loadAllSpecs() {
+        $scope.specs = [];
+        $http.get('../../specs', {params: {httpMethod: $routeParams.httpMethod, path: path}}).
+            success(function (data) {
+                data.forEach(function (spec) {
+                    $http.get('../../specs/' + encodeURIComponent(spec)).
+                        success(function (data) {
+                            spec = { title: data.title, requests: [] };
+                            data.whens.forEach(function (when) {
+                                spec.requests.push({
+                                    httpMethod: when.method, path: '/' + when.path, body: when.body, showBody: when.body.trim() !== '',
+                                    response: { body: when.then.expected, status: when.then.expectedCode }});
+                            });
+                            $scope.specs.push(spec);
+                        });
+                });
+            });
     }
 
     $scope.api = Api.get({name: $routeParams.name}, function() {
         var findOpByHttpMethod = function(op) { return op.httpMethod ===  $routeParams.httpMethod}
         $scope.opApi = _.find($scope.api.apis, function(o) { return o.path === path && _.any(o.operations, findOpByHttpMethod)}) || { operations: []};
         $scope.operation = _.find($scope.opApi.operations, findOpByHttpMethod) || {};
-
-        $scope.specs = [];
-        $http.get('../../specs', {params: {httpMethod: $routeParams.httpMethod, path: path}}).
-              success(function(data) {
-                  data.forEach(function(spec) {
-                      $http.get('../../specs/' + encodeURIComponent(spec)).
-                          success(function(data) {
-                              spec = { title: data.title, requests: [] };
-                              data.whens.forEach(function(when) {
-                                  spec.requests.push({
-                                      httpMethod: when.method, path: '/' + when.path, body: when.body, showBody: when.body.trim() !== '',
-                                      response: { body: when.then.expected, status: when.then.expectedCode }});
-                              });
-                              $scope.specs.push(spec);
-                          });
-                  });
-              });
+        loadAllSpecs();
     });
 
     $scope.tryExample = function(request) {
