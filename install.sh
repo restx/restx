@@ -63,6 +63,14 @@ if [ "$UNAME" != "Linux" -a "$UNAME" != "Darwin" ] ; then
     exit 1
 fi
 
+if [ "$UNAME" = "Linux" ] ; then
+  if [ "x86_64" != `uname -p` ] ; then
+    echo "Only 64-bit Intel processors are supported at this time."
+    exit 1
+  fi
+  ARCH="x86_64"
+fi
+
 if [ "$UNAME" = "Darwin" ] ; then
   ### OSX ###
   if [ "i386" != `uname -p` -o "1" != `sysctl -n hw.cpu64bit_capable 2>/dev/null || echo 0` ] ; then
@@ -86,6 +94,10 @@ VERSION=`curl -s http://restx.io/version | head -n 1`
 
 # get current tarball URL from web site
 TARBALL_URL=`curl -s http://restx.io/version | tail -n 1`
+
+# the url has no extension on web site, because it's used for updates where choosing between zip and tar.gz 
+# depends on platform
+TARBALL_URL="$TARBALL_URL.tar.gz"
 
 INSTALL_TMPDIR="$HOME/.restx-install-tmp"
 rm -rf "$INSTALL_TMPDIR"
