@@ -5,12 +5,12 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.2.7</version>
+        <version>0.2.8-SNAPSHOT</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-package</artifactId>
-    <version>0.2.7</version>
+    <version>0.2.8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <build>
