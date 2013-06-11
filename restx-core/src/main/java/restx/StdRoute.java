@@ -58,7 +58,7 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
     }
 
     protected void notFound(RestxRouteMatch match, RestxResponse resp) throws IOException {
-        resp.setStatus(404);
+        resp.setStatus(HttpStatus.NOT_FOUND.getCode());
         resp.setContentType("text/plain");
         resp.getWriter().println("Route matched, but resource " + match.getPath() + " not found.");
         resp.getWriter().println("Matched route: " + match.getHandler());

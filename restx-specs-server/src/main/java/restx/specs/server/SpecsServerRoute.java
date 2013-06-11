@@ -35,7 +35,7 @@ public class SpecsServerRoute implements RestxRoute {
     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         Match m = (Match) match;
         resp.setStatus(m.spec.getThen().getExpectedCode());
-        if (m.spec.getThen().getExpectedCode() == 200) {
+        if (m.spec.getThen().getExpectedCode() == HttpStatus.OK.getCode()) {
             resp.setContentType("application/json");
         }
         resp.getWriter().print(m.spec.getThen().getExpected());
