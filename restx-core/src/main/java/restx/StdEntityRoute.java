@@ -18,10 +18,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public abstract class StdEntityRoute extends StdRoute {
     protected final ObjectMapper mapper;
+    protected final HttpStatus successStatus;
 
     public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher) {
+        this(name, mapper, matcher, HttpStatus.OK);
+    }
+
+    public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher, HttpStatus successStatus) {
         super(name, matcher);
         this.mapper = checkNotNull(mapper);
+        this.successStatus = successStatus;
     }
 
     @Override
@@ -29,7 +35,7 @@ public abstract class StdEntityRoute extends StdRoute {
         ctx.getLifecycleListener().onRouteMatch(this);
         Optional<?> result = doRoute(req, match);
         if (result.isPresent()) {
-            resp.setStatus(HttpStatus.OK.getCode());
+            resp.setStatus(successStatus.getCode());
             resp.setContentType("application/json");
             Object value = result.get();
             if (value instanceof Iterable) {
