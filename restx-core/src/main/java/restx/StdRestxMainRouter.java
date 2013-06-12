@@ -107,7 +107,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                     sb.append(route).append("\n");
                 }
                 sb.append("-----------------------------------");
-                restxResponse.setStatus(404);
+                restxResponse.setStatus(HttpStatus.NOT_FOUND.getCode());
                 restxResponse.setContentType("text/plain");
                 PrintWriter out = restxResponse.getWriter();
                 out.print(sb.toString());

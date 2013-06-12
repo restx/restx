@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import restx.description.OperationDescription;
 import restx.jackson.Views;
 
 import java.io.IOException;
@@ -19,8 +20,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class StdEntityRoute extends StdRoute {
     protected final ObjectMapper mapper;
 
+    /**
+     * @deprecated Kept for backward compatibility with version <- 0.2.8
+     */
     public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher) {
-        super(name, matcher);
+        this(name, mapper, matcher, HttpStatus.OK);
+    }
+
+    public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher, HttpStatus successStatus) {
+        super(name, matcher, successStatus);
         this.mapper = checkNotNull(mapper);
     }
 
@@ -29,7 +37,7 @@ public abstract class StdEntityRoute extends StdRoute {
         ctx.getLifecycleListener().onRouteMatch(this);
         Optional<?> result = doRoute(req, match);
         if (result.isPresent()) {
-            resp.setStatus(200);
+            resp.setStatus(getSuccessStatus().getCode());
             resp.setContentType("application/json");
             Object value = result.get();
             if (value instanceof Iterable) {

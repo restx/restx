@@ -66,7 +66,7 @@ public class ResourcesRoute implements RestxRoute {
         try {
             URL resource = MoreResources.getResource(
                     baseResourcePath + relativePath, RestxContext.Modes.DEV.equals(ctx.getMode()));
-            resp.setStatus(200);
+            resp.setStatus(HttpStatus.OK.getCode());
             resp.setContentType(HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream"));
             ByteStreams.copy(Resources.newInputStreamSupplier(resource), resp.getOutputStream());
         } catch (IllegalArgumentException e) {
@@ -75,7 +75,7 @@ public class ResourcesRoute implements RestxRoute {
     }
 
     private void notFound(RestxResponse resp, String relativePath) throws IOException {
-        resp.setStatus(404);
+        resp.setStatus(HttpStatus.NOT_FOUND.getCode());
         resp.setContentType("text/plain");
         resp.getWriter().println("Resource route matched '" + this + "', but resource "
                 + relativePath + " not found in " + baseResourcePath + ".");

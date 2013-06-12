@@ -5,6 +5,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
+import restx.HttpStatus;
 import restx.annotations.*;
 import restx.common.Mustaches;
 
@@ -61,6 +62,9 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                                 annotation.methodElem.getSimpleName()), typeElem);
                 }
 
+                SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
+                HttpStatus successStatus = successStatusAnn==null?HttpStatus.OK:successStatusAnn.value();
+
                 ResourceGroup group = getResourceGroup(r, groups);
                 ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
 
@@ -68,7 +72,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                         resourceClass,
                         annotation.httpMethod, annotation.path,
                         annotation.methodElem.getSimpleName().toString(),
-                        annotation.methodElem.getReturnType().toString());
+                        annotation.methodElem.getReturnType().toString(),
+                        successStatus);
                 resourceClass.resourceMethods.add(resourceMethod);
                 resourceClass.originatingElements.add(annotation.methodElem);
 
@@ -225,6 +230,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("overrideWriteValue", resourceMethod.returnType.startsWith(Iterable.class.getName()) ?
                             String.format("protected ObjectWriter getObjectWriter(ObjectMapper mapper) { return super.getObjectWriter(mapper).withType(new TypeReference<%s>() { }); }", resourceMethod.returnType)
                             : "")
+                    .put("successStatusName", resourceMethod.successStatus.name())
                     .build()
             );
         }
@@ -333,10 +339,11 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final String returnType;
         final String id;
         final Collection<String> pathParamNames;
+        final HttpStatus successStatus;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
-        ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType) {
+        ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType, HttpStatus successStatus) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
@@ -345,6 +352,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             this.returnTypeOptional = m.matches();
             this.returnType = returnTypeOptional ? m.group(1) : returnType;
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
+            this.successStatus = successStatus;
             Matcher matcher = pathParamNamesPattern.matcher(path);
             pathParamNames = Sets.newHashSet();
             while (matcher.find()) {
