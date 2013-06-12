@@ -5,6 +5,7 @@
         <button ng-click="toggleTry()" class="btn pull-right" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
         <p><label>Nick name:</label> {{operation.nickname}}</p>
         <p><label>Response class:</label> {{operation.responseClass}}</p>
+        <p><label>Success status:</label> {{operation.successStatus.code}} - {{operation.successStatus.desc}}</p>
         <section>
             <h3>Parameters</h3>
             <table class="table table-condensed parameters">

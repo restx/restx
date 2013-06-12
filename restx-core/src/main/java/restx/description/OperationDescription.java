@@ -1,6 +1,7 @@
 package restx.description;
 
 import com.google.common.collect.Lists;
+import restx.HttpStatus;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class OperationDescription {
     public String responseClass;
     public String summary = "";
     public String notes = "";
+    public HttpStatus.Descriptor successStatus;
     public List<OperationParameterDescription> parameters = Lists.newArrayList();
     public List<ErrorResponseDescription> errorResponses = Lists.newArrayList();
 }

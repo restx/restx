@@ -35,6 +35,7 @@ public class {{{router}}} extends RestxRouter {
 
             @Override
             protected void describeOperation(OperationDescription operation) {
+                super.describeOperation(operation);
                 {{{parametersDescription}}}
 
                 operation.responseClass = "{{{responseClass}}}";

@@ -226,6 +226,10 @@ public enum HttpStatus {
         return desc;
     }
 
+    public Descriptor createDescriptor(){
+        return new Descriptor(this);
+    }
+
     public static HttpStatus havingCode(int code){
         for(HttpStatus httpStatus : values()){
             if(httpStatus.code == code){
@@ -233,5 +237,14 @@ public enum HttpStatus {
             }
         }
         throw new IllegalArgumentException("Invalid HTTP Status code : "+code);
+    }
+
+    public static class Descriptor {
+        private final HttpStatus status;
+        public Descriptor(HttpStatus status) {
+            this.status = status;
+        }
+        public int getCode(){ return status.getCode(); }
+        public String getDesc(){ return status.getDesc(); }
     }
 }

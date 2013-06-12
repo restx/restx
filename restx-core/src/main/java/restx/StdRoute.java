@@ -40,6 +40,7 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
             OperationDescription operation = new OperationDescription();
             operation.httpMethod = stdRouteMatcher.getMethod();
             operation.nickname = name.substring(name.lastIndexOf('#') + 1);
+            operation.successStatus = HttpStatus.OK.createDescriptor();
             describeOperation(operation);
             description.operations = Collections.singletonList(operation);
             return Collections.singleton(description);

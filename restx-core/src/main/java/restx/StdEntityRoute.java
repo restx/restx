@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import restx.description.OperationDescription;
 import restx.jackson.Views;
 
 import java.io.IOException;
@@ -46,6 +47,12 @@ public abstract class StdEntityRoute extends StdRoute {
         } else {
             notFound(match,resp);
         }
+    }
+
+    @Override
+    protected void describeOperation(OperationDescription operation) {
+        super.describeOperation(operation);
+        operation.successStatus = successStatus.createDescriptor();
     }
 
     protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException {
