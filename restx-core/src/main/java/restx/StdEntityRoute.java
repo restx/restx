@@ -19,16 +19,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public abstract class StdEntityRoute extends StdRoute {
     protected final ObjectMapper mapper;
-    protected final HttpStatus successStatus;
 
+    /**
+     * @deprecated Kept for backward compatibility with version <- 0.2.8
+     */
     public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher) {
         this(name, mapper, matcher, HttpStatus.OK);
     }
 
     public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher, HttpStatus successStatus) {
-        super(name, matcher);
+        super(name, matcher, successStatus);
         this.mapper = checkNotNull(mapper);
-        this.successStatus = successStatus;
     }
 
     @Override
@@ -36,7 +37,7 @@ public abstract class StdEntityRoute extends StdRoute {
         ctx.getLifecycleListener().onRouteMatch(this);
         Optional<?> result = doRoute(req, match);
         if (result.isPresent()) {
-            resp.setStatus(successStatus.getCode());
+            resp.setStatus(getSuccessStatus().getCode());
             resp.setContentType("application/json");
             Object value = result.get();
             if (value instanceof Iterable) {
@@ -47,12 +48,6 @@ public abstract class StdEntityRoute extends StdRoute {
         } else {
             notFound(match,resp);
         }
-    }
-
-    @Override
-    protected void describeOperation(OperationDescription operation) {
-        super.describeOperation(operation);
-        operation.successStatus = successStatus.createDescriptor();
     }
 
     protected void writeValue(ObjectMapper mapper, PrintWriter writer, Object value) throws IOException {

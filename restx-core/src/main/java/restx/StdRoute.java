@@ -19,10 +19,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class StdRoute implements RestxRoute, DescribableRoute {
     private final String name;
     private final RestxRouteMatcher matcher;
+    private final HttpStatus successStatus;
 
     public StdRoute(String name, RestxRouteMatcher matcher) {
+        this(name, matcher, HttpStatus.OK);
+    }
+
+    public StdRoute(String name, RestxRouteMatcher matcher, HttpStatus successStatus) {
         this.name = checkNotNull(name);
         this.matcher = checkNotNull(matcher);
+        this.successStatus = checkNotNull(successStatus);
     }
 
     @Override
@@ -40,13 +46,17 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
             OperationDescription operation = new OperationDescription();
             operation.httpMethod = stdRouteMatcher.getMethod();
             operation.nickname = name.substring(name.lastIndexOf('#') + 1);
-            operation.successStatus = HttpStatus.OK.createDescriptor();
+            operation.successStatus = getSuccessStatus().createDescriptor();
             describeOperation(operation);
             description.operations = Collections.singletonList(operation);
             return Collections.singleton(description);
         } else {
             return Collections.emptySet();
         }
+    }
+
+    public HttpStatus getSuccessStatus() {
+        return successStatus;
     }
 
     // override to provide parameters, response and error codes description
