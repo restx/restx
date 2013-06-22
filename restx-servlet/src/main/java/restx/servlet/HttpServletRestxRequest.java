@@ -43,6 +43,11 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     @Override
+    public String getBaseNetworkPath() {
+        return getBaseUri().replaceAll("^https?:", "");
+    }
+
+    @Override
     public String getRestxPath() {
         return request.getRequestURI().substring(
                 (request.getContextPath() + request.getServletPath()).length());

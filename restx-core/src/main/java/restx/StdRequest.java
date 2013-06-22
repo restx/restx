@@ -71,6 +71,11 @@ public class StdRequest implements RestxRequest {
     }
 
     @Override
+    public String getBaseNetworkPath() {
+        return getBaseUri().replaceAll("^https?:", "");
+    }
+
+    @Override
     public String getRestxPath() {
         return restxPath;
     }

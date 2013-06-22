@@ -24,6 +24,21 @@ public interface RestxRequest {
     String getBaseUri();
 
     /**
+     * Returns the base network path of this request (ie baseUri without the protocol).
+     * Eg //mydomain.com/api or //mydomain.com:8080
+     *
+     * This is useful to create paths using the same protocol as the one seen by the client, as opposed
+     * to the protocol seen by the server (server can see http if you have a front http server like Apache
+     * doing https and reverse proxy).
+     *
+     * See also this discussion:
+     * http://stackoverflow.com/questions/5799577/does-using-www-example-com-in-javascript-chose-http-https-protocol-automatical
+     *
+     * @return the base network path of this request.
+     */
+    String getBaseNetworkPath();
+
+    /**
      * The port on which the request was received.
      *
      * This is the port on which the server is listening.

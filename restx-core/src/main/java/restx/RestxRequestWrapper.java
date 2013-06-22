@@ -32,6 +32,11 @@ public class RestxRequestWrapper implements RestxRequest {
     }
 
     @Override
+    public String getBaseNetworkPath() {
+        return original.getBaseNetworkPath();
+    }
+
+    @Override
     public String getRestxPath() {
         return original.getRestxPath();
     }

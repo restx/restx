@@ -50,7 +50,7 @@ public class ApiDocsIndexRoute extends StdEntityRoute {
         return Optional.of(ImmutableMap.builder()
                 .put("apiVersion", "0.1") // TODO
                 .put("swaggerVersion", "1.1")
-                .put("basePath", restxRequest.getBaseUri())
+                .put("basePath", restxRequest.getBaseNetworkPath())
                 .put("apis", buildApis())
                 .build());
     }

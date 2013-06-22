@@ -55,6 +55,11 @@ public class SimpleRestxRequest implements RestxRequest {
     }
 
     @Override
+    public String getBaseNetworkPath() {
+        return request.getValue("Host") + apiPath;
+    }
+
+    @Override
     public String getRestxPath() {
         return restxPath;
     }
