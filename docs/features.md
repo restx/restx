@@ -1,8 +1,17 @@
 ---
+published: true
 layout: docs
-title:  "Features"
+title: Features
 filename: features.md
 ---
+
+---
+layout: docs
+title: Features
+filename: features.md
+published: true
+---
+
 # Features
 
 ## focused on REST
@@ -89,4 +98,3 @@ filename: features.md
 	<li><a href="/docs/"><i class="icon-book"> </i> Documentation</a></li>
 </ul>	
 </div>
-	 
