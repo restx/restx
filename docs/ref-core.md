@@ -67,7 +67,7 @@ Some examples:
 
 You can always override these defaults with `@Param` annotation.
 
-Body parameters and objects returned are automatically mapped to json using jackson, use regular jackson annotations if you want to custimize it.
+Body parameters and objects returned are automatically mapped to json using jackson, use regular jackson annotations if you want to customize it.
 
 Restx leverages the `Optional<T>` type from guava to indicate if a parameter is optional or if a request may not find a result.
 
