@@ -7,9 +7,9 @@ filename: features.md
 
 ## focused on REST
 
-   building a RESTful API is dead easy with RESTX, it has all the defaults you can expect from a REST framework: serving / consuming JSON is super easy, query and path parameters are almost to simple to use, you get a strong routing and filtering mechnism and no conversation state is kept on the web server (aka stateless web server). 
+   Building a RESTful API is dead easy with RESTX, it has all the defaults you can expect from a REST framework: serving / consuming JSON is super easy, query and path parameters are almost too simple to use, you get a strong routing and filtering mechnism and no conversation state is kept on the web server (aka stateless web server). 
 
-   It implies that it's not a general web framework, it means there is no templating mechanism. It's better use with a JS framework on the client side, and you can always use any other templating mechnism to serve your pages
+   It implies that it's not a general web framework, it means there is no templating mechanism. It's better use with a JS framework on the client side, and you can always use any other templating mechanism to serve your pages
 
 ## lightweight
 
