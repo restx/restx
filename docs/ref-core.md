@@ -151,7 +151,7 @@ Second, it all started from a frustration about the startup time with the stack 
 
 2 seconds may sound ok for plenty of people used to work with application servers starting up in 30 seconds or more, but once you get used to web development where you hit refresh and instantly get feedback on your changes, 2 seconds is already too much. Especially for an empty app without even a DB connection, once your app get bigger startup time will always increase.
 
-Some may argu that startup time isn't much of problem with hot reload support in java (for basic changes only) and excellent tools like jrebel. But startup time still impact your integration tests (and we like integration testing of REST API). It also has impact on platform starting your app (or new nodes) on demand, like many cloud platforms.
+Some may argue that startup time isn't much of problem with hot reload support in java (for basic changes only) and excellent tools like jrebel. But startup time still impact your integration tests (and we like integration testing of REST API). It also has impact on platform starting your app (or new nodes) on demand, like many cloud platforms.
 
 The solution to startup time was to do more at compile time (because you only recompile what has changed), and thus we started a POC with annotation processing.
 
