@@ -67,7 +67,7 @@ Some examples:
 
 You can always override these defaults with `@Param` annotation.
 
-Body parameters and objects returned are automatically mapped to json using jackson, use regular jackson annotations if you want to custimize it.
+Body parameters and objects returned are automatically mapped to json using jackson, use regular jackson annotations if you want to customize it.
 
 Restx leverages the `Optional<T>` type from guava to indicate if a parameter is optional or if a request may not find a result.
 
@@ -149,9 +149,9 @@ Yes we know there's already plenty of web frameworks, especially in the java wor
 
 Second, it all started from a frustration about the startup time with the stack we used to use: Spring MVC. With tomcat 7 embed an empty application startup time was around 7 seconds (mostly due to servlet classpath scanning), the best we got was 2 seconds startup time with jetty 8 embed.
 
-2 seconds may sound ok for plenty of people used to work with application servers starting up in 30 seconds or more, but once you get used to web development where you hit refresh and instaly get feedback on your changes, 2 seconds is already too much. Especially for an empty app without even a DB connection, once your app get bigger startup time will always increase.
+2 seconds may sound ok for plenty of people used to work with application servers starting up in 30 seconds or more, but once you get used to web development where you hit refresh and instantly get feedback on your changes, 2 seconds is already too much. Especially for an empty app without even a DB connection, once your app get bigger startup time will always increase.
 
-Some may argu that startup time isn't much of problem with hot reload support in java (for basic changes only) and excellent tools like jrebel. But startup time still impact your integration tests (and we like integration testing of REST API). It also has impact on platform starting your app (or new nodes) on demand, like many cloud platforms.
+Some may argue that startup time isn't much of problem with hot reload support in java (for basic changes only) and excellent tools like jrebel. But startup time still impact your integration tests (and we like integration testing of REST API). It also has impact on platform starting your app (or new nodes) on demand, like many cloud platforms.
 
 The solution to startup time was to do more at compile time (because you only recompile what has changed), and thus we started a POC with annotation processing.
 

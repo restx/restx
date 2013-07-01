@@ -7,9 +7,9 @@ filename: features.md
 
 ## focused on REST
 
-   building a RESTful API is dead easy with RESTX, it has all the defaults you can expect from a REST framework: serving / consuming JSON is super easy, query and path parameters are almost to simple to use, you get a strong routing and filtering mechnism and no conversation state is kept on the web server (aka stateless web server). 
+   Building a RESTful API is dead easy with RESTX, it has all the defaults you can expect from a REST framework: serving / consuming JSON is super easy, query and path parameters are almost too simple to use, you get a strong routing and filtering mechnism and no conversation state is kept on the web server (aka stateless web server). 
 
-   It implies that it's not a general web framework, it means there is no templating mechanism. It's better use with a JS framework on the client side, and you can always use any other templating mechnism to serve your pages
+   It implies that it's not a general web framework, it means there is no templating mechanism. It's better use with a JS framework on the client side, and you can always use any other templating mechanism to serve your pages
 
 ## lightweight
 
@@ -39,7 +39,7 @@ filename: features.md
 
 ## ... but not only
 
-   restx is not specific to MongoDB, you can use it with any datastore with a Java API. There's already a [sample project using couchbase](https://github.com/restx/restx/tree/master/restx-samples/restx-samples-beersample), and you can also use it with a relationnal database.
+   restx is not specific to MongoDB, you can use it with any datastore with a Java API. There's already a [sample project using couchbase](https://github.com/restx/restx/tree/master/restx-samples/restx-samples-beersample), and you can also use it with a relational database.
 
 ## easy testing
 
@@ -47,7 +47,7 @@ filename: features.md
 
 ## REST API documentation
 
-   as soon as you declare a end point it is documented in the web console
+   as soon as you declare an endpoint, it is documented in the web console
 
 ## ... with innovation inside
 
