@@ -22,6 +22,16 @@
                       </li>
             <li class="active"><a href="#">Monitor</a></li>
         </ul>
+          <div class="pull-right" ng-controller="AdminController">
+              <ul class="nav pull-right">
+                  <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"> {{ session.principal.name }}
+                      <b class="caret"></b></a>
+                      <ul class="dropdown-menu">
+                          <li><a href="#" ng-click="logout()">Logout</a></li>
+                      </ul>
+                  </li>
+              </ul>
+          </div>
           <form class="navbar-search pull-right">
             <input type="text" class="search-query" placeholder="Search" ng-model="searchQuery" ng-change="$broadcast('search')">
           </form>
@@ -47,6 +57,7 @@
   <script src="../js/slick.dataview.js"></script>
 
   <script src="js/app.js"></script>
+  <script src="../js/securityHandling.js"></script>
   <script src="../js/admin.js"></script>
 </body>
 </html>

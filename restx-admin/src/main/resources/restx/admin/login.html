@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en-US" ng-app="admin">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESTX :: Admin Console :: Login</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/alertify.core.css" />
+   	<link rel="stylesheet" type="text/css" href="css/alertify.default.css" />
+    <link rel="stylesheet" type="text/css" href="css/admin.css">
+</head>
+<body ng-controller="LoginController">
+
+    <div class="container">
+        <div class="row">
+            <div class="span12">
+                <form class="form-horizontal" action='' method="POST">
+                  <fieldset>
+                    <div id="legend">
+                      <legend class="">Login to RESTX Admin console</legend>
+                    </div>
+                    <div class="control-group">
+                      <!-- Username -->
+                      <label class="control-label"  for="username">Username</label>
+                      <div class="controls">
+                        <input type="text" id="username" name="username" placeholder="" class="input-xlarge" ng-model="username">
+                      </div>
+                    </div>
+
+                    <div class="control-group">
+                      <!-- Password-->
+                      <label class="control-label" for="password">Password</label>
+                      <div class="controls">
+                        <input type="password" id="password" name="password" placeholder="" class="input-xlarge" ng-model="password">
+                      </div>
+                    </div>
+
+
+                    <div class="control-group">
+                      <!-- Button -->
+                      <div class="controls">
+                        <button class="btn btn-success" ng-click="authenticate(username, password)">Login</button>
+                      </div>
+                    </div>
+                  </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular-resource.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+
+    <script type="text/javascript">angular.module('admin', ['ngResource'])</script>
+    <script src="js/Spark-md5.min.js"></script>
+    <script src="js/jquery.querystring.js"></script>
+    <script src="js/alertify.min.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>

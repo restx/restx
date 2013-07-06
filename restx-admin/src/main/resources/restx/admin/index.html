@@ -20,6 +20,16 @@
                       </li>
             <li class="active"><a href="#">Admin Console</a></li>
         </ul>
+          <div class="pull-right">
+              <ul class="nav pull-right">
+                  <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"> {{ session.principal.name }}
+                      <b class="caret"></b></a>
+                      <ul class="dropdown-menu">
+                          <li><a href="#" ng-click="logout()">Logout</a></li>
+                      </ul>
+                  </li>
+              </ul>
+          </div>
       </div>
     </div>
 
@@ -47,6 +57,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
 
     <script type="text/javascript">angular.module('admin', ['ngResource'])</script>
+    <script src="js/securityHandling.js"></script>
     <script src="js/admin.js"></script>
 </body>
 </html>

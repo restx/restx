@@ -6,6 +6,8 @@ package restx.admin;
  * Time: 1:54 PM
  */
 public class AdminPage {
+    public static final String RESTX_ADMIN_ROLE = "restx-admin";
+
     private final String path;
     private final String title;
 
