@@ -185,6 +185,8 @@ public class StdRestxMainRouter implements RestxMainRouter {
             restxResponse.setContentType("application/json");
             PrintWriter out = restxResponse.getWriter();
             out.println(ex.toJSON());
+        } catch (WebException ex) {
+            ex.writeTo(restxRequest, restxResponse);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             logger.warn("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
             restxResponse.setStatus(400);
