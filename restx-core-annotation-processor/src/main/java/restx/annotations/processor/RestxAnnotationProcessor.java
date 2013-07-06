@@ -8,6 +8,8 @@ import com.google.common.collect.*;
 import restx.HttpStatus;
 import restx.annotations.*;
 import restx.common.Mustaches;
+import restx.security.PermitAll;
+import restx.security.RolesAllowed;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -68,12 +70,15 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 ResourceGroup group = getResourceGroup(r, groups);
                 ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
 
+                String permission = buildPermission(annotation, typeElem);
+
                 ResourceMethod resourceMethod = new ResourceMethod(
                         resourceClass,
                         annotation.httpMethod, annotation.path,
                         annotation.methodElem.getSimpleName().toString(),
                         annotation.methodElem.getReturnType().toString(),
-                        successStatus);
+                        successStatus, permission);
+
                 resourceClass.resourceMethods.add(resourceMethod);
                 resourceClass.originatingElements.add(annotation.methodElem);
 
@@ -87,6 +92,39 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             throw new RuntimeException(e);
         }
         return true;
+    }
+
+    private String buildPermission(ResourceMethodAnnotation annotation, TypeElement typeElem) {
+        String permission;
+        PermitAll permitAll = annotation.methodElem.getAnnotation(PermitAll.class);
+        if (permitAll != null) {
+            permission = "open()";
+        } else {
+            RolesAllowed rolesAllowed = annotation.methodElem.getAnnotation(RolesAllowed.class);
+            if (rolesAllowed != null) {
+                List<String> roles = new ArrayList<>();
+                for (String role : rolesAllowed.value()) {
+                    roles.add("hasRole(\"" + role + "\")");
+                }
+                switch (roles.size()) {
+                    case 0:
+                        permission = "isAuthenticated()";
+                        break;
+                    case 1:
+                        permission = roles.get(0);
+                        break;
+                    default:
+                        permission = "anyOf(" + Joiner.on(", ").join(roles) + ")";
+                }
+            } else {
+                permitAll = typeElem.getAnnotation(PermitAll.class);
+                if (permitAll != null) {
+                    permission = "open()";
+                } else {
+                    permission = "isAuthenticated()";
+                }
+            }
+        } return permission;
     }
 
     private void buildResourceMethodParams(ResourceMethodAnnotation annotation, ResourceMethod resourceMethod) {
@@ -224,6 +262,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("method", resourceMethod.httpMethod)
                     .put("path", resourceMethod.path)
                     .put("resource", resourceClass.name)
+                    .put("securityCheck", "securityManager.check(request, " + resourceMethod.permission + ");")
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
@@ -350,13 +389,16 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final String id;
         final Collection<String> pathParamNames;
         final HttpStatus successStatus;
+        final String permission;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
-        ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType, HttpStatus successStatus) {
+        ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
+                       HttpStatus successStatus, String permission) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
+            this.permission = permission;
             Matcher m = optionalPattern.matcher(returnType);
             this.realReturnType = returnType;
             this.returnTypeOptional = m.matches();
@@ -437,4 +479,5 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
 
         public abstract String fetchFromReqCode(ResourceMethodParameter parameter);
     }
+
 }

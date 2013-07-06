@@ -8,6 +8,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import restx.*;
 import restx.factory.*;
+import restx.security.*;
+import static restx.security.Permissions.*;
 import restx.description.*;
 import restx.converters.MainStringConverter;
 import static restx.common.MorePreconditions.checkPresent;
@@ -21,13 +23,15 @@ import java.io.PrintWriter;
 @Component
 public class {{{router}}} extends RestxRouter {
 
-    public {{{router}}}(final {{{resource}}} resource, final ObjectMapper mapper, final MainStringConverter converter, final Validator validator) {
+    public {{{router}}}(final {{{resource}}} resource, final ObjectMapper mapper, final MainStringConverter converter,
+                    final Validator validator, final RestxSecurityManager securityManager) {
         super(
                 "{{{router}}}", new RestxRoute[] {
 {{#routes}}
         new StdEntityRoute("{{{routeId}}}", mapper, new StdRouteMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}) {
             @Override
             protected Optional<?> doRoute(RestxRequest request, RestxRouteMatch match) throws IOException {
+                {{{securityCheck}}}
                 return {{{call}}};
             }
 
