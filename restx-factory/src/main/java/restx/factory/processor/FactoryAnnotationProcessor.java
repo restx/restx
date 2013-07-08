@@ -83,8 +83,9 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 continue;
             }
             TypeElement typeElem = (TypeElement) annotation;
+            Module mod = typeElem.getAnnotation(Module.class);
 
-            ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem);
+            ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
             for (Element element : typeElem.getEnclosedElements()) {
                 if (element instanceof ExecutableElement
                         && element.getKind() == ElementKind.METHOD
@@ -251,6 +252,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("machine", moduleClass.name + "FactoryMachine")
                 .put("moduleFqcn", moduleClass.fqcn)
                 .put("moduleType", moduleClass.name)
+                .put("priority", moduleClass.priority)
                 .put("engines", engines)
                 .build();
 
@@ -386,12 +388,14 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         final Element originatingElement;
         final String pack;
         final String name;
+        final int priority;
 
-        ModuleClass(String fqcn, Element originatingElement) {
+        ModuleClass(String fqcn, Element originatingElement, int priority) {
             this.fqcn = fqcn;
             this.pack = fqcn.substring(0, fqcn.lastIndexOf('.'));
             this.name = fqcn.substring(fqcn.lastIndexOf('.') + 1);
             this.originatingElement = originatingElement;
+            this.priority = priority;
         }
     }
 
