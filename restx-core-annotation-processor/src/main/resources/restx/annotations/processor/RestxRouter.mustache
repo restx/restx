@@ -20,7 +20,7 @@ import static restx.validation.Validations.checkValid;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@Component
+@Component(priority = {{priority}})
 public class {{{router}}} extends RestxRouter {
 
     public {{{router}}}(final {{{resource}}} resource, final ObjectMapper mapper, final MainStringConverter converter,

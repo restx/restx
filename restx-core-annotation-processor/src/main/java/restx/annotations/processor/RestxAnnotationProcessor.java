@@ -183,7 +183,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         ResourceClass resourceClass = group.resourceClasses.get(fqcn);
         if (resourceClass == null) {
             modulesListOriginatingElements.add(typeElem);
-            group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn));
+            group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn, r.priority()));
             resourceClass.originatingElements.add(typeElem);
         }
         return resourceClass;
@@ -200,6 +200,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                         .put("package", resourceClass.pack)
                         .put("router", resourceClass.name + "Router")
                         .put("resource", resourceClass.name)
+                        .put("priority", resourceClass.priority)
                         .put("routes", routes)
                         .build();
 
@@ -365,14 +366,16 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     private static class ResourceClass {
         final String pack;
         final String fqcn;
+        final int priority;
         final List<ResourceMethod> resourceMethods = Lists.newArrayList();
         final ResourceGroup group;
         final String name;
         final Set<Element> originatingElements = Sets.newHashSet();
 
-        ResourceClass(ResourceGroup group, String fqcn) {
+        ResourceClass(ResourceGroup group, String fqcn, int priority) {
             this.group = group;
             this.fqcn = fqcn;
+            this.priority = priority;
             this.pack = fqcn.substring(0, fqcn.lastIndexOf('.'));
             this.name = fqcn.substring(fqcn.lastIndexOf('.') + 1);
         }

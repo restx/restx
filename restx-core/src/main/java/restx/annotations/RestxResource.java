@@ -7,4 +7,5 @@ package restx.annotations;
  */
 public @interface RestxResource {
     String group() default "default";
+    int priority() default 0;
 }
