@@ -139,6 +139,11 @@ public class AppShellCommand extends StdShellCommand {
                     "This is used as salt for signing stuff exchanged with the client.\n" +
                             "Use something fancy or keep what is proposed by default, but make sure to not share that publicly.");
 
+            String adminPassword = shell.ask("admin password (to authenticate on restx console) [%s]? ",
+                    String.valueOf(new Random().nextInt(10000)),
+                    "This is used as password for the admin user to authenticate on restx console.\n" +
+                            "This is only a default way to authenticate out of the box, restx security is very flexible.");
+
             String defaultPort = shell.ask("default port [%s]? ", "8080",
                     "This is the default port used when using embedded version.\n" +
                             "Usually Java web containers use 8080, it may be a good idea to use a different port to avoid \n" +
@@ -163,6 +168,7 @@ public class AppShellCommand extends StdShellCommand {
                     .put("packagePath", mainPackage.replace('.', '/'))
                     .put("version", version)
                     .put("signatureKey", signatureKey)
+                    .put("adminPassword", adminPassword)
                     .put("defaultPort", defaultPort)
                     .put("basePath", basePath)
                     .put("restxVersion", restxVersion)

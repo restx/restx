@@ -4,9 +4,16 @@ import com.google.common.base.Charsets;
 import restx.SignatureKey;
 import restx.factory.Module;
 import restx.factory.Provides;
+import javax.inject.Named;
 
 @Module
 public class AppModule {
+    @Provides
+    @Named("restx.admin.password")
+    public String restxAdminPassword() {
+        return "{{adminPassword}}";
+    }
+
     @Provides
     public SignatureKey signatureKey() {
          return new SignatureKey("{{signatureKey}}".getBytes(Charsets.UTF_8));
