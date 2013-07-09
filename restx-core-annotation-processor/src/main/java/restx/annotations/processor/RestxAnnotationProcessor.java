@@ -269,23 +269,33 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         // iterating through these annotations would be nicer, but we would need to use reflection for "value()"
         for (Element elem : roundEnv.getElementsAnnotatedWith(GET.class)) {
             GET annotation = elem.getAnnotation(GET.class);
-            methodAnnotations.add(new ResourceMethodAnnotation("GET", elem, annotation.value()));
+            if (annotation != null) {
+                methodAnnotations.add(new ResourceMethodAnnotation("GET", elem, annotation.value()));
+            }
         }
         for (Element elem : roundEnv.getElementsAnnotatedWith(POST.class)) {
             POST annotation = elem.getAnnotation(POST.class);
-            methodAnnotations.add(new ResourceMethodAnnotation("POST", elem, annotation.value()));
+            if (annotation != null) {
+                methodAnnotations.add(new ResourceMethodAnnotation("POST", elem, annotation.value()));
+            }
         }
         for (Element elem : roundEnv.getElementsAnnotatedWith(PUT.class)) {
             PUT annotation = elem.getAnnotation(PUT.class);
-            methodAnnotations.add(new ResourceMethodAnnotation("PUT", elem, annotation.value()));
+            if (annotation != null) {
+                methodAnnotations.add(new ResourceMethodAnnotation("PUT", elem, annotation.value()));
+            }
         }
         for (Element elem : roundEnv.getElementsAnnotatedWith(DELETE.class)) {
             DELETE annotation = elem.getAnnotation(DELETE.class);
-            methodAnnotations.add(new ResourceMethodAnnotation("DELETE", elem, annotation.value()));
+            if (annotation != null) {
+                methodAnnotations.add(new ResourceMethodAnnotation("DELETE", elem, annotation.value()));
+            }
         }
         for (Element elem : roundEnv.getElementsAnnotatedWith(HEAD.class)) {
             HEAD annotation = elem.getAnnotation(HEAD.class);
-            methodAnnotations.add(new ResourceMethodAnnotation("HEAD", elem, annotation.value()));
+            if (annotation != null) {
+                methodAnnotations.add(new ResourceMethodAnnotation("HEAD", elem, annotation.value()));
+            }
         }
         return methodAnnotations;
     }
