@@ -1,6 +1,6 @@
 {
     "parent": "io.restx:restx-parent:${restx.version}",
-    "module": "io.restx:restx-admin:${restx.version}",
+    "module": "io.restx:restx-security-basic:${restx.version}",
 
     "properties": {
         "@files": ["../restx.build.properties.json"]
@@ -10,7 +10,6 @@
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
-            "io.restx:restx-security-basic:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}"
         ]
     }

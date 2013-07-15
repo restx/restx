@@ -1,6 +1,4 @@
-package restx.admin;
-
-import restx.security.RestxPrincipal;
+package restx.security;
 
 /**
  * User: xavierhanin

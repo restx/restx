@@ -29,7 +29,7 @@ public class AdminPagesResource {
         this.pages = pages;
     }
 
-    @RolesAllowed(AdminPage.RESTX_ADMIN_ROLE)
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/pages")
     public Iterable<AdminPage> findPages(@Param(kind = Param.Kind.CONTEXT, value = "baseUri") String baseUri) {
         List<AdminPage> rootedPages = Lists.newArrayList();

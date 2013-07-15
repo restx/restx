@@ -1,17 +1,33 @@
 package restx.admin;
 
 import com.google.common.base.Charsets;
-import com.google.common.cache.CacheLoader;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
-import restx.RestxSession;
 import restx.factory.Module;
 import restx.factory.Provides;
+import restx.security.BasicPrincipalAuthenticator;
 import restx.security.RestxPrincipal;
 
 import javax.inject.Named;
 
 @Module(priority = 10000)
 public class AdminModule {
+    public static final String RESTX_ADMIN_ROLE = "restx-admin";
+
+    public static final RestxPrincipal RESTX_ADMIN_PRINCIPAL = new RestxPrincipal() {
+        @Override
+        public ImmutableSet<String> getPrincipalRoles() {
+            return ImmutableSet.of(RESTX_ADMIN_ROLE);
+        }
+
+        @Override
+        public String getName() {
+            return "admin";
+        }
+    };
+
     @Provides
     @Named("restx.admin.password")
     public String restxAdminPassword() {
@@ -25,25 +41,20 @@ public class AdminModule {
     }
 
     @Provides
-    @Named(RestxPrincipal.SESSION_DEF_KEY)
-    public RestxSession.Definition.Entry principalSessionEntry() {
-        return new RestxSession.Definition.Entry(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY,
-                new CacheLoader<String, RestxPrincipal>() {
+    public BasicPrincipalAuthenticator basicPrincipalAuthenticator(
+            @Named("restx.admin.passwordHash") final String adminPasswordHash) {
+        return new BasicPrincipalAuthenticator() {
             @Override
-            public RestxPrincipal load(String key) throws Exception {
-                return "admin".equals(key) ? SessionResource.RESTX_ADMIN_PRINCIPAL : null;
+            public Optional<? extends RestxPrincipal> findByName(String name) {
+                return "admin".equals(name) ? Optional.of(RESTX_ADMIN_PRINCIPAL) : Optional.<RestxPrincipal>absent();
             }
-        });
-    }
 
-    @Provides
-    public RestxSession.Definition.Entry sessionKeySessionEntry() {
-        return new RestxSession.Definition.Entry(String.class, Session.SESSION_DEF_KEY,
-                new CacheLoader<String, String>() {
             @Override
-            public String load(String key) throws Exception {
-                return key;
+            public Optional<? extends RestxPrincipal> authenticate(
+                    String name, String passwordHash, ImmutableMap<String, ?> principalData) {
+                return "admin".equals(name) && adminPasswordHash.equals(passwordHash) ?
+                        Optional.of(RESTX_ADMIN_PRINCIPAL) : Optional.<RestxPrincipal>absent();
             }
-        });
+        };
     }
 }

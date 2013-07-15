@@ -11,10 +11,10 @@
     </parent>
 
     <groupId>io.restx</groupId>
-    <artifactId>restx-admin</artifactId>
+    <artifactId>restx-security-basic</artifactId>
     <version>0.2.8-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>restx-admin</name>
+    <name>restx-security-basic</name>
 
     <properties>
         <restx.version>0.2.8-SNAPSHOT</restx.version>
@@ -31,11 +31,6 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-security-basic</artifactId>
             <version>${restx.version}</version>
         </dependency>
         <dependency>

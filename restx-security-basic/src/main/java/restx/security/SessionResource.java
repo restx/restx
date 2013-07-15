@@ -1,6 +1,7 @@
-package restx.admin;
+package restx.security;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 import restx.HttpStatus;
 import restx.RestxSession;
 import restx.Status;
@@ -11,31 +12,18 @@ import restx.annotations.POST;
 import restx.annotations.RestxResource;
 import restx.common.UUIDGenerator;
 import restx.factory.Component;
-import restx.security.PermitAll;
-import restx.security.RestxPrincipal;
 
-import javax.inject.Named;
 import java.util.Map;
 
 @Component @RestxResource(priority = 10000)
 public class SessionResource {
-    public static final RestxPrincipal RESTX_ADMIN_PRINCIPAL = new RestxPrincipal() {
-        @Override
-        public ImmutableSet<String> getPrincipalRoles() {
-            return ImmutableSet.of(AdminPage.RESTX_ADMIN_ROLE);
-        }
 
-        @Override
-        public String getName() {
-            return "admin";
-        }
-    };
+    private final BasicPrincipalAuthenticator authenticator;
 
-    private final String adminPasswordHash;
-
-    public SessionResource(@Named("restx.admin.passwordHash") String adminPasswordHash) {
-        this.adminPasswordHash = adminPasswordHash;
+    public SessionResource(BasicPrincipalAuthenticator authenticator) {
+        this.authenticator = authenticator;
     }
+
 
     @PermitAll
     @POST("/sessions")
@@ -44,12 +32,21 @@ public class SessionResource {
         RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, null);
 
         Map principal = (Map) session.get("principal");
-        if (principal != null && "admin".equals(principal.get("name"))
-                && adminPasswordHash.equals(principal.get("passwordHash"))) {
+        if (principal == null) {
+            throw new WebException(HttpStatus.UNAUTHORIZED);
+        }
+
+        String name = (String) principal.get("name");
+        String passwordHash = (String) principal.get("passwordHash");
+
+        Optional<? extends RestxPrincipal> principalOptional = authenticator.authenticate(
+                name, passwordHash, ImmutableMap.copyOf(principal));
+
+        if (principalOptional.isPresent()) {
             String sessionKey = UUIDGenerator.generate();
-            RestxSession.current().define(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, "admin");
+            RestxSession.current().define(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, name);
             RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, sessionKey);
-            return new Session(sessionKey, RESTX_ADMIN_PRINCIPAL);
+            return new Session(sessionKey, principalOptional.get());
         } else {
             throw new WebException(HttpStatus.UNAUTHORIZED);
         }
