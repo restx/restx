@@ -22,8 +22,7 @@ public class StdRestxSecurityManager implements RestxSecurityManager {
             return;
         }
 
-        Optional<RestxPrincipal> principal = RestxSession.current().get(
-                RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY);
+        Optional<? extends RestxPrincipal> principal = RestxSession.current().getPrincipal();
 
         if (!principal.isPresent()) {
             logger.debug("no principal found: request={}", request);

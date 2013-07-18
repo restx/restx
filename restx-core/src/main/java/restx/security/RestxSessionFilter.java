@@ -34,11 +34,14 @@ public class RestxSessionFilter implements RestxFilter {
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
     private final byte[] signatureKey;
+    private final RestxSession emptySession;
 
     RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, byte[] signatureKey) {
         this.sessionDefinition = sessionDefinition;
         this.mapper = mapper;
         this.signatureKey = signatureKey;
+        this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(),
+                Optional.<RestxPrincipal>absent(), Duration.ZERO);
     }
 
     @Override
@@ -81,21 +84,24 @@ public class RestxSessionFilter implements RestxFilter {
     private RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
         String cookie = req.getCookieValue(RESTX_SESSION, "");
         if (cookie.trim().isEmpty()) {
-            return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(), Duration.ZERO);
+            return emptySession;
         } else {
             String sig = req.getCookieValue(RESTX_SESSION_SIGNATURE, "");
             if (!Crypto.sign(cookie, signatureKey).equals(sig)) {
                 logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
-                return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(), Duration.ZERO);
+                return emptySession;
             }
             Map entries = mapper.readValue(cookie, Map.class);
             DateTime expires = DateTime.parse((String) entries.remove(EXPIRES));
             if (expires.isBeforeNow()) {
-                return new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(), Duration.ZERO);
+                return emptySession;
             }
 
             Duration expiration = req.isPersistentCookie(RESTX_SESSION) ? new Duration(DateTime.now(), expires) : Duration.ZERO;
-            return new RestxSession(sessionDefinition, ImmutableMap.copyOf(entries), expiration);
+            ImmutableMap valueidsByKey = ImmutableMap.copyOf(entries);
+            Optional<RestxPrincipal> principalOptional = RestxSession.getValue(
+                    sessionDefinition, valueidsByKey, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY);
+            return new RestxSession(sessionDefinition, valueidsByKey, principalOptional, expiration);
         }
     }
 

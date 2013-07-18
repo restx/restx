@@ -91,10 +91,13 @@ public class RestxSession {
     private final Definition definition;
     private final ImmutableMap<String, String> valueidsByKey;
     private final Duration expires;
+    private final Optional<? extends RestxPrincipal> principal;
 
-    RestxSession(Definition definition, ImmutableMap<String, String> valueidsByKey, Duration expires) {
+    RestxSession(Definition definition, ImmutableMap<String, String> valueidsByKey,
+                 Optional<? extends RestxPrincipal> principal, Duration expires) {
         this.definition = definition;
         this.valueidsByKey = valueidsByKey;
+        this.principal = principal;
         this.expires = expires;
     }
 
@@ -107,6 +110,11 @@ public class RestxSession {
 
 
     public <T> Optional<T> get(Class<T> clazz, String key) {
+        return getValue(definition, valueidsByKey, clazz, key);
+    }
+
+    static <T> Optional<T> getValue(Definition definition, ImmutableMap<String,
+            String> valueidsByKey, Class<T> clazz, String key) {
         String valueid = valueidsByKey.get(key);
         if (valueid == null) {
             return Optional.absent();
@@ -121,11 +129,7 @@ public class RestxSession {
     }
 
     public RestxSession expires(Duration duration) {
-        RestxSession newCtx = new RestxSession(definition, valueidsByKey, duration);
-        if (this == current()) {
-            current.set(newCtx);
-        }
-        return newCtx;
+        return mayUpdateCurrent(new RestxSession(definition, valueidsByKey, principal, duration));
     }
 
     public Duration getExpires() {
@@ -145,11 +149,28 @@ public class RestxSession {
         } else {
             newValueidsByKey.put(key, valueid);
         }
-        RestxSession newCtx = new RestxSession(definition, ImmutableMap.copyOf(newValueidsByKey), expires);
+        return mayUpdateCurrent(new RestxSession(definition, ImmutableMap.copyOf(newValueidsByKey), principal, expires));
+    }
+
+    public RestxSession authenticateAs(RestxPrincipal principal) {
+        return mayUpdateCurrent(new RestxSession(definition, valueidsByKey, Optional.of(principal), expires))
+                .define(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principal.getName());
+    }
+
+    public RestxSession clearPrincipal() {
+        return mayUpdateCurrent(new RestxSession(definition, valueidsByKey, Optional.<RestxPrincipal>absent(), expires))
+                .define(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, null);
+    }
+
+    public Optional<? extends RestxPrincipal> getPrincipal() {
+        return principal;
+    }
+
+    private RestxSession mayUpdateCurrent(RestxSession newSession) {
         if (this == current()) {
-            current.set(newCtx);
+            current.set(newSession);
         }
-        return newCtx;
+        return newSession;
     }
 
     ImmutableMap<String, String> valueidsByKeyMap() {

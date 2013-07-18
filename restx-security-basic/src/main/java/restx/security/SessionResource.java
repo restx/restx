@@ -27,7 +27,7 @@ public class SessionResource {
     @PermitAll
     @POST("/sessions")
     public Session authenticate(Map session) {
-        RestxSession.current().define(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, null);
+        RestxSession.current().clearPrincipal();
         RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, null);
 
         Map principal = (Map) session.get("principal");
@@ -43,7 +43,7 @@ public class SessionResource {
 
         if (principalOptional.isPresent()) {
             String sessionKey = UUIDGenerator.generate();
-            RestxSession.current().define(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, name);
+            RestxSession.current().authenticateAs(principalOptional.get());
             RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, sessionKey);
             return new Session(sessionKey, principalOptional.get());
         } else {
@@ -54,7 +54,7 @@ public class SessionResource {
     @GET("/sessions/current")
     public Session currentSession() {
         String sessionKey = RestxSession.current().get(String.class, Session.SESSION_DEF_KEY).get();
-        RestxPrincipal principal = RestxSession.current().get(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY).get();
+        RestxPrincipal principal = RestxSession.current().getPrincipal().get();
 
         return new Session(sessionKey, principal);
     }
@@ -62,7 +62,7 @@ public class SessionResource {
     @PermitAll
     @DELETE("/sessions/{sessionKey}")
     public Status logout(String sessionKey) {
-        RestxSession.current().define(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, null);
+        RestxSession.current().clearPrincipal();
         RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, null);
         return Status.of("logout");
     }
