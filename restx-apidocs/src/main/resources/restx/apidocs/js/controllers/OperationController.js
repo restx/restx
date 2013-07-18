@@ -14,6 +14,7 @@ adminApp.controller('OperationController', function OperationController(
         $rootScope, $scope, $routeParams, $http, $filter, ApiDoc, Api) {
     var path = $routeParams.path.replace(/___/g, '/');
     $scope.doc = ApiDoc.get();
+    $scope.su = $rootScope.su;
 
     function setTry(tryMode) {
         $scope.try = $rootScope.try = tryMode;
@@ -67,6 +68,8 @@ adminApp.controller('OperationController', function OperationController(
     }
 
     function sendRequest(onSuccess) {
+        $rootScope.su = $scope.su;
+        $scope.request.headers['RestxSu'] = $scope.su ? '{ "principal": "'+ $scope.su +'" }' : "";
         $http(
             {
                 method: $scope.request.httpMethod,
