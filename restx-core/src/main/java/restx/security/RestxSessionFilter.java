@@ -3,6 +3,7 @@ package restx.security;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
@@ -99,8 +100,25 @@ public class RestxSessionFilter implements RestxFilter {
 
             Duration expiration = req.isPersistentCookie(RESTX_SESSION) ? new Duration(DateTime.now(), expires) : Duration.ZERO;
             ImmutableMap valueidsByKey = ImmutableMap.copyOf(entries);
+            String principalName = (String) valueidsByKey.get(RestxPrincipal.SESSION_DEF_KEY);
             Optional<RestxPrincipal> principalOptional = RestxSession.getValue(
-                    sessionDefinition, valueidsByKey, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY);
+                    sessionDefinition, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principalName);
+            if (principalOptional.isPresent() && principalOptional.get().getPrincipalRoles().contains("restx-admin")) {
+                Optional<String> su = req.getHeader("RestxSu");
+                if (su.isPresent() && !Strings.isNullOrEmpty(su.get())) {
+                    try {
+                        entries.putAll(mapper.readValue(su.get(), Map.class));
+                        valueidsByKey = ImmutableMap.copyOf(entries);
+                        principalName = (String) valueidsByKey.get(RestxPrincipal.SESSION_DEF_KEY);
+                        principalOptional = RestxSession.getValue(
+                                sessionDefinition, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principalName);
+                        logger.info("restx-admin sudoing request with {}", su.get());
+                    } catch (Exception e) {
+                        logger.warn("restx-admin tried sudoing request with {}, but it failed: {}", su.get(), e.toString());
+                        throw new WebException(HttpStatus.BAD_REQUEST, "invalid su session '" + su.get() + "': " + e.toString());
+                    }
+                }
+            }
             return new RestxSession(sessionDefinition, valueidsByKey, principalOptional, expiration);
         }
     }

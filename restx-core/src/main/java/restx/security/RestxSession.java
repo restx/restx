@@ -110,12 +110,10 @@ public class RestxSession {
 
 
     public <T> Optional<T> get(Class<T> clazz, String key) {
-        return getValue(definition, valueidsByKey, clazz, key);
+        return getValue(definition, clazz, key, valueidsByKey.get(key));
     }
 
-    static <T> Optional<T> getValue(Definition definition, ImmutableMap<String,
-            String> valueidsByKey, Class<T> clazz, String key) {
-        String valueid = valueidsByKey.get(key);
+    static <T> Optional<T> getValue(Definition definition, Class<T> clazz, String key, String valueid) {
         if (valueid == null) {
             return Optional.absent();
         }
