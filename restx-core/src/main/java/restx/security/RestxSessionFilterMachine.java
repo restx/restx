@@ -1,6 +1,7 @@
-package restx;
+package restx.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import restx.SignatureKey;
 import restx.factory.*;
 import restx.jackson.FrontObjectMapperFactory;
 

@@ -1,7 +1,6 @@
 package restx.security;
 
 import com.google.common.cache.CacheLoader;
-import restx.RestxSession;
 import restx.factory.Module;
 import restx.factory.Provides;
 

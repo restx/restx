@@ -3,7 +3,6 @@ package restx.security;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import restx.HttpStatus;
-import restx.RestxSession;
 import restx.Status;
 import restx.WebException;
 import restx.annotations.DELETE;

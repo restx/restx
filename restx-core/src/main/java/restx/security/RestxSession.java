@@ -1,4 +1,4 @@
-package restx;
+package restx.security;
 
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;

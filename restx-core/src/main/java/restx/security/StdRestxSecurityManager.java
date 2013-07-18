@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.HttpStatus;
 import restx.RestxRequest;
-import restx.RestxSession;
 import restx.WebException;
 import restx.factory.Component;
 
