@@ -82,7 +82,7 @@ public class RestxSessionFilter implements RestxFilter {
         }
     }
 
-    private RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
+    public RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
         String cookie = req.getCookieValue(RESTX_SESSION, "");
         if (cookie.trim().isEmpty()) {
             return emptySession;
@@ -124,17 +124,28 @@ public class RestxSessionFilter implements RestxFilter {
     }
 
     private void updateSessionInClient(RestxResponse resp, RestxSession session) {
+        ImmutableMap<String, String> cookiesMap = toCookiesMap(session);
+        if (cookiesMap.isEmpty()) {
+            resp.clearCookie(RESTX_SESSION);
+            resp.clearCookie(RESTX_SESSION_SIGNATURE);
+        } else {
+            for (Map.Entry<String, String> cookie : cookiesMap.entrySet()) {
+                resp.addCookie(cookie.getKey(), cookie.getValue(), session.getExpires());
+            }
+        }
+    }
+
+    public ImmutableMap<String, String> toCookiesMap(RestxSession session) {
         try {
             ImmutableMap<String, String> sessionMap = session.valueidsByKeyMap();
             if (sessionMap.isEmpty()) {
-                resp.clearCookie(RESTX_SESSION);
-                resp.clearCookie(RESTX_SESSION_SIGNATURE);
+                return ImmutableMap.of();
             } else {
                 HashMap<String,String> map = Maps.newHashMap(sessionMap);
                 map.put(EXPIRES, DateTime.now().plusDays(30).toString());
                 String sessionJson = mapper.writeValueAsString(map);
-                resp.addCookie(RESTX_SESSION, sessionJson, session.getExpires());
-                resp.addCookie(RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey), session.getExpires());
+                return ImmutableMap.of(RESTX_SESSION, sessionJson,
+                        RESTX_SESSION_SIGNATURE, Crypto.sign(sessionJson, signatureKey));
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

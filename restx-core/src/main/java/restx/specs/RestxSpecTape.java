@@ -15,6 +15,7 @@ import restx.RestxRequest;
 import restx.RestxRequestWrapper;
 import restx.RestxResponse;
 import restx.RestxResponseWrapper;
+import restx.security.RestxSessionFilter;
 
 import java.io.*;
 import java.util.Map;
@@ -42,11 +43,13 @@ public class RestxSpecTape {
     private final Map<String, RestxSpec.Given> givens = Maps.newLinkedHashMap();
     private final Set<RestxSpecRecorder.GivenRecorder> recorders;
     private final Set<AutoCloseable> givenTapes = Sets.newLinkedHashSet();
+    private final RestxSessionFilter sessionFilter;
 
     private RestxRequest recordingRequest;
     private RestxResponse recordingResponse;
 
-    RestxSpecTape(RestxRequest restxRequest, RestxResponse restxResponse, Set<RestxSpecRecorder.GivenRecorder> recorders) {
+    RestxSpecTape(RestxRequest restxRequest, RestxResponse restxResponse,
+                  Set<RestxSpecRecorder.GivenRecorder> recorders, RestxSessionFilter sessionFilter) {
         try {
             lock.tryLock(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -57,6 +60,7 @@ public class RestxSpecTape {
         this.recorders = recorders;
         this.restxRequest = restxRequest;
         this.restxResponse = restxResponse;
+        this.sessionFilter = sessionFilter;
     }
 
     public RestxSpecRecorder.RecordedSpec close() {
@@ -93,7 +97,8 @@ public class RestxSpecTape {
         System.out.print("RECORDING REQUEST...");
         final String method = restxRequest.getHttpMethod();
         final String path = restxRequest.getRestxUri().substring(1); // remove leading slash
-        final Map<String, String> cookies = restxRequest.getCookiesMap();
+        final ImmutableMap<String, String> cookies =
+                sessionFilter.toCookiesMap(sessionFilter.buildContextFromRequest(restxRequest));
         final byte[] requestBody = ByteStreams.toByteArray(restxRequest.getContentStream());
         System.out.println(" >> recorded request " + method + " " + path + " (" + requestBody.length + " bytes) -- " + stopwatch.stop());
         recordedSpec.setCapturedRequestSize(requestBody.length);

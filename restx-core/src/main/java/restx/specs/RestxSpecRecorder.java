@@ -6,6 +6,7 @@ import org.joda.time.Duration;
 import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.factory.Factory;
+import restx.security.RestxSessionFilter;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,6 +39,7 @@ public class RestxSpecRecorder {
     private final List<RecordedSpec> recordedSpecs = new CopyOnWriteArrayList<>();
 
     private final Set<GivenRecorder> recorders;
+    private final RestxSessionFilter sessionFilter;
 
     public RestxSpecRecorder() {
         this(Factory.builder()
@@ -49,11 +51,13 @@ public class RestxSpecRecorder {
     }
 
     public RestxSpecRecorder(Factory factory) {
-        this(factory.queryByClass(GivenRecorder.class).findAsComponents());
+        this(factory.queryByClass(GivenRecorder.class).findAsComponents(),
+                factory.queryByClass(RestxSessionFilter.class).mandatory().findOne().get().getComponent());
     }
 
-    public RestxSpecRecorder(Set<GivenRecorder> recorders) {
+    public RestxSpecRecorder(Set<GivenRecorder> recorders, RestxSessionFilter sessionFilter) {
         this.recorders = recorders;
+        this.sessionFilter = sessionFilter;
     }
 
     public void install() {
@@ -76,7 +80,7 @@ public class RestxSpecRecorder {
      * @throws IOException
      */
     public RestxSpecTape record(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-        return new RestxSpecTape(restxRequest, restxResponse, recorders).doRecord();
+        return new RestxSpecTape(restxRequest, restxResponse, recorders, sessionFilter).doRecord();
     }
 
     public RecordedSpec stop(RestxSpecTape tape) {
