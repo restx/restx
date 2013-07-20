@@ -71,9 +71,22 @@ public class HttpServletRestxResponse implements RestxResponse {
     public void addCookie(String cookie, String value, Duration expiration) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
-            existingCookie.setValue(value);
-            existingCookie.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
-            resp.addCookie(existingCookie);
+            if ("/".equals(existingCookie.getPath())) {
+                // update existing cookie
+                existingCookie.setValue(value);
+                existingCookie.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
+                resp.addCookie(existingCookie);
+            } else {
+                // we have an existing cookie on another path: clear it, and add a new cookie on root path
+                existingCookie.setValue("");
+                existingCookie.setMaxAge(0);
+                resp.addCookie(existingCookie);
+
+                Cookie c = new Cookie(cookie, value);
+                c.setPath("/");
+                c.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
+                resp.addCookie(c);
+            }
         } else {
             Cookie c = new Cookie(cookie, value);
             c.setPath("/");
