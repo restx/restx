@@ -30,11 +30,16 @@ angular.module('admin').config(function($httpProvider) {
               }, function(response) {
                 if (response.status == 401 || response.status == 403) {
                     // onSecurityException should be loaded by /@/ui/js/securityHandling.js
+                    var backTo = location;
                     if (window.onSecurityException) {
-                        window.onSecurityException(baseUri, response.status, location);
+                        window.onSecurityException(baseUri, response, backTo);
                     } else {
                         // default implementation
-                        window.location = baseUri + '/@/ui/login.html?backTo=' + location;
+                        if (response.config.headers && response.config.headers.RestxSu && response.status === 403) {
+                            // do nothing, the forbidden was sent while sudoing, probably in api docs
+                        } else {
+                            window.location = baseUri + '/@/ui/login.html?backTo=' + backTo;
+                        }
                     }
                 }
                 return $q.reject(response);
