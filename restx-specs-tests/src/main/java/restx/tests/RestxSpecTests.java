@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
 
@@ -22,6 +23,7 @@ public class RestxSpecTests {
         Set<String> specResources = new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(location))
                 .setScanners(new ResourcesScanner())
+                .filterInputsBy(new FilterBuilder().includePackage(location.replace('/','.')))
                 .build()
                 .getResources(Pattern.compile(".*\\.spec\\.yaml"));
 
