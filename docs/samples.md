@@ -46,6 +46,27 @@ The best way to learn how it is build is to look at the commits on github.
 
 [https://github.com/restx/restx-samples-hellomongo](https://github.com/restx/restx-samples-hellomongo)
 
+## rxinvoice
+
+This sample goes further than `restx-samples-hellomongo` to demonstrate restx with MongoDB integration in an invoice management app.
+
+### Features demonstrated
+
+- admin console
+- api docs
+- spec test 
+- spec as example
+- mongoDB integration with Jongo
+- spec tests with Mongo Collections
+- full CRUD
+- user management
+- user rights
+
+### Repo
+
+[https://github.com/xhanin/rxinvoice](https://github.com/xhanin/rxinvoice)
+
+
 ## restx-samples-beersample
 
 This sample has been developed during the Couchbase workshop at BordeauxJUG. It demonstrates how to integrate RESTX with a CouchBase datastore.

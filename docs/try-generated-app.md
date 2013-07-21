@@ -34,7 +34,11 @@ LoginService=HashLoginService[null] identityService=org.eclipse.jetty.security.D
 
 
 ### Admin Console
-As the console invite you to do, open [http://localhost:8080/api/@/ui/](http://localhost:8080/api/@/ui/) in your browser, you should see the RESTX admin console home:
+As the console invite you to do, open [http://localhost:8080/api/@/ui/](http://localhost:8080/api/@/ui/) in your browser.
+
+It will first prompt for a user and password. The default user to use is `admin`, and you should have provided the password during app scaffolding. If you don't override the default password in your app, the default one is `juma`. Chef the [security doc](/docs/ref-security.html) for details on restx security feature.
+
+Once logged in, you should see the RESTX admin console home:
 
 ![RESTX admin console home](/images/docs/admin-home.png)
 
@@ -61,12 +65,40 @@ Now you can try it out, use the `Try it out` button at the top of the page, and 
 
 ![Try hello resource in RESTX API DOCS](/images/docs/admin-apidocs-hello-try.png)
 
-For Linux/MacOS users you can also try it out from the command line using [curl](http://curl.haxx.se/) or [httpie](https://github.com/jkbr/httpie):
+For Linux/MacOS users you can also try it out from the command line using [curl](http://curl.haxx.se/) or [httpie](https://github.com/jkbr/httpie). You need to first authenticate and then use the API.
 
+With curl:
 {% highlight console %}
-$ curl "http://localhost:8080/api/message?who=restx"
+$ curl -b u1 -c u1 -X POST -H "Content-Type: application/json" -d '{"principal":{"name":"admin","passwordHash":"1d528266b85cf052e9a4794803a57288"}}' http://localhost:8080/api/sessions
+{ "key": "099aee8b-a6a5-4199-8637-751763ad444a", "principal": { "name": "admin", "roles": [ "restx-admin" ] } }
+
+$ curl -b u1 "http://localhost:8080/api/message?who=restx"
 {"message":"hello restx, it's 15:53:23"}%
-$ http "http://localhost:8080/api/message?who=restx"
+{% endhighlight %}
+
+With httpie:
+{% highlight console %}
+$ http --session=u1 POST "http://localhost:8080/api/session" principal:='{"name":"admin", "passwordHash":"1d528266b85cf052e9a4794803a57288"}'
+HTTP/1.1 200 OK
+Cache-Control: no-cache
+Content-Length: 171
+Content-Type: application/json; charset=UTF-8
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Server: Jetty(8.1.8.v20121106)
+Set-Cookie: RestxSession="{\"_expires\":\"2013-08-20T15:06:21.597+02:00\",\"principal\":\"admin\",\"sessionKey\":\"099aee8b-a6a5-4199-8637-751763ad444a\"}";Path=/
+Set-Cookie: RestxSessionSignature="guWNXW91uiKfpjQ0nbCXk0QXNV8=";Path=/
+
+{
+    "key": "099aee8b-a6a5-4199-8637-751763ad444a",
+    "principal": {
+        "name": "admin",
+        "roles": [
+            "restx-admin"
+        ]
+    }
+}
+
+$ http --session=u1 "http://localhost:8080/api/message?who=restx"
 HTTP/1.1 200 OK
 Cache-Control: no-cache
 Content-Length: 40
@@ -78,7 +110,7 @@ Server: Jetty(8.1.8.v20121106)
 }
 {% endhighlight %}
 
-Since this is a GET request, you can also simply open the URL in your browser: [http://localhost:8080/api/message?who=restx](http://localhost:8080/api/message?who=restx)
+Since this is a GET request, you can also simply open the URL in your browser (in a browser where you are already authenticated): [http://localhost:8080/api/message?who=restx](http://localhost:8080/api/message?who=restx)
 
 ### Monitoring
 

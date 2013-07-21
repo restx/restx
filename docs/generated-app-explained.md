@@ -65,6 +65,7 @@ You can set a breakpoint in this method and run your app in debug to see when th
 new StdEntityRoute("default#HelloResource#sayHello", mapper, new StdRouteMatcher("GET", "/message")) {
             @Override
             protected Optional<?> doRoute(RestxRequest request, RestxRouteMatch match) throws IOException {
+                securityManager.check(request, isAuthenticated());
                 return Optional.of(resource.sayHello(
                         /* [QUERY] who */ checkPresent(request.getQueryParam("who"), "query param who is required")
                 ));
