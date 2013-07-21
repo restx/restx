@@ -60,8 +60,9 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 RestxResource r = typeElem.getAnnotation(RestxResource.class);
                 if (r == null) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                        String.format("%s rest method class must be annotated with RestxResourceparam",
-                                annotation.methodElem.getSimpleName()), typeElem);
+                        String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
+                                annotation.methodElem.getSimpleName(), typeElem.getSimpleName()), typeElem);
+                    continue;
                 }
 
                 SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
