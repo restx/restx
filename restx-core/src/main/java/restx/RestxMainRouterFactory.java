@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
+import restx.hot.HotReloadingClassLoader;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
@@ -144,12 +145,21 @@ public class RestxMainRouterFactory {
             return new RecordingMainRouter(serverId, recorder, new RestxMainRouter() {
                 @Override
                 public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-                    Factory factory = loadFactory(newFactoryBuilder(serverId,
-                                                                    RestxSpecRecorder.current().orNull()));
+                    ClassLoader previousLoader =
+                                        Thread.currentThread().getContextClassLoader();
+                    Thread.currentThread().setContextClassLoader(
+                                new HotReloadingClassLoader(previousLoader));
+
                     try {
-                        newStdRouter(factory).route(restxRequest, restxResponse);
+                        Factory factory = loadFactory(newFactoryBuilder(serverId,
+                                                                        RestxSpecRecorder.current().orNull()));
+                        try {
+                            newStdRouter(factory).route(restxRequest, restxResponse);
+                        } finally {
+                            factory.close();
+                        }
                     } finally {
-                        factory.close();
+                        Thread.currentThread().setContextClassLoader(previousLoader);
                     }
                 }
             });
