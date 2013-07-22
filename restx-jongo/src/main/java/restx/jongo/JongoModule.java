@@ -2,7 +2,8 @@ package restx.jongo;
 
 import org.jongo.Mapper;
 import org.jongo.marshall.jackson.JacksonMapper;
-import restx.factory.*;
+import restx.factory.Module;
+import restx.factory.Provides;
 import restx.jackson.BsonJodaTimeModule;
 import restx.jackson.Views;
 
@@ -21,4 +22,5 @@ public class JongoModule {
                         .withView(Views.Private.class)
                         .build();
     }
+
 }
