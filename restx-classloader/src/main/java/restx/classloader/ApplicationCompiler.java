@@ -1,6 +1,5 @@
 package restx.classloader;
 
-import com.google.common.io.Files;
 import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.internal.compiler.*;
 import org.eclipse.jdt.internal.compiler.Compiler;
@@ -15,15 +14,10 @@ import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
-
-import static com.google.common.base.Charsets.UTF_8;
-import static restx.classloader.ApplicationClasses.ApplicationClass;
 
 /**
  * User: xavierhanin
@@ -33,15 +27,17 @@ import static restx.classloader.ApplicationClasses.ApplicationClass;
 public class ApplicationCompiler {
     private final Logger logger = LoggerFactory.getLogger(ApplicationCompiler.class);
 
-    Map<String, Boolean> packagesCache = new HashMap<String, Boolean>();
-    ApplicationClasses applicationClasses;
-    Map<String, String> settings;
+    private final Map<String, Boolean> packagesCache = new HashMap<String, Boolean>();
+    private final ApplicationClasses applicationClasses;
+    private final ApplicationClassloader classloader;
+    private final Map<String, String> settings;
 
     /**
      * Try to guess the magic configuration options
      */
-    public ApplicationCompiler(ApplicationClasses applicationClasses) {
+    public ApplicationCompiler(ApplicationClasses applicationClasses, ApplicationClassloader applicationClassloader) {
         this.applicationClasses = applicationClasses;
+        this.classloader = applicationClassloader;
         this.settings = new HashMap<String, String>();
         this.settings.put(CompilerOptions.OPTION_ReportMissingSerialVersion, CompilerOptions.IGNORE);
         this.settings.put(CompilerOptions.OPTION_LineNumberAttribute, CompilerOptions.GENERATE);
@@ -50,7 +46,20 @@ public class ApplicationCompiler {
         this.settings.put(CompilerOptions.OPTION_ReportUnusedImport, CompilerOptions.IGNORE);
         this.settings.put(CompilerOptions.OPTION_Encoding, "UTF-8");
         this.settings.put(CompilerOptions.OPTION_LocalVariableAttribute, CompilerOptions.GENERATE);
-        String javaVersion = CompilerOptions.VERSION_1_7;
+        String javaVersion;
+        if (System.getProperty("java.source") != null) {
+            javaVersion = System.getProperty("java.source");
+        } else {
+            if (System.getProperty("java.version").startsWith("1.6")) {
+                javaVersion = CompilerOptions.VERSION_1_6;
+            } else if (System.getProperty("java.version").startsWith("1.7")) {
+                javaVersion = CompilerOptions.VERSION_1_7;
+            } else if (System.getProperty("java.version").startsWith("1.8")) {
+                javaVersion = "1.8";
+            } else {
+                javaVersion = CompilerOptions.VERSION_1_7;
+            }
+        }
         this.settings.put(CompilerOptions.OPTION_Source, javaVersion);
         this.settings.put(CompilerOptions.OPTION_TargetPlatform, javaVersion);
         this.settings.put(CompilerOptions.OPTION_PreserveUnusedLocal, CompilerOptions.PRESERVE);
@@ -151,7 +160,7 @@ public class ApplicationCompiler {
                 try {
 
                     if (name.startsWith("play.") || name.startsWith("java.") || name.startsWith("javax.")) {
-                        byte[] bytes = Play.classloader.getClassDefinition(name);
+                        byte[] bytes = classloader.getClassDefinition(name);
                         if (bytes != null) {
                             ClassFileReader classFileReader = new ClassFileReader(bytes, name.toCharArray(), true);
                             return new NameEnvironmentAnswer(classFileReader, null);
@@ -160,7 +169,7 @@ public class ApplicationCompiler {
                     }
 
                     char[] fileName = name.toCharArray();
-                    ApplicationClass applicationClass = applicationClasses.getApplicationClass(name);
+                    ApplicationClasses.ApplicationClass applicationClass = applicationClasses.getApplicationClass(name);
 
                     // ApplicationClass exists
                     if (applicationClass != null) {
@@ -175,7 +184,7 @@ public class ApplicationCompiler {
                     }
 
                     // So it's a standard class
-                    byte[] bytes = Play.classloader.getClassDefinition(name);
+                    byte[] bytes = classloader.getClassDefinition(name);
                     if (bytes != null) {
                         ClassFileReader classFileReader = new ClassFileReader(bytes, fileName, true);
                         return new NameEnvironmentAnswer(classFileReader, null);
@@ -185,7 +194,7 @@ public class ApplicationCompiler {
                     return null;
                 } catch (ClassFormatException e) {
                     // Something very very bad
-                    throw new UnexpectedException(e);
+                    throw new RuntimeException(e);
                 }
             }
 
@@ -204,7 +213,7 @@ public class ApplicationCompiler {
                     return packagesCache.get(name).booleanValue();
                 }
                 // Check if thera a .java or .class for this ressource
-                if (Play.classloader.getClassDefinition(name) != null) {
+                if (classloader.getClassDefinition(name) != null) {
                     packagesCache.put(name, false);
                     return false;
                 }
@@ -236,7 +245,7 @@ public class ApplicationCompiler {
                             // Non sense !
                             message = problem.getArguments()[0] + " cannot be resolved";
                         }
-                        throw new CompilationException(Play.classes.getApplicationClass(className).javaFile, message, problem.getSourceLineNumber(), problem.getSourceStart(), problem.getSourceEnd());
+                        throw new CompilationException(applicationClasses.getApplicationClass(className).javaFile, message, problem.getSourceLineNumber(), problem.getSourceStart(), problem.getSourceEnd());
                     }
                 }
                 // Something has been compiled

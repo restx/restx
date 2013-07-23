@@ -3,11 +3,10 @@ package restx.classloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Application classes container.
@@ -15,20 +14,20 @@ import java.util.Map;
 public class ApplicationClasses {
 
     /**
-     * Reference to the eclipse compiler.
-     */
-    ApplicationCompiler compiler = new ApplicationCompiler(this);
-
-    /**
      * Cache of all compiled classes
      */
-    Map<String, ApplicationClass> classes = new HashMap<String, ApplicationClass>();
+    private final ConcurrentMap<String, ApplicationClass> classes = new ConcurrentHashMap<>();
+    private final Iterable<VirtualFile> javaPath;
+
+    public ApplicationClasses(Iterable<VirtualFile> javaPath) {
+        this.javaPath = javaPath;
+    }
 
     /**
      * Clear the classes cache
      */
     public void clear() {
-        classes = new HashMap<String, ApplicationClass>();
+        classes.clear();
     }
 
     /**
@@ -37,61 +36,16 @@ public class ApplicationClasses {
      * @return The ApplicationClass or null
      */
     public ApplicationClass getApplicationClass(String name) {
-        if (!classes.containsKey(name) && getJava(name) != null) {
-            classes.put(name, new ApplicationClass(name));
+        ApplicationClass applicationClass = classes.get(name);
+        if (applicationClass != null) {
+            return applicationClass;
+        }
+
+        VirtualFile javaFile = getJava(javaPath, name);
+        if (javaFile != null) {
+            classes.putIfAbsent(name, new ApplicationClass(javaFile, name));
         }
         return classes.get(name);
-    }
-
-    /**
-     * Retrieve all application classes assignable to this class.
-     * @param clazz The superclass, or the interface.
-     * @return A list of application classes.
-     */
-    public List<ApplicationClass> getAssignableClasses(Class<?> clazz) {
-        List<ApplicationClass> results = new ArrayList<ApplicationClass>();
-        if (clazz != null) {
-            for (ApplicationClass applicationClass : new ArrayList<ApplicationClass>(classes.values())) {
-                if (!applicationClass.isClass()) {
-                    continue;
-                }
-                try {
-                    Play.classloader.loadClass(applicationClass.name);
-                } catch (ClassNotFoundException ex) {
-                    throw new RuntimeException(ex);
-                }
-                try {
-                    if (clazz.isAssignableFrom(applicationClass.javaClass) && !applicationClass.javaClass.getName().equals(clazz.getName())) {
-                        results.add(applicationClass);
-                    }
-                } catch (Exception e) {
-                }
-            }
-        }
-        return results;
-    }
-
-    /**
-     * Retrieve all application classes with a specific annotation.
-     * @param clazz The annotation class.
-     * @return A list of application classes.
-     */
-    public List<ApplicationClass> getAnnotatedClasses(Class<? extends Annotation> clazz) {
-        List<ApplicationClass> results = new ArrayList<ApplicationClass>();
-        for (ApplicationClass applicationClass : classes.values()) {
-            if (!applicationClass.isClass()) {
-                continue;
-            }
-            try {
-                Play.classloader.loadClass(applicationClass.name);
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
-            }
-            if (applicationClass.javaClass != null && applicationClass.javaClass.isAnnotationPresent(clazz)) {
-                results.add(applicationClass);
-            }
-        }
-        return results;
     }
 
     /**
@@ -128,10 +82,14 @@ public class ApplicationClasses {
         return classes.containsKey(name);
     }
 
+    public void removeClass(String name) {
+        classes.remove(name);
+    }
+
     /**
      * Represent a application class
      */
-    public static class ApplicationClass {
+    public class ApplicationClass {
         private final Logger logger = LoggerFactory.getLogger(ApplicationClass.class);
 
         /**
@@ -178,9 +136,9 @@ public class ApplicationClasses {
         public ApplicationClass() {
         }
 
-        public ApplicationClass(String name) {
+        public ApplicationClass(VirtualFile javaFile, String name) {
             this.name = name;
-            this.javaFile = getJava(name);
+            this.javaFile = javaFile;
             this.refresh();
         }
 
@@ -253,29 +211,12 @@ public class ApplicationClasses {
         }
 
         public boolean isClass() {
-            return isClass(this.name);
+            return ApplicationClasses.isClass(this.name);
         }
-
-	public static boolean isClass(String name) {
-            return !name.endsWith("package-info");
-    }
 
         public String getPackage() {
             int dot = name.lastIndexOf('.');
             return dot > -1 ? name.substring(0, dot) : "";
-        }
-
-        /**
-         * Compile the class from Java source
-         * @return the bytes that comprise the class file
-         */
-        public byte[] compile() {
-            long start = System.currentTimeMillis();
-            Play.classes.compiler.compile(new String[]{this.name});
-
-            logger.trace("{} ms to compile class {}", System.currentTimeMillis() - start, name);
-
-            return this.javaByteCode;
         }
 
         /**
@@ -309,19 +250,23 @@ public class ApplicationClasses {
      * @param name The fully qualified class name 
      * @return The virtualFile if found
      */
-    public static VirtualFile getJava(String name) {
+    public static VirtualFile getJava(Iterable<VirtualFile> javaPath, String name) {
         String fileName = name;
         if (fileName.contains("$")) {
             fileName = fileName.substring(0, fileName.indexOf("$"));
         }
         fileName = fileName.replace(".", "/") + ".java";
-        for (VirtualFile path : Play.javaPath) {
+        for (VirtualFile path : javaPath) {
             VirtualFile javaFile = path.child(fileName);
             if (javaFile.exists()) {
                 return javaFile;
             }
         }
         return null;
+    }
+
+    public static boolean isClass(String name) {
+        return !name.endsWith("package-info");
     }
 
     @Override

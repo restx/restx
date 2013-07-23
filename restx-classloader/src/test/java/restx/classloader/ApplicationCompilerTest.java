@@ -2,6 +2,8 @@ package restx.classloader;
 
 import org.junit.Test;
 
+import java.io.File;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -13,8 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApplicationCompilerTest {
     @Test
     public void should_compile_simple_class() throws Exception {
-        Play.init("src/test/test-classes-sources");
-        Class<?> clazz = Play.classloader.loadClass("restx.classloader.TestSimpleClass");
+        Class<?> clazz = new ApplicationClassloader(new File("."), "src/test/test-classes-sources")
+                .loadClass("restx.classloader.TestSimpleClass");
         assertThat(clazz).isNotNull();
 
         assertThat(clazz.newInstance().toString()).isEqualTo("it's simple!");

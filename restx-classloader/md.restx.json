@@ -3,7 +3,17 @@
     "module": "io.restx:restx-classloader:${restx.version}",
 
     "properties": {
-        "@files": ["../restx.build.properties.json"]
+        "@files": ["../restx.build.properties.json"],
+        "project.premain.classname": "restx.classloader.HotswapAgent",
+        "project.agent.can-redefine-classes": "true",
+        "project.agent.can-retransform-classes": "false",
+        "project.agent.can-set-native-method-prefix": "false"
+    },
+
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/java-agent.xml"
+        ]
     },
 
     "dependencies": {

@@ -60,6 +60,11 @@
             <version>${restx.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-classloader</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>${javax.inject.version}</version>

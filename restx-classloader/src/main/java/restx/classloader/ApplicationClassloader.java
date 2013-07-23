@@ -1,10 +1,12 @@
 package restx.classloader;
 
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.classloader.ApplicationClasses.ApplicationClass;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -17,13 +19,14 @@ import java.security.Permissions;
 import java.security.ProtectionDomain;
 import java.security.cert.Certificate;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The application classLoader. 
  * Load the classes from the application Java sources files.
  */
 public class ApplicationClassloader extends ClassLoader {
-    private final Logger logger = LoggerFactory.getLogger(ApplicationClassloader.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationClassloader.class);
 
 
     private final ClassStateHashCreator classStateHashCreator = new ClassStateHashCreator();
@@ -32,28 +35,47 @@ public class ApplicationClassloader extends ClassLoader {
      * A representation of the current state of the ApplicationClassloader.
      * It gets a new value each time the state of the classloader changes.
      */
-    public ApplicationClassloaderState currentState = new ApplicationClassloaderState();
+    private final AtomicLong currentState = new AtomicLong();
 
     /**
      * This protection domain applies to all loaded classes.
      */
-    public ProtectionDomain protectionDomain;
+    private final ProtectionDomain protectionDomain;
+    
+    private final File applicationPath;
+    private final ImmutableList<VirtualFile> roots;
+    private final ImmutableList<VirtualFile> javaPath;
 
-    public ApplicationClassloader() {
+    private final ApplicationClasses classes;
+    private final ApplicationCompiler compiler;
+    
+
+    public ApplicationClassloader(File applicationPath, String... sources) {
         super(ApplicationClassloader.class.getClassLoader());
-        // Clean the existing classes
-        for (ApplicationClasses.ApplicationClass applicationClass : Play.classes.all()) {
-            applicationClass.uncompile();
+        
+        this.applicationPath = applicationPath;
+
+        VirtualFile appRoot = VirtualFile.open(ImmutableList.<VirtualFile>of(), applicationPath);
+        roots = ImmutableList.of(appRoot);
+
+        ImmutableList.Builder<VirtualFile> javaPathsBuilder = ImmutableList.builder();
+        for (String s : sources) {
+            javaPathsBuilder.add(appRoot.child(s));
         }
+        javaPath = javaPathsBuilder.build();
+
         pathHash = computePathHash();
         try {
-            CodeSource codeSource = new CodeSource(new URL("file:" + Play.applicationPath.getAbsolutePath()), (Certificate[]) null);
+            CodeSource codeSource = new CodeSource(new URL("file:" + applicationPath.getAbsolutePath()), (Certificate[]) null);
             Permissions permissions = new Permissions();
             permissions.add(new AllPermission());
             protectionDomain = new ProtectionDomain(codeSource, permissions);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
+
+        classes = new ApplicationClasses(javaPath);
+        compiler = new ApplicationCompiler(classes, this);
     }
 
     /**
@@ -82,16 +104,16 @@ public class ApplicationClassloader extends ClassLoader {
     // ~~~~~~~~~~~~~~~~~~~~~~~
     public Class<?> loadApplicationClass(String name) {
 
-        if (ApplicationClasses.ApplicationClass.isClass(name)) {
+        if (ApplicationClasses.isClass(name)) {
             Class maybeAlreadyLoaded = findLoadedClass(name);
             if(maybeAlreadyLoaded != null) {
                 return maybeAlreadyLoaded;
             }
         }
 
-//        if (Play.usePrecompiled) {
+//        if (usePrecompiled) {
 //            try {
-//                File file = Play.getFile("precompiled/java/" + name.replace(".", "/") + ".class");
+//                File file = getFile("precompiled/java/" + name.replace(".", "/") + ".class");
 //                if (!file.exists()) {
 //                    return null;
 //                }
@@ -105,7 +127,7 @@ public class ApplicationClassloader extends ClassLoader {
 //                    }
 //                    clazz = defineClass(name, code, 0, code.length, protectionDomain);
 //                }
-//                ApplicationClass applicationClass = Play.classes.getApplicationClass(name);
+//                ApplicationClass applicationClass = classes.getApplicationClass(name);
 //                if (applicationClass != null) {
 //                    applicationClass.javaClass = clazz;
 //                    if (!applicationClass.isClass()) {
@@ -119,7 +141,7 @@ public class ApplicationClassloader extends ClassLoader {
 //        }
 
         long start = System.currentTimeMillis();
-        ApplicationClasses.ApplicationClass applicationClass = Play.classes.getApplicationClass(name);
+        ApplicationClasses.ApplicationClass applicationClass = classes.getApplicationClass(name);
         if (applicationClass != null) {
             if (applicationClass.isDefinable()) {
                 return applicationClass.javaClass;
@@ -145,7 +167,7 @@ public class ApplicationClassloader extends ClassLoader {
 
                 return applicationClass.javaClass;
             }
-            if (applicationClass.javaByteCode != null || applicationClass.compile() != null) {
+            if (applicationClass.javaByteCode != null || compile(applicationClass) != null) {
                 applicationClass.enhance();
                 applicationClass.javaClass = defineClass(applicationClass.name, applicationClass.enhancedByteCode, 0, applicationClass.enhancedByteCode.length, protectionDomain);
                 BytecodeCache.cacheBytecode(applicationClass.enhancedByteCode, name, applicationClass.javaSource);
@@ -158,10 +180,27 @@ public class ApplicationClassloader extends ClassLoader {
 
                 return applicationClass.javaClass;
             }
-            Play.classes.classes.remove(name);
+            classes.removeClass(name);
         }
         return null;
     }
+
+
+    /**
+     * Compile the class from Java source
+     * @return the bytes that comprise the class file
+     */
+    public byte[] compile(ApplicationClass applicationClass) {
+        long start = System.currentTimeMillis();
+
+        // this call has the side effect to fill applicationClass.javaByteCode
+        compiler.compile(new String[]{applicationClass.name});
+
+        logger.trace("{} ms to compile class {}", System.currentTimeMillis() - start, applicationClass.name);
+
+        return applicationClass.javaByteCode;
+    }
+
 
     private String getPackageName(String name) {
         int dot = name.lastIndexOf('.');
@@ -218,7 +257,7 @@ public class ApplicationClassloader extends ClassLoader {
      */
     @Override
     public InputStream getResourceAsStream(String name) {
-        for (VirtualFile vf : Play.javaPath) {
+        for (VirtualFile vf : javaPath) {
             VirtualFile res = vf.child(name);
             if (res != null && res.exists()) {
                 return res.inputstream();
@@ -232,13 +271,13 @@ public class ApplicationClassloader extends ClassLoader {
      */
     @Override
     public URL getResource(String name) {
-        for (VirtualFile vf : Play.javaPath) {
+        for (VirtualFile vf : javaPath) {
             VirtualFile res = vf.child(name);
             if (res != null && res.exists()) {
                 try {
                     return res.getRealFile().toURI().toURL();
                 } catch (MalformedURLException ex) {
-                    throw new UnexpectedException(ex);
+                    throw new RuntimeException(ex);
                 }
             }
         }
@@ -251,13 +290,13 @@ public class ApplicationClassloader extends ClassLoader {
     @Override
     public Enumeration<URL> getResources(String name) throws IOException {
         List<URL> urls = new ArrayList<URL>();
-        for (VirtualFile vf : Play.javaPath) {
+        for (VirtualFile vf : javaPath) {
             VirtualFile res = vf.child(name);
             if (res != null && res.exists()) {
                 try {
                     urls.add(res.getRealFile().toURI().toURL());
                 } catch (MalformedURLException ex) {
-                    throw new UnexpectedException(ex);
+                    throw new RuntimeException(ex);
                 }
             }
         }
@@ -287,7 +326,7 @@ public class ApplicationClassloader extends ClassLoader {
     public void detectChanges() {
         // Now check for file modification
         List<ApplicationClass> modifieds = new ArrayList<ApplicationClass>();
-        for (ApplicationClass applicationClass : Play.classes.all()) {
+        for (ApplicationClass applicationClass : classes.all()) {
             if (applicationClass.timestamp < applicationClass.javaFile.lastModified()) {
                 applicationClass.refresh();
                 modifieds.add(applicationClass);
@@ -297,14 +336,14 @@ public class ApplicationClassloader extends ClassLoader {
         modifiedWithDependencies.addAll(modifieds);
         if (modifieds.size() > 0) {
             // plugins class change notification
-//            modifiedWithDependencies.addAll(Play.pluginCollection.onClassesChange(modifieds));
+//            modifiedWithDependencies.addAll(pluginCollection.onClassesChange(modifieds));
         }
         List<ClassDefinition> newDefinitions = new ArrayList<ClassDefinition>();
         boolean dirtySig = false;
         for (ApplicationClass applicationClass : modifiedWithDependencies) {
-            if (applicationClass.compile() == null) {
-                Play.classes.classes.remove(applicationClass.name);
-                currentState = new ApplicationClassloaderState();//show others that we have changed..
+            if (compile(applicationClass) == null) {
+                classes.removeClass(applicationClass.name);
+                bumpState();
             } else {
                 int sigChecksum = applicationClass.sigChecksum;
                 applicationClass.enhance();
@@ -313,19 +352,19 @@ public class ApplicationClassloader extends ClassLoader {
                 }
                 BytecodeCache.cacheBytecode(applicationClass.enhancedByteCode, applicationClass.name, applicationClass.javaSource);
                 newDefinitions.add(new ClassDefinition(applicationClass.javaClass, applicationClass.enhancedByteCode));
-                currentState = new ApplicationClassloaderState();//show others that we have changed..
+                bumpState();
             }
         }
         if (newDefinitions.size() > 0) {
 //            Cache.clear();
-            if (HotswapAgent.enabled) {
+            if (HotswapAgent.isEnabled()) {
                 try {
                     HotswapAgent.reload(newDefinitions.toArray(new ClassDefinition[newDefinitions.size()]));
                 } catch (Throwable e) {
-                    throw new RuntimeException("Need reload");
+                    throw new RuntimeException("Need reload", e);
                 }
             } else {
-                throw new RuntimeException("Need reload");
+                throw new RuntimeException("Need reload - launch your JVM with -javaagent:<path/to/restx-classloader.jar>");
             }
         }
         // Check signature (variable name & annotations aware !)
@@ -337,19 +376,19 @@ public class ApplicationClassloader extends ClassLoader {
         int hash = computePathHash();
         if (hash != this.pathHash) {
             // Remove class for deleted files !!
-            for (ApplicationClass applicationClass : Play.classes.all()) {
+            for (ApplicationClass applicationClass : classes.all()) {
                 if (!applicationClass.javaFile.exists()) {
-                    Play.classes.classes.remove(applicationClass.name);
-                    currentState = new ApplicationClassloaderState();//show others that we have changed..
+                    classes.removeClass(applicationClass.name);
+                    bumpState();
                 }
                 if (applicationClass.name.contains("$")) {
-                    Play.classes.classes.remove(applicationClass.name);
-                    currentState = new ApplicationClassloaderState();//show others that we have changed..
+                    classes.removeClass(applicationClass.name);
+                    bumpState();
                     // Ok we have to remove all classes from the same file ...
                     VirtualFile vf = applicationClass.javaFile;
-                    for (ApplicationClass ac : Play.classes.all()) {
+                    for (ApplicationClass ac : classes.all()) {
                         if (ac.javaFile.equals(vf)) {
-                            Play.classes.classes.remove(ac.name);
+                            classes.removeClass(ac.name);
                         }
                     }
                 }
@@ -357,13 +396,22 @@ public class ApplicationClassloader extends ClassLoader {
             throw new RuntimeException("Path has changed");
         }
     }
+
+    private void bumpState() {
+        currentState.incrementAndGet();
+    }
+
+    public long getCurrentState() {
+        return currentState.get();
+    }
+
     /**
      * Used to track change of the application sources path
      */
     int pathHash = 0;
 
     int computePathHash() {
-        return classStateHashCreator.computePathHash(Play.javaPath);
+        return classStateHashCreator.computePathHash(javaPath);
     }
 
     /**
@@ -374,11 +422,11 @@ public class ApplicationClassloader extends ClassLoader {
         if (allClasses == null) {
             allClasses = new ArrayList<Class>();
 
-//            if(!Play.pluginCollection.compileSources()) {
+//            if(!pluginCollection.compileSources()) {
 //
 //                List<ApplicationClass> all = new ArrayList<ApplicationClass>();
 //
-//                for (VirtualFile virtualFile : Play.javaPath) {
+//                for (VirtualFile virtualFile : javaPath) {
 //                    all.addAll(getAllClasses(virtualFile));
 //                }
 //                List<String> classNames = new ArrayList<String>();
@@ -389,11 +437,11 @@ public class ApplicationClassloader extends ClassLoader {
 //                    }
 //                }
 //
-//                Play.classes.compiler.compile(classNames.toArray(new String[classNames.size()]));
+//                classes.compiler.compile(classNames.toArray(new String[classNames.size()]));
 //
 //            }
 
-            for (ApplicationClass applicationClass : Play.classes.all()) {
+            for (ApplicationClass applicationClass : classes.all()) {
                 Class clazz = loadApplicationClass(applicationClass.name);
                 if (clazz != null) {
                     allClasses.add(clazz);
@@ -419,8 +467,23 @@ public class ApplicationClassloader extends ClassLoader {
     public List<Class> getAssignableClasses(Class clazz) {
         getAllClasses();
         List<Class> results = new ArrayList<Class>();
-        for (ApplicationClass c : Play.classes.getAssignableClasses(clazz)) {
-            results.add(c.javaClass);
+        if (clazz != null) {
+            for (ApplicationClass applicationClass : classes.all()) {
+                if (!applicationClass.isClass()) {
+                    continue;
+                }
+                try {
+                    loadClass(applicationClass.name);
+                } catch (ClassNotFoundException ex) {
+                    throw new RuntimeException(ex);
+                }
+                try {
+                    if (clazz.isAssignableFrom(applicationClass.javaClass) && !applicationClass.javaClass.getName().equals(clazz.getName())) {
+                        results.add(applicationClass.javaClass);
+                    }
+                } catch (Exception e) {
+                }
+            }
         }
         return results;
     }
@@ -432,7 +495,7 @@ public class ApplicationClassloader extends ClassLoader {
      */
     public Class getClassIgnoreCase(String name) {
         getAllClasses();
-        for (ApplicationClass c : Play.classes.all()) {
+        for (ApplicationClass c : classes.all()) {
             if (c.name.equalsIgnoreCase(name) || c.name.replace("$", ".").equalsIgnoreCase(name)) {
                 return loadApplicationClass(c.name);
             }
@@ -448,8 +511,18 @@ public class ApplicationClassloader extends ClassLoader {
     public List<Class> getAnnotatedClasses(Class<? extends Annotation> clazz) {
         getAllClasses();
         List<Class> results = new ArrayList<Class>();
-        for (ApplicationClass c : Play.classes.getAnnotatedClasses(clazz)) {
-            results.add(c.javaClass);
+        for (ApplicationClass applicationClass : classes.all()) {
+            if (!applicationClass.isClass()) {
+                continue;
+            }
+            try {
+                loadClass(applicationClass.name);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+            if (applicationClass.javaClass != null && applicationClass.javaClass.isAnnotationPresent(clazz)) {
+                results.add(applicationClass.javaClass);
+            }
         }
         return results;
     }
@@ -461,11 +534,12 @@ public class ApplicationClassloader extends ClassLoader {
         }
         return results;
     }
+    
 
     // ~~~ Intern
     List<ApplicationClass> getAllClasses(String basePackage) {
         List<ApplicationClass> res = new ArrayList<ApplicationClass>();
-        for (VirtualFile virtualFile : Play.javaPath) {
+        for (VirtualFile virtualFile : javaPath) {
             res.addAll(getAllClasses(virtualFile, basePackage));
         }
         return res;
@@ -490,7 +564,7 @@ public class ApplicationClassloader extends ClassLoader {
         if (!current.isDirectory()) {
             if (current.getName().endsWith(".java") && !current.getName().startsWith(".")) {
                 String classname = packageName + current.getName().substring(0, current.getName().length() - 5);
-                classes.add(Play.classes.getApplicationClass(classname));
+                classes.add(this.classes.getApplicationClass(classname));
             }
         } else {
             for (VirtualFile virtualFile : current.list()) {
@@ -503,7 +577,7 @@ public class ApplicationClassloader extends ClassLoader {
         if (!current.isDirectory()) {
             if (current.getName().endsWith(".class") && !current.getName().startsWith(".")) {
                 String classname = packageName.substring(5) + current.getName().substring(0, current.getName().length() - 6);
-                classes.add(new ApplicationClass(classname));
+                classes.add(this.classes.getApplicationClass(classname));
             }
         } else {
             for (VirtualFile virtualFile : current.list()) {
@@ -514,7 +588,7 @@ public class ApplicationClassloader extends ClassLoader {
 
     @Override
     public String toString() {
-        return "(play) " + (allClasses == null ? "" : allClasses.toString());
+        return "(restx) " + (allClasses == null ? "" : allClasses.toString());
     }
 
 }

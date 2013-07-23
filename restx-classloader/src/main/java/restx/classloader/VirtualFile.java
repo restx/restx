@@ -1,6 +1,8 @@
 package restx.classloader;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.OutputSupplier;
@@ -20,12 +22,11 @@ import java.util.regex.Pattern;
  * The VFS used by Play!
  */
 public class VirtualFile {
+    private final File realFile;
+    private final Iterable<VirtualFile> roots;
 
-    private static File applicationPath = new File("src/test/test-classes-root");
-
-    File realFile;
-
-    VirtualFile(File file) {
+    VirtualFile(Iterable<VirtualFile> roots, File file) {
+        this.roots = roots;
         this.realFile = file;
     }
 
@@ -63,7 +64,13 @@ public class VirtualFile {
     }
 
     String isRoot(File f) {
-        for (VirtualFile vf : Play.roots) {
+        if (Iterables.isEmpty(roots)) {
+            // empty roots means we are the root
+            if (realFile.getAbsolutePath().equals(f.getAbsolutePath())) {
+                return "{module:" + getName() + "}";
+            }
+        }
+        for (VirtualFile vf : roots) {
             if (vf.realFile.getAbsolutePath().equals(f.getAbsolutePath())) {
                 return "{module:" + vf.getName() + "}";
             }
@@ -76,7 +83,7 @@ public class VirtualFile {
         if (exists()) {
             File[] children = realFile.listFiles();
             for (int i = 0; i < children.length; i++) {
-                res.add(new VirtualFile(children[i]));
+                res.add(new VirtualFile(roots, children[i]));
             }
         }
         return res;
@@ -140,7 +147,7 @@ public class VirtualFile {
     }
 
     public VirtualFile child(String name) {
-        return new VirtualFile(new File(realFile, name));
+        return new VirtualFile(roots, new File(realFile, name));
     }
 
     public Channel channel() {
@@ -154,12 +161,12 @@ public class VirtualFile {
 
     }
 
-    public static VirtualFile open(String file) {
-        return open(new File(file));
+    public static VirtualFile open(Iterable<VirtualFile> roots, String file) {
+        return open(roots, new File(file));
     }
 
-    public static VirtualFile open(File file) {
-        return new VirtualFile(file);
+    public static VirtualFile open(Iterable<VirtualFile> roots, File file) {
+        return new VirtualFile(roots, file);
     }
 
     public String contentAsString() {
@@ -218,7 +225,7 @@ public class VirtualFile {
         return null;
     }
 
-    public static VirtualFile fromRelativePath(String relativePath) {
+    public static VirtualFile fromRelativePath(File applicationPath, String relativePath) {
         Pattern pattern = Pattern.compile("^(\\{(.+?)\\})?(.*)$");
         Matcher matcher = pattern.matcher(relativePath);
 
@@ -226,7 +233,7 @@ public class VirtualFile {
             String path = matcher.group(3);
             String module = matcher.group(2);
             if(module == null || module.equals("?") || module.equals("")) {
-                return new VirtualFile(applicationPath).child(path);
+                return new VirtualFile(ImmutableList.<VirtualFile>of(), applicationPath).child(path);
             }
         }
 

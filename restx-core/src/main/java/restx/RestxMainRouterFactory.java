@@ -4,10 +4,10 @@ import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.classloader.ApplicationClassloader;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
-import restx.hot.HotReloadingClassLoader;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
@@ -119,6 +119,7 @@ public class RestxMainRouterFactory {
     }
 
     public static RestxMainRouter newInstance(final String serverId, String baseUri) {
+        final ApplicationClassloader applicationClassloader = new ApplicationClassloader(new File("."), "src/main/java", "src/main/resources", "target/generated-sources/annotations");
         logger.info("LOADING MAIN ROUTER");
         Optional<RestxSpecRecorder> recorder;
         if (RestxContext.Modes.RECORDING.equals(getMode())) {
@@ -147,8 +148,9 @@ public class RestxMainRouterFactory {
                 public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
                     ClassLoader previousLoader =
                                         Thread.currentThread().getContextClassLoader();
-                    Thread.currentThread().setContextClassLoader(
-                                new HotReloadingClassLoader(previousLoader));
+
+                    Thread.currentThread().setContextClassLoader(applicationClassloader);
+                    applicationClassloader.detectChanges();
 
                     try {
                         Factory factory = loadFactory(newFactoryBuilder(serverId,
