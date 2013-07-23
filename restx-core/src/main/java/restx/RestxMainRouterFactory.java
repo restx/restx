@@ -1,13 +1,17 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.classloader.ApplicationClassloader;
+import restx.classloader.HotswapAgent;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
+import restx.classloader.HotReloadingClassLoader;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
@@ -118,9 +122,103 @@ public class RestxMainRouterFactory {
         }
     }
 
+    private static class PerRequestFactoryLoader implements RestxMainRouter {
+        private final String serverId;
+
+        public PerRequestFactoryLoader(String serverId) {
+            this.serverId = serverId;
+        }
+
+        @Override
+        public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+            Factory factory = loadFactory(newFactoryBuilder(serverId,
+                    RestxSpecRecorder.current().orNull()));
+            try {
+                newStdRouter(factory).route(restxRequest, restxResponse);
+            } finally {
+                factory.close();
+            }
+        }
+    }
+
+    /**
+     * On the fly compilation router decorator.
+     * This require HotSwapAgent to be enabled.
+     */
+    private static class ApplicationCompilerRouter implements RestxMainRouter {
+        private final RestxMainRouter delegate;
+        private final Iterable<String> sourceRoots;
+        private ApplicationClassloader applicationClassloader;
+
+        public ApplicationCompilerRouter(RestxMainRouter delegate) {
+            this.delegate = delegate;
+            sourceRoots = Splitter.on(',').trimResults().split(
+                    System.getProperty("restx.sourceRoots",
+                            "src/main/java, src/main/resources, target/generated-sources/annotations"));
+            this.applicationClassloader = new ApplicationClassloader(
+                    new File("."), Iterables.toArray(sourceRoots, String.class));
+        }
+
+        @Override
+        public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+            ClassLoader previousLoader =
+                    Thread.currentThread().getContextClassLoader();
+
+            synchronized (this) {
+                try {
+                    applicationClassloader.detectChanges();
+                } catch (Exception e) {
+                    logger.trace("detect changes raise an exception, starting a new classloader - {}", e.getMessage());
+                    applicationClassloader = new ApplicationClassloader(
+                            new File("."), Iterables.toArray(sourceRoots, String.class));
+                }
+            }
+            Thread.currentThread().setContextClassLoader(applicationClassloader);
+            try {
+                delegate.route(restxRequest, restxResponse);
+            } finally {
+                Thread.currentThread().setContextClassLoader(previousLoader);
+            }
+        }
+    }
+
+    /**
+     * Enables hot reload: this rely on classes compiled by an external compiler
+     */
+    private static class HotReloadRouter implements RestxMainRouter {
+        private final RestxMainRouter delegate;
+        private final String rootPackage;
+
+        public HotReloadRouter(RestxMainRouter delegate) {
+            this.delegate = delegate;
+            this.rootPackage = System.getProperty("restx.app.package");
+        }
+
+        @Override
+        public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+            ClassLoader previousLoader =
+                    Thread.currentThread().getContextClassLoader();
+            try {
+                Thread.currentThread().setContextClassLoader(new HotReloadingClassLoader(
+                        previousLoader, rootPackage));
+                delegate.route(restxRequest, restxResponse);
+            } finally {
+                Thread.currentThread().setContextClassLoader(previousLoader);
+            }
+        }
+    }
+
     public static RestxMainRouter newInstance(final String serverId, String baseUri) {
-        final ApplicationClassloader applicationClassloader = new ApplicationClassloader(new File("."), "src/main/java", "src/main/resources", "target/generated-sources/annotations");
         logger.info("LOADING MAIN ROUTER");
+        if (RestxContext.Modes.DEV.equals(getMode()) && !HotswapAgent.isEnabled()) {
+            logger.info("\nHot swap agent is not enabled, no on the fly compilation will be performed\n" +
+                    "To enable it, use '-javaagent:<path/to/restx-classloader.jar>' as VM argument");
+            if (!useHotReload()) {
+                logger.info("\nHot reload is not enabled, no hot reload on recompilation will be performed\n" +
+                        "To enable it, use '-Drestx.app.package=<rootAppPackage> -Drestx.hotreload=true' as VM argument");
+            }
+        }
+
         Optional<RestxSpecRecorder> recorder;
         if (RestxContext.Modes.RECORDING.equals(getMode())) {
             recorder = Optional.of(new RestxSpecRecorder());
@@ -143,28 +241,14 @@ public class RestxMainRouterFactory {
         } else if (getLoadFactoryMode().equals("onrequest")) {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
-            return new RecordingMainRouter(serverId, recorder, new RestxMainRouter() {
-                @Override
-                public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-                    ClassLoader previousLoader =
-                                        Thread.currentThread().getContextClassLoader();
+            RestxMainRouter router = new PerRequestFactoryLoader(serverId);
+            if (HotswapAgent.isEnabled()) {
+                router = new ApplicationCompilerRouter(router);
+            } else if (useHotReload()) {
+                router = new HotReloadRouter(router);
+            }
 
-                    Thread.currentThread().setContextClassLoader(applicationClassloader);
-                    applicationClassloader.detectChanges();
-
-                    try {
-                        Factory factory = loadFactory(newFactoryBuilder(serverId,
-                                                                        RestxSpecRecorder.current().orNull()));
-                        try {
-                            newStdRouter(factory).route(restxRequest, restxResponse);
-                        } finally {
-                            factory.close();
-                        }
-                    } finally {
-                        Thread.currentThread().setContextClassLoader(previousLoader);
-                    }
-                }
-            });
+            return new RecordingMainRouter(serverId, recorder, router);
         } else {
             throw new IllegalStateException("illegal load factory mode: '" + getLoadFactoryMode() + "'. " +
                     "It must be either 'onstartup' or 'onrequest'.");
@@ -174,7 +258,8 @@ public class RestxMainRouterFactory {
     private static void logPrompt(String baseUri, String state, StdRestxMainRouter mainRouter) {
         logger.info("\n" +
                 "--------------------------------------\n" +
-                " -- RESTX " + state + " >> " + getMode().toUpperCase(Locale.ENGLISH)+ " MODE <<\n" +
+                " -- RESTX " + state + " >> " + getMode().toUpperCase(Locale.ENGLISH)+ " MODE <<" +
+                (HotswapAgent.isEnabled() ? " >> HOT COMPILE <<" : "")+ "\n" +
                 (mainRouter != null ? (" -- " + mainRouter.getNbFilters() + " filters\n") : "") +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
                 (baseUri == null || baseUri.isEmpty() ? "" :
@@ -221,8 +306,16 @@ public class RestxMainRouterFactory {
     }
 
     private static String getLoadFactoryMode() {
-        return System.getProperty("restx.factory.load", RestxContext.Modes.RECORDING.equals(getMode())
+        return System.getProperty("restx.factory.load",
+                RestxContext.Modes.RECORDING.equals(getMode())
+                        || HotswapAgent.isEnabled()
+                        || useHotReload()
                 ? "onrequest" : "onstartup");
+    }
+
+    private static boolean useHotReload() {
+        return "true".equalsIgnoreCase(System.getProperty("restx.hotreload", "true"))
+                && System.getProperty("restx.app.package") != null;
     }
 
     private RestxMainRouterFactory() {}

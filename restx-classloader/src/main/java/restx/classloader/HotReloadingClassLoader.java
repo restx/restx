@@ -1,4 +1,4 @@
-package restx.hot;
+package restx.classloader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,13 +17,7 @@ public class HotReloadingClassLoader extends ClassLoader {
     /**
      * The root package name.
      */
-    protected String rootPackageName = "rxinvoice";
-
-//
-//    /**
-//     * The cool package name.
-//     */
-//    protected String coolPackageName;
+    private final String rootPackageName;
 
     /**
      * Constructor
@@ -32,36 +26,18 @@ public class HotReloadingClassLoader extends ClassLoader {
      *            the parent class loader.
      * @param rootPackageName
      *            the root package name
-     * @param coolPackageName
-     *            the cool package name
      * @throws NullPointerException
      *             if the rootPackageName parameter is null or if the
      *             coolPackageName parameter is null
      */
-//    public HotReloadingClassLoader(ClassLoader parentClassLoader,
-//            String rootPackageName, String coolPackageName)
-//            throws NullPointerException {
-//        super(parentClassLoader);
-//        if (rootPackageName == null) {
-//            throw new NullPointerException(
-//                "The rootPackageName parameter is null.");
-//        }
-//        if (coolPackageName == null) {
-//            throw new NullPointerException(
-//                "The coolPackageName parameter is null.");
-//        }
-//        this.rootPackageName = rootPackageName;
-//        this.coolPackageName = coolPackageName;
-//    }
-
-    /**
-     * Constructor for customization.
-     * 
-     * @param parentClassLoader
-     *            the parent class loader.
-     */
-    public HotReloadingClassLoader(ClassLoader parentClassLoader) {
+    public HotReloadingClassLoader(ClassLoader parentClassLoader, String rootPackageName)
+            throws NullPointerException {
         super(parentClassLoader);
+        if (rootPackageName == null) {
+            throw new NullPointerException(
+                "The rootPackageName parameter is null.");
+        }
+        this.rootPackageName = rootPackageName;
     }
 
     @Override
@@ -210,9 +186,6 @@ public class HotReloadingClassLoader extends ClassLoader {
         if (!className.startsWith(rootPackageName + ".")) {
             return false;
         }
-//        if (className.startsWith(rootPackageName + "." + coolPackageName + ".")) {
-//            return false;
-//        }
         return true;
     }
 }

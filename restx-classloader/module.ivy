@@ -3,6 +3,10 @@
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
+            project.premain.classname="restx.classloader.HotswapAgent"
+            project.agent.can-redefine-classes="true"
+            project.agent.can-retransform-classes="false"
+            project.agent.can-set-native-method-prefix="false"
         />
     </info>
     <configurations>

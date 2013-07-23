@@ -323,7 +323,7 @@ public class ApplicationClassloader extends ClassLoader {
     /**
      * Detect Java changes
      */
-    public void detectChanges() {
+    public synchronized void detectChanges() {
         // Now check for file modification
         List<ApplicationClass> modifieds = new ArrayList<ApplicationClass>();
         for (ApplicationClass applicationClass : classes.all()) {
