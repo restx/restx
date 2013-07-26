@@ -4,22 +4,28 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Iterables;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.classloader.ApplicationClassloader;
-import restx.classloader.HotswapAgent;
+import restx.classloader.*;
+import restx.common.MoreFiles;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
-import restx.classloader.HotReloadingClassLoader;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
+import static com.google.common.collect.Iterables.transform;
 import static restx.StdRestxMainRouter.getMode;
 
 /**
@@ -208,6 +214,62 @@ public class RestxMainRouterFactory {
         }
     }
 
+    private static class CompilationManagerRouter implements RestxMainRouter {
+        private final RestxMainRouter delegate;
+        private final String rootPackage;
+        private final Path destinationDir;
+        private final CompilationManager compilationManager;
+        private HotReloadingClassLoader hotReloadingClassLoader;
+
+        public CompilationManagerRouter(RestxMainRouter delegate) {
+            this.delegate = delegate;
+            this.rootPackage = System.getProperty("restx.app.package");
+            destinationDir = FileSystems.getDefault().getPath("tmp", "classes");
+            Iterable<Path> sourceRoots = transform(Splitter.on(',').trimResults().split(
+                    System.getProperty("restx.sourceRoots",
+                            "src/main/java, src/main/resources")),
+                    MoreFiles.strToPath);
+            EventBus eventBus = new EventBus();
+            compilationManager = new CompilationManager(eventBus, sourceRoots, destinationDir);
+            eventBus.register(new Object() {
+                @Subscribe public void onCompilationFinished(
+                        CompilationFinishedEvent event) {
+                    setClassLoader();
+                }
+            });
+            setClassLoader();
+            compilationManager.incrementalCompile();
+            compilationManager.startAutoCompile();
+        }
+
+        private void setClassLoader() {
+            hotReloadingClassLoader = new HotReloadingClassLoader(
+                    Thread.currentThread().getContextClassLoader(), rootPackage) {
+                protected InputStream getInputStream(String path) {
+                    try {
+                        return Files.newInputStream(destinationDir.resolve(path));
+                    } catch (IOException e) {
+                        return null;
+                    }
+                }
+            };
+        }
+
+        @Override
+        public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+            ClassLoader previousLoader =
+                    Thread.currentThread().getContextClassLoader();
+            try {
+                compilationManager.incrementalCompile();
+
+                Thread.currentThread().setContextClassLoader(hotReloadingClassLoader);
+                delegate.route(restxRequest, restxResponse);
+            } finally {
+                Thread.currentThread().setContextClassLoader(previousLoader);
+            }
+        }
+    }
+
     public static RestxMainRouter newInstance(final String serverId, String baseUri) {
         logger.info("LOADING MAIN ROUTER");
         if (RestxContext.Modes.DEV.equals(getMode()) && !HotswapAgent.isEnabled()) {
@@ -242,11 +304,7 @@ public class RestxMainRouterFactory {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
             RestxMainRouter router = new PerRequestFactoryLoader(serverId);
-            if (HotswapAgent.isEnabled()) {
-                router = new ApplicationCompilerRouter(router);
-            } else if (useHotReload()) {
-                router = new HotReloadRouter(router);
-            }
+            router = new CompilationManagerRouter(router);
 
             return new RecordingMainRouter(serverId, recorder, router);
         } else {
