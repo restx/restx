@@ -22,9 +22,7 @@
             "javax.inject:javax.inject:${javax.inject.version}",
             "com.google.guava:guava:${guava.version}",
             "joda-time:joda-time:${joda-time.version}",
-            "org.slf4j:slf4j-api:${slf4j-api.version}",
-            "org.reflections:reflections:${reflections.version}",
-            "org.eclipse.tycho:org.eclipse.jdt.core:3.9.0.v20130604-1421"
+            "org.slf4j:slf4j-api:${slf4j-api.version}"
         ],
         "test": [
             "junit:junit:${junit.version}",

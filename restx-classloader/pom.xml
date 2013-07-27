@@ -23,7 +23,6 @@
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <guava.version>14.0.1</guava.version>
         <joda-time.version>2.2</joda-time.version>
-        <reflections.version>0.9.9-RC1</reflections.version>
         <javax.inject.version>1</javax.inject.version>
         <junit.version>4.11</junit.version>
         <assertj-core.version>1.1.0</assertj-core.version>
@@ -58,16 +57,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>${reflections.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>org.eclipse.jdt.core</artifactId>
-            <version>3.9.0.v20130604-1421</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
