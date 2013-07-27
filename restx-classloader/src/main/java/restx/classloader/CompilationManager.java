@@ -11,6 +11,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.MoreFiles;
+import restx.common.watch.FileWatchEvent;
 
 import javax.tools.*;
 import java.io.File;
@@ -19,6 +20,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.*;
 
@@ -89,7 +91,7 @@ public class CompilationManager {
 
         eventBus.register(new Object() {
             @Subscribe
-            public void onWatchEvent(MoreFiles.FileWatchEvent event) {
+            public void onWatchEvent(FileWatchEvent event) {
                 WatchEvent.Kind<Path> kind = event.getKind();
                 Path source = event.getDir().resolve(event.getPath());
                 if (!source.toFile().isFile()) {
@@ -119,7 +121,7 @@ public class CompilationManager {
             public void run() {
                 // nothing added since submission, quiet period is over
                 if (compileQueue.getLast() == source) {
-                    Collection<Path> sources = new ArrayList<>();
+                    Collection<Path> sources = new HashSet<>();
                     while (!compileQueue.isEmpty()) {
                         sources.add(compileQueue.removeFirst());
                     }
