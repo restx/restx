@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import static restx.common.MoreFiles.copyDir;
+
 /**
  * User: xavierhanin
  * Date: 4/10/13
@@ -49,7 +51,7 @@ public class AppShellCommand extends StdShellCommand {
             case "new":
                 return Optional.of(new NewAppCommandRunner());
             case "run":
-                return Optional.of(new RunAppCommandRunner());
+                return Optional.of(new RunAppCommandRunner(args));
         }
 
         return Optional.absent();
@@ -205,31 +207,58 @@ public class AppShellCommand extends StdShellCommand {
             }
             shell.printIn("Congratulations! - Your app is now ready in " + appPath.toAbsolutePath(), RestxShell.AnsiCodes.ANSI_GREEN);
             shell.println("");
+            shell.println("");
+
+            shell.cd(appPath);
+
+            if (shell.askBoolean("Do you want to install its deps and run it now? [Y/n]", "Y",
+                    "By answering yes restx will resolve and install the dependencies of the app and run it.\n" +
+                            "You can always install the deps later by using the `deps install` command\n" +
+                            "and run the app with the `app run` command")) {
+
+                shell.println("restx> deps install");
+                new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+                shell.println("restx> app run");
+                new RunAppCommandRunner(Collections.<String>emptyList()).run(shell);
+            }
         }
     }
 
     private class RunAppCommandRunner implements ShellCommandRunner {
+        private String appClassName;
+
+        public RunAppCommandRunner(List<String> args) {
+            if (args.size() >= 3) {
+                appClassName = args.get(2);
+            }
+        }
+
         @Override
         public void run(RestxShell shell) throws Exception {
             Path mainSourceRoot = shell.currentLocation().resolve("src/main/java");
-            String[] packages = mainSourceRoot.toFile().list();
-            if (packages == null || packages.length != 1) {
-                shell.printIn("can't find base app package, src/main/java should have exactly one directory below",
-                        RestxShell.AnsiCodes.ANSI_RED);
-                shell.println("");
-                return;
+            if (appClassName == null) {
+                String[] packages = mainSourceRoot.toFile().list();
+                if (packages == null || packages.length != 1) {
+                    shell.printIn("can't find base app package, src/main/java should have exactly one directory below",
+                            RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("");
+                    shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
+                    return;
+                }
+                appClassName = packages[0] + ".AppServer";
             }
 
-            String appServerClassName = packages[0] + ".AppServer";
             Path targetClasses = Paths.get("target/classes");
             Path dependenciesDir = Paths.get("target/dependency");
+            Path mainSources = Paths.get("src/main/java");
+            Path mainResources = Paths.get("src/main/resources");
 
-            shell.print("compiling AppServer...");
-            shell.currentLocation().resolve(targetClasses).toFile().getParentFile().mkdirs();
+            shell.print("compiling App...");
+            shell.currentLocation().resolve(targetClasses).toFile().mkdirs();
             int compiled = new ProcessBuilder(
-                    "javac", "-cp", dependenciesDir + "/*", "-sourcepath", "src/main/java", "-d", targetClasses.toString(),
+                    "javac", "-cp", dependenciesDir + "/*", "-sourcepath", mainSources.toString(), "-d", targetClasses.toString(),
                     shell.currentLocation().relativize(
-                            mainSourceRoot.resolve(appServerClassName.replace('.', '/') + ".java")).toString())
+                            mainSourceRoot.resolve(appClassName.replace('.', '/') + ".java")).toString())
                     .redirectErrorStream(true)
                     .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                     .directory(shell.currentLocation().toFile().getAbsoluteFile())
@@ -243,12 +272,23 @@ public class AppShellCommand extends StdShellCommand {
             shell.printIn(" [DONE]", RestxShell.AnsiCodes.ANSI_GREEN);
             shell.println("");
 
+            shell.print("copying resources...");
+            copyDir(
+                    shell.currentLocation().resolve(mainResources),
+                    shell.currentLocation().resolve(targetClasses)
+            );
+            shell.printIn(" [DONE]", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println("");
 
-            shell.println("starting AppServer... - press [ENTER] to quit");
+            shell.println("starting AppServer... - type `stop` to stop it and go back to restx shell");
             Process run = Apps.run(shell.currentLocation().toFile(),
-                    targetClasses, dependenciesDir, appServerClassName);
+                    targetClasses, dependenciesDir, appClassName);
 
-            shell.ask("", "");
+            while (!shell.ask("", "").equals("stop")) {
+                shell.printIn("restx> unrecognized command - type `stop` to stop the app",
+                        RestxShell.AnsiCodes.ANSI_YELLOW);
+                shell.println("");
+            }
             run.destroy();
             run.waitFor();
         }
