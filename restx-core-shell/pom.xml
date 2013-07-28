@@ -20,6 +20,7 @@
         <restx.version>0.2.9-SNAPSHOT</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
+        <ivy.version>2.3.0</ivy.version>
     </properties>
 
     <dependencies>
@@ -42,6 +43,11 @@
             <groupId>io.restx</groupId>
             <artifactId>restx-build</artifactId>
             <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ivy</groupId>
+            <artifactId>ivy</artifactId>
+            <version>${ivy.version}</version>
         </dependency>
     </dependencies>
 </project>
