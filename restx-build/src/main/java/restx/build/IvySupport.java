@@ -40,6 +40,7 @@ public class IvySupport implements RestxBuild.Generator {
                 "    </info>\n" +
                 "    <configurations>\n" +
                 "        <conf name=\"default\"/>\n" +
+                "        <conf name=\"runtime\"/>\n" +
                 "        <conf name=\"test\"/>\n" +
                 "    </configurations>\n" +
                 "    <publications>\n" +
