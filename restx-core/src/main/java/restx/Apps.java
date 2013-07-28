@@ -5,6 +5,7 @@ import com.google.common.eventbus.EventBus;
 import restx.classloader.CompilationManager;
 import restx.common.MoreFiles;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -30,5 +31,19 @@ public class Apps {
                     System.getProperty("restx.sourceRoots",
                             "src/main/java, src/main/resources")),
                     MoreFiles.strToPath);
+    }
+
+
+    public static Process run(File workingDirectory, Path targetClasses, Path dependenciesDir, String mainClassName) throws IOException {
+        return new ProcessBuilder(
+                "java",
+                "-cp",
+                targetClasses.toString() + ":" + dependenciesDir.toString() + "/*",
+                mainClassName
+        )
+                .redirectErrorStream(true)
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .directory(workingDirectory.getAbsoluteFile())
+                .start();
     }
 }

@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
+import restx.Apps;
 import restx.build.RestxBuild;
 import restx.common.UUIDGenerator;
 import restx.common.Version;
@@ -19,6 +20,7 @@ import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +48,8 @@ public class AppShellCommand extends StdShellCommand {
         switch (args.get(1)) {
             case "new":
                 return Optional.of(new NewAppCommandRunner());
+            case "run":
+                return Optional.of(new RunAppCommandRunner());
         }
 
         return Optional.absent();
@@ -54,7 +58,7 @@ public class AppShellCommand extends StdShellCommand {
     @Override
     public Iterable<Completer> getCompleters() {
         return ImmutableList.<Completer>of(new ArgumentCompleter(
-                new StringsCompleter("app"), new StringsCompleter("new")));
+                new StringsCompleter("app"), new StringsCompleter("new", "run")));
     }
 
     private class NewAppCommandRunner implements ShellCommandRunner {
@@ -201,6 +205,52 @@ public class AppShellCommand extends StdShellCommand {
             }
             shell.printIn("Congratulations! - Your app is now ready in " + appPath.toAbsolutePath(), RestxShell.AnsiCodes.ANSI_GREEN);
             shell.println("");
+        }
+    }
+
+    private class RunAppCommandRunner implements ShellCommandRunner {
+        @Override
+        public void run(RestxShell shell) throws Exception {
+            Path mainSourceRoot = shell.currentLocation().resolve("src/main/java");
+            String[] packages = mainSourceRoot.toFile().list();
+            if (packages == null || packages.length != 1) {
+                shell.printIn("can't find base app package, src/main/java should have exactly one directory below",
+                        RestxShell.AnsiCodes.ANSI_RED);
+                shell.println("");
+                return;
+            }
+
+            String appServerClassName = packages[0] + ".AppServer";
+            Path targetClasses = Paths.get("target/classes");
+            Path dependenciesDir = Paths.get("target/dependency");
+
+            shell.print("compiling AppServer...");
+            shell.currentLocation().resolve(targetClasses).toFile().getParentFile().mkdirs();
+            int compiled = new ProcessBuilder(
+                    "javac", "-cp", dependenciesDir + "/*", "-sourcepath", "src/main/java", "-d", targetClasses.toString(),
+                    shell.currentLocation().relativize(
+                            mainSourceRoot.resolve(appServerClassName.replace('.', '/') + ".java")).toString())
+                    .redirectErrorStream(true)
+                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                    .directory(shell.currentLocation().toFile().getAbsoluteFile())
+                    .start()
+                    .waitFor();
+            if (compiled != 0) {
+                shell.printIn(" [ERROR]", RestxShell.AnsiCodes.ANSI_RED);
+                shell.println("");
+                return;
+            }
+            shell.printIn(" [DONE]", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println("");
+
+
+            shell.println("starting AppServer... - press [ENTER] to quit");
+            Process run = Apps.run(shell.currentLocation().toFile(),
+                    targetClasses, dependenciesDir, appServerClassName);
+
+            shell.ask("", "");
+            run.destroy();
+            run.waitFor();
         }
     }
 }

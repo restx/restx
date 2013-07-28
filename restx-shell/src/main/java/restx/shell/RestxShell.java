@@ -44,6 +44,7 @@ public class RestxShell implements Appendable {
     private WatchDir watcher;
     private final List<WatchListener> listeners = new CopyOnWriteArrayList<>();
     private final ExecutorService watcherExecutorService = Executors.newSingleThreadExecutor();
+    private Path currentLocation = Paths.get(".").normalize();
 
     public RestxShell(ConsoleReader consoleReader) {
         this(consoleReader, Factory.builder().addFromServiceLoader().build());
@@ -166,7 +167,11 @@ public class RestxShell implements Appendable {
     }
 
     public Path currentLocation() {
-        return Paths.get(".").normalize();
+        return currentLocation;
+    }
+
+    public void cd(Path path) {
+        currentLocation = path;
     }
 
     public Path installLocation() {
