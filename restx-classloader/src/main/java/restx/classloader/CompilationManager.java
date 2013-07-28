@@ -1,11 +1,8 @@
 package restx.classloader;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
-import com.google.common.base.Stopwatch;
+import com.google.common.base.*;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -14,14 +11,11 @@ import restx.common.MoreFiles;
 import restx.common.watch.FileWatchEvent;
 
 import javax.tools.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static com.google.common.collect.Iterables.isEmpty;
@@ -61,6 +55,8 @@ public class CompilationManager {
 
     private final ConcurrentLinkedDeque<Path> compileQueue = new ConcurrentLinkedDeque<>();
 
+    private final Map<Path, SourceHash> hashes = new HashMap<>();
+
     private ExecutorService watcherExecutor;
 
     private volatile boolean compiling;
@@ -89,6 +85,8 @@ public class CompilationManager {
             throw new RuntimeException(e);
         }
 
+        loadHashes();
+
         eventBus.register(new Object() {
             @Subscribe
             public void onWatchEvent(FileWatchEvent event) {
@@ -97,15 +95,39 @@ public class CompilationManager {
                 if (!source.toFile().isFile()) {
                     return;
                 }
-                if (kind == StandardWatchEventKinds.ENTRY_MODIFY
-                        || kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                    if (!queueCompile(source)) {
+                if (isSource(source)) {
+                    if (kind == StandardWatchEventKinds.ENTRY_MODIFY
+                            || kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                        if (!queueCompile(source)) {
+                            rebuild();
+                        }
+                    } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                        rebuild();
+                    } else {
                         rebuild();
                     }
-                } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                    rebuild();
                 } else {
-                    rebuild();
+                    copyResource(event.getDir(), event.getPath());
+                }
+            }
+        });
+    }
+
+    private void copyResource(final Path dir, final Path resourcePath) {
+        compileExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                File source = dir.resolve(resourcePath).toFile();
+                if (source.isFile()) {
+                    try {
+                        File to = destination.resolve(resourcePath).toFile();
+                        to.getParentFile().mkdirs();
+                        if (!to.exists() || to.lastModified() < source.lastModified()) {
+                            com.google.common.io.Files.copy(source, to);
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         });
@@ -192,7 +214,7 @@ public class CompilationManager {
     }
 
     /**
-     * Performs an incremantal compilation.
+     * Performs an incremental compilation.
      */
     public void incrementalCompile() {
         try {
@@ -201,14 +223,17 @@ public class CompilationManager {
                 public Exception call() throws Exception {
                     try {
                         final Collection<Path> sources = new ArrayList<>();
-                        for (Path sourceRoot : sourceRoots) {
+                        for (final Path sourceRoot : sourceRoots) {
                             if (sourceRoot.toFile().exists()) {
                                 Files.walkFileTree(sourceRoot, new SimpleFileVisitor<Path>() {
                                     @Override
                                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                                        if (file.toString().endsWith(".java")
-                                                && hasSourceChanged(file)) {
-                                            sources.add(file);
+                                        if (isSource(file)) {
+                                            if (hasSourceChanged(sourceRoot, sourceRoot.relativize(file))) {
+                                                sources.add(file);
+                                            }
+                                        } else if (file.toFile().isFile()) {
+                                            copyResource(sourceRoot, sourceRoot.relativize(file));
                                         }
                                         return FileVisitResult.CONTINUE;
                                     }
@@ -234,6 +259,10 @@ public class CompilationManager {
         }
     }
 
+    private boolean isSource(Path file) {
+        return file.toString().endsWith(".java");
+    }
+
     /**
      * Clean destination and do a full build.
      */
@@ -249,14 +278,16 @@ public class CompilationManager {
 
 
                         final Collection<Path> sources = new ArrayList<>();
-                        for (Path sourceRoot : sourceRoots) {
+                        for (final Path sourceRoot : sourceRoots) {
                             if (sourceRoot.toFile().exists()) {
                                 Files.walkFileTree(sourceRoot, new SimpleFileVisitor<Path>() {
                                     @Override
                                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                                             throws IOException {
-                                        if (file.toString().endsWith(".java")) {
+                                        if (isSource(file)) {
                                             sources.add(file);
+                                        } else if (file.toFile().isFile()) {
+                                            copyResource(sourceRoot, sourceRoot.relativize(file));
                                         }
                                         return FileVisitResult.CONTINUE;
                                     }
@@ -292,7 +323,7 @@ public class CompilationManager {
                     fileManager.getJavaFileObjectsFromFiles(transform(sources, MoreFiles.pathToFile));
 
             if (isEmpty(javaFileObjects)) {
-                logger.info("compilation finished: up to date");
+                logger.debug("compilation finished: up to date");
                 return;
             }
             JavaCompiler.CompilationTask compilationTask = javaCompiler.getTask(
@@ -301,15 +332,26 @@ public class CompilationManager {
             boolean valid = compilationTask.call();
             if (valid) {
                 for (Path source : sources) {
-                    File hashFile = hashForSource(source).toFile();
-                    if (!hashFile.getParentFile().exists()) {
-                        hashFile.getParentFile().mkdirs();
+                    Path dir = null;
+                    for (Path sourceRoot : sourceRoots) {
+                        if ((source.isAbsolute() && source.startsWith(sourceRoot.toAbsolutePath()))
+                                || (!source.isAbsolute() && source.startsWith(sourceRoot))) {
+                            dir = sourceRoot;
+                            break;
+                        }
                     }
-                    com.google.common.io.Files.write(
-                            com.google.common.io.Files.hash(source.toFile(), Hashing.md5()).toString(),
-                            hashFile, Charsets.UTF_8);
+                    if (dir == null) {
+                        logger.warn("can't find sourceRoot for {}", source);
+                    } else {
+                        SourceHash sourceHash = newSourceHashFor(dir, source.isAbsolute() ?
+                                dir.toAbsolutePath().relativize(source) :
+                                dir.relativize(source)
+                        );
+                        hashes.put(source.toAbsolutePath(), sourceHash);
+                    }
                 }
 
+                saveHashes();
 
                 logger.info("compilation finished: {} sources compiled in {}", sources.size(), stopwatch.stop());
                 eventBus.post(new CompilationFinishedEvent(this, DateTime.now()));
@@ -330,6 +372,43 @@ public class CompilationManager {
         }
     }
 
+    private void saveHashes() {
+        File hashesFile = hashesFile();
+        hashesFile.getParentFile().mkdirs();
+
+        try (Writer w = com.google.common.io.Files.newWriter(hashesFile, Charsets.UTF_8)) {
+            for (SourceHash sourceHash : hashes.values()) {
+                w.write(sourceHash.serializeAsString());
+                w.write("\n");
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void loadHashes() {
+        File hashesFile = hashesFile();
+        if (hashesFile.exists()) {
+            try (BufferedReader r = com.google.common.io.Files.newReader(hashesFile, Charsets.UTF_8)) {
+                String line;
+                while ((line = r.readLine()) != null) {
+                    SourceHash sourceHash = parse(line);
+                    hashes.put(sourceHash.getDir().resolve(sourceHash.getSourcePath()).toAbsolutePath(), sourceHash);
+                }
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private File hashesFile() {
+        return destination.resolve("META-INF/.hashes").toFile();
+    }
+
     /**
      * @return true if this compilation manager is currently performing a compilation task.
      */
@@ -337,32 +416,101 @@ public class CompilationManager {
         return compiling;
     }
 
-    private boolean hasSourceChanged(Path source) {
+    private boolean hasSourceChanged(Path dir, Path source) {
         try {
-            File hashFile = hashForSource(source).toFile();
-            if (!hashFile.exists()) {
+            SourceHash sourceHash = hashes.get(dir.resolve(source).toAbsolutePath());
+            if (sourceHash != null) {
+                return sourceHash.hasChanged() != sourceHash;
+            } else {
                 return true;
-            }
-            if (useLastModifiedTocheckChanges) {
-                if (hashFile.lastModified() >= source.toFile().lastModified()) {
-                    return false;
-                }
-            }
-
-            HashCode hashCode = com.google.common.io.Files.hash(source.toFile(), Hashing.md5());
-            if (com.google.common.io.Files.toString(hashFile, Charsets.UTF_8).equals(hashCode.toString())) {
-                return false;
             }
         } catch (IOException e) {
             return true;
         }
-        return true;
     }
 
-    private Path hashForSource(Path source) {
-        return destination.resolve(source + ".md5");
+    private class SourceHash {
+        private final Path dir;
+        private final Path sourcePath;
+        private final String hash;
+        private final long lastModified;
+
+        private SourceHash(Path dir, Path sourcePath, String hash, long lastModified) {
+            this.dir = dir;
+            this.sourcePath = sourcePath;
+            this.hash = hash;
+            this.lastModified = lastModified;
+        }
+
+        @Override
+        public String toString() {
+            return "SourceHash{" +
+                    "dir=" + dir +
+                    ", sourcePath=" + sourcePath +
+                    ", hash='" + hash + '\'' +
+                    ", lastModified=" + lastModified +
+                    '}';
+        }
+
+        public Path getDir() {
+            return dir;
+        }
+
+        public Path getSourcePath() {
+            return sourcePath;
+        }
+
+        public String getHash() {
+            return hash;
+        }
+
+        public long getLastModified() {
+            return lastModified;
+        }
+
+        public SourceHash hasChanged() throws IOException {
+            File sourceFile = dir.resolve(sourcePath).toFile();
+            if (useLastModifiedTocheckChanges) {
+                if (lastModified < sourceFile.lastModified()) {
+                    return new SourceHash(dir, sourcePath,
+                            computeHash(), sourceFile.lastModified());
+                }
+            } else {
+                String currentHash = computeHash();
+                if (!currentHash.equals(hash)) {
+                    return new SourceHash(dir, sourcePath,
+                            currentHash, sourceFile.lastModified());
+                }
+            }
+            return this;
+        }
+
+        private String computeHash() throws IOException {
+            return hash(dir.resolve(sourcePath).toFile());
+        }
+
+        public String serializeAsString() throws IOException {
+            return Joiner.on("**").join(dir, sourcePath, hash, lastModified);
+        }
     }
 
+    private SourceHash newSourceHashFor(Path dir, Path sourcePath) throws IOException {
+        File sourceFile = dir.resolve(sourcePath).toFile();
+        return new SourceHash(dir, sourcePath, hash(sourceFile), sourceFile.lastModified());
+    }
 
+    private String hash(File file) throws IOException {
+        return com.google.common.io.Files.hash(file, Hashing.md5()).toString();
+    }
 
+    private SourceHash parse(String str) {
+        Iterator<String> parts = Splitter.on("**").split(str).iterator();
+        FileSystem fileSystem = FileSystems.getDefault();
+        return new SourceHash(
+                fileSystem.getPath(parts.next()),
+                fileSystem.getPath(parts.next()),
+                parts.next(),
+                Long.parseLong(parts.next())
+        );
+    }
 }
