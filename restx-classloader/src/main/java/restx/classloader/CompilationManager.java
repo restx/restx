@@ -20,6 +20,7 @@ import java.util.concurrent.*;
 
 import static com.google.common.collect.Iterables.isEmpty;
 import static com.google.common.collect.Iterables.transform;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 
 /**
@@ -111,6 +112,18 @@ public class CompilationManager {
                 }
             }
         });
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
+    public Path getDestination() {
+        return destination;
+    }
+
+    public Iterable<Path> getSourceRoots() {
+        return sourceRoots;
     }
 
     private void copyResource(final Path dir, final Path resourcePath) {
@@ -300,6 +313,27 @@ public class CompilationManager {
                     } catch (Exception e) {
                         return e;
                     }
+                }
+            }).get(compilationTimeout, TimeUnit.SECONDS);
+            if (e != null) {
+                throw new RuntimeException(e);
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void compileSources(final Path... sources) {
+        try {
+            Exception e = compileExecutor.submit(new Callable<Exception>() {
+                @Override
+                public Exception call() throws Exception {
+                    compile(asList(sources));
+                    return null;
                 }
             }).get(compilationTimeout, TimeUnit.SECONDS);
             if (e != null) {

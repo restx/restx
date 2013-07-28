@@ -1,7 +1,6 @@
 package restx;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
 import restx.classloader.HotReloadingClassLoader;
-import restx.common.MoreFiles;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
@@ -20,13 +18,11 @@ import restx.specs.RestxSpecTape;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
-import static com.google.common.collect.Iterables.transform;
 import static restx.StdRestxMainRouter.getMode;
 
 /**
@@ -184,13 +180,9 @@ public class RestxMainRouterFactory {
         public CompilationManagerRouter(RestxMainRouter delegate) {
             this.delegate = delegate;
             this.rootPackage = System.getProperty("restx.app.package");
-            destinationDir = FileSystems.getDefault().getPath(System.getProperty("restx.targetClasses", "tmp/classes"));
-            Iterable<Path> sourceRoots = transform(Splitter.on(',').trimResults().split(
-                    System.getProperty("restx.sourceRoots",
-                            "src/main/java, src/main/resources")),
-                    MoreFiles.strToPath);
             EventBus eventBus = new EventBus();
-            compilationManager = new CompilationManager(eventBus, sourceRoots, destinationDir);
+            compilationManager = Apps.newAppCompilationManager(eventBus);
+            destinationDir = compilationManager.getDestination();
             eventBus.register(new Object() {
                 @Subscribe public void onCompilationFinished(
                         CompilationFinishedEvent event) {
@@ -380,6 +372,7 @@ public class RestxMainRouterFactory {
         return "true".equalsIgnoreCase(System.getProperty("restx.router.autocompile", "true"))
                 && useHotCompile();
     }
+
 
     private RestxMainRouterFactory() {}
 }
