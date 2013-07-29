@@ -16,10 +16,12 @@ import restx.build.RestxJsonSupport;
 import restx.factory.Component;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
+import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
-import java.io.*;
-import java.text.ParseException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 
 /**
@@ -29,17 +31,8 @@ import java.util.List;
  */
 @Component
 public class DepsShellCommand extends StdShellCommand {
-    private Ivy ivy = new Ivy();
-
     public DepsShellCommand() {
         super(ImmutableList.of("deps"), "deps related commands: install / update / manage app dependencies");
-        try {
-            ivy.configureDefault();
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -74,6 +67,7 @@ public class DepsShellCommand extends StdShellCommand {
                         "md.restx.json file not found in " + shell.currentLocation() + "." +
                                 " It is required to perform deps management");
             }
+            Ivy ivy = ShellIvy.loadIvy(shell.installLocation());
             File tempFile = File.createTempFile("restx-md", ".ivy");
             try (FileInputStream is = new FileInputStream(mdFile)) {
                 ModuleDescriptor descriptor = new RestxJsonSupport().parse(is);

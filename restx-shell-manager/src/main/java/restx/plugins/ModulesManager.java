@@ -38,17 +38,11 @@ public class ModulesManager {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final URL url;
-    private Ivy ivy = new Ivy();
+    private final Ivy ivy;
 
-    public ModulesManager(URL url) {
+    public ModulesManager(URL url, Ivy ivy) {
         this.url = url;
-        try {
-            ivy.configureDefault();
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.ivy = ivy;
     }
 
     public List<ModuleDescriptor> searchModules(String q) throws IOException {
@@ -90,7 +84,7 @@ public class ModulesManager {
                 ResolveReport report = ivy.resolve(md,
                         (ResolveOptions) new ResolveOptions()
                                 .setLog(LogOptions.LOG_QUIET)
-                        );
+                );
                 for (ArtifactDownloadReport artifactDownloadReport : report.getAllArtifactsReports()) {
                     File localFile = artifactDownloadReport.getLocalFile();
                     File to = new File(toDir, artifactDownloadReport.getName() + "." + artifactDownloadReport.getExt());

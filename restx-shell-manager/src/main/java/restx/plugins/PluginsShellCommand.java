@@ -15,12 +15,12 @@ import org.joda.time.DateTime;
 import restx.factory.Component;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
+import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -68,18 +68,11 @@ public class PluginsShellCommand extends StdShellCommand {
     }
 
     private class InstallPluginRunner implements ShellCommandRunner {
-        private ModulesManager modulesManager;
-
-        private InstallPluginRunner() {
-            try {
-                this.modulesManager = new ModulesManager(new URL("http://restx.io/modules"));
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
         @Override
         public void run(RestxShell shell) throws Exception {
+            ModulesManager modulesManager = new ModulesManager(
+                    new URL("http://restx.io/modules"), ShellIvy.loadIvy(shell.installLocation()));
+
             shell.println("looking for plugins...");
             List<ModuleDescriptor> plugins = modulesManager.searchModules("category=shell");
             shell.printIn("found " + plugins.size() + " available plugins", RestxShell.AnsiCodes.ANSI_CYAN);

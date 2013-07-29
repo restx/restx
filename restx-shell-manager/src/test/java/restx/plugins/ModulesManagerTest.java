@@ -4,10 +4,12 @@ import com.google.common.collect.ImmutableList;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.junit.Test;
+import restx.shell.ShellIvy;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Time: 3:06 PM
  */
 public class ModulesManagerTest {
-    ModulesManager manager = new ModulesManager(ModulesManagerTest.class.getResource("modules.json"));
+    ModulesManager manager = new ModulesManager(ModulesManagerTest.class.getResource("modules.json"),
+            ShellIvy.loadIvy(Paths.get(".")));
 
     @Test
     public void should_find_shell_modules() throws Exception {

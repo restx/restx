@@ -10,7 +10,8 @@
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "jline:jline:${jline.version}",
-            "ch.qos.logback:logback-classic:${logback.version}"
+            "ch.qos.logback:logback-classic:${logback.version}",
+            "org.apache.ivy:ivy:${ivy.version}"
         ]
     }
 }
