@@ -4,7 +4,6 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import restx.factory.Factory;
-import restx.server.JettyWebServer;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;
 import restx.server.WebServers;
@@ -24,15 +23,6 @@ public class RestxServerRule implements TestRule {
 
     public RestxServerRule(WebServerSupplier webServerSupplier) {
         this.webServerSupplier = webServerSupplier;
-    }
-
-    public static WebServerSupplier jettyWebServerSupplier(final String webInfLocation, final String appBase) {
-        return new WebServerSupplier() {
-            @Override
-            public WebServer newWebServer(int port) {
-                return new JettyWebServer(webInfLocation, appBase, port, "localhost");
-            }
-        };
     }
 
     protected Factory.LocalMachines localMachines() {
