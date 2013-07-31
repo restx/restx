@@ -294,7 +294,8 @@ public class RestxMainRouterFactory {
     }
 
     private static String getHotIndicator() {
-        if (!RestxContext.Modes.DEV.equals(getMode())) {
+        if (!RestxContext.Modes.DEV.equals(getMode())
+                && !RestxContext.Modes.TEST.equals(getMode())) {
             return "";
         }
         if (useAutoCompile()) {
@@ -349,7 +350,8 @@ public class RestxMainRouterFactory {
 
     private static String getLoadFactoryMode() {
         return System.getProperty("restx.factory.load",
-                RestxContext.Modes.RECORDING.equals(getMode())
+                RestxContext.Modes.TEST.equals(getMode())
+                        || RestxContext.Modes.RECORDING.equals(getMode())
                         || useHotCompile()
                         || useHotReload()
                 ? "onrequest" : "onstartup");
