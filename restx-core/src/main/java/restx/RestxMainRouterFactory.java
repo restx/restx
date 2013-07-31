@@ -43,6 +43,7 @@ public class RestxMainRouterFactory {
      * Therefore this class is not intended to be exposed outside the main router factory class.
      */
     private static class RecordingMainRouter implements RestxMainRouter {
+        private final EventBus eventBus;
         private final Optional<RestxSpecRecorder> restxSpecRecorder;
         private final RestxMainRouter router;
         private final String serverId;
@@ -55,8 +56,9 @@ public class RestxMainRouterFactory {
             }
         };
 
-        public RecordingMainRouter(String serverId, Optional<RestxSpecRecorder> restxSpecRecorder, RestxMainRouter router) {
+        public RecordingMainRouter(String serverId, EventBus eventBus, Optional<RestxSpecRecorder> restxSpecRecorder, RestxMainRouter router) {
             this.serverId = serverId;
+            this.eventBus = eventBus;
             this.restxSpecRecorder = restxSpecRecorder;
             this.router = router;
         }
@@ -77,7 +79,7 @@ public class RestxMainRouterFactory {
                             try {
                                 // when recording a request we don't use the provided router, we
                                 // need to load a new factory, some recorders rely on being available in the factory
-                                Factory factory = loadFactory(newFactoryBuilder(serverId,
+                                Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus,
                                                                                 restxSpecRecorder));
                                 try {
                                     newStdRouter(factory).route(tape.getRecordingRequest(), tape.getRecordingResponse());
@@ -127,14 +129,16 @@ public class RestxMainRouterFactory {
 
     private static class PerRequestFactoryLoader implements RestxMainRouter {
         private final String serverId;
+        private final EventBus eventBus;
 
-        public PerRequestFactoryLoader(String serverId) {
+        public PerRequestFactoryLoader(String serverId, EventBus eventBus) {
             this.serverId = serverId;
+            this.eventBus = eventBus;
         }
 
         @Override
         public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-            Factory factory = loadFactory(newFactoryBuilder(serverId,
+            Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus,
                     RestxSpecRecorder.current().orNull()));
             try {
                 newStdRouter(factory).route(restxRequest, restxResponse);
@@ -177,14 +181,14 @@ public class RestxMainRouterFactory {
         private final CompilationManager compilationManager;
         private HotReloadingClassLoader hotReloadingClassLoader;
 
-        public CompilationManagerRouter(RestxMainRouter delegate) {
+        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus) {
             this.delegate = delegate;
             this.rootPackage = System.getProperty("restx.app.package");
-            EventBus eventBus = new EventBus();
             compilationManager = Apps.newAppCompilationManager(eventBus);
             destinationDir = compilationManager.getDestination();
             eventBus.register(new Object() {
-                @Subscribe public void onCompilationFinished(
+                @Subscribe
+                public void onCompilationFinished(
                         CompilationFinishedEvent event) {
                     setClassLoader();
                 }
@@ -238,6 +242,8 @@ public class RestxMainRouterFactory {
             }
         }
 
+        EventBus eventBus = new EventBus();
+
         Optional<RestxSpecRecorder> recorder;
         if (RestxContext.Modes.RECORDING.equals(getMode())) {
             recorder = Optional.of(new RestxSpecRecorder());
@@ -247,7 +253,7 @@ public class RestxMainRouterFactory {
         }
 
         if (getLoadFactoryMode().equals("onstartup")) {
-            final StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder(serverId)));
+            final StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder(serverId, eventBus)));
             logPrompt(baseUri, "READY", mainRouter);
 
             if (RestxContext.Modes.PROD.equals(getMode())) {
@@ -255,19 +261,19 @@ public class RestxMainRouterFactory {
                 return mainRouter;
             } else {
                 // in other modes we may record requests one by one or all of them, we use the recording decorator
-                return new RecordingMainRouter(serverId, recorder, mainRouter);
+                return new RecordingMainRouter(serverId, eventBus, recorder, mainRouter);
             }
         } else if (getLoadFactoryMode().equals("onrequest")) {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
-            RestxMainRouter router = new PerRequestFactoryLoader(serverId);
+            RestxMainRouter router = new PerRequestFactoryLoader(serverId, eventBus);
             if (useHotCompile()) {
-                router = new CompilationManagerRouter(router);
+                router = new CompilationManagerRouter(router, eventBus);
             } else if (useHotReload()) {
                 router = new HotReloadRouter(router);
             }
 
-            return new RecordingMainRouter(serverId, recorder, router);
+            return new RecordingMainRouter(serverId, eventBus, recorder, router);
         } else {
             throw new IllegalStateException("illegal load factory mode: '" + getLoadFactoryMode() + "'. " +
                     "It must be either 'onstartup' or 'onrequest'.");
@@ -310,8 +316,8 @@ public class RestxMainRouterFactory {
         return factory;
     }
 
-    private static Factory.Builder newFactoryBuilder(String contextName, RestxSpecRecorder specRecorder) {
-        Factory.Builder builder = newFactoryBuilder(contextName);
+    private static Factory.Builder newFactoryBuilder(String contextName, EventBus eventBus, RestxSpecRecorder specRecorder) {
+        Factory.Builder builder = newFactoryBuilder(contextName, eventBus);
         if (specRecorder != null) {
             builder
                 .addLocalMachines(Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING))
@@ -321,18 +327,19 @@ public class RestxMainRouterFactory {
         return builder;
     }
 
-    private static Factory.Builder newFactoryBuilder(String contextName) {
-        Factory.Builder builder = newFactoryBuilder();
+    private static Factory.Builder newFactoryBuilder(String contextName, EventBus eventBus) {
+        Factory.Builder builder = newFactoryBuilder(eventBus);
         if (contextName != null) {
             builder.addLocalMachines(Factory.LocalMachines.contextLocal(contextName));
         }
         return builder;
     }
 
-    private static Factory.Builder newFactoryBuilder() {
+    private static Factory.Builder newFactoryBuilder(EventBus eventBus) {
         return Factory.builder()
                     .addFromServiceLoader()
                     .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "restx.mode", getMode())))
+                    .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(EventBus.class, "eventBus", eventBus)))
                     .addLocalMachines(Factory.LocalMachines.threadLocal());
     }
 
