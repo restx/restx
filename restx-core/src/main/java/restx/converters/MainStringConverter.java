@@ -1,5 +1,6 @@
 package restx.converters;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Primitives;
 import restx.factory.*;
@@ -19,6 +20,14 @@ public class MainStringConverter {
         }
 
         converters = builder.build();
+    }
+
+    public <T> Optional<T> convert(Optional<String> value, Class<T> toClass) {
+        if(value.isPresent()){
+            return Optional.of(convert(value.get(), toClass));
+        } else {
+            return Optional.absent();
+        }
     }
 
     public <T> T convert(String value, Class<T> toClass) {
