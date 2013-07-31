@@ -45,12 +45,14 @@ import static restx.common.Mustaches.compile;
 public class FactoryAnnotationProcessor extends AbstractProcessor {
     final Mustache componentMachineTpl;
     final Mustache alternativeMachineTpl;
+    final Mustache conditionalMachineTpl;
     final Mustache moduleMachineTpl;
     private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
         componentMachineTpl = compile(FactoryAnnotationProcessor.class, "ComponentMachine.mustache");
         alternativeMachineTpl = compile(FactoryAnnotationProcessor.class, "AlternativeMachine.mustache");
+        conditionalMachineTpl = compile(FactoryAnnotationProcessor.class, "ConditionalMachine.mustache");
         moduleMachineTpl = compile(FactoryAnnotationProcessor.class, "ModuleMachine.mustache");
         machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
     }
@@ -143,7 +145,13 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
             buildInjectableParams(exec, componentClass.parameters);
 
-            generateMachineFile(componentClass);
+            When when = component.getAnnotation(When.class);
+            if (when == null) {
+                generateMachineFile(componentClass);
+            } else {
+                generateMachineFile(componentClass, when);
+            }
+
         }
     }
 
@@ -280,6 +288,26 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .build();
 
         generateJavaClass(componentClass.fqcn + "FactoryMachine", alternativeMachineTpl, ctx,
+                Collections.singleton(componentClass.originatingElement));
+    }
+
+    private void generateMachineFile(ComponentClass componentClass, When when) throws IOException {
+        ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
+                .put("package", componentClass.pack)
+                .put("machine", componentClass.name + "FactoryMachine")
+                .put("componentFqcn", componentClass.fqcn)
+                .put("componentType", componentClass.name)
+                .put("priority", String.valueOf(componentClass.priority))
+                .put("whenName", when.name())
+                .put("whenValue", when.value())
+                .put("componentInjectionName", componentClass.injectionName.isPresent() ?
+                        componentClass.injectionName.get() : componentClass.name)
+                .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(componentClass.parameters)))
+                .put("queries", Joiner.on(",\n").join(buildQueriesNames(componentClass.parameters)))
+                .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
+                .build();
+
+        generateJavaClass(componentClass.fqcn + "FactoryMachine", conditionalMachineTpl, ctx,
                 Collections.singleton(componentClass.originatingElement));
     }
 

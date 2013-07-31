@@ -8,6 +8,7 @@ import com.google.common.collect.*;
 import restx.HttpStatus;
 import restx.annotations.*;
 import restx.common.Mustaches;
+import restx.factory.When;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
 
@@ -184,7 +185,10 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         ResourceClass resourceClass = group.resourceClasses.get(fqcn);
         if (resourceClass == null) {
             modulesListOriginatingElements.add(typeElem);
-            group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn, r.priority()));
+            When when = typeElem.getAnnotation(When.class);
+            group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn, r.priority(),
+                    when == null ? ""
+                            : ("@restx.factory.When(name=\"" + when.name() + "\", value=\"" + when.value() + "\")")));
             resourceClass.originatingElements.add(typeElem);
         }
         return resourceClass;
@@ -202,6 +206,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                         .put("router", resourceClass.name + "Router")
                         .put("resource", resourceClass.name)
                         .put("priority", resourceClass.priority)
+                        .put("condition", resourceClass.condition)
                         .put("routes", routes)
                         .build();
 
@@ -371,12 +376,14 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final List<ResourceMethod> resourceMethods = Lists.newArrayList();
         final ResourceGroup group;
         final String name;
+        final String condition;
         final Set<Element> originatingElements = Sets.newHashSet();
 
-        ResourceClass(ResourceGroup group, String fqcn, int priority) {
+        ResourceClass(ResourceGroup group, String fqcn, int priority, String condition) {
             this.group = group;
             this.fqcn = fqcn;
             this.priority = priority;
+            this.condition = condition;
             this.pack = fqcn.substring(0, fqcn.lastIndexOf('.'));
             this.name = fqcn.substring(fqcn.lastIndexOf('.') + 1);
         }

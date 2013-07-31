@@ -1,0 +1,49 @@
+package {{package}};
+
+import com.google.common.collect.ImmutableSet;
+import restx.factory.*;
+import {{componentFqcn}};
+
+@Machine
+public class {{machine}} extends SingleNameFactoryMachine<FactoryMachine> {
+    public static final Name<{{componentType}}> NAME = Name.of({{componentType}}.class, "{{componentName}}");
+
+    public {{machine}}() {
+        super(0, new StdMachineEngine<FactoryMachine>(
+                    Name.of(FactoryMachine.class, "{{componentType}}{{componentName}}Conditional"), BoundlessComponentBox.FACTORY) {
+                private Factory.Query<String> query = Factory.Query.byName(Name.of(String.class, "{{whenName}}")).optional();
+
+                @Override
+                protected FactoryMachine doNewComponent(SatisfiedBOM satisfiedBOM) {
+                    if (satisfiedBOM.getOne(query).isPresent()
+                            && satisfiedBOM.getOne(query).get().getComponent().equals("{{whenValue}}")) {
+                        return new SingleNameFactoryMachine<{{componentType}}>({{priority}},
+                                        new StdMachineEngine<{{componentType}}>(NAME, BoundlessComponentBox.FACTORY) {
+{{{queriesDeclarations}}}
+
+                                            @Override
+                                            public BillOfMaterials getBillOfMaterial() {
+                                                return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(
+{{{queries}}}
+                                                ));
+                                            }
+
+                                            @Override
+                                            protected {{componentType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
+                                                return new {{componentType}}(
+{{{parameters}}}
+                                                );
+                                            }
+                                        });
+                    } else {
+                        return NoopFactoryMachine.INSTANCE;
+                    }
+                }
+
+                @Override
+                public BillOfMaterials getBillOfMaterial() {
+                    return BillOfMaterials.of(query);
+                }
+            });
+    }
+}
