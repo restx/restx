@@ -22,6 +22,7 @@ import static com.google.common.collect.Iterables.isEmpty;
 import static com.google.common.collect.Iterables.transform;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.unmodifiableCollection;
 
 /**
  * A compilation manager is responsible for compiling a set of source roots into a
@@ -43,7 +44,6 @@ public class CompilationManager {
     private final EventBus eventBus;
 
     private final JavaCompiler javaCompiler;
-    private final DiagnosticCollector<JavaFileObject> diagnostics;
 
     private final Iterable<Path> sourceRoots;
     private final Path destination;
@@ -66,15 +66,15 @@ public class CompilationManager {
     private final long compilationTimeout = 60; // in seconds
     private final int autoCompileQuietPeriod = 50; // ms
     private final boolean useLastModifiedTocheckChanges = true;
+    private Collection<Diagnostic<?>> lastDiagnostics = new CopyOnWriteArrayList<>();
 
     public CompilationManager(EventBus eventBus, Iterable<Path> sourceRoots, Path destination) {
         this.eventBus = eventBus;
         this.sourceRoots = sourceRoots;
         this.destination = destination;
 
-        diagnostics = new DiagnosticCollector<>();
         javaCompiler = ToolProvider.getSystemJavaCompiler();
-        fileManager = javaCompiler.getStandardFileManager(diagnostics, Locale.ENGLISH, Charsets.UTF_8);
+        fileManager = javaCompiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), Locale.ENGLISH, Charsets.UTF_8);
         try {
             if (!destination.toFile().exists()) {
                 destination.toFile().mkdirs();
@@ -348,11 +348,17 @@ public class CompilationManager {
         }
     }
 
+    public Collection<Diagnostic<?>> getLastDiagnostics() {
+        return unmodifiableCollection(lastDiagnostics);
+    }
+
     private void compile(Collection<Path> sources) {
         // MUST BE CALLED in compileExecutor only
         Stopwatch stopwatch = new Stopwatch().start();
         compiling = true;
         try {
+            lastDiagnostics.clear();
+            DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             Iterable<? extends JavaFileObject> javaFileObjects =
                     fileManager.getJavaFileObjectsFromFiles(transform(sources, MoreFiles.pathToFile));
 
@@ -397,6 +403,7 @@ public class CompilationManager {
                 for (Diagnostic<?> d : diagnostics.getDiagnostics()) {
                     sb.append(d).append("\n");
                 }
+                lastDiagnostics.addAll(diagnostics.getDiagnostics());
                 throw new RuntimeException("Compilation failed:\n" + sb);
             }
         } catch (IOException e) {

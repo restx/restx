@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.net.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.classloader.CompilationFinishedEvent;
@@ -15,11 +16,14 @@ import restx.factory.SingletonFactoryMachine;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
+import javax.tools.Diagnostic;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
@@ -220,6 +224,20 @@ public class RestxMainRouterFactory {
             try {
                 if (!useAutoCompile()) {
                     compilationManager.incrementalCompile();
+                }
+
+                Collection<Diagnostic<?>> lastDiagnostics = compilationManager.getLastDiagnostics();
+                if (!lastDiagnostics.isEmpty()) {
+                    restxResponse.setStatus(HttpStatus.SERVICE_UNAVAILABLE.getCode());
+                    restxResponse.setContentType(MediaType.PLAIN_TEXT_UTF_8.toString());
+                    PrintWriter restxResponseWriter = restxResponse.getWriter();
+                    restxResponseWriter.write("COMPILATION ERROR(S):\n\n\n");
+                    for (Diagnostic<?> d : lastDiagnostics) {
+                        if (d.getKind() != Diagnostic.Kind.NOTE) {
+                            restxResponseWriter.write(d + "\n\n");
+                        }
+                    }
+                    return;
                 }
 
                 Thread.currentThread().setContextClassLoader(hotReloadingClassLoader);
