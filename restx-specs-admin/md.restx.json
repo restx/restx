@@ -9,6 +9,7 @@
     "dependencies": {
         "compile": [
             "io.restx:restx-core:${restx.version}",
+            "io.restx:restx-specs-tests:${restx.version}",
             "io.restx:restx-admin:${restx.version}"
         ]
     }

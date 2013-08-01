@@ -14,6 +14,7 @@
     </publications>
     <dependencies>
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-specs-tests" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-admin" rev="latest.integration" conf="default" />
     </dependencies>
 </ivy-module>
