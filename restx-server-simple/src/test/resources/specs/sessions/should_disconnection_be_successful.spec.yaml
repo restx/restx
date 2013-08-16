@@ -1,0 +1,31 @@
+title: should authentication then disconnection change current authenticated user
+given:
+  - time: 2013-09-15T18:29:41.234+02:00
+
+wts:
+  - when: |
+      GET sessions/current
+    then: |
+      401
+  - when: |
+      POST sessions
+      { "principal": { "name": "admin", "passwordHash": "1d528266b85cf052e9a4794803a57288", "rememberMe": "true" } }
+    then: |
+      200
+      { "principal": { "principalRoles": [ "restx-admin" ], "name": "admin" } }
+  - when: |
+      GET sessions/current
+      Cookie: RestxSession={"_expires":"2013-09-15T18:30:41.234+02:00","principal":"admin","sessionKey":"e71a0f9f-9082-4626-bc34-3893c540566d"}; RestxSessionSignature=rCNeCRQALDOUwfJe3o+E342JIPg=
+    then: |
+      200
+      { "principal": { "principalRoles": [ "restx-admin" ], "name": "admin" } }
+  - when: |
+      DELETE sessions/current
+      Cookie: RestxSession={"_expires":"2013-09-15T18:30:41.234+02:00","principal":"admin","sessionKey":"e71a0f9f-9082-4626-bc34-3893c540566d"}; RestxSessionSignature=rCNeCRQALDOUwfJe3o+E342JIPg=
+    then: |
+      { "status": "logout" }
+  - when: |
+      GET sessions/current
+      Cookie: RestxSession={"_expires":"2013-09-15T18:30:41.234+02:00","principal":"admin","sessionKey":"e71a0f9f-9082-4626-bc34-3893c540566d"}; RestxSessionSignature=rCNeCRQALDOUwfJe3o+E342JIPg=
+    then: |
+      401

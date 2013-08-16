@@ -118,12 +118,14 @@ public class SimpleRestxRequest implements RestxRequest {
 
     @Override
     public String getCookieValue(String cookie, String defaultValue) {
-        return request.getCookies().contains(cookie) ? request.getCookie(cookie).getValue() : defaultValue;
+        Map<String, String> cookiesMap = getCookiesMap();
+        return cookiesMap.containsKey(cookie) ? cookiesMap.get(cookie) : defaultValue;
     }
 
     @Override
     public boolean isPersistentCookie(String cookie) {
-        return request.getCookies().contains(cookie) ? request.getCookie(cookie).getExpiry() > 0 : false;
+        Map<String, String> cookiesMap = getCookiesMap();
+        return cookiesMap.containsKey(cookie) ? request.getCookie(cookie).getExpiry() > 0 : false;
     }
 
     @Override
