@@ -11,6 +11,10 @@
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
             "org.simpleframework:simple:${simple.version}"
+        ],
+        "test": [
+            "junit:junit:4.11",
+            "org.mockito:mockito-all:1.9.5"
         ]
     }
 }
