@@ -1,0 +1,15 @@
+title: should authentication be in failure with bad credentials
+given:
+  - time: 2013-08-16T16:38:36.549+02:00
+
+wts:
+  - when: |
+      POST sessions
+      { "principal": { "name": "admin", "passwordHash": "erroneousHash", "rememberMe": "true" } }
+    then: |
+      401
+  - when: |
+      POST sessions
+      { "principal": { "name": "badLogin", "passwordHash": "1d528266b85cf052e9a4794803a57288", "rememberMe": "true" } }
+    then: |
+      401
