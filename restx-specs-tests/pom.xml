@@ -39,11 +39,6 @@
             <version>${restx.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-server-jetty</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
@@ -72,6 +67,12 @@
             <groupId>com.github.kevinsawicki</groupId>
             <artifactId>http-request</artifactId>
             <version>${http-request.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-server-jetty</artifactId>
+            <version>${restx.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -7,7 +7,6 @@ import restx.specs.RestxSpec;
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static restx.tests.ServerSuppliers.jettyWebServerSupplier;
 
 /**
  * User: xavierhanin
@@ -26,25 +25,17 @@ public class RestxSpecRule extends RestxServerRule {
 
 
     /**
-     * A shortcut for new RestxSpecRule("src/main/webapp/WEB-INF/web.xml", "src/main/webapp",
-     *                          "/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", queryByClass(WebServerSupplier.class), defaultFactory())
      */
     public RestxSpecRule() {
-        this("src/main/webapp/WEB-INF/web.xml", "src/main/webapp");
+        this(Factory.Query.byClass(WebServerSupplier.class).findOne().get().getComponent());
     }
 
     /**
-     * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", webServerSupplier, defaultFactory())
      */
-    public RestxSpecRule(String webInfLocation, String appBase) {
-        this(webInfLocation, appBase, defaultFactory());
-    }
-
-    /**
-     * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), factory)
-     */
-    public RestxSpecRule(final String webInfLocation, final String appBase, Factory factory) {
-        this("/api", jettyWebServerSupplier(webInfLocation, appBase), factory);
+    public RestxSpecRule(WebServerSupplier webServerSupplier) {
+        this("/api", webServerSupplier, defaultFactory());
     }
 
     /**
