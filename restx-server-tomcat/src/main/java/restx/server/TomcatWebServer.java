@@ -1,5 +1,6 @@
 package restx.server;
 
+import com.google.common.base.Throwables;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;
@@ -70,6 +71,19 @@ public class TomcatWebServer implements WebServer {
 
     public void stop() throws LifecycleException {
         tomcat.stop();
+    }
+
+    public static WebServerSupplier tomcatWebServerSupplier(final String appBase) {
+        return new WebServerSupplier() {
+            @Override
+            public WebServer newWebServer(int port) {
+                try {
+                    return new TomcatWebServer(appBase, port);
+                } catch (ServletException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        };
     }
 
 }
