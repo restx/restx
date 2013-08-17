@@ -18,6 +18,7 @@ public class TomcatWebServerModule {
     }
 
     @Provides
+    @Named("restx.server.tomcat")
     public WebServerSupplier webServerSupplier(@Named("restx.server.tomcat.appbase.location") String appBase){
         return TomcatWebServer.tomcatWebServerSupplier(appBase);
     }

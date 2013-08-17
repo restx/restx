@@ -131,5 +131,6 @@
         <module>restx-server-jetty</module>
         <module>restx-server-tomcat</module>
         <module>restx-server-simple</module>
+        <module>restx-server-testing</module>
     </modules>
 </project>

@@ -1,0 +1,21 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-server-testing:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+        ],
+        "test": [
+            "io.restx:restx-server-jetty:${restx.version}",
+            "io.restx:restx-server-simple:${restx.version}",
+            "io.restx:restx-server-tomcat:${restx.version}",
+            "io.restx:restx-specs-tests:${restx.version}",
+            "io.restx:restx-admin:${restx.version}",
+            "junit:junit:4.11"
+        ]
+    }
+}

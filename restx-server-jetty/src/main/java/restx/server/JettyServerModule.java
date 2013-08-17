@@ -26,6 +26,7 @@ public class JettyServerModule {
     }
 
     @Provides
+    @Named("restx.server.jetty")
     public WebServerSupplier webServerSupplier(
             @Named("restx.server.jetty.appbase.location") String appBase,
             @Named("restx.server.jetty.webxml.location") String webxml){
