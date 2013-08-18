@@ -26,8 +26,11 @@ public class RestxSessionFilterMachine extends SingleNameFactoryMachine<RestxSes
                         satisfiedBOM.getOne(signatureKeyQuery)
                                 .or(new NamedComponent(
                                         Name.of(SignatureKey.class, "DefaultSignature"),
+                                        // Should we break backward compat with restx clients (having
+                                        // them to re-authenticate in order to re-create a new
+                                        // app-name-based cookie) ?
                                         new SignatureKey("this is the default signature key".getBytes())))
-                                .getComponent().getKey());
+                                .getComponent());
             }
 
             @Override
