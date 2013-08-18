@@ -12,14 +12,14 @@ import javax.inject.Named;
 public class TomcatWebServerModule {
 
     @Provides
-    @Named("restx.server.tomcat.appbase.location")
-    public String restxServerTomcatAppBaseLocation() {
+    @Named("restx.server.tomcat.appbase.default.location")
+    public String restxServerTomcatAppBaseDefaultLocation() {
         return "src/main/webapp";
     }
 
     @Provides
     @Named("restx.server.tomcat")
-    public WebServerSupplier webServerSupplier(@Named("restx.server.tomcat.appbase.location") String appBase){
+    public WebServerSupplier tomcatWebServerSupplier(@Named("restx.server.tomcat.appbase.default.location") String appBase){
         return TomcatWebServer.tomcatWebServerSupplier(appBase);
     }
 }

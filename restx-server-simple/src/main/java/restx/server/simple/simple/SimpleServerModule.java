@@ -13,7 +13,7 @@ import javax.inject.Named;
 public class SimpleServerModule {
     @Provides
     @Named("restx.server.simple")
-    public WebServerSupplier webServerSupplier(){
+    public WebServerSupplier simpleWebServerSupplier(){
         return SimpleWebServer.simpleWebServerSupplier();
     }
 }

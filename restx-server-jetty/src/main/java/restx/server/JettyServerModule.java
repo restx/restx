@@ -13,23 +13,23 @@ import javax.inject.Named;
 @Module(priority = 1000)
 public class JettyServerModule {
     @Provides
-    @Named("restx.server.jetty.webxml.location")
-    public String restxServerJettyWebXmlLocation(@Named("restx.server.jetty.appbase.location") String appBase) {
+    @Named("restx.server.jetty.webxml.default.location")
+    public String restxServerJettyWebXmlDefaultLocation(@Named("restx.server.jetty.appbase.default.location") String appBase) {
         return appBase+"/WEB-INF/web.xml";
     }
 
 
     @Provides
-    @Named("restx.server.jetty.appbase.location")
-    public String restxServerJettyAppBaseLocation() {
+    @Named("restx.server.jetty.appbase.default.location")
+    public String restxServerJettyAppBaseDefaultLocation() {
         return "src/main/webapp";
     }
 
     @Provides
     @Named("restx.server.jetty")
-    public WebServerSupplier webServerSupplier(
-            @Named("restx.server.jetty.appbase.location") String appBase,
-            @Named("restx.server.jetty.webxml.location") String webxml){
+    public WebServerSupplier jettyWebServerSupplier(
+            @Named("restx.server.jetty.appbase.default.location") String appBase,
+            @Named("restx.server.jetty.webxml.default.location") String webxml){
         return JettyWebServer.jettyWebServerSupplier(webxml, appBase);
     }
 }
