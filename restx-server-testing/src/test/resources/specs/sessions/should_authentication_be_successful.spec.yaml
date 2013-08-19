@@ -1,6 +1,8 @@
 title: should authentication be successful with existing user
 given:
   - time: 2013-08-16T16:38:36.549+02:00
+  - uuidsFor: SessionUUIDGenerator
+    data: [ "e71a0f9f-9082-4626-bc34-3893c540566d" ]
 
 wts:
   - when: |
@@ -8,3 +10,4 @@ wts:
       { "principal": { "name": "admin", "passwordHash": "1d528266b85cf052e9a4794803a57288", "rememberMe": "true" } }
     then: |
       200
+      { "key": "e71a0f9f-9082-4626-bc34-3893c540566d", "principal": { "name": "admin" } }
