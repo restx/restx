@@ -28,7 +28,7 @@ public class RestxSpecRule extends RestxServerRule {
      * A shortcut for new RestxSpecRule("/api", queryByClass(WebServerSupplier.class), defaultFactory())
      */
     public RestxSpecRule() {
-        this(Factory.Query.byClass(WebServerSupplier.class).findOne().get().getComponent());
+        this(defaultFactory().queryByClass(WebServerSupplier.class).findOne().get().getComponent());
     }
 
     /**
