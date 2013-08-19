@@ -1,15 +1,22 @@
 package restx.security;
 
 import com.google.common.cache.CacheLoader;
+import restx.common.UUIDGenerator;
+import restx.common.UUIDGeneratorFactory;
 import restx.factory.Module;
+import restx.factory.Name;
 import restx.factory.Provides;
 
 import javax.inject.Named;
+import java.util.List;
 
 /**
  */
 @Module(priority = 10000)
 public class BasicSecurityModule {
+    public static final String SESSION_UUID_GENERATOR = "SessionUUIDGenerator";
+    private static final Name<UUIDGenerator> SESSION_UUID_GENERATOR_NAME = Name.of(UUIDGenerator.class, SESSION_UUID_GENERATOR);
+
     @Provides
     @Named(RestxPrincipal.SESSION_DEF_KEY)
     public RestxSession.Definition.Entry principalSessionEntry(final BasicPrincipalAuthenticator authenticator) {
@@ -33,4 +40,20 @@ public class BasicSecurityModule {
         });
     }
 
+    @Provides @Named(SESSION_UUID_GENERATOR)
+    public UUIDGenerator sessionUUIDGenerator(){
+        return UUIDGenerator.DEFAULT;
+    }
+
+    public static UUIDGenerator currentUUIDGenerator(){
+        return UUIDGeneratorFactory.currentGeneratorFor(SESSION_UUID_GENERATOR_NAME);
+    }
+
+    public static void playbackUUIDs(List<String> sequence, Runnable runnable) {
+        UUIDGeneratorFactory.playback(sequence, runnable, SESSION_UUID_GENERATOR_NAME);
+    }
+
+    public static void recordUUIDs(Runnable runnable) {
+        UUIDGeneratorFactory.record(runnable, SESSION_UUID_GENERATOR_NAME);
+    }
 }

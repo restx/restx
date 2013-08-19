@@ -22,16 +22,19 @@ public class RestxErrorTest {
 
     @Test
     public void should_provide_error_message() throws Exception {
-        UUIDGenerator.playback(Arrays.asList("123456"));
-        DateTimeUtils.setCurrentMillisFixed(DateTime.parse("2013-03-19T12:00:00Z").getMillis());
-        try {
-            RestxError.RestxException restxException = RestxError.on(MyError.class).set(MyError.MY_FIELD, "my value").raise();
-            assertThat(restxException).isNotNull();
-            assertThat(restxException.getMessage()).isNotNull().isEqualTo(
-                    "[2013-03-19T12:00:00.000Z] [123456] [400~999] My error occurs only during tests - {MY_FIELD=my value}");
-        } finally {
-            DateTimeUtils.setCurrentMillisSystem();
-            UUIDGenerator.useDefault();
-        }
+        ExceptionsFactory.playbackUUIDs(Arrays.asList("123456"), new Runnable() {
+            @Override
+            public void run() {
+                DateTimeUtils.setCurrentMillisFixed(DateTime.parse("2013-03-19T12:00:00Z").getMillis());
+                try {
+                    RestxError.RestxException restxException = RestxError.on(MyError.class).set(MyError.MY_FIELD, "my value").raise();
+                    assertThat(restxException).isNotNull();
+                    assertThat(restxException.getMessage()).isNotNull().isEqualTo(
+                            "[2013-03-19T12:00:00.000Z] [123456] [400~999] My error occurs only during tests - {MY_FIELD=my value}");
+                } finally {
+                    DateTimeUtils.setCurrentMillisSystem();
+                }
+            }
+        });
     }
 }
