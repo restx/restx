@@ -127,4 +127,12 @@ public class JettyWebServer implements WebServer {
         return ctx;
     }
 
+    public static WebServerSupplier jettyWebServerSupplier(final String webInfLocation, final String appBase) {
+        return new WebServerSupplier() {
+            @Override
+            public WebServer newWebServer(int port) {
+                return new JettyWebServer(webInfLocation, appBase, port, "localhost");
+            }
+        };
+    }
 }

@@ -35,14 +35,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static restx.tests.ServerSuppliers.jettyWebServerSupplier;
-
 /**
  * User: xavierhanin
  * Date: 7/30/13
  * Time: 9:23 PM
  */
 public class RestxSpecTestServer {
+
+    public static Factory defaultFactory() {
+        return RestxSpecRunner.defaultFactory();
+    }
 
     private final String routerPath;
     private final int port;
@@ -275,27 +277,18 @@ public class RestxSpecTestServer {
         }
     }
 
-
     /**
-     * A shortcut for new RestxSpecRule("src/main/webapp/WEB-INF/web.xml", "src/main/webapp",
-     *                          "/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", 8076, queryByClass(WebServerSupplier.class), defaultFactory())
      */
     public RestxSpecTestServer() {
-        this("src/main/webapp/WEB-INF/web.xml", "src/main/webapp");
+        this(Factory.Query.byClass(WebServerSupplier.class).findOne().get().getComponent());
     }
 
     /**
-     * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", 8076, webServerSupplier, defaultFactory())
      */
-    public RestxSpecTestServer(String webInfLocation, String appBase) {
-        this(webInfLocation, appBase, RestxSpecRunner.defaultFactory());
-    }
-
-    /**
-     * A shortcut for new RestxSpecRule("/api", jettyWebServerSupplier(webInfLocation, appBase), factory)
-     */
-    public RestxSpecTestServer(final String webInfLocation, final String appBase, Factory factory) {
-        this("/api", 8076, jettyWebServerSupplier(webInfLocation, appBase), factory);
+    public RestxSpecTestServer(WebServerSupplier webServerSupplier) {
+        this("/api", 8076, webServerSupplier, defaultFactory());
     }
 
     /**
