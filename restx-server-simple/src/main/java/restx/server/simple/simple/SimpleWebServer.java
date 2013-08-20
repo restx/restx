@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import restx.RestxMainRouter;
 import restx.RestxMainRouterFactory;
 import restx.server.WebServer;
+import restx.server.WebServerSupplier;
 import restx.server.WebServers;
 
 import java.io.IOException;
@@ -166,6 +167,15 @@ public abstract class SimpleWebServer implements WebServer {
     @Override
     public int getPort() {
         return port;
+    }
+
+    public static WebServerSupplier simpleWebServerSupplier() {
+        return new WebServerSupplier() {
+            @Override
+            public WebServer newWebServer(int port) {
+                return SimpleWebServer.builder().setPort(port).build();
+            }
+        };
     }
 
 }

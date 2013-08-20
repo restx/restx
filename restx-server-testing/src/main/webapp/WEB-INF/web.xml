@@ -1,0 +1,22 @@
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+      version="3.0" metadata-complete="true">
+
+    <!--
+    This is a fake web.xml which is intented to be a generic web.xml for restx
+    which will be used both by jetty & tomcat servers
+    Don't pay attention to RestxMainRouterServlet not being available in classpath
+    (IDE error) : this file is only there to satisfy the default behaviour of
+    locating web.xml inside src/main/webapp/WEB-INF/web.xml
+    -->
+    <servlet>
+        <servlet-name>restx</servlet-name>
+        <servlet-class>restx.servlet.RestxMainRouterServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>restx</servlet-name>
+        <url-pattern>/api/*</url-pattern>
+    </servlet-mapping>
+</web-app>
