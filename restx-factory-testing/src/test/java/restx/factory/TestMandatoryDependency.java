@@ -17,7 +17,7 @@ public class TestMandatoryDependency {
 
     @Provides
     @Named("mandatory.dep.result2")
-    public String mandatoryDepResult2(@Named Foo missingDependency) {
+    public String mandatoryDepResult2(Foo missingDependency) {
         return "present:"+missingDependency.toString();
     }
 

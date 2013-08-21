@@ -21,7 +21,7 @@ public class TestOptionalDependency {
 
     @Provides
     @Named("optional.dep.result2")
-    public String optionalDepResult2(@Named Optional<Foo> missingDependency) {
+    public String optionalDepResult2(Optional<Foo> missingDependency) {
         if(missingDependency.isPresent()){
             return "present:"+missingDependency.get().toString();
         } else {
