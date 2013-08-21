@@ -2,7 +2,7 @@ package restx.tests;
 
 import com.google.common.collect.ImmutableMap;
 import restx.common.UUIDGenerator;
-import restx.common.UUIDGeneratorFactory;
+import restx.common.UUIDGenerators;
 import restx.factory.Component;
 import restx.factory.NamedComponent;
 import restx.specs.GivenUUIDGenerator;
@@ -23,7 +23,7 @@ public class GivenUUIDGeneratorRunner implements GivenRunner<GivenUUIDGenerator>
                 UUIDGenerator.class, given.getTargetComponentName(),
                 new UUIDGenerator.PlaybackUUIDGenerator(given.getPlaybackUUIDs()));
 
-        final UUIDGeneratorFactory.OverridenMachineCleaner cleaner = UUIDGeneratorFactory.overwriteUUIDGenerator(playbackUUIDComponent);
+        final UUIDGenerators.OverridenMachineCleaner cleaner = UUIDGenerators.overrideUUIDGenerator(playbackUUIDComponent);
 
         return new GivenCleaner() {
             @Override
