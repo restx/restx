@@ -105,6 +105,7 @@
     <modules>
         <module>restx-common</module>
         <module>restx-factory</module>
+        <module>restx-factory-testing</module>
         <module>restx-barbarywatch</module>
         <module>restx-classloader</module>
         <module>restx-security-basic</module>
