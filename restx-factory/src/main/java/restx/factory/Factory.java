@@ -240,7 +240,7 @@ public class Factory implements AutoCloseable {
             return setMandatory(false);
         }
 
-        abstract Query<T> setMandatory(boolean mandatory);
+        public abstract Query<T> setMandatory(boolean mandatory);
 
         public boolean isMandatory() {
             return this.mandatory;
