@@ -417,7 +417,15 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         }
 
         private TypeMirror targetType(){
-            return isOptionalType()?((DeclaredType)baseType).getTypeArguments().get(0):baseType;
+            if(isOptionalType()){
+                DeclaredType declaredBaseType = (DeclaredType) baseType;
+                if(declaredBaseType.getTypeArguments().isEmpty()){
+                    throw new RuntimeException("Optional type for parameter "+name+" needs parameterized type (generics) to be processed correctly !");
+                }
+                return declaredBaseType.getTypeArguments().get(0);
+            } else {
+                return baseType;
+            }
         }
 
         private boolean isOptionalType(){
