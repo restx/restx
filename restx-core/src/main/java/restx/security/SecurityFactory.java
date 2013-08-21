@@ -15,8 +15,8 @@ public class SecurityFactory {
     public RestxSessionCookieDescriptor restxSessionCookieDescriptor(@Named("app.name") Optional<String> appName){
         if(appName.isPresent()){
             return new RestxSessionCookieDescriptor(
-                    String.format("%s-%s", "RestxSession", appName),
-                    String.format("%s-%s", "RestxSessionSignature", appName));
+                    String.format("%s-%s", "RestxSession", appName.get()),
+                    String.format("%s-%s", "RestxSessionSignature", appName.get()));
         } else {
             // Keeping backward compatibility when appName is not provided
             return new RestxSessionCookieDescriptor("RestxSession", "RestxSessionSignature");
