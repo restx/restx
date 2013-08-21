@@ -38,15 +38,15 @@ public class UUIDGenerators {
         }
     }
 
-    public static OverridenMachineCleaner overwriteUUIDGenerator(final NamedComponent<UUIDGenerator> replacementGenerator) {
-        FactoryMachine temporaryAddedMachine = new SingletonFactoryMachine(-10, replacementGenerator);
+    public static OverridenMachineCleaner overrideUUIDGenerator(final NamedComponent<UUIDGenerator> replacementGenerator) {
+        FactoryMachine temporaryAddedMachine = new SingletonFactoryMachine(-10000, replacementGenerator);
         OverridenMachineCleaner cleaner = new OverridenMachineCleaner(temporaryAddedMachine, UUID_GENERATORS_LOCAL_MACHINES_CONTEXT);
         contextLocal(checkNotNull(UUID_GENERATORS_LOCAL_MACHINES_CONTEXT, "contextName param is required")).addMachine(temporaryAddedMachine);
         return cleaner;
     }
 
     public static void provideAnotherUUIDGeneratorDuring(Runnable runnable, final NamedComponent<UUIDGenerator> replacementGenerator) {
-        OverridenMachineCleaner cleaner = overwriteUUIDGenerator(replacementGenerator);
+        OverridenMachineCleaner cleaner = overrideUUIDGenerator(replacementGenerator);
         try {
             runnable.run();
         } finally {
