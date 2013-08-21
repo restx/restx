@@ -2,7 +2,7 @@ package restx.security;
 
 import com.google.common.cache.CacheLoader;
 import restx.common.UUIDGenerator;
-import restx.common.UUIDGeneratorFactory;
+import restx.common.UUIDGenerators;
 import restx.factory.Module;
 import restx.factory.Name;
 import restx.factory.Provides;
@@ -46,14 +46,14 @@ public class BasicSecurityModule {
     }
 
     public static UUIDGenerator currentUUIDGenerator(){
-        return UUIDGeneratorFactory.currentGeneratorFor(SESSION_UUID_GENERATOR_NAME);
+        return UUIDGenerators.currentGeneratorFor(SESSION_UUID_GENERATOR_NAME);
     }
 
     public static void playbackUUIDs(List<String> sequence, Runnable runnable) {
-        UUIDGeneratorFactory.playback(sequence, runnable, SESSION_UUID_GENERATOR_NAME);
+        UUIDGenerators.playback(sequence, runnable, SESSION_UUID_GENERATOR_NAME);
     }
 
     public static void recordUUIDs(Runnable runnable) {
-        UUIDGeneratorFactory.record(runnable, SESSION_UUID_GENERATOR_NAME);
+        UUIDGenerators.record(runnable, SESSION_UUID_GENERATOR_NAME);
     }
 }

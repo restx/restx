@@ -3,9 +3,7 @@ package restx.common;
 import com.google.common.base.Optional;
 import restx.factory.*;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.factory.Factory.LocalMachines.contextLocal;
@@ -13,10 +11,8 @@ import static restx.factory.Factory.LocalMachines.contextLocal;
 /**
  * @author fcamblor
  */
-@Machine
-public class UUIDGeneratorFactory implements FactoryMachine {
+public class UUIDGenerators {
 
-    private static final Factory.Query<UUIDGenerator> UUID_GENERATOR_QUERY = Factory.Query.byClass(UUIDGenerator.class);
     private static final String UUID_GENERATORS_LOCAL_MACHINES_CONTEXT = "uuidGeneratorsLocalMachinesContext";
 
     public static class OverridenMachineCleaner {
@@ -31,52 +27,6 @@ public class UUIDGeneratorFactory implements FactoryMachine {
         public void cleanup(){
             contextLocal(contextName).removeMachine(machineToClean);
         }
-    }
-
-    @Override
-    public boolean canBuild(Name<?> name) {
-        return UUIDGenerator.class.isAssignableFrom(name.getClazz());
-    }
-
-    @Override
-    public <T> MachineEngine<T> getEngine(final Name<T> name) {
-        return new StdMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
-            @Override
-            protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
-                // This machine engine could contain the same UUIDGenerator named component (with same name) more than once
-                // Particularly when we call the overwriteUUIDGenerator()
-                // In that case, we return the first component matching both class & name, that is to say, component
-                // having the lowest priority
-                for(NamedComponent<UUIDGenerator> uuidGenerator : satisfiedBOM.get(UUID_GENERATOR_QUERY)){
-                    if(uuidGenerator.getName().getName().equals(name.getName())) {
-                        return (T) uuidGenerator.getComponent();
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            public BillOfMaterials getBillOfMaterial() {
-                return BillOfMaterials.of(UUID_GENERATOR_QUERY);
-            }
-        };
-    }
-
-    @Override
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public int priority() {
-        return 1000;
-    }
-
-    @Override
-    public String toString() {
-        return "UUIDGeneratorFactory{" +
-                "uuidGeneratorsQuery=" + UUID_GENERATOR_QUERY +
-                '}';
     }
 
     public static UUIDGenerator currentGeneratorFor(Name<UUIDGenerator> name){

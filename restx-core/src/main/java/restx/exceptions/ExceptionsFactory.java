@@ -1,7 +1,7 @@
 package restx.exceptions;
 
 import restx.common.UUIDGenerator;
-import restx.common.UUIDGeneratorFactory;
+import restx.common.UUIDGenerators;
 import restx.factory.*;
 
 import javax.inject.Named;
@@ -21,15 +21,15 @@ public class ExceptionsFactory {
     }
 
     public static UUIDGenerator currentUUIDGenerator(){
-        return UUIDGeneratorFactory.currentGeneratorFor(EXCEPTION_UUID_GENERATOR_NAME);
+        return UUIDGenerators.currentGeneratorFor(EXCEPTION_UUID_GENERATOR_NAME);
     }
 
     public static void playbackUUIDs(List<String> sequence, Runnable runnable) {
-        UUIDGeneratorFactory.playback(sequence, runnable, EXCEPTION_UUID_GENERATOR_NAME);
+        UUIDGenerators.playback(sequence, runnable, EXCEPTION_UUID_GENERATOR_NAME);
     }
 
     public static void recordUUIDs(Runnable runnable) {
-        UUIDGeneratorFactory.record(runnable, EXCEPTION_UUID_GENERATOR_NAME);
+        UUIDGenerators.record(runnable, EXCEPTION_UUID_GENERATOR_NAME);
     }
 
 }
