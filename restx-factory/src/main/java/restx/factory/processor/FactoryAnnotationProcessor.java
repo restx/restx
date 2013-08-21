@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
@@ -229,7 +230,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
     private void buildInjectableParams(ExecutableElement executableElement, List<InjectableParameter> parameters) {
         for (VariableElement p : executableElement.getParameters()) {
             parameters.add(new InjectableParameter(
-                    p.asType().toString(),
+                    p.asType(),
                     p.getSimpleName().toString(),
                     getInjectionName(p.getAnnotation(Named.class))
             ));
@@ -384,28 +385,43 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
     }
 
     private static class InjectableParameter {
-        final String type;
+        final TypeMirror baseType;
         final String name;
         final Optional<String> injectionName;
 
-        private InjectableParameter(String type, String name, Optional<String> injectionName) {
-            this.type = type;
+        private InjectableParameter(TypeMirror baseType, String name, Optional<String> injectionName) {
+            this.baseType = baseType;
             this.name = name;
             this.injectionName = injectionName;
         }
 
         public String getQueryDeclarationCode() {
+            boolean optionalType = isOptionalType();
+            TypeMirror targetType = targetType();
+
             if (injectionName.isPresent()) {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\"));",
-                        type, name, type + ".class", injectionName.get());
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).setMandatory(%s);",
+                        targetType, name, targetType + ".class", injectionName.get(), !optionalType);
             } else {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).mandatory();",
-                        type, name, type + ".class");
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).setMandatory(%s);",
+                        targetType, name, targetType + ".class", !optionalType);
             }
         }
 
         public String getFromSatisfiedBomCode() {
-            return String.format("satisfiedBOM.getOne(%s).get().getComponent()", name);
+            if(isOptionalType()){
+                return String.format("satisfiedBOM.getOneAsComponent(%s)", name);
+            } else {
+                return String.format("satisfiedBOM.getOne(%s).get().getComponent()", name);
+            }
+        }
+
+        private TypeMirror targetType(){
+            return isOptionalType()?((DeclaredType)baseType).getTypeArguments().get(0):baseType;
+        }
+
+        private boolean isOptionalType(){
+            return baseType.toString().startsWith(Optional.class.getCanonicalName());
         }
     }
 
