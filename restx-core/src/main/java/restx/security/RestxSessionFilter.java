@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static restx.common.MoreStrings.headerTokenCompatible;
+
 /**
  * User: xavierhanin
  * Date: 2/8/13
@@ -33,12 +35,14 @@ public class RestxSessionFilter implements RestxFilter {
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
     private final SignatureKey signatureKey;
+    private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
     private final RestxSession emptySession;
 
-    RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, SignatureKey signatureKey) {
+    RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, SignatureKey signatureKey, RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
         this.sessionDefinition = sessionDefinition;
         this.mapper = mapper;
         this.signatureKey = signatureKey;
+        this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
         this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(),
                 Optional.<RestxPrincipal>absent(), Duration.ZERO);
     }
@@ -81,12 +85,12 @@ public class RestxSessionFilter implements RestxFilter {
     }
 
     public RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
-        String restxSessionCookieName = getRestxSessionCookieName();
+        String restxSessionCookieName = restxSessionCookieDescriptor.getCookieName();
         String cookie = req.getCookieValue(restxSessionCookieName, "");
         if (cookie.trim().isEmpty()) {
             return emptySession;
         } else {
-            String sig = req.getCookieValue(getRestxSessionSignatureCookieName(), "");
+            String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName(), "");
             if (!Crypto.sign(cookie, signatureKey.getKey()).equals(sig)) {
                 logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
                 return emptySession;
@@ -125,8 +129,8 @@ public class RestxSessionFilter implements RestxFilter {
     private void updateSessionInClient(RestxResponse resp, RestxSession session) {
         ImmutableMap<String, String> cookiesMap = toCookiesMap(session);
         if (cookiesMap.isEmpty()) {
-            resp.clearCookie(getRestxSessionCookieName());
-            resp.clearCookie(getRestxSessionSignatureCookieName());
+            resp.clearCookie(restxSessionCookieDescriptor.getCookieName());
+            resp.clearCookie(restxSessionCookieDescriptor.getCookieSignatureName());
         } else {
             for (Map.Entry<String, String> cookie : cookiesMap.entrySet()) {
                 resp.addCookie(cookie.getKey(), cookie.getValue(), session.getExpires());
@@ -143,31 +147,11 @@ public class RestxSessionFilter implements RestxFilter {
                 HashMap<String,String> map = Maps.newHashMap(sessionMap);
                 map.put(EXPIRES, DateTime.now().plusDays(30).toString());
                 String sessionJson = mapper.writeValueAsString(map);
-                return ImmutableMap.of(getRestxSessionCookieName(), sessionJson,
-                        getRestxSessionSignatureCookieName(), Crypto.sign(sessionJson, signatureKey.getKey()));
+                return ImmutableMap.of(restxSessionCookieDescriptor.getCookieName(), sessionJson,
+                        restxSessionCookieDescriptor.getCookieSignatureName(), Crypto.sign(sessionJson, signatureKey.getKey()));
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    private String getRestxSessionCookieName(){
-        return appNameDependentCookieKey("RestxSession", signatureKey);
-    }
-
-    private String getRestxSessionSignatureCookieName(){
-        return appNameDependentCookieKey("RestxSessionSignature", signatureKey);
-    }
-
-    static String appNameDependentCookieKey(String prefix, SignatureKey signatureKey) {
-        if(signatureKey.getAppName().isPresent()){
-            String suffix = signatureKey.getAppName().get();
-            // See rfc 2616 for allowed chars in header tokens (http://www.ietf.org/rfc/rfc2616.txt page 16)
-            suffix = suffix.replaceAll("[\\s\\(\\)<>@,;:\\\\\"/\\[\\]\\?=\\{\\}]", "_");
-            return String.format("%s-%s", prefix, suffix);
-        } else {
-            // Keeping backward compat here, when no name was provided
-            return prefix;
         }
     }
 

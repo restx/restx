@@ -18,6 +18,7 @@ public class RestxSessionFilterMachine extends SingleNameFactoryMachine<RestxSes
             private final Factory.Query<RestxSession.Definition.Entry> entries = Factory.Query.byClass(RestxSession.Definition.Entry.class);
             private final Factory.Query<ObjectMapper> mapper = Factory.Query.byName(FrontObjectMapperFactory.NAME);
             private final Factory.Query<SignatureKey> signatureKeyQuery = Factory.Query.byClass(SignatureKey.class);
+            private final Factory.Query<RestxSessionCookieDescriptor> restxSessionCookieDescriptorQuery = Factory.Query.byClass(RestxSessionCookieDescriptor.class);
             @Override
             public RestxSessionFilter doNewComponent(SatisfiedBOM satisfiedBOM) {
                 return new RestxSessionFilter(
@@ -26,16 +27,14 @@ public class RestxSessionFilterMachine extends SingleNameFactoryMachine<RestxSes
                         satisfiedBOM.getOne(signatureKeyQuery)
                                 .or(new NamedComponent(
                                         Name.of(SignatureKey.class, "DefaultSignature"),
-                                        // Should we break backward compat with restx clients (having
-                                        // them to re-authenticate in order to re-create a new
-                                        // app-name-based cookie) ?
                                         new SignatureKey("this is the default signature key".getBytes())))
-                                .getComponent());
+                                .getComponent(),
+                        satisfiedBOM.getOne(restxSessionCookieDescriptorQuery).get().getComponent());
             }
 
             @Override
             public BillOfMaterials getBillOfMaterial() {
-                return BillOfMaterials.of(entries, mapper, signatureKeyQuery);
+                return BillOfMaterials.of(entries, mapper, signatureKeyQuery, restxSessionCookieDescriptorQuery);
             }
         });
     }
