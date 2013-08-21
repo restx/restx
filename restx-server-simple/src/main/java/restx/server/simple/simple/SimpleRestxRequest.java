@@ -111,7 +111,7 @@ public class SimpleRestxRequest implements RestxRequest {
     public Map<String, String> getCookiesMap() {
         Map<String, String> cookies = Maps.newLinkedHashMap();
         for (Cookie cookie : request.getCookies()) {
-            cookies.put(cookie.getName(), cookie.getValue());
+            cookies.put(cookie.getName(), cookie.getValue().replace("\\\"", "\""));
         }
         return cookies;
     }

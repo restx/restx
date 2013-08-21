@@ -39,7 +39,7 @@ public class WhenHttpChecker implements WhenChecker<RestxSpec.WhenHttpRequest> {
         if (!when.getCookies().isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, String> entry : when.getCookies().entrySet()) {
-                sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
+                sb.append(entry.getKey()).append("=\"").append(entry.getValue().replace("\"", "\\\"")).append("\"; ");
             }
             sb.setLength(sb.length() - 2);
             httpRequest.header("Cookie", sb.toString());
