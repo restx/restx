@@ -22,10 +22,18 @@ public class {{{machine}}} extends DefaultFactoryMachine {
                 }
 
                 @Override
-                public {{{type}}} doNewComponent(SatisfiedBOM satisfiedBOM) {
-                    return module.{{{name}}}(
-        {{{parameters}}}
-                    );
+                public {{{type}}} doNewComponent(SatisfiedBOM satisfiedBOM) {{#exceptions}} throws ProvisionException {{/exceptions}} {
+	                {{#exceptions}}
+                	try {
+	                {{/exceptions}}
+	                    return module.{{{name}}}(
+	        {{{parameters}}}
+	                    );
+	                {{#exceptions}}
+                    } catch ({{{exceptions}}} e) {
+                    	throw new ProvisionException("Could not create component {{{name}}}", e);
+                    }
+	                {{/exceptions}}
                 }
             },
 {{/engines}}
