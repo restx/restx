@@ -398,13 +398,14 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         public String getQueryDeclarationCode() {
             boolean optionalType = isOptionalType();
             TypeMirror targetType = targetType();
+            String optionalOrNotQueryQualifier = optionalType?"optional()":"mandatory()";
 
             if (injectionName.isPresent()) {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).setMandatory(%s);",
-                        targetType, name, targetType + ".class", injectionName.get(), !optionalType);
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).%s;",
+                        targetType, name, targetType + ".class", injectionName.get(), optionalOrNotQueryQualifier);
             } else {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).setMandatory(%s);",
-                        targetType, name, targetType + ".class", !optionalType);
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).%s;",
+                        targetType, name, targetType + ".class", optionalOrNotQueryQualifier);
             }
         }
 
