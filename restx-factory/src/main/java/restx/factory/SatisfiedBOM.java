@@ -53,6 +53,15 @@ public class SatisfiedBOM {
         return Optional.of(component);
     }
 
+    public <T> Optional<T> getOneAsComponent(Factory.Query<T> key) {
+        Optional<NamedComponent<T>> namedComponent = getOne(key);
+        if(namedComponent.isPresent()) {
+            return Optional.of(namedComponent.get().getComponent());
+        } else {
+            return Optional.absent();
+        }
+    }
+
     @Override
     public String toString() {
         return "SatisfiedBOM{" +

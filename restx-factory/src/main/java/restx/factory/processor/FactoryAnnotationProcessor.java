@@ -243,7 +243,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
     private void buildInjectableParams(ExecutableElement executableElement, List<InjectableParameter> parameters) {
         for (VariableElement p : executableElement.getParameters()) {
             parameters.add(new InjectableParameter(
-                    p.asType().toString(),
+                    p.asType(),
                     p.getSimpleName().toString(),
                     getInjectionName(p.getAnnotation(Named.class))
             ));
@@ -399,28 +399,52 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
     }
 
     private static class InjectableParameter {
-        final String type;
+        final TypeMirror baseType;
         final String name;
         final Optional<String> injectionName;
 
-        private InjectableParameter(String type, String name, Optional<String> injectionName) {
-            this.type = type;
+        private InjectableParameter(TypeMirror baseType, String name, Optional<String> injectionName) {
+            this.baseType = baseType;
             this.name = name;
             this.injectionName = injectionName;
         }
 
         public String getQueryDeclarationCode() {
+            boolean optionalType = isOptionalType();
+            TypeMirror targetType = targetType();
+            String optionalOrNotQueryQualifier = optionalType?"optional()":"mandatory()";
+
             if (injectionName.isPresent()) {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\"));",
-                        type, name, type + ".class", injectionName.get());
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).%s;",
+                        targetType, name, targetType + ".class", injectionName.get(), optionalOrNotQueryQualifier);
             } else {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).mandatory();",
-                        type, name, type + ".class");
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).%s;",
+                        targetType, name, targetType + ".class", optionalOrNotQueryQualifier);
             }
         }
 
         public String getFromSatisfiedBomCode() {
-            return String.format("satisfiedBOM.getOne(%s).get().getComponent()", name);
+            if(isOptionalType()){
+                return String.format("satisfiedBOM.getOneAsComponent(%s)", name);
+            } else {
+                return String.format("satisfiedBOM.getOne(%s).get().getComponent()", name);
+            }
+        }
+
+        private TypeMirror targetType(){
+            if(isOptionalType()){
+                DeclaredType declaredBaseType = (DeclaredType) baseType;
+                if(declaredBaseType.getTypeArguments().isEmpty()){
+                    throw new RuntimeException("Optional type for parameter "+name+" needs parameterized type (generics) to be processed correctly !");
+                }
+                return declaredBaseType.getTypeArguments().get(0);
+            } else {
+                return baseType;
+            }
+        }
+
+        private boolean isOptionalType(){
+            return baseType.toString().startsWith(Optional.class.getCanonicalName());
         }
     }
 

@@ -6,6 +6,7 @@ import com.google.common.base.Splitter;
 import java.io.IOException;
 import java.util.Properties;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getFirst;
 
 /**
@@ -15,6 +16,7 @@ import static com.google.common.collect.Iterables.getFirst;
  */
 public class HTTP {
     private static final Properties mimeTypes;
+    private final static String RFC_2616_TOKEN_SPECIAL_CHARS_REGEX = "[\\s\\(\\)<>@,;:\\\\\"/\\[\\]\\?=\\{\\}]";
 
     static {
         mimeTypes = new Properties();
@@ -55,5 +57,15 @@ public class HTTP {
         } else {
             return Optional.of(s.substring(s.indexOf("charset=") + "charset=".length()));
         }
+    }
+
+    public static String headerTokenCompatible(String s, String specialCharsReplacement) {
+        checkArgument(
+                specialCharsReplacement.replaceAll(RFC_2616_TOKEN_SPECIAL_CHARS_REGEX, "blah").equals(specialCharsReplacement),
+                "specialCharsReplacement `%s` is not itself compatible with rfc 2616 !",
+                specialCharsReplacement);
+
+        // See rfc 2616 for allowed chars in header tokens (http://www.ietf.org/rfc/rfc2616.txt page 16)
+        return s.replaceAll(RFC_2616_TOKEN_SPECIAL_CHARS_REGEX, specialCharsReplacement);
     }
 }
