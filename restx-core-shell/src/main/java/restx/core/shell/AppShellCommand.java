@@ -137,7 +137,7 @@ public class AppShellCommand extends StdShellCommand {
 
             String restxVersion = shell.ask("restx version [%s]? ", Version.getVersion("io.restx", "restx-core"));
 
-            List<String> list = Lists.newArrayList(UUIDGenerator.generate(),
+            List<String> list = Lists.newArrayList(UUIDGenerator.DEFAULT.doGenerate(),
                     String.valueOf(new Random().nextLong()), appName, artifactId);
             Collections.shuffle(list);
             String signatureKey = shell.ask("signature key (to sign cookies) [%s]? ",

@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import restx.common.UUIDGenerator;
 
 import java.util.Map;
 
@@ -43,7 +42,7 @@ public class RestxError<T> {
 
     public RestxException raise() {
         return new RestxException(
-                UUIDGenerator.generate(),
+                ExceptionsFactory.currentUUIDGenerator().doGenerate(),
                 DateTime.now().toDateTime(DateTimeZone.UTC),
                 errorStatus, error,
                 description,

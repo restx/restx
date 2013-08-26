@@ -4,6 +4,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
+import java.util.Map;
+
 /**
  * User: xavierhanin
  * Date: 2/3/13
@@ -30,5 +32,11 @@ public class MorePreconditions {
                 "%s %s must be an instanceof of %s", name, o, clazz.getSimpleName());
 
         return (T) o;
+    }
+
+    public static <K,V> V checkContainsKey(String name, Map<K,V> map, K key) {
+        Preconditions.checkArgument(map.containsKey(key),
+                "%s map must contain key value for key %s", name, key);
+        return map.get(key);
     }
 }

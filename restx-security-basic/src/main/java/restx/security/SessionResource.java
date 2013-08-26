@@ -42,7 +42,7 @@ public class SessionResource {
                 name, passwordHash, ImmutableMap.copyOf(principal));
 
         if (principalOptional.isPresent()) {
-            String sessionKey = UUIDGenerator.generate();
+            String sessionKey = BasicSecurityModule.currentUUIDGenerator().doGenerate();
             RestxSession.current().authenticateAs(principalOptional.get());
             RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, sessionKey);
             return new Session(sessionKey, principalOptional.get());

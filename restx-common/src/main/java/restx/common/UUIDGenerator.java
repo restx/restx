@@ -12,29 +12,12 @@ import java.util.UUID;
  * Time: 3:06 PM
  */
 public abstract class UUIDGenerator {
-    private static final UUIDGenerator DEFAULT = new DefaultUUIDGenerator();
 
-    private static final ThreadLocal<UUIDGenerator> current = new ThreadLocal<UUIDGenerator>() {
-        @Override
-        protected UUIDGenerator initialValue() {
-            return UUIDGenerator.DEFAULT;
-        }
-    };
+    public static final UUIDGenerator DEFAULT = new DefaultUUIDGenerator();
 
-    public static void useDefault() {
-        current.set(DEFAULT);
-    }
     public static RecordingUUIDGenerator record() {
         RecordingUUIDGenerator recordingUUIDGenerator = new RecordingUUIDGenerator();
-        current.set(recordingUUIDGenerator);
         return recordingUUIDGenerator;
-    }
-    public static void playback(List<String> sequence) {
-        current.set(new PlaybackUUIDGenerator(sequence));
-    }
-
-    public static String generate() {
-        return current.get().doGenerate();
     }
 
     public abstract String doGenerate();
@@ -45,6 +28,7 @@ public abstract class UUIDGenerator {
             return UUID.randomUUID().toString();
         }
     }
+
     public static class RecordingUUIDGenerator extends UUIDGenerator {
         private final List<String> sequence = Lists.newArrayList();
 
@@ -55,7 +39,7 @@ public abstract class UUIDGenerator {
             return uuid;
         }
     }
-    private static class PlaybackUUIDGenerator extends UUIDGenerator {
+    public static class PlaybackUUIDGenerator extends UUIDGenerator {
         private final List<String> sequence;
 
         public PlaybackUUIDGenerator(List<String> sequence) {
