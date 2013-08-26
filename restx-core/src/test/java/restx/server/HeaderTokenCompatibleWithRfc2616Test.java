@@ -1,4 +1,4 @@
-package restx.common;
+package restx.server;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +52,6 @@ public class HeaderTokenCompatibleWithRfc2616Test {
 
     @Test
     public void should_given_string_be_correctly_converted_to_rfc2616_compatible_token(){
-        assertThat(MoreStrings.headerTokenCompatible(this.str, "_"), is(equalTo(this.expectedResult)));
+        assertThat(HTTP.headerTokenCompatible(this.str, "_"), is(equalTo(this.expectedResult)));
     }
 }

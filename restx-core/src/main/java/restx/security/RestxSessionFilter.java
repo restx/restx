@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static restx.common.MoreStrings.headerTokenCompatible;
-
 /**
  * User: xavierhanin
  * Date: 2/8/13

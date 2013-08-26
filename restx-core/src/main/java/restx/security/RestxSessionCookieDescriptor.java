@@ -1,6 +1,6 @@
 package restx.security;
 
-import static restx.common.MoreStrings.headerTokenCompatible;
+import static restx.server.HTTP.headerTokenCompatible;
 
 /**
  * @author fcamblor
