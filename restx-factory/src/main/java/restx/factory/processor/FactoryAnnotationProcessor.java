@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
+
 import restx.factory.*;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -15,13 +16,16 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
@@ -101,6 +105,8 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                             exec);
 
                     buildInjectableParams(exec, m.parameters);
+                    
+                    buildCheckedExceptions(exec, m.exceptions);
 
                     module.providerMethods.add(m);
                 }
@@ -226,6 +232,14 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         return exec;
     }
 
+    private void buildCheckedExceptions(ExecutableElement executableElement, List<String> exceptions) {
+    	for (TypeMirror e : executableElement.getThrownTypes()) {
+    		// Assuming Exceptions never have type arguments. Qualified names include type arguments.
+    		String exception = ((TypeElement) ((DeclaredType) e).asElement()).getQualifiedName().toString();
+    		exceptions.add(exception);
+    	}
+    }
+    
     private void buildInjectableParams(ExecutableElement executableElement, List<InjectableParameter> parameters) {
         for (VariableElement p : executableElement.getParameters()) {
             parameters.add(new InjectableParameter(
@@ -252,6 +266,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                     .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
                     .put("queries", Joiner.on(",\n").join(buildQueriesNames(method.parameters)))
                     .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(method.parameters)))
+                    .put("exceptions", Joiner.on("\n").join(method.exceptions))
                     .build());
         }
 
@@ -433,6 +448,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         final String name;
         final Optional<String> injectionName;
         final List<InjectableParameter> parameters = Lists.newArrayList();
+        final List<String> exceptions = Lists.newArrayList();
 
         ProviderMethod(String type, String name, Optional<String> injectionName, Element originatingElement) {
             this.type = type;
