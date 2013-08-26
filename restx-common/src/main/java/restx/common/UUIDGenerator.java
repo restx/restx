@@ -32,28 +32,23 @@ public abstract class UUIDGenerator {
             public void uuidGenerated(String uuid);
         }
 
-        private ThreadLocal<List<UUIDGeneratedObserver>> observers = new ThreadLocal(){
-            @Override
-            protected List<UUIDGeneratedObserver> initialValue() {
-                return newArrayList();
-            }
-        };
+        private List<UUIDGeneratedObserver> observers = newArrayList();
 
         @Override
         public String doGenerate() {
             String uuid = DEFAULT.doGenerate();
-            for(UUIDGeneratedObserver uuidGeneratedObserver : observers.get()){
+            for(UUIDGeneratedObserver uuidGeneratedObserver : observers){
                 uuidGeneratedObserver.uuidGenerated(uuid);
             }
             return uuid;
         }
 
-        public void attachThreadedObserver(UUIDGeneratedObserver uuidGeneratedObserver) {
-            observers.get().add(uuidGeneratedObserver);
+        public void attachObserver(UUIDGeneratedObserver uuidGeneratedObserver) {
+            observers.add(uuidGeneratedObserver);
         }
 
-        public void detachThreadedObservers() {
-            observers.get().clear();
+        public void detachObserver(UUIDGeneratedObserver uuidGeneratedObserver) {
+            observers.remove(uuidGeneratedObserver);
         }
     }
     public static class PlaybackUUIDGenerator extends UUIDGenerator {

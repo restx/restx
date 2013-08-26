@@ -1,6 +1,5 @@
 package restx.specs;
 
-import com.google.common.collect.ImmutableList;
 import restx.common.UUIDGenerator;
 import restx.common.UUIDGenerators;
 import restx.factory.*;
@@ -27,17 +26,20 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
     @Override
     public AutoCloseable recordIn(final Map<String, RestxSpec.Given> givens) {
         final Set<NamedComponent<UUIDGenerator.RecordingUUIDGenerator>> recordingUUIDGenerators = recordingUUIDGenerators();
+        final Map<String, UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver> observersByName = new HashMap<>();
 
         for(final NamedComponent<UUIDGenerator.RecordingUUIDGenerator> namedRecordingUUIDGenerator : recordingUUIDGenerators){
-            namedRecordingUUIDGenerator.getComponent().attachThreadedObserver(new UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver() {
+            UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver observer = new UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver() {
                 public void uuidGenerated(String uuid) {
-                    String key = GivenUUIDGenerator.class.getSimpleName() + "/uuidsFor"+namedRecordingUUIDGenerator.getName().getName();
+                    String key = GivenUUIDGenerator.class.getSimpleName() + "/uuidsFor" + namedRecordingUUIDGenerator.getName().getName();
                     if (!givens.containsKey(key)) {
                         givens.put(key, new GivenUUIDGenerator(namedRecordingUUIDGenerator.getName().getName(), Collections.<String>emptyList()));
                     }
-                    givens.put(key, ((GivenUUIDGenerator)givens.get(key)).withAddedUUID(uuid));
+                    givens.put(key, ((GivenUUIDGenerator) givens.get(key)).withAddedUUID(uuid));
                 }
-            });
+            };
+            namedRecordingUUIDGenerator.getComponent().attachObserver(observer);
+            observersByName.put(namedRecordingUUIDGenerator.getName().getName(), observer);
         }
 
         return new AutoCloseable() {
@@ -45,7 +47,7 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
             public void close() throws Exception {
                 for(NamedComponent<UUIDGenerator.RecordingUUIDGenerator> namedRecordingUUIDGenerator : recordingUUIDGenerators){
                     // Removing attached observers
-                    namedRecordingUUIDGenerator.getComponent().detachThreadedObservers();
+                    namedRecordingUUIDGenerator.getComponent().detachObserver(observersByName.get(namedRecordingUUIDGenerator.getName().getName()));
 
                     // No need to clean uuid generators machine because installRecording() will not be called
                     // again before the next recordIn() call..
