@@ -83,7 +83,7 @@ public class RestxSpecTestServer {
 
         public TestRequest submitTestRequest(TestRequest testRequest) {
             if (testRequest.getTest().startsWith("specs")) {
-                final String requestKey = UUIDGenerator.generate();
+                final String requestKey = UUIDGenerator.DEFAULT.doGenerate();
                 testRequest.setKey(requestKey);
                 testRequest.setRequestTime(DateTime.now());
                 testRequest.setStatus(TestRequest.Status.QUEUED);
@@ -120,7 +120,7 @@ public class RestxSpecTestServer {
 
                                 TestResult result = new TestResult()
                                         .setSummary(new TestResultSummary()
-                                            .setKey(UUIDGenerator.generate())
+                                            .setKey(UUIDGenerator.DEFAULT.doGenerate())
                                             .setName(testRequest.getTest())
                                             .setStatus(status)
                                             .setTestDuration(System.currentTimeMillis() - start)

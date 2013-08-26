@@ -75,6 +75,11 @@ public class Factory implements AutoCloseable {
             return this;
         }
 
+        public LocalMachines removeMachine(FactoryMachine machine) {
+            machines.remove(machine);
+            return this;
+        }
+
         public void clear() {
             machines.clear();
         }
