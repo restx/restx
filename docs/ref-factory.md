@@ -58,6 +58,31 @@ public class MyAppModule {
 In this case the methods annotated with `@Provides` are used to build components of their returned types. You can annotate them with `@Named` to indicate the name of the component produced.
 The provider methods can take arbitrary parameters, which are satisfied the same way as constructor parameters are injected (so you can use @Named to indicate their names).
 
+### Optional Components
+
+If a `@Named` component is of type `Optional`, it will be considered an `Optional<T>` dependency of type T.
+In this case, if the component is not found, Dependency Injection will not break with an exception, and Optional.absent() will be injected.
+
+It can be useful in particular cases, to handle loaded dependencies at runtime.
+
+Following example will provide either jetty, simple or tomcat server depending on which `@Component` of type `WebServerSupplier`
+is found in the classpath :
+
+{% highlight java %}
+@Module
+public class MyAppModule {
+    @Provides @Named("available.server")
+    public WebServerSupplier resolveWebServerSupplier(
+        @Named("restx.server.jetty") Optional<WebServerSupplier> jettyWebServerSupplier,
+        @Named("restx.server.simple") Optional<WebServerSupplier> simpleWebServerSupplier,
+        @Named("restx.server.tomcat") Optional<WebServerSupplier> tomcatWebServerSupplier
+    ){
+        // Simple server will be returned first if found, otherwise jetty, and finally tomcat
+        return simpleWebServerSupplier.or(jettyWebServerSupplier).or(tomcatWebServerSupplier).orNull();
+    }
+}
+{% endhighlight %}
+
 
 ### Getting a Factory
 
