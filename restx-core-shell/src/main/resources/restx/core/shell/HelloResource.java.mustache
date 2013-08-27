@@ -5,10 +5,12 @@ import org.joda.time.DateTime;
 import restx.annotations.GET;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
+import restx.security.PermitAll;
 
 @Component @RestxResource
 public class HelloResource {
     @GET("/message")
+    @PermitAll
     public Message sayHello(String who) {
         return new Message().setMessage(String.format(
                 "hello %s, it's %s",
