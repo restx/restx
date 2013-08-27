@@ -9,13 +9,19 @@ import javax.inject.Named;
 @Module
 public class AppModule {
     @Provides
+    public SignatureKey signatureKey() {
+         return new SignatureKey("{{signatureKey}}".getBytes(Charsets.UTF_8));
+    }
+
+    @Provides
     @Named("restx.admin.password")
     public String restxAdminPassword() {
         return "{{adminPassword}}";
     }
 
     @Provides
-    public SignatureKey signatureKey() {
-         return new SignatureKey("{{signatureKey}}".getBytes(Charsets.UTF_8));
+    @Named("app.name")
+    public String appName(){
+        return "{{appName}}";
     }
 }
