@@ -208,10 +208,20 @@ public class AppModule {
     public SignatureKey signatureKey() {
          return new SignatureKey("4f768f23-703e-4268-9e9e-51d2e052b6a1 4082747839477764571 MyApp myapp".getBytes(Charsets.UTF_8));
     }
+    @Provides
+    @Named("restx.admin.password")
+    public String restxAdminPassword() {
+        return "qwerty";
+    }
+    @Provides
+    @Named("app.name")
+    public String appName() {
+        return "MyApp";
+    }
 }
 {% endhighlight %}
 
-This class is mandatory to provide a `SignatureKey` used to sign content sent to the clients. The string is used as salt, it can be any content, but make sure to keep it private.
+This class is mandatory to provide at least a `SignatureKey` used to sign content sent to the clients. The string is used as salt, it can be any content, but make sure to keep it private.
 
 The `@Module` annotation indicates that this class is used as a RESTX module, able to define a set of components.
 
@@ -220,6 +230,10 @@ The `@Provides` annotation on the `signatureKey` method is a way to define a com
 <div class="note">
 	<p>To get more information on RESTX dependency injection mechanism, check <a href="ref-factory.html">RESTX Factory reference documentation</a>.</p>
 </div>
+
+In the `AppModule`, you will be able to define lots of Application scoped objects, such as :
+ - An admin password, which will be used to authenticate on the ` RESTX Administration Console`
+ - An application name, which will be used in different ways, particularly by suffixing RESTX `Cookies names`
 
 ## logback.xml
 
