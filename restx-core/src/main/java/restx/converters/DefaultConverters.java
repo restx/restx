@@ -52,7 +52,7 @@ public class DefaultConverters {
             }
         };
     }
-    @Provides @Named("DateMidmnightConverter")
+    @Provides @Named("DateMidnightConverter")
     public StringConverter dateMidmnightConverter() {
         return new SimpleStringConverter<DateMidnight>(DateMidnight.class) {
             @Override
