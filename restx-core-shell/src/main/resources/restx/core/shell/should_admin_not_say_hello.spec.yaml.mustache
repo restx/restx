@@ -6,6 +6,6 @@ given:
 wts:
   - when: |
       GET message?who=xavier
-      Cookie: RestxSession-{{appName}}={"_expires":"2013-09-27T01:12:11.666+02:00","principal":"admin","sessionKey":"d7155afb-0fee-45b9-9a15-065782190cb8"}; RestxSessionSignature-{{appName}}={{#generateSignatureFor}}{{signatureKey}},{"_expires":"2013-09-27T01:12:11.666+02:00","principal":"admin","sessionKey":"d7155afb-0fee-45b9-9a15-065782190cb8"}{{/generateSignatureFor}}
+      $RestxSession: {"_expires":"2013-09-27T01:12:11.666+02:00","principal":"admin","sessionKey":"d7155afb-0fee-45b9-9a15-065782190cb8"}
     then: |
       403
