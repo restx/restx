@@ -1,5 +1,7 @@
 package restx.tests;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.util.ClasspathHelper;
@@ -17,6 +19,16 @@ import java.util.regex.Pattern;
 * A list of specs to be run as tests by a RestxSpecTestsRunner.
 */
 public class RestxSpecTests {
+
+    public static Iterable<Object[]> specsAsParametersIn(String location) throws IOException {
+        return Collections2.transform(findSpecsIn(location), new Function<RestxSpec, Object[]>() {
+            @Override
+            public Object[] apply(RestxSpec restxSpec) {
+                return new Object[]{restxSpec};
+            }
+        });
+    }
+
     public static List<RestxSpec> findSpecsIn(String location) throws IOException {
         RestxSpecLoader loader = new RestxSpecLoader();
 
