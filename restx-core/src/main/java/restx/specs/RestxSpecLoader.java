@@ -2,6 +2,7 @@ package restx.specs;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -9,9 +10,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+import restx.SignatureKey;
+import restx.common.Crypto;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
+import restx.security.RestxSessionCookieDescriptor;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,18 +35,25 @@ import static restx.common.MorePreconditions.checkInstanceOf;
  * Time: 6:19 PM
  */
 public class RestxSpecLoader {
+    private static final Logger logger = LoggerFactory.getLogger(RestxSpecLoader.class);
+
     private static final String COOKIE = "Cookie:";
+    private static final String RESTXSESSION_SPECIAL_HEADER = "$RestxSession:";
 
     private final Set<NamedComponent<GivenLoader>> givenLoaders;
     private final String names;
 
+    private static Factory defaultFactory(){
+        return Factory.builder()
+                    .addLocalMachines(Factory.LocalMachines.threadLocal())
+                    .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpec.class.getSimpleName()))
+                    .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpecLoader.class.getSimpleName()))
+                    .addFromServiceLoader()
+                    .build();
+    }
+
     public RestxSpecLoader() {
-        this(Factory.builder()
-                .addLocalMachines(Factory.LocalMachines.threadLocal())
-                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpec.class.getSimpleName()))
-                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpecLoader.class.getSimpleName()))
-                .addFromServiceLoader()
-                .build());
+        this(defaultFactory());
     }
 
     public RestxSpecLoader(Factory factory) {
@@ -82,25 +95,46 @@ public class RestxSpecLoader {
                     definition = ws.substring(0, nlIndex);
                     body = ws.substring(nlIndex + 1).trim();
 
-                    while (body.startsWith(COOKIE)) {
+                    while (body.startsWith(COOKIE) || body.startsWith(RESTXSESSION_SPECIAL_HEADER)) {
+                        String matchedHeader = body.startsWith(COOKIE)?COOKIE:RESTXSESSION_SPECIAL_HEADER;
+
                         nlIndex = body.indexOf("\n");
-                        String cookieValues;
+                        String headerValue;
                         if (nlIndex == -1) {
-                            cookieValues = body.substring(COOKIE.length(), body.length());
+                            headerValue = body.substring(matchedHeader.length(), body.length());
                             body = "";
                         } else {
-                            cookieValues = body.substring(COOKIE.length(), nlIndex);
+                            headerValue = body.substring(matchedHeader.length(), nlIndex);
                             body = body.substring(nlIndex + 1).trim();
                         }
 
-                        for (String s : Splitter.on(";").trimResults().split(cookieValues)) {
-                            int i = s.indexOf('=');
+                        if(matchedHeader.equals(COOKIE)){
+                            for (String s : Splitter.on(";").trimResults().split(headerValue)) {
+                                int i = s.indexOf('=');
 
-                            String name = s.substring(0, i);
-                            String value = s.substring(i + 1);
-                            cookies.put(name, value);
+                                String name = s.substring(0, i);
+                                String value = s.substring(i + 1);
+                                cookies.put(name, value);
+                            }
+                        } else if(matchedHeader.equals(RESTXSESSION_SPECIAL_HEADER)) {
+                            Factory factory = defaultFactory();
+                            Optional<NamedComponent<RestxSessionCookieDescriptor>> sessionCookieDescComp = factory.queryByClass(RestxSessionCookieDescriptor.class).findOne();
+                            SignatureKey signature = factory.queryByClass(SignatureKey.class).findOneAsComponent().or(SignatureKey.DEFAULT);
+                            if(sessionCookieDescComp.isPresent()){
+                                RestxSessionCookieDescriptor sessionCookieDesc = sessionCookieDescComp.get().getComponent();
+                                String sessionContent = headerValue.trim();
+
+                                if(cookies.containsKey(sessionCookieDesc.getCookieName()) || cookies.containsKey(sessionCookieDesc.getCookieSignatureName())){
+                                    logger.warn("Restx session cookie will be overwritten by {} special header !", RESTXSESSION_SPECIAL_HEADER);
+                                }
+
+                                cookies.put(sessionCookieDesc.getCookieName(), sessionContent);
+                                cookies.put(sessionCookieDesc.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
+                            } else {
+                                throw new IllegalStateException("Trying to parse restx session special header, " +
+                                        "but not succeeded to fetch RestxSessionCookieDescriptor in Factory !");
+                            }
                         }
-
                     }
                 } else {
                     definition = ws;
