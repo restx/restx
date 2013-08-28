@@ -10,6 +10,7 @@ import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.Apps;
 import restx.build.RestxBuild;
+import restx.common.Crypto;
 import restx.common.UUIDGenerator;
 import restx.common.Version;
 import restx.factory.Component;
@@ -78,7 +79,9 @@ public class AppShellCommand extends StdShellCommand {
                 .put("Message.java.mustache", "src/main/java/{{packagePath}}/domain/Message.java")
                 .put("HelloResource.java.mustache", "src/main/java/{{packagePath}}/rest/HelloResource.java")
                 .put("HelloResourceSpecTest.java.mustache", "src/test/java/{{packagePath}}/rest/HelloResourceSpecTest.java")
-                .put("should_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_say_hello.spec.yaml")
+                .put("should_admin_not_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_admin_not_say_hello.spec.yaml")
+                .put("should_user1_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user1_say_hello.spec.yaml")
+                .put("should_user2_not_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user2_not_say_hello.spec.yaml")
                 .build()
         );
 
@@ -177,6 +180,14 @@ public class AppShellCommand extends StdShellCommand {
                     .put("defaultPort", defaultPort)
                     .put("basePath", basePath)
                     .put("restxVersion", restxVersion)
+                    .put("generateSignatureFor", new Function<String,String>(){
+                        @Override
+                        public String apply(String input) {
+                            String signature = input.substring(0, input.indexOf(",")).trim();
+                            String restxCookieContent = input.substring(input.indexOf(",")+1).trim();
+                            return Crypto.sign(restxCookieContent, signature.getBytes(Charsets.UTF_8));
+                        }
+                    })
                     .build();
 
             boolean generateHelloResource = shell.askBoolean("generate hello resource example [Y/n]? ", "y",
