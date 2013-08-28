@@ -37,8 +37,66 @@ import static restx.common.MorePreconditions.checkInstanceOf;
 public class RestxSpecLoader {
     private static final Logger logger = LoggerFactory.getLogger(RestxSpecLoader.class);
 
-    private static final String COOKIE = "Cookie:";
-    private static final String RESTXSESSION_SPECIAL_HEADER = "$RestxSession:";
+    private static enum WhenHeaders {
+        COOKIE("Cookie:") {
+            @Override
+            public void fillCookiesFromValue(String headerValue, Map<String, String> cookies) {
+                for (String s : Splitter.on(";").trimResults().split(headerValue)) {
+                    int i = s.indexOf('=');
+
+                    String name = s.substring(0, i);
+                    String value = s.substring(i + 1);
+                    cookies.put(name, value);
+                }
+            }
+        }, RESTXSESSION_SPECIAL_HEADER("$RestxSession:") {
+            @Override
+            public void fillCookiesFromValue(String headerValue, Map<String, String> cookies) {
+                Factory factory = defaultFactory();
+                Optional<NamedComponent<RestxSessionCookieDescriptor>> sessionCookieDescComp = factory.queryByClass(RestxSessionCookieDescriptor.class).findOne();
+                SignatureKey signature = factory.queryByClass(SignatureKey.class).findOneAsComponent().or(SignatureKey.DEFAULT);
+                if(sessionCookieDescComp.isPresent()){
+                    RestxSessionCookieDescriptor sessionCookieDesc = sessionCookieDescComp.get().getComponent();
+                    String sessionContent = headerValue.trim();
+
+                    if(cookies.containsKey(sessionCookieDesc.getCookieName()) || cookies.containsKey(sessionCookieDesc.getCookieSignatureName())){
+                        logger.warn("Restx session cookie will be overwritten by {} special header !", RESTXSESSION_SPECIAL_HEADER);
+                    }
+
+                    cookies.put(sessionCookieDesc.getCookieName(), sessionContent);
+                    cookies.put(sessionCookieDesc.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
+                } else {
+                    throw new IllegalStateException("Trying to parse restx session special header, " +
+                            "but not succeeded to fetch RestxSessionCookieDescriptor in Factory !");
+                }
+            }
+        };
+
+        private String detectionPattern;
+
+        private WhenHeaders(String detectionPattern) {
+            this.detectionPattern = detectionPattern;
+        }
+
+        public static Optional<WhenHeaders> resolveFromBody(String body) {
+            for(WhenHeaders whenHeaders : values()){
+                if(whenHeaders.matchesWith(body)){
+                    return Optional.of(whenHeaders);
+                }
+            }
+            return Optional.absent();
+        }
+
+        private boolean matchesWith(String body) {
+            return body.startsWith(detectionPattern);
+        }
+
+        public int detectionLength(String body) {
+            return detectionPattern.length();
+        }
+
+        public abstract void fillCookiesFromValue(String headerValue, Map<String, String> cookies);
+    }
 
     private final Set<NamedComponent<GivenLoader>> givenLoaders;
     private final String names;
@@ -95,46 +153,21 @@ public class RestxSpecLoader {
                     definition = ws.substring(0, nlIndex);
                     body = ws.substring(nlIndex + 1).trim();
 
-                    while (body.startsWith(COOKIE) || body.startsWith(RESTXSESSION_SPECIAL_HEADER)) {
-                        String matchedHeader = body.startsWith(COOKIE)?COOKIE:RESTXSESSION_SPECIAL_HEADER;
-
+                    Optional<WhenHeaders> whenHeader = WhenHeaders.resolveFromBody(body);
+                    while (whenHeader.isPresent()) {
                         nlIndex = body.indexOf("\n");
                         String headerValue;
                         if (nlIndex == -1) {
-                            headerValue = body.substring(matchedHeader.length(), body.length());
+                            headerValue = body.substring(whenHeader.get().detectionLength(body), body.length());
                             body = "";
                         } else {
-                            headerValue = body.substring(matchedHeader.length(), nlIndex);
+                            headerValue = body.substring(whenHeader.get().detectionLength(body), nlIndex);
                             body = body.substring(nlIndex + 1).trim();
                         }
 
-                        if(matchedHeader.equals(COOKIE)){
-                            for (String s : Splitter.on(";").trimResults().split(headerValue)) {
-                                int i = s.indexOf('=');
+                        whenHeader.get().fillCookiesFromValue(headerValue, cookies);
 
-                                String name = s.substring(0, i);
-                                String value = s.substring(i + 1);
-                                cookies.put(name, value);
-                            }
-                        } else if(matchedHeader.equals(RESTXSESSION_SPECIAL_HEADER)) {
-                            Factory factory = defaultFactory();
-                            Optional<NamedComponent<RestxSessionCookieDescriptor>> sessionCookieDescComp = factory.queryByClass(RestxSessionCookieDescriptor.class).findOne();
-                            SignatureKey signature = factory.queryByClass(SignatureKey.class).findOneAsComponent().or(SignatureKey.DEFAULT);
-                            if(sessionCookieDescComp.isPresent()){
-                                RestxSessionCookieDescriptor sessionCookieDesc = sessionCookieDescComp.get().getComponent();
-                                String sessionContent = headerValue.trim();
-
-                                if(cookies.containsKey(sessionCookieDesc.getCookieName()) || cookies.containsKey(sessionCookieDesc.getCookieSignatureName())){
-                                    logger.warn("Restx session cookie will be overwritten by {} special header !", RESTXSESSION_SPECIAL_HEADER);
-                                }
-
-                                cookies.put(sessionCookieDesc.getCookieName(), sessionContent);
-                                cookies.put(sessionCookieDesc.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
-                            } else {
-                                throw new IllegalStateException("Trying to parse restx session special header, " +
-                                        "but not succeeded to fetch RestxSessionCookieDescriptor in Factory !");
-                            }
-                        }
+                        whenHeader = WhenHeaders.resolveFromBody(body);
                     }
                 } else {
                     definition = ws;
