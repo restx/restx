@@ -252,7 +252,7 @@ public class Factory implements AutoCloseable {
         }
 
         public abstract boolean isMultiple();
-        public final  Optional<NamedComponent<T>> findOne() {
+        public final Optional<NamedComponent<T>> findOne() {
             try {
                 checkSatisfy();
             } catch (IllegalStateException e) {
@@ -260,6 +260,14 @@ public class Factory implements AutoCloseable {
                         "%s\n%s", e.getMessage(), factory.dump()));
             }
             return doFindOne();
+        }
+        public final Optional<T> findOneAsComponent() {
+            Optional<NamedComponent<T>> namedComponent = findOne();
+            if(namedComponent.isPresent()){
+                return Optional.of(namedComponent.get().getComponent());
+            } else {
+                return Optional.absent();
+            }
         }
         public final Set<NamedComponent<T>> find() {
             try {
