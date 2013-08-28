@@ -27,7 +27,7 @@ public class RestxSessionFilterMachine extends SingleNameFactoryMachine<RestxSes
                         satisfiedBOM.getOne(signatureKeyQuery)
                                 .or(new NamedComponent(
                                         Name.of(SignatureKey.class, "DefaultSignature"),
-                                        new SignatureKey("this is the default signature key".getBytes())))
+                                        SignatureKey.DEFAULT))
                                 .getComponent(),
                         satisfiedBOM.getOne(restxSessionCookieDescriptorQuery).get().getComponent());
             }
