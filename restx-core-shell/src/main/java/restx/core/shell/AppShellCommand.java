@@ -180,14 +180,6 @@ public class AppShellCommand extends StdShellCommand {
                     .put("defaultPort", defaultPort)
                     .put("basePath", basePath)
                     .put("restxVersion", restxVersion)
-                    .put("generateSignatureFor", new Function<String,String>(){
-                        @Override
-                        public String apply(String input) {
-                            String signature = input.substring(0, input.indexOf(",")).trim();
-                            String restxCookieContent = input.substring(input.indexOf(",")+1).trim();
-                            return Crypto.sign(restxCookieContent, signature.getBytes(Charsets.UTF_8));
-                        }
-                    })
                     .build();
 
             boolean generateHelloResource = shell.askBoolean("generate hello resource example [Y/n]? ", "y",
