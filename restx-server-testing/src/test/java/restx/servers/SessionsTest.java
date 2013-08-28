@@ -1,15 +1,21 @@
 package restx.servers;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import restx.factory.NamedComponent;
 import restx.server.WebServerSupplier;
+import restx.specs.RestxSpec;
 import restx.tests.RestxSpecRule;
 import restx.tests.RestxSpecRunner;
+import restx.tests.RestxSpecTests;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * @author fcamblor
@@ -19,41 +25,38 @@ public class SessionsTest {
     @Rule
     public RestxSpecRule rule;
 
-    private String name;
-    private WebServerSupplier webServerSupplier;
+    private final RestxSpec spec;
+    private final WebServerSupplier webServerSupplier;
 
-    @Parameterized.Parameters(name="{0}") // Parameter name will be the component's name
-    public static Iterable<Object[]> data(){
-        // Fetching every webserversuppliers provided in classpath
-        return Collections2.transform(
-            RestxSpecRunner.defaultFactory().queryByClass(WebServerSupplier.class).find(),
-            new Function<NamedComponent<WebServerSupplier>, Object[]>() {
-                @Override
-                public Object[] apply(NamedComponent<WebServerSupplier> input) {
-                    return new Object[]{ input.getName().getName(), input.getComponent() };
-                }
-        });
+    @Parameterized.Parameters(name="{0}")
+    public static Iterable<Object[]> data() throws IOException {
+        Set<NamedComponent<WebServerSupplier>> webServerSuppliers = RestxSpecRunner.defaultFactory().queryByClass(WebServerSupplier.class).find();
+        List<RestxSpec> specs = RestxSpecTests.findSpecsIn("specs/sessions");
+
+        List<Object[]> data = newArrayList();
+        for(NamedComponent<WebServerSupplier> webServerSupplierNamedComponent : webServerSuppliers){
+            for(RestxSpec restxSpec: specs){
+                data.add(new Object[]{
+                        String.format("spec [%s] with server %s",
+                                restxSpec.getTitle(),
+                                webServerSupplierNamedComponent.getName().getName()),
+                        restxSpec,
+                        webServerSupplierNamedComponent.getComponent() });
+            }
+        }
+        return data;
     }
 
-    public SessionsTest(String name, WebServerSupplier webServerSupplier){
-        this.name = name;
+    // name param is only used for the @Parameters' name attribute
+    public SessionsTest(String name, RestxSpec spec, WebServerSupplier webServerSupplier){
         this.webServerSupplier = webServerSupplier;
+        this.spec = spec;
         this.rule = new RestxSpecRule(this.webServerSupplier);
     }
 
 
     @Test
-    public void should_authentication_be_successful() throws Exception {
-        rule.runTest("specs/sessions/should_authentication_be_successful.spec.yaml");
-    }
-
-    @Test
-    public void should_authentication_be_in_failure() throws Exception {
-        rule.runTest("specs/sessions/should_authentication_be_in_failure.spec.yaml");
-    }
-
-    @Test
-    public void should_disconnection_be_successful() throws Exception {
-        rule.runTest("specs/sessions/should_disconnection_be_successful.spec.yaml");
+    public void should_server_scenario_be_ok() throws Exception {
+        this.rule.runTest(this.spec);
     }
 }
