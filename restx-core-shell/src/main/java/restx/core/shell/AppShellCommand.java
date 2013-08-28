@@ -1,9 +1,7 @@
 package restx.core.shell;
 
 import com.github.mustachejava.Mustache;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -70,6 +68,7 @@ public class AppShellCommand extends StdShellCommand {
                 .put("md.restx.json.mustache", "md.restx.json")
                 .put("AppModule.java.mustache", "src/main/java/{{packagePath}}/AppModule.java")
                 .put("AppServer.java.mustache", "src/main/java/{{packagePath}}/AppServer.java")
+                .put("UserRepository.java.mustache", "src/main/java/{{packagePath}}/persistence/UserRepository.java")
                 .put("web.xml.mustache", "src/main/webapp/WEB-INF/web.xml")
                 .put("logback.xml.mustache", "src/main/resources/logback.xml")
                 .build()
