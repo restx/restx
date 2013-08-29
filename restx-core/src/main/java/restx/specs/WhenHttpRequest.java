@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
+import static com.google.common.collect.Maps.newLinkedHashMap;
 import static restx.common.MoreStrings.indent;
 
 /**
@@ -63,5 +64,50 @@ public class WhenHttpRequest extends When<ThenHttpResponse> {
 
     public ImmutableMap<String, String> getCookies() {
         return cookies;
+    }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String method;
+        private String path;
+        private String body;
+        private Map<String, String> cookies = newLinkedHashMap();
+        private ThenHttpResponse response;
+
+        public Builder withMethod(String method) {
+            this.method = method;
+            return this;
+        }
+
+        public Builder withPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Builder withBody(String body) {
+            this.body = body;
+            return this;
+        }
+
+        public Builder addCookie(String key, String value) {
+            this.cookies.put(key, value);
+            return this;
+        }
+
+        public boolean containsCookie(String key) {
+            return this.cookies.containsKey(key);
+        }
+
+        public Builder withThen(ThenHttpResponse response) {
+            this.response = response;
+            return this;
+        }
+
+        public WhenHttpRequest build() {
+            return new WhenHttpRequest(method, path, cookies, body, response);
+        }
     }
 }

@@ -6,7 +6,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import org.slf4j.Logger;
@@ -39,18 +38,18 @@ public class RestxSpecLoader {
     private static enum WhenHeaders {
         COOKIE("Cookie:") {
             @Override
-            public void fillCookiesFromValue(String headerValue, Map<String, String> cookies) {
+            public void readHeader(String headerValue, WhenHttpRequest.Builder whenHttpReqBuilder) {
                 for (String s : Splitter.on(";").trimResults().split(headerValue)) {
                     int i = s.indexOf('=');
 
                     String name = s.substring(0, i);
                     String value = s.substring(i + 1);
-                    cookies.put(name, value);
+                    whenHttpReqBuilder.addCookie(name, value);
                 }
             }
         }, RESTXSESSION_SPECIAL_HEADER("$RestxSession:") {
             @Override
-            public void fillCookiesFromValue(String headerValue, Map<String, String> cookies) {
+            public void readHeader(String headerValue, WhenHttpRequest.Builder whenHttpReqBuilder) {
                 Factory factory = defaultFactory();
                 Optional<NamedComponent<RestxSessionCookieDescriptor>> sessionCookieDescComp = factory.queryByClass(RestxSessionCookieDescriptor.class).findOne();
                 SignatureKey signature = factory.queryByClass(SignatureKey.class).findOneAsComponent().or(SignatureKey.DEFAULT);
@@ -58,12 +57,13 @@ public class RestxSpecLoader {
                     RestxSessionCookieDescriptor sessionCookieDesc = sessionCookieDescComp.get().getComponent();
                     String sessionContent = headerValue.trim();
 
-                    if(cookies.containsKey(sessionCookieDesc.getCookieName()) || cookies.containsKey(sessionCookieDesc.getCookieSignatureName())){
+                    if(whenHttpReqBuilder.containsCookie(sessionCookieDesc.getCookieName())
+                            || whenHttpReqBuilder.containsCookie(sessionCookieDesc.getCookieSignatureName())){
                         logger.warn("Restx session cookie will be overwritten by {} special header !", RESTXSESSION_SPECIAL_HEADER);
                     }
 
-                    cookies.put(sessionCookieDesc.getCookieName(), sessionContent);
-                    cookies.put(sessionCookieDesc.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
+                    whenHttpReqBuilder.addCookie(sessionCookieDesc.getCookieName(), sessionContent);
+                    whenHttpReqBuilder.addCookie(sessionCookieDesc.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
                 } else {
                     throw new IllegalStateException("Trying to parse restx session special header, " +
                             "but not succeeded to fetch RestxSessionCookieDescriptor in Factory !");
@@ -94,7 +94,7 @@ public class RestxSpecLoader {
             return detectionPattern.length();
         }
 
-        public abstract void fillCookiesFromValue(String headerValue, Map<String, String> cookies);
+        public abstract void readHeader(String headerValue, WhenHttpRequest.Builder whenHttpReqBuilder);
     }
 
     private final Set<NamedComponent<GivenLoader>> givenLoaders;
@@ -142,10 +142,11 @@ public class RestxSpecLoader {
             Map whenThen = checkInstanceOf("when/then", wt, Map.class);
             Object w = whenThen.get("when");
             if (w instanceof String) {
+                WhenHttpRequest.Builder whenHttpBuilder = WhenHttpRequest.builder();
+
                 String ws = (String) w;
                 String definition;
                 String body;
-                Map<String, String> cookies = Maps.newLinkedHashMap();
 
                 int nlIndex = ws.indexOf("\n");
                 if (nlIndex != -1) {
@@ -164,7 +165,7 @@ public class RestxSpecLoader {
                             body = body.substring(nlIndex + 1).trim();
                         }
 
-                        whenHeader.get().fillCookiesFromValue(headerValue, cookies);
+                        whenHeader.get().readHeader(headerValue, whenHttpBuilder);
 
                         whenHeader = WhenHeaders.resolveFromBody(body);
                     }
@@ -173,11 +174,9 @@ public class RestxSpecLoader {
                     body = "";
                 }
 
-                Matcher matcher = Pattern.compile("(GET|POST|PUT|DELETE|HEAD|OPTIONS) (.+)").matcher(definition);
+                Matcher methodAndPathMatcher = Pattern.compile("(GET|POST|PUT|DELETE|HEAD|OPTIONS) (.+)").matcher(definition);
 
-                if (matcher.matches()) {
-                    String method = matcher.group(1);
-                    String path = matcher.group(2);
+                if (methodAndPathMatcher.matches()) {
                     String then = checkInstanceOf("then", whenThen.get("then"), String.class).trim();
                     int code = 200;
                     int endLineIndex = then.indexOf("\n");
@@ -190,7 +189,13 @@ public class RestxSpecLoader {
                         code = Integer.parseInt(respMatcher.group(1));
                         then = then.substring(endLineIndex).trim();
                     }
-                    whens.add(new WhenHttpRequest(method, path, cookies, body, new ThenHttpResponse(code, then)));
+
+                    whens.add(whenHttpBuilder
+                            .withMethod(methodAndPathMatcher.group(1))
+                            .withPath(methodAndPathMatcher.group(2))
+                            .withBody(body)
+                            .withThen(new ThenHttpResponse(code, then))
+                            .build());
                 } else {
                     throw new IllegalArgumentException("unrecognized 'when' format: it must begin with " +
                             "a HTTP declaration of the form 'VERB resource/path'\nEg: GET users/johndoe\n. Was: '" + ws + "'\n");
