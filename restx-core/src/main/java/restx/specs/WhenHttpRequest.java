@@ -19,12 +19,12 @@ public class WhenHttpRequest extends When<ThenHttpResponse> {
     private final String body;
     private final ImmutableMap<String, String> cookies;
 
-    public WhenHttpRequest(String method, String path, ImmutableMap<String, String> cookies, String body, ThenHttpResponse then) {
+    public WhenHttpRequest(String method, String path, Map<String, String> cookies, String body, ThenHttpResponse then) {
         super(then);
         this.method = method;
         this.path = path;
         this.body = body;
-        this.cookies = cookies;
+        this.cookies = ImmutableMap.copyOf(cookies);
     }
 
     @Override

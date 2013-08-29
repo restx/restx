@@ -5,7 +5,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.InputSupplier;
@@ -191,7 +190,7 @@ public class RestxSpecLoader {
                         code = Integer.parseInt(respMatcher.group(1));
                         then = then.substring(endLineIndex).trim();
                     }
-                    whens.add(new WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), body, new ThenHttpResponse(code, then)));
+                    whens.add(new WhenHttpRequest(method, path, cookies, body, new ThenHttpResponse(code, then)));
                 } else {
                     throw new IllegalArgumentException("unrecognized 'when' format: it must begin with " +
                             "a HTTP declaration of the form 'VERB resource/path'\nEg: GET users/johndoe\n. Was: '" + ws + "'\n");

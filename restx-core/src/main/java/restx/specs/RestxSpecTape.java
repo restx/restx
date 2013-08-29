@@ -162,7 +162,7 @@ public class RestxSpecTape {
                 RestxSpec restxSpec = new RestxSpec(
                         buildTitle(id, method, path),
                         ImmutableList.copyOf(givens.values()), ImmutableList.<When>of(
-                        new WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), new String(requestBody, Charsets.UTF_8),
+                        new WhenHttpRequest(method, path, cookies, new String(requestBody, Charsets.UTF_8),
                                 new ThenHttpResponse(status, baos.toString(Charsets.UTF_8.name())))));
                 System.out.println("-----------------  RESTX SPEC  ---------------- \n"
                         + restxSpec + "\n"

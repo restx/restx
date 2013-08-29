@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import restx.StdRequest;
 
+import java.util.Collections;
+
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -72,7 +74,7 @@ public class RestxSpecRepositoryTest {
     }
 
     private WhenHttpRequest when(String method, String path) {
-        return new WhenHttpRequest(method, path, ImmutableMap.<String,String>of(), "",
+        return new WhenHttpRequest(method, path, Collections.<String, String>emptyMap(), "",
                 new ThenHttpResponse(200, ""));
     }
 
