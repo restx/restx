@@ -18,7 +18,7 @@ import static restx.common.MorePreconditions.checkInstanceOf;
 @Named("uuidsFor") @Component
 public class GivenUUIDGeneratorLoader implements RestxSpecLoader.GivenLoader {
     @Override
-    public RestxSpec.Given load(Map given) {
+    public Given load(Map given) {
         String targetComponentName = checkInstanceOf("uuidsFor", given.get("uuidsFor"), String.class);
 
         List<String> uuids = newArrayList();

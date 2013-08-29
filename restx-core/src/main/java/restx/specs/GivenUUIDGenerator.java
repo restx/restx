@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * @author fcamblor
  */
-public class GivenUUIDGenerator implements RestxSpec.Given {
+public class GivenUUIDGenerator implements Given {
     private final String targetComponentName;
     private final ImmutableList<String> playbackUUIDs;
 

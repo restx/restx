@@ -136,8 +136,8 @@ public class RestxSpecLoader {
     public RestxSpec load(InputSupplier<InputStreamReader> inputSupplier) throws IOException {
         Yaml yaml = new Yaml();
         Map spec = (Map) yaml.load(inputSupplier.getInput());
-        List<RestxSpec.Given> givens = loadGivens(spec);
-        List<RestxSpec.When> whens = Lists.newArrayList();
+        List<Given> givens = loadGivens(spec);
+        List<When> whens = Lists.newArrayList();
         Iterable wts = checkInstanceOf("wts", spec.get("wts"), Iterable.class);
         for (Object wt : wts) {
             Map whenThen = checkInstanceOf("when/then", wt, Map.class);
@@ -191,7 +191,7 @@ public class RestxSpecLoader {
                         code = Integer.parseInt(respMatcher.group(1));
                         then = then.substring(endLineIndex).trim();
                     }
-                    whens.add(new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), body, new RestxSpec.ThenHttpResponse(code, then)));
+                    whens.add(new WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), body, new ThenHttpResponse(code, then)));
                 } else {
                     throw new IllegalArgumentException("unrecognized 'when' format: it must begin with " +
                             "a HTTP declaration of the form 'VERB resource/path'\nEg: GET users/johndoe\n. Was: '" + ws + "'\n");
@@ -204,8 +204,8 @@ public class RestxSpecLoader {
                 ImmutableList.copyOf(whens));
     }
 
-    private List<RestxSpec.Given> loadGivens(Map testCase) throws IOException {
-        List<RestxSpec.Given> givens = Lists.newArrayList();
+    private List<Given> loadGivens(Map testCase) throws IOException {
+        List<Given> givens = Lists.newArrayList();
         Iterable given = checkInstanceOf("given", testCase.get("given"), Iterable.class);
         for (Object g : given) {
             Map given1 = checkInstanceOf("given", g, Map.class);
@@ -230,6 +230,6 @@ public class RestxSpecLoader {
     }
 
     public static interface GivenLoader {
-        RestxSpec.Given load(Map m);
+        Given load(Map m);
     }
 }

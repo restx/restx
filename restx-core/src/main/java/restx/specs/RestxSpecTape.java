@@ -40,7 +40,7 @@ public class RestxSpecTape {
     private final RestxResponse restxResponse;
 
     private final RestxSpecRecorder.RecordedSpec recordedSpec = new RestxSpecRecorder.RecordedSpec();
-    private final Map<String, RestxSpec.Given> givens = Maps.newLinkedHashMap();
+    private final Map<String, Given> givens = Maps.newLinkedHashMap();
     private final Set<RestxSpecRecorder.GivenRecorder> recorders;
     private final Set<AutoCloseable> givenTapes = Sets.newLinkedHashSet();
     private final RestxSessionFilter sessionFilter;
@@ -90,7 +90,7 @@ public class RestxSpecTape {
         }
 
         DateTime now = DateTime.now();
-        givens.put(RestxSpec.GivenTime.class.getSimpleName() + "/now", new RestxSpec.GivenTime(now));
+        givens.put(GivenTime.class.getSimpleName() + "/now", new GivenTime(now));
         DateTimeUtils.setCurrentMillisFixed(now.getMillis());
         recordedSpec.setRecordTime(now);
         Stopwatch stopwatch = new Stopwatch().start();
@@ -161,9 +161,9 @@ public class RestxSpecTape {
                 int id = specId.incrementAndGet();
                 RestxSpec restxSpec = new RestxSpec(
                         buildTitle(id, method, path),
-                        ImmutableList.copyOf(givens.values()), ImmutableList.<RestxSpec.When>of(
-                        new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), new String(requestBody, Charsets.UTF_8),
-                                new RestxSpec.ThenHttpResponse(status, baos.toString(Charsets.UTF_8.name())))));
+                        ImmutableList.copyOf(givens.values()), ImmutableList.<When>of(
+                        new WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), new String(requestBody, Charsets.UTF_8),
+                                new ThenHttpResponse(status, baos.toString(Charsets.UTF_8.name())))));
                 System.out.println("-----------------  RESTX SPEC  ---------------- \n"
                         + restxSpec + "\n"
                         + "------------------------------------------------"
