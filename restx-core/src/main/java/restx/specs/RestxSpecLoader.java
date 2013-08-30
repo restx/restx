@@ -35,69 +35,8 @@ import static restx.common.MorePreconditions.checkInstanceOf;
 public class RestxSpecLoader {
     private static final Logger logger = LoggerFactory.getLogger(RestxSpecLoader.class);
 
-    private static enum WhenHeaders {
-        COOKIE("Cookie:") {
-            @Override
-            public void readHeader(String headerValue, WhenHttpRequest.Builder whenHttpReqBuilder) {
-                for (String s : Splitter.on(";").trimResults().split(headerValue)) {
-                    int i = s.indexOf('=');
-
-                    String name = s.substring(0, i);
-                    String value = s.substring(i + 1);
-                    whenHttpReqBuilder.addCookie(name, value);
-                }
-            }
-        }, RESTXSESSION_SPECIAL_HEADER("$RestxSession:") {
-            @Override
-            public void readHeader(String headerValue, WhenHttpRequest.Builder whenHttpReqBuilder) {
-                Factory factory = defaultFactory();
-                Optional<NamedComponent<RestxSessionCookieDescriptor>> sessionCookieDescComp = factory.queryByClass(RestxSessionCookieDescriptor.class).findOne();
-                SignatureKey signature = factory.queryByClass(SignatureKey.class).findOneAsComponent().or(SignatureKey.DEFAULT);
-                if(sessionCookieDescComp.isPresent()){
-                    RestxSessionCookieDescriptor sessionCookieDesc = sessionCookieDescComp.get().getComponent();
-                    String sessionContent = headerValue.trim();
-
-                    if(whenHttpReqBuilder.containsCookie(sessionCookieDesc.getCookieName())
-                            || whenHttpReqBuilder.containsCookie(sessionCookieDesc.getCookieSignatureName())){
-                        logger.warn("Restx session cookie will be overwritten by {} special header !", RESTXSESSION_SPECIAL_HEADER);
-                    }
-
-                    whenHttpReqBuilder.addCookie(sessionCookieDesc.getCookieName(), sessionContent);
-                    whenHttpReqBuilder.addCookie(sessionCookieDesc.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
-                } else {
-                    throw new IllegalStateException("Trying to parse restx session special header, " +
-                            "but not succeeded to fetch RestxSessionCookieDescriptor in Factory !");
-                }
-            }
-        };
-
-        private String detectionPattern;
-
-        private WhenHeaders(String detectionPattern) {
-            this.detectionPattern = detectionPattern;
-        }
-
-        public static Optional<WhenHeaders> resolveFromBody(String body) {
-            for(WhenHeaders whenHeaders : values()){
-                if(whenHeaders.matchesWith(body)){
-                    return Optional.of(whenHeaders);
-                }
-            }
-            return Optional.absent();
-        }
-
-        private boolean matchesWith(String body) {
-            return body.startsWith(detectionPattern);
-        }
-
-        public int detectionLength(String body) {
-            return detectionPattern.length();
-        }
-
-        public abstract void readHeader(String headerValue, WhenHttpRequest.Builder whenHttpReqBuilder);
-    }
-
     private final Set<NamedComponent<GivenLoader>> givenLoaders;
+    private final Set<NamedComponent<WhenHeaderLoader>> whenHeaderLoaders;
     private final String names;
 
     private static Factory defaultFactory(){
@@ -114,11 +53,12 @@ public class RestxSpecLoader {
     }
 
     public RestxSpecLoader(Factory factory) {
-        this(factory.queryByClass(GivenLoader.class).find());
+        this(factory.queryByClass(GivenLoader.class).find(), factory.queryByClass(WhenHeaderLoader.class).find());
     }
 
-    public RestxSpecLoader(Set<NamedComponent<GivenLoader>> givenLoaders) {
+    public RestxSpecLoader(Set<NamedComponent<GivenLoader>> givenLoaders, Set<NamedComponent<WhenHeaderLoader>> whenHeaderLoaders) {
         this.givenLoaders = givenLoaders;
+        this.whenHeaderLoaders = whenHeaderLoaders;
         List<String> names = Lists.newArrayList();
         for (NamedComponent<GivenLoader> givenLoader : givenLoaders) {
             names.add(givenLoader.getName().getName());
@@ -153,21 +93,21 @@ public class RestxSpecLoader {
                     definition = ws.substring(0, nlIndex);
                     body = ws.substring(nlIndex + 1).trim();
 
-                    Optional<WhenHeaders> whenHeader = WhenHeaders.resolveFromBody(body);
+                    Optional<WhenHeaderLoader> whenHeader = resolveFromBody(body);
                     while (whenHeader.isPresent()) {
                         nlIndex = body.indexOf("\n");
                         String headerValue;
                         if (nlIndex == -1) {
-                            headerValue = body.substring(whenHeader.get().detectionLength(body), body.length());
+                            headerValue = body.substring(whenHeader.get().detectionPattern().length(), body.length());
                             body = "";
                         } else {
-                            headerValue = body.substring(whenHeader.get().detectionLength(body), nlIndex);
+                            headerValue = body.substring(whenHeader.get().detectionPattern().length(), nlIndex);
                             body = body.substring(nlIndex + 1).trim();
                         }
 
-                        whenHeader.get().readHeader(headerValue, whenHttpBuilder);
+                        whenHeader.get().loadHeader(headerValue, whenHttpBuilder);
 
-                        whenHeader = WhenHeaders.resolveFromBody(body);
+                        whenHeader = resolveFromBody(body);
                     }
                 } else {
                     definition = ws;
@@ -208,6 +148,15 @@ public class RestxSpecLoader {
                 ImmutableList.copyOf(whens));
     }
 
+    private Optional<WhenHeaderLoader> resolveFromBody(String body) {
+        for(NamedComponent<WhenHeaderLoader> whenHeaderLoader : whenHeaderLoaders){
+            if(body.startsWith(whenHeaderLoader.getComponent().detectionPattern())){
+                return Optional.of(whenHeaderLoader.getComponent());
+            }
+        }
+        return Optional.absent();
+    }
+
     private List<Given> loadGivens(Map testCase) throws IOException {
         List<Given> givens = Lists.newArrayList();
         Iterable given = checkInstanceOf("given", testCase.get("given"), Iterable.class);
@@ -235,5 +184,10 @@ public class RestxSpecLoader {
 
     public static interface GivenLoader {
         Given load(Map m);
+    }
+
+    public static interface WhenHeaderLoader {
+        String detectionPattern();
+        void loadHeader(String headerValue, WhenHttpRequest.Builder whenHttpRequestBuilder);
     }
 }
