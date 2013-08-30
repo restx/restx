@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import restx.factory.*;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.factory.Factory.LocalMachines.contextLocal;
@@ -27,6 +28,14 @@ public class UUIDGenerators {
         public void cleanup(){
             contextLocal(contextName).removeMachine(machineToClean);
         }
+    }
+
+    public static Set<NamedComponent<UUIDGenerator>> currentUUIDGenerators(){
+        return defaultFactory().queryByClass(UUIDGenerator.class).find();
+    }
+
+    public static UUIDGenerator currentGeneratorFor(String name){
+        return currentGeneratorFor(Name.of(UUIDGenerator.class, name));
     }
 
     public static UUIDGenerator currentGeneratorFor(Name<UUIDGenerator> name){

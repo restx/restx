@@ -1,10 +1,13 @@
 package restx.common;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * User: xavierhanin
@@ -14,11 +17,6 @@ import java.util.UUID;
 public abstract class UUIDGenerator {
 
     public static final UUIDGenerator DEFAULT = new DefaultUUIDGenerator();
-
-    public static RecordingUUIDGenerator record() {
-        RecordingUUIDGenerator recordingUUIDGenerator = new RecordingUUIDGenerator();
-        return recordingUUIDGenerator;
-    }
 
     public abstract String doGenerate();
 
@@ -30,13 +28,27 @@ public abstract class UUIDGenerator {
     }
 
     public static class RecordingUUIDGenerator extends UUIDGenerator {
-        private final List<String> sequence = Lists.newArrayList();
+        public interface UUIDGeneratedObserver {
+            public void uuidGenerated(String uuid);
+        }
+
+        private List<UUIDGeneratedObserver> observers = newArrayList();
 
         @Override
         public String doGenerate() {
             String uuid = DEFAULT.doGenerate();
-            sequence.add(uuid);
+            for(UUIDGeneratedObserver uuidGeneratedObserver : observers){
+                uuidGeneratedObserver.uuidGenerated(uuid);
+            }
             return uuid;
+        }
+
+        public void attachObserver(UUIDGeneratedObserver uuidGeneratedObserver) {
+            observers.add(uuidGeneratedObserver);
+        }
+
+        public void detachObserver(UUIDGeneratedObserver uuidGeneratedObserver) {
+            observers.remove(uuidGeneratedObserver);
         }
     }
     public static class PlaybackUUIDGenerator extends UUIDGenerator {
