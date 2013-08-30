@@ -35,7 +35,7 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
                     if (!givens.containsKey(key)) {
                         givens.put(key, new GivenUUIDGenerator(namedRecordingUUIDGenerator.getName().getName(), Collections.<String>emptyList()));
                     }
-                    givens.put(key, ((GivenUUIDGenerator) givens.get(key)).withAddedUUID(uuid));
+                    givens.put(key, ((GivenUUIDGenerator) givens.get(key)).concat(uuid));
                 }
             };
             namedRecordingUUIDGenerator.getComponent().attachObserver(observer);

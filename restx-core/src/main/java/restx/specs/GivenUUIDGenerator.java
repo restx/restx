@@ -26,7 +26,7 @@ public class GivenUUIDGenerator implements RestxSpec.Given {
         return playbackUUIDs;
     }
 
-    public GivenUUIDGenerator withAddedUUID(String uuid){
+    public GivenUUIDGenerator concat(String uuid){
         return new GivenUUIDGenerator(targetComponentName, ImmutableList.<String>builder().addAll(playbackUUIDs).add(uuid).build());
     }
 
