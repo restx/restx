@@ -1,6 +1,5 @@
 package restx.core.shell;
 
-import com.google.common.base.Charsets;
 import jline.console.ConsoleReader;
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
@@ -8,6 +7,7 @@ import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import restx.build.RestxJsonSupport;
 import restx.factory.Factory;
 import restx.shell.RestxShell;
 
@@ -16,8 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.mockito.Mockito.*;
 
@@ -93,25 +91,19 @@ public class NewAppTest {
         desc.adminPassword = "pwd";
         desc.defaultPort = "8080";
         desc.basePath = "/api";
-        desc.restxVersion = resolveCurrentPOMVersion();
+        desc.restxVersion = resolveCurrentModuleVersion();
         desc.generateHelloResource = generateHelloResource;
         return desc;
     }
 
-    private static String resolveCurrentPOMVersion() throws IOException {
-        Path pom = Paths.get(".").resolve("pom.xml");
-        if(Files.notExists(pom)){
-            throw new FileNotFoundException("pom.xml not found !");
+    private static String resolveCurrentModuleVersion() throws IOException {
+        Path restxModuleDescriptor = Paths.get(".").resolve("md.restx.json");
+        if(Files.notExists(restxModuleDescriptor)){
+            throw new FileNotFoundException("md.restx.json not found !");
         }
 
-        // Crappy way to retrieve current artefact's version
-        // But seems like implementing the *good* way would take a lot LoCs
-        // http://stackoverflow.com/questions/11525318/how-do-i-obtain-a-fully-resolved-model-of-a-pom-file
-        String pomContent = com.google.common.io.Files.toString(pom.toFile(), Charsets.UTF_8);
-        Matcher versionMatcher = Pattern.compile(".*<version>(.*)</version>.*", Pattern.MULTILINE).matcher(pomContent);
-        if(versionMatcher.find()){
-            return versionMatcher.group(1);
+        try(FileInputStream fis = new FileInputStream(restxModuleDescriptor.toFile());) {
+            return new RestxJsonSupport().parse(fis).getGav().getVersion();
         }
-        throw new IllegalStateException("restx version not found !");
     }
 }
