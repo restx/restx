@@ -13,7 +13,29 @@ This page is intended to describe how to change or improve some RESTX behaviours
 
 ## RESTX Session cookie names
 
-app.name & RestxCookieDescriptor
+By default, RESTX will generate 2 cookies named `RestxSession` and `RestxSessionSignature` or,
+prior to version 0.2.9, if an `app.name` `String @Component` is provided ([see here](#appName)), `RestxSession-${app.name}` and `RestxSessionSignature-${app.name}`.
+
+If you want to be less explicit about the technology running on your server, this behaviour can be overriden by providing a `RestxSessionCookieDescriptor @Component`.
+{% highlight java %}
+@Module
+public class MyModule {
+    @Provides
+    public RestxSessionCookieDescriptor restxSessionCookieDescriptor(){
+        return new RestxSessionCookieDescriptor("session", "sessionSignature");
+    }
+}
+{% endhighlight %}
+
+<a id="appName"> </a>
+Providing an `app.name String @Component` :
+{% highlight java %}
+@Module
+public class MyModule {
+    @Provides @Named("app.name")
+    public String appName(){ return "foo"; }
+}
+{% endhighlight %}
 
 ## Writing your own RESTX Given statements
 
