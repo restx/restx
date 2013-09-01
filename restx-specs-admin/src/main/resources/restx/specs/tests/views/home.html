@@ -1,0 +1,32 @@
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <div class="btn-group pull-right">
+                <button ng-click="launchAll()" class="btn btn-primary">Launch all tests</button>
+            </div>
+            <h2>Test results</h2>
+            <div class="progress">
+                <div class="bar bar-success" ng-style="{'width': (100 * (testResultSummaries | success | count) / (testResultSummaries | count)) +'%'}"></div>
+                <div class="bar bar-warning" ng-style="{'width': (100 * (testResultSummaries | failure | count) / (testResultSummaries | count)) +'%'}"></div>
+                <div class="bar bar-danger" ng-style="{'width': (100 * (testResultSummaries | error | count) / (testResultSummaries | count)) +'%'}"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row stats">
+        <div class="span3 text-center"><span class="stat">{{ testResultSummaries | success | count }}</span> <span class="label label-success">SUCCESS</span></div>
+        <div class="span3 text-center"><span class="stat">{{ testResultSummaries | failure | count }}</span> <span class="label label-warning">FAILURE</span></div>
+        <div class="span3 text-center"><span class="stat">{{ testResultSummaries | error | count }}</span> <span class="label label-important">ERROR</span></div>
+        <div class="span3 text-center"><span class="stat">{{ testResultSummaries | count }}</span> <span class="label label-info">TOTAL</span></div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <h2>Details</h2>
+            <div class="test" ng-repeat="testResultSummary in testResultSummaries">
+                <a href="#/testResult/{{testResultSummary.key}}">
+                    <span class="label" ng-class="testResultSummary.status | toClassStatus">
+                        {{ testResultSummary.status }}</span> {{ testResultSummary.name }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

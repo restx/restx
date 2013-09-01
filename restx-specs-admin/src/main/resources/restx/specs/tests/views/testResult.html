@@ -1,0 +1,17 @@
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <span class="label" ng-class="testResult.summary.status | toClassStatus">
+                                    {{ testResult.summary.status }}</span>
+            <strong>{{ testResult.summary.name }}</strong>
+        </div>
+        <div class="span12">
+            <dl>
+                <dt>Test Time:</dt><dd>{{ testResult.summary.testTime }}</dd>
+                <dt>Test Duration:</dt><dd>{{ testResult.summary.testDuration }} ms</dd>
+                <dt>Std out:</dt><dd class="stdOut"><pre>{{ testResult.stdOut }} </pre></dd>
+                <dt>Std err:</dt><dd class="stdErr"><pre>{{ testResult.stdErr }} </pre></dd>
+            </dl>
+        </div>
+    </div>
+</div>
