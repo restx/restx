@@ -46,6 +46,22 @@ public class RestxSpecTestServer {
         return RestxSpecRunner.defaultFactory();
     }
 
+    /**
+     * A shortcut for new RestxSpecRule("/api", 8076, queryByClass(WebServerSupplier.class), defaultFactory())
+     */
+    public static RestxSpecTestServer newInstance() {
+        Factory f = defaultFactory();
+        return new RestxSpecTestServer("/api", 8076,
+                f.queryByClass(WebServerSupplier.class).findOne().get().getComponent(), f);
+    }
+
+    /**
+     * A shortcut for new RestxSpecRule("/api", 8076, webServerSupplier, defaultFactory())
+     */
+    public static RestxSpecTestServer newInstance(WebServerSupplier webServerSupplier) {
+        return new RestxSpecTestServer("/api", 8076, webServerSupplier, defaultFactory());
+    }
+
     private final String routerPath;
     private final int port;
     private final WebServerSupplier webServerSupplier;
@@ -275,20 +291,6 @@ public class RestxSpecTestServer {
                 @ErrorField("description why the test is invalid") DESCRIPTION
             }
         }
-    }
-
-    /**
-     * A shortcut for new RestxSpecRule("/api", 8076, queryByClass(WebServerSupplier.class), defaultFactory())
-     */
-    public RestxSpecTestServer() {
-        this(Factory.Query.byClass(WebServerSupplier.class).findOne().get().getComponent());
-    }
-
-    /**
-     * A shortcut for new RestxSpecRule("/api", 8076, webServerSupplier, defaultFactory())
-     */
-    public RestxSpecTestServer(WebServerSupplier webServerSupplier) {
-        this("/api", 8076, webServerSupplier, defaultFactory());
     }
 
     /**
