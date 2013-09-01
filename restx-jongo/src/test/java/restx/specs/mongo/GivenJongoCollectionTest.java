@@ -6,6 +6,7 @@ import org.assertj.core.data.MapEntry;
 import org.junit.Test;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
+import restx.specs.WhenHttpRequest;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -49,9 +50,9 @@ public class GivenJongoCollectionTest {
                 .containsExactly("{ \"status\": \"validated\" }", "", "");
         assertThat(extractProperty("then.expectedCode").from(testCase.getWhens()))
                 .containsExactly(201, 200, 200);
-        assertThat(((RestxSpec.WhenHttpRequest) testCase.getWhens().get(0)).getCookies()).contains(
+        assertThat(((WhenHttpRequest) testCase.getWhens().get(0)).getCookies()).contains(
                 MapEntry.entry("cookie1", "value1"));
-        assertThat(((RestxSpec.WhenHttpRequest) testCase.getWhens().get(2)).getCookies()).contains(
+        assertThat(((WhenHttpRequest) testCase.getWhens().get(2)).getCookies()).contains(
                 MapEntry.entry("cookie1", "value1"), MapEntry.entry("cookie2", "value2"));
         assertThat(extractProperty("then.expected").from(testCase.getWhens()))
                         .containsExactly(

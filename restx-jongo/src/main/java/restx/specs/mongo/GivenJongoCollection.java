@@ -3,7 +3,7 @@ package restx.specs.mongo;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import restx.specs.RestxSpec;
+import restx.specs.Given;
 
 import static restx.common.MoreStrings.reindent;
 
@@ -12,7 +12,7 @@ import static restx.common.MoreStrings.reindent;
 * Date: 3/30/13
 * Time: 5:54 PM
 */
-public class GivenJongoCollection implements RestxSpec.Given {
+public class GivenJongoCollection implements Given {
     public static final String DB_URI = "GivenCollection.DB_URI";
 
     private final String collection;

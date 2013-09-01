@@ -2,16 +2,20 @@ package restx.specs;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+import restx.SignatureKey;
+import restx.common.Crypto;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
+import restx.security.RestxSessionCookieDescriptor;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,26 +33,32 @@ import static restx.common.MorePreconditions.checkInstanceOf;
  * Time: 6:19 PM
  */
 public class RestxSpecLoader {
-    private static final String COOKIE = "Cookie:";
+    private static final Logger logger = LoggerFactory.getLogger(RestxSpecLoader.class);
 
     private final Set<NamedComponent<GivenLoader>> givenLoaders;
+    private final Set<NamedComponent<WhenHeaderLoader>> whenHeaderLoaders;
     private final String names;
 
+    private static Factory defaultFactory(){
+        return Factory.builder()
+                    .addLocalMachines(Factory.LocalMachines.threadLocal())
+                    .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpec.class.getSimpleName()))
+                    .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpecLoader.class.getSimpleName()))
+                    .addFromServiceLoader()
+                    .build();
+    }
+
     public RestxSpecLoader() {
-        this(Factory.builder()
-                .addLocalMachines(Factory.LocalMachines.threadLocal())
-                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpec.class.getSimpleName()))
-                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpecLoader.class.getSimpleName()))
-                .addFromServiceLoader()
-                .build());
+        this(defaultFactory());
     }
 
     public RestxSpecLoader(Factory factory) {
-        this(factory.queryByClass(GivenLoader.class).find());
+        this(factory.queryByClass(GivenLoader.class).find(), factory.queryByClass(WhenHeaderLoader.class).find());
     }
 
-    public RestxSpecLoader(Set<NamedComponent<GivenLoader>> givenLoaders) {
+    public RestxSpecLoader(Set<NamedComponent<GivenLoader>> givenLoaders, Set<NamedComponent<WhenHeaderLoader>> whenHeaderLoaders) {
         this.givenLoaders = givenLoaders;
+        this.whenHeaderLoaders = whenHeaderLoaders;
         List<String> names = Lists.newArrayList();
         for (NamedComponent<GivenLoader> givenLoader : givenLoaders) {
             names.add(givenLoader.getName().getName());
@@ -65,53 +75,48 @@ public class RestxSpecLoader {
     public RestxSpec load(InputSupplier<InputStreamReader> inputSupplier) throws IOException {
         Yaml yaml = new Yaml();
         Map spec = (Map) yaml.load(inputSupplier.getInput());
-        List<RestxSpec.Given> givens = loadGivens(spec);
-        List<RestxSpec.When> whens = Lists.newArrayList();
+        List<Given> givens = loadGivens(spec);
+        List<When> whens = Lists.newArrayList();
         Iterable wts = checkInstanceOf("wts", spec.get("wts"), Iterable.class);
         for (Object wt : wts) {
             Map whenThen = checkInstanceOf("when/then", wt, Map.class);
             Object w = whenThen.get("when");
             if (w instanceof String) {
+                WhenHttpRequest.Builder whenHttpBuilder = WhenHttpRequest.builder();
+
                 String ws = (String) w;
                 String definition;
                 String body;
-                Map<String, String> cookies = Maps.newLinkedHashMap();
 
                 int nlIndex = ws.indexOf("\n");
                 if (nlIndex != -1) {
                     definition = ws.substring(0, nlIndex);
                     body = ws.substring(nlIndex + 1).trim();
 
-                    while (body.startsWith(COOKIE)) {
+                    Optional<WhenHeaderLoader> whenHeader = resolveFromBody(body);
+                    while (whenHeader.isPresent()) {
                         nlIndex = body.indexOf("\n");
-                        String cookieValues;
+                        String headerValue;
                         if (nlIndex == -1) {
-                            cookieValues = body.substring(COOKIE.length(), body.length());
+                            headerValue = body.substring(whenHeader.get().detectionPattern().length(), body.length());
                             body = "";
                         } else {
-                            cookieValues = body.substring(COOKIE.length(), nlIndex);
+                            headerValue = body.substring(whenHeader.get().detectionPattern().length(), nlIndex);
                             body = body.substring(nlIndex + 1).trim();
                         }
 
-                        for (String s : Splitter.on(";").trimResults().split(cookieValues)) {
-                            int i = s.indexOf('=');
+                        whenHeader.get().loadHeader(headerValue, whenHttpBuilder);
 
-                            String name = s.substring(0, i);
-                            String value = s.substring(i + 1);
-                            cookies.put(name, value);
-                        }
-
+                        whenHeader = resolveFromBody(body);
                     }
                 } else {
                     definition = ws;
                     body = "";
                 }
 
-                Matcher matcher = Pattern.compile("(GET|POST|PUT|DELETE|HEAD|OPTIONS) (.+)").matcher(definition);
+                Matcher methodAndPathMatcher = Pattern.compile("(GET|POST|PUT|DELETE|HEAD|OPTIONS) (.+)").matcher(definition);
 
-                if (matcher.matches()) {
-                    String method = matcher.group(1);
-                    String path = matcher.group(2);
+                if (methodAndPathMatcher.matches()) {
                     String then = checkInstanceOf("then", whenThen.get("then"), String.class).trim();
                     int code = 200;
                     int endLineIndex = then.indexOf("\n");
@@ -124,7 +129,13 @@ public class RestxSpecLoader {
                         code = Integer.parseInt(respMatcher.group(1));
                         then = then.substring(endLineIndex).trim();
                     }
-                    whens.add(new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.copyOf(cookies), body, new RestxSpec.ThenHttpResponse(code, then)));
+
+                    whens.add(whenHttpBuilder
+                            .withMethod(methodAndPathMatcher.group(1))
+                            .withPath(methodAndPathMatcher.group(2))
+                            .withBody(body)
+                            .withThen(new ThenHttpResponse(code, then))
+                            .build());
                 } else {
                     throw new IllegalArgumentException("unrecognized 'when' format: it must begin with " +
                             "a HTTP declaration of the form 'VERB resource/path'\nEg: GET users/johndoe\n. Was: '" + ws + "'\n");
@@ -137,8 +148,17 @@ public class RestxSpecLoader {
                 ImmutableList.copyOf(whens));
     }
 
-    private List<RestxSpec.Given> loadGivens(Map testCase) throws IOException {
-        List<RestxSpec.Given> givens = Lists.newArrayList();
+    private Optional<WhenHeaderLoader> resolveFromBody(String body) {
+        for(NamedComponent<WhenHeaderLoader> whenHeaderLoader : whenHeaderLoaders){
+            if(body.startsWith(whenHeaderLoader.getComponent().detectionPattern())){
+                return Optional.of(whenHeaderLoader.getComponent());
+            }
+        }
+        return Optional.absent();
+    }
+
+    private List<Given> loadGivens(Map testCase) throws IOException {
+        List<Given> givens = Lists.newArrayList();
         Iterable given = checkInstanceOf("given", testCase.get("given"), Iterable.class);
         for (Object g : given) {
             Map given1 = checkInstanceOf("given", g, Map.class);
@@ -163,6 +183,11 @@ public class RestxSpecLoader {
     }
 
     public static interface GivenLoader {
-        RestxSpec.Given load(Map m);
+        Given load(Map m);
+    }
+
+    public static interface WhenHeaderLoader {
+        String detectionPattern();
+        void loadHeader(String headerValue, WhenHttpRequest.Builder whenHttpRequestBuilder);
     }
 }
