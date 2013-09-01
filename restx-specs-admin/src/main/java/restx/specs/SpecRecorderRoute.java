@@ -18,7 +18,7 @@ import java.util.List;
 public class SpecRecorderRoute extends RestxRouter {
     public SpecRecorderRoute(final RestxSpecRecorder specRecorder) {
         super("SpecRecorderRouter",
-                new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs", ImmutableMap.of("", "index.html")),
+                new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs.recorder", ImmutableMap.of("", "index.html")),
                 new StdRoute("RecorderRoute", new StdRouteMatcher("GET", "/@/recorders")) {
                     @Override
                     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
