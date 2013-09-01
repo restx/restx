@@ -24,7 +24,7 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
     }
 
     @Override
-    public AutoCloseable recordIn(final Map<String, RestxSpec.Given> givens) {
+    public AutoCloseable recordIn(final Map<String, Given> givens) {
         final Set<NamedComponent<UUIDGenerator.RecordingUUIDGenerator>> recordingUUIDGenerators = recordingUUIDGenerators();
         final Map<String, UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver> observersByName = new HashMap<>();
 
