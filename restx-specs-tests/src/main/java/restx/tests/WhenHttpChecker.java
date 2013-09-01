@@ -7,7 +7,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.hamcrest.MatcherAssert;
 import restx.factory.Component;
-import restx.specs.RestxSpec;
+import restx.specs.WhenHttpRequest;
 import uk.co.datumedge.hamcrest.json.SameJSONAs;
 
 import java.util.Map;
@@ -15,18 +15,18 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static restx.specs.RestxSpec.WhenHttpRequest.BASE_URL;
+import static restx.specs.WhenHttpRequest.BASE_URL;
 
 @Component
-public class WhenHttpChecker implements WhenChecker<RestxSpec.WhenHttpRequest> {
+public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
 
     @Override
-    public Class<RestxSpec.WhenHttpRequest> getWhenClass() {
-        return RestxSpec.WhenHttpRequest.class;
+    public Class<WhenHttpRequest> getWhenClass() {
+        return WhenHttpRequest.class;
     }
 
     @Override
-    public void check(RestxSpec.WhenHttpRequest when, ImmutableMap<String, String> params) {
+    public void check(WhenHttpRequest when, ImmutableMap<String, String> params) {
         Stopwatch stopwatch = new Stopwatch().start();
         String url = checkNotNull(params.get(BASE_URL),
                 BASE_URL + " param is required") + "/" + when.getPath();

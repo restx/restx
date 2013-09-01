@@ -16,7 +16,7 @@ import org.jongo.query.QueryFactory;
 import restx.RestxContext;
 import restx.factory.*;
 import restx.jongo.JongoCollection;
-import restx.specs.RestxSpec;
+import restx.specs.Given;
 import restx.specs.RestxSpecRecorder;
 
 import java.util.Map;
@@ -57,16 +57,16 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
     }
 
     @Override
-    public AutoCloseable recordIn(Map<String, RestxSpec.Given> givens) {
+    public AutoCloseable recordIn(Map<String, Given> givens) {
         return new Tape(givens);
     }
 
     private static class Tape implements AutoCloseable {
         private static final ThreadLocal<Tape> TAPE = new ThreadLocal<>();
 
-        private final Map<String, RestxSpec.Given> givens;
+        private final Map<String, Given> givens;
 
-        private Tape(Map<String, RestxSpec.Given> givens) {
+        private Tape(Map<String, Given> givens) {
             this.givens = givens;
             TAPE.set(this);
         }
@@ -100,7 +100,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
 
         private void recordGeneratedId(String name, ObjectId id) {
             String key = getGivenCollectionKey(name);
-            RestxSpec.Given given = givens.get(key);
+            Given given = givens.get(key);
             if (given instanceof GivenJongoCollection) {
                 GivenJongoCollection collection = (GivenJongoCollection) given;
                 givens.put(key, collection.addSequenceId(id.toString()));

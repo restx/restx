@@ -7,7 +7,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import restx.factory.Component;
-import restx.specs.RestxSpec;
+import restx.specs.Given;
 import restx.specs.RestxSpecLoader;
 
 import javax.inject.Named;
@@ -25,7 +25,7 @@ import static restx.common.MorePreconditions.checkInstanceOf;
 @Named("collection") @Component
 public final class GivenJongoCollectionLoader implements RestxSpecLoader.GivenLoader {
     @Override
-    public RestxSpec.Given load(Map given) {
+    public Given load(Map given) {
         String path = given.containsKey("path") ? checkInstanceOf("path", given.get("path"), String.class) : "data://";
         String data;
         if (given.containsKey("data")) {

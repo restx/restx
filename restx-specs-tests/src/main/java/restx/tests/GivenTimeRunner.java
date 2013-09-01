@@ -3,17 +3,17 @@ package restx.tests;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTimeUtils;
 import restx.factory.Component;
-import restx.specs.RestxSpec;
+import restx.specs.GivenTime;
 
 @Component
-public class GivenTimeRunner implements GivenRunner<RestxSpec.GivenTime> {
+public class GivenTimeRunner implements GivenRunner<GivenTime> {
     @Override
-    public Class<RestxSpec.GivenTime> getGivenClass() {
-        return RestxSpec.GivenTime.class;
+    public Class<GivenTime> getGivenClass() {
+        return GivenTime.class;
     }
 
     @Override
-    public GivenCleaner run(RestxSpec.GivenTime given, ImmutableMap<String, String> params) {
+    public GivenCleaner run(GivenTime given, ImmutableMap<String, String> params) {
         DateTimeUtils.setCurrentMillisFixed(given.getTime().getMillis());
 
         return new GivenCleaner() {

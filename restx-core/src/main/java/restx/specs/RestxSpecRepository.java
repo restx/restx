@@ -50,7 +50,7 @@ public class RestxSpecRepository {
         return filterSpecsByOperation(findAllSpecs(), httpMethod, path);
     }
 
-    public Iterable<RestxSpec.WhenHttpRequest> findSpecsByRequest(RestxRequest request) {
+    public Iterable<WhenHttpRequest> findSpecsByRequest(RestxRequest request) {
         return findWhensMatchingRequest(findAllSpecs(), request);
     }
 
@@ -84,9 +84,9 @@ public class RestxSpecRepository {
         StdRouteMatcher matcher = new StdRouteMatcher(httpMethod, path);
         Collection<String> specs = Lists.newArrayList();
         for (Map.Entry<String, RestxSpec> spec : allSpecs.entrySet()) {
-            for (RestxSpec.When when : spec.getValue().getWhens()) {
-                if (when instanceof RestxSpec.WhenHttpRequest) {
-                    RestxSpec.WhenHttpRequest request = (RestxSpec.WhenHttpRequest) when;
+            for (When when : spec.getValue().getWhens()) {
+                if (when instanceof WhenHttpRequest) {
+                    WhenHttpRequest request = (WhenHttpRequest) when;
                     String requestPath = request.getPath();
                     if (!requestPath.startsWith("/")) {
                         requestPath = "/" + requestPath;
@@ -105,12 +105,12 @@ public class RestxSpecRepository {
         return specs;
     }
 
-    Iterable<RestxSpec.WhenHttpRequest> findWhensMatchingRequest(ImmutableMap<String, RestxSpec> allSpecs, RestxRequest restxRequest) {
-        Collection<RestxSpec.WhenHttpRequest> matchingRequestsSpecs = Lists.newArrayList();
+    Iterable<WhenHttpRequest> findWhensMatchingRequest(ImmutableMap<String, RestxSpec> allSpecs, RestxRequest restxRequest) {
+        Collection<WhenHttpRequest> matchingRequestsSpecs = Lists.newArrayList();
         for (Map.Entry<String, RestxSpec> spec : allSpecs.entrySet()) {
-            for (RestxSpec.When when : spec.getValue().getWhens()) {
-                if (when instanceof RestxSpec.WhenHttpRequest) {
-                    RestxSpec.WhenHttpRequest request = (RestxSpec.WhenHttpRequest) when;
+            for (When when : spec.getValue().getWhens()) {
+                if (when instanceof WhenHttpRequest) {
+                    WhenHttpRequest request = (WhenHttpRequest) when;
                     String requestPath = request.getPath();
                     if (!requestPath.startsWith("/")) {
                         requestPath = "/" + requestPath;

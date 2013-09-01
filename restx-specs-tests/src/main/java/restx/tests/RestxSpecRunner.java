@@ -5,8 +5,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import restx.factory.Factory;
-import restx.specs.RestxSpec;
-import restx.specs.RestxSpecLoader;
+import restx.specs.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -78,8 +77,8 @@ public class RestxSpecRunner {
         for (GivenSpecRule givenSpecRule : givenSpecRules) {
             params.putAll(givenSpecRule.getRunParams());
         }
-        params.put(RestxSpec.WhenHttpRequest.CONTEXT_NAME, serverId);
-        params.put(RestxSpec.WhenHttpRequest.BASE_URL, baseUrl + routerPath);
+        params.put(WhenHttpRequest.CONTEXT_NAME, serverId);
+        params.put(WhenHttpRequest.BASE_URL, baseUrl + routerPath);
 
         runSpec(restxSpec, ImmutableMap.copyOf(params));
     }
@@ -94,7 +93,7 @@ public class RestxSpecRunner {
     private void runSpec(RestxSpec restxSpec, ImmutableMap<String, String> params) {
         List<GivenCleaner> givenCleaners = newArrayList();
         try {
-            for (RestxSpec.Given given : restxSpec.getGiven()) {
+            for (Given given : restxSpec.getGiven()) {
                 Optional<GivenRunner> runnerFor = findRunnerFor(given);
                 if (!runnerFor.isPresent()) {
                     throw new IllegalStateException(
@@ -103,7 +102,7 @@ public class RestxSpecRunner {
                 givenCleaners.add(runnerFor.get().run(given, params));
             }
 
-            for (RestxSpec.When when : restxSpec.getWhens()) {
+            for (When when : restxSpec.getWhens()) {
                 Optional<WhenChecker> checkerFor = findCheckerFor(when);
                 if (!checkerFor.isPresent()) {
                     throw new IllegalStateException("no checker found for when " + when + "." +
@@ -119,7 +118,7 @@ public class RestxSpecRunner {
 
     }
 
-    private Optional<WhenChecker> findCheckerFor(RestxSpec.When when) {
+    private Optional<WhenChecker> findCheckerFor(When when) {
         if (when instanceof WhenChecker) {
             return Optional.of((WhenChecker) when);
         }
@@ -132,7 +131,7 @@ public class RestxSpecRunner {
         return Optional.absent();
     }
 
-    private Optional<GivenRunner> findRunnerFor(RestxSpec.Given given) {
+    private Optional<GivenRunner> findRunnerFor(Given given) {
         if (given instanceof GivenRunner) {
             return Optional.of((GivenRunner) given);
         }

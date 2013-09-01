@@ -5,6 +5,8 @@ import restx.*;
 import restx.factory.Component;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRepository;
+import restx.specs.When;
+import restx.specs.WhenHttpRequest;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -24,8 +26,8 @@ public class SpecsServerRoute implements RestxRoute {
 
     @Override
     public Optional<RestxRouteMatch> match(RestxRequest req) {
-        Iterable<RestxSpec.WhenHttpRequest> spec = specRepository.findSpecsByRequest(req);
-        Iterator<RestxSpec.WhenHttpRequest> iterator = spec.iterator();
+        Iterable<WhenHttpRequest> spec = specRepository.findSpecsByRequest(req);
+        Iterator<WhenHttpRequest> iterator = spec.iterator();
         return iterator.hasNext()
                 ? Optional.<RestxRouteMatch>of(new Match(req, iterator.next()))
                 : Optional.<RestxRouteMatch>absent();
@@ -47,9 +49,9 @@ public class SpecsServerRoute implements RestxRoute {
         sb.append("-- routes defined by specs:\n");
         for (String spec : specRepository.findAll()){
             Optional<RestxSpec> s = specRepository.findSpecById(spec);
-            for (RestxSpec.When when : s.get().getWhens()) {
-                if (when instanceof RestxSpec.WhenHttpRequest) {
-                    RestxSpec.WhenHttpRequest httpRequest = (RestxSpec.WhenHttpRequest) when;
+            for (When when : s.get().getWhens()) {
+                if (when instanceof WhenHttpRequest) {
+                    WhenHttpRequest httpRequest = (WhenHttpRequest) when;
                     sb.append(httpRequest.getMethod()).append(" ").append(httpRequest.getPath())
                             .append(" (").append(spec).append(")\n");
                 }
@@ -61,9 +63,9 @@ public class SpecsServerRoute implements RestxRoute {
     }
 
     private class Match extends RestxRouteMatch {
-        private final RestxSpec.WhenHttpRequest spec;
+        private final WhenHttpRequest spec;
 
-        public Match(RestxRequest req, RestxSpec.WhenHttpRequest spec) {
+        public Match(RestxRequest req, WhenHttpRequest spec) {
             super(SpecsServerRoute.this, req.getRestxPath());
             this.spec = spec;
         }

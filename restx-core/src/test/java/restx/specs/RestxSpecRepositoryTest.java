@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import restx.StdRequest;
 
+import java.util.Collections;
+
 import static org.assertj.core.api.Assertions.*;
 
 /**
@@ -41,9 +43,9 @@ public class RestxSpecRepositoryTest {
     public void should_find_specs_for_request() throws Exception {
         RestxSpecRepository resource = new RestxSpecRepository();
 
-        RestxSpec.WhenHttpRequest when1;
-        RestxSpec.WhenHttpRequest when2;
-        RestxSpec.WhenHttpRequest when3;
+        WhenHttpRequest when1;
+        WhenHttpRequest when2;
+        WhenHttpRequest when3;
         ImmutableMap<String, RestxSpec> allSpecs = ImmutableMap.of(
                 "cases/test/test.spec.yaml", spec("should say hello on path",
                             when1 = when("GET", "/messages/xavier")),
@@ -67,13 +69,13 @@ public class RestxSpecRepositoryTest {
         return StdRequest.builder().setBaseUri("http://restx.io").setHttpMethod(httpMethod).setFullPath(fullPath).build();
     }
 
-    private RestxSpec spec(String title, RestxSpec.WhenHttpRequest request) {
-        return new RestxSpec(title, ImmutableList.<RestxSpec.Given>of(), ImmutableList.<RestxSpec.When>of(request));
+    private RestxSpec spec(String title, WhenHttpRequest request) {
+        return new RestxSpec(title, ImmutableList.<Given>of(), ImmutableList.<When>of(request));
     }
 
-    private RestxSpec.WhenHttpRequest when(String method, String path) {
-        return new RestxSpec.WhenHttpRequest(method, path, ImmutableMap.<String,String>of(), "",
-                new RestxSpec.ThenHttpResponse(200, ""));
+    private WhenHttpRequest when(String method, String path) {
+        return new WhenHttpRequest(method, path, Collections.<String, String>emptyMap(), "",
+                new ThenHttpResponse(200, ""));
     }
 
 }

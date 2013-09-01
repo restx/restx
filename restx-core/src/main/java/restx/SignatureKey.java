@@ -6,6 +6,7 @@ package restx;
  * Time: 6:19 PM
  */
 public class SignatureKey {
+    public static final SignatureKey DEFAULT = new SignatureKey("this is the default signature key".getBytes());
     private final byte[] key;
 
     public SignatureKey(byte[] key) {

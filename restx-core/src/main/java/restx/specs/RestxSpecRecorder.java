@@ -95,7 +95,7 @@ public class RestxSpecRecorder {
 
     public static interface GivenRecorder {
         void installRecording();
-        AutoCloseable recordIn(Map<String, RestxSpec.Given> givens);
+        AutoCloseable recordIn(Map<String, Given> givens);
     }
 
 

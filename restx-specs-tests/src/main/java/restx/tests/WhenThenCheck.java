@@ -1,7 +1,7 @@
 package restx.tests;
 
 import com.google.common.collect.ImmutableMap;
-import restx.specs.RestxSpec;
+import restx.specs.When;
 
 /**
  * Defines a When Then and Check together, useful to programmatically add additional when-then to
@@ -11,8 +11,8 @@ import restx.specs.RestxSpec;
  *
  * </code>
  */
-public abstract class WhenThenCheck extends RestxSpec.When<WhenThenCheck.Then> implements WhenChecker<WhenThenCheck> {
-    public static class Then implements RestxSpec.Then {
+public abstract class WhenThenCheck extends When<WhenThenCheck.Then> implements WhenChecker<WhenThenCheck> {
+    public static class Then implements restx.specs.Then {
     }
 
     public WhenThenCheck() {

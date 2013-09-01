@@ -25,7 +25,7 @@ import java.net.UnknownHostException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.factory.Factory.LocalMachines.contextLocal;
-import static restx.specs.RestxSpec.WhenHttpRequest.CONTEXT_NAME;
+import static restx.specs.WhenHttpRequest.CONTEXT_NAME;
 import static restx.specs.mongo.GivenJongoCollection.DB_URI;
 
 @Component

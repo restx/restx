@@ -1,9 +1,7 @@
 package restx.core.shell;
 
 import com.github.mustachejava.Mustache;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -19,6 +17,7 @@ import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -63,13 +62,29 @@ public class AppShellCommand extends StdShellCommand {
                 new StringsCompleter("app"), new StringsCompleter("new", "run")));
     }
 
-    private class NewAppCommandRunner implements ShellCommandRunner {
+    static class NewAppDescriptor {
+        String appName;
+        String groupId;
+        String artifactId;
+        String mainPackage;
+        String version;
+        String buildFile;
+        String signatureKey;
+        String adminPassword;
+        String defaultPort;
+        String basePath;
+        String restxVersion;
+        boolean generateHelloResource;
+    }
+
+    class NewAppCommandRunner implements ShellCommandRunner {
 
         private ImmutableMap<Mustache, String> mainTemplates = buildTemplates(
                 AppShellCommand.class, ImmutableMap.<String, String>builder()
                 .put("md.restx.json.mustache", "md.restx.json")
                 .put("AppModule.java.mustache", "src/main/java/{{packagePath}}/AppModule.java")
                 .put("AppServer.java.mustache", "src/main/java/{{packagePath}}/AppServer.java")
+                .put("UserRepository.java.mustache", "src/main/java/{{packagePath}}/persistence/UserRepository.java")
                 .put("web.xml.mustache", "src/main/webapp/WEB-INF/web.xml")
                 .put("logback.xml.mustache", "src/main/resources/logback.xml")
                 .build()
@@ -79,7 +94,9 @@ public class AppShellCommand extends StdShellCommand {
                 .put("Message.java.mustache", "src/main/java/{{packagePath}}/domain/Message.java")
                 .put("HelloResource.java.mustache", "src/main/java/{{packagePath}}/rest/HelloResource.java")
                 .put("HelloResourceSpecTest.java.mustache", "src/test/java/{{packagePath}}/rest/HelloResourceSpecTest.java")
-                .put("should_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_say_hello.spec.yaml")
+                .put("should_admin_not_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_admin_not_say_hello.spec.yaml")
+                .put("should_user1_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user1_say_hello.spec.yaml")
+                .put("should_user2_not_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user2_not_say_hello.spec.yaml")
                 .build()
         );
 
@@ -91,39 +108,41 @@ public class AppShellCommand extends StdShellCommand {
             shell.println("For any question you can get help by answering '??' (without the quotes).");
             shell.println("");
 
-            String appName = "";
-            while (Strings.isNullOrEmpty(appName)) {
-                appName = shell.ask("App name? ", "",
+            NewAppDescriptor descriptor = new NewAppDescriptor();
+            descriptor.appName = "";
+            while (Strings.isNullOrEmpty(descriptor.appName)) {
+                descriptor.appName = shell.ask("App name? ", "",
                         "This is the name of the application you are creating.\n" +
                                 "It can contain spaces, it's used mainly for documentation and to provide default for other values.\n" +
                                 "Examples: Todo, Foo Bar, ...");
             }
-            String groupId = shell.ask("group id [%s]? ",
-                    appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH),
+
+            descriptor.groupId = shell.ask("group id [%s]? ",
+                    descriptor.appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH),
                     "This is the identifier of the group or organization producing the application.\n" +
                             "In the Maven world this is called a groupId, in Ivy it's called organization.\n" +
                             "It MUST NOT contain spaces nor columns (':'), and is usually a reversed domain name.\n" +
                             "Examples: io.restx, com.example, ...");
-            String artifactId = shell.ask("artifact id [%s]? ",
-                    appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH),
+            descriptor.artifactId = shell.ask("artifact id [%s]? ",
+                    descriptor.appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH),
                     "This is the identifier of the app module.\n" +
                             "In the Maven world this is called an artifactId, in Ivy it's called module.\n" +
                             "It MUST NOT contain spaces nor columns (':'), and is usually a dash separated lower case word.\n" +
                             "Examples: myapp, todo, foo-app, ...")
                     .replaceAll("\\s+", "-");
-            String mainPackage = shell.ask("main package [%s]? ",
-                    artifactId.replaceAll("\\-", ".").toLowerCase(Locale.ENGLISH),
+            descriptor.mainPackage = shell.ask("main package [%s]? ",
+                    descriptor.artifactId.replaceAll("\\-", ".").toLowerCase(Locale.ENGLISH),
                     "This is the main package in which you will develop your application.\n" +
                             "In Java convention it should start with a reversed domain name followed by the app name\n" +
                             "but for applications (as opposed to APIs) we prefer to use a short name, like that app name.\n" +
                             "It MUST follow Java package names restrictions, so MUST NOT contain spaces\n" +
                             "Examples: myapp, com.example.todoapp, ...");
-            String version = shell.ask("version [%s]? ", "0.1-SNAPSHOT",
+            descriptor.version = shell.ask("version [%s]? ", "0.1-SNAPSHOT",
                     "This is the name of the first version of the app you are targetting.\n" +
                             "It's recommended to use Maven convention to suffix it with -SNAPSHOT if you plan to use Maven for your app\n" +
                             "Examples: 0.1-SNAPSHOT, 1.0, ...");
 
-            String buildFile = shell.ask("generate module descriptor (ivy/pom/none/all) [%s]? ", "all",
+            descriptor.buildFile = shell.ask("generate module descriptor (ivy/pom/none/all) [%s]? ", "all",
                     "This allows to generate a module descriptor for your app.\n" +
                             "Options:\n" +
                             "\t- 'ivy': get an Easyant compatible Ivy file generated for you.\n" +
@@ -132,32 +151,30 @@ public class AppShellCommand extends StdShellCommand {
                             "\t- 'none': get no module descriptor generated. WARNING: this will make it harder to build your app.\n" +
                             "If you don't know these tools, use default answer.\n"
             );
-            boolean generateIvy = "ivy".equalsIgnoreCase(buildFile) || "all".equalsIgnoreCase(buildFile);
-            boolean generatePom = "pom".equalsIgnoreCase(buildFile) || "all".equalsIgnoreCase(buildFile);
 
-            String restxVersion = shell.ask("restx version [%s]? ", Version.getVersion("io.restx", "restx-core"));
+            descriptor.restxVersion = shell.ask("restx version [%s]? ", Version.getVersion("io.restx", "restx-core"));
 
             List<String> list = Lists.newArrayList(UUIDGenerator.DEFAULT.doGenerate(),
-                    String.valueOf(new Random().nextLong()), appName, artifactId);
+                    String.valueOf(new Random().nextLong()), descriptor.appName, descriptor.artifactId);
             Collections.shuffle(list);
-            String signatureKey = shell.ask("signature key (to sign cookies) [%s]? ",
+            descriptor.signatureKey = shell.ask("signature key (to sign cookies) [%s]? ",
                     Joiner.on(" ").join(list),
                     "This is used as salt for signing stuff exchanged with the client.\n" +
                             "Use something fancy or keep what is proposed by default, but make sure to not share that publicly.");
 
-            String adminPassword = shell.ask("admin password (to authenticate on restx console) [%s]? ",
+            descriptor.adminPassword = shell.ask("admin password (to authenticate on restx console) [%s]? ",
                     String.valueOf(new Random().nextInt(10000)),
                     "This is used as password for the admin user to authenticate on restx console.\n" +
                             "This is only a default way to authenticate out of the box, restx security is very flexible.");
 
-            String defaultPort = shell.ask("default port [%s]? ", "8080",
+            descriptor.defaultPort = shell.ask("default port [%s]? ", "8080",
                     "This is the default port used when using embedded version.\n" +
                             "Usually Java web containers use 8080, it may be a good idea to use a different port to avoid \n" +
                             "conflicts with another servlet container.\n" +
                             "You can also use port 80 if you want to serve your API directly with the embedded server\n" +
                             "and no reverse proxy in front of it. But beware that you may need admin privileges for that.\n" +
                             "Examples: 8080, 8086, 8000, 80");
-            String basePath = shell.ask("base path [%s]? ", "/api",
+            descriptor.basePath = shell.ask("base path [%s]? ", "/api",
                     "This is the base API path on which RESTX will handle requests.\n" +
                             "Being focused on REST API only, RESTX is usually shared with either static or dynamic \n" +
                             "resources serving (HTML, CSS, JS, images, ...) and therefore is used to handle requests on\n" +
@@ -166,48 +183,14 @@ public class AppShellCommand extends StdShellCommand {
                             "you can use '' (empty string) for this path.\n" +
                             "Examples: /api, /api/v2, /restx, ...");
 
-            ImmutableMap scope = ImmutableMap.builder()
-                    .put("appName", appName)
-                    .put("groupId", groupId)
-                    .put("artifactId", artifactId)
-                    .put("mainPackage", mainPackage)
-                    .put("packagePath", mainPackage.replace('.', '/'))
-                    .put("version", version)
-                    .put("signatureKey", signatureKey)
-                    .put("adminPassword", adminPassword)
-                    .put("defaultPort", defaultPort)
-                    .put("basePath", basePath)
-                    .put("restxVersion", restxVersion)
-                    .build();
-
-            boolean generateHelloResource = shell.askBoolean("generate hello resource example [Y/n]? ", "y",
+            descriptor.generateHelloResource = shell.askBoolean("generate hello resource example [Y/n]? ", "y",
                     "This will generate an example resource with an associated spec test so that your boostrapped\n" +
                             "application can be used as soon as it has been generated.\n" +
                             "If this is the first app you generate with RESTX, it's probably a good idea to generate\n" +
                             "this example resource.\n" +
                             "If you already know RESTX by heart you shouldn't be reading this message anyway :)");
 
-            Path appPath = shell.currentLocation().resolve(artifactId);
-
-            shell.println("scaffolding app to `" + appPath.toAbsolutePath() + "` ...");
-            generate(mainTemplates, appPath, scope);
-
-            if (generateIvy) {
-                shell.println("generating module.ivy ...");
-                RestxBuild.convert(appPath.toAbsolutePath() + "/md.restx.json", appPath.toAbsolutePath() + "/module.ivy");
-            }
-            if (generatePom) {
-                shell.println("generating pom.xml ...");
-                RestxBuild.convert(appPath.toAbsolutePath() + "/md.restx.json", appPath.toAbsolutePath() + "/pom.xml");
-            }
-
-            if (generateHelloResource) {
-                shell.println("generating hello resource ...");
-                generate(helloResourceTemplates, appPath, scope);
-            }
-            shell.printIn("Congratulations! - Your app is now ready in " + appPath.toAbsolutePath(), RestxShell.AnsiCodes.ANSI_GREEN);
-            shell.println("");
-            shell.println("");
+            Path appPath = generateApp(descriptor, shell);
 
             shell.cd(appPath);
 
@@ -221,6 +204,49 @@ public class AppShellCommand extends StdShellCommand {
                 shell.println("restx> app run");
                 new RunAppCommandRunner(Collections.<String>emptyList()).run(shell);
             }
+        }
+
+        public Path generateApp(NewAppDescriptor descriptor, RestxShell shell) throws IOException {
+            boolean generateIvy = "ivy".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
+            boolean generatePom = "pom".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
+
+            ImmutableMap scope = ImmutableMap.builder()
+                    .put("appName", descriptor.appName)
+                    .put("groupId", descriptor.groupId)
+                    .put("artifactId", descriptor.artifactId)
+                    .put("mainPackage", descriptor.mainPackage)
+                    .put("packagePath", descriptor.mainPackage.replace('.', '/'))
+                    .put("version", descriptor.version)
+                    .put("signatureKey", descriptor.signatureKey)
+                    .put("adminPassword", descriptor.adminPassword)
+                    .put("defaultPort", descriptor.defaultPort)
+                    .put("basePath", descriptor.basePath)
+                    .put("restxVersion", descriptor.restxVersion)
+                    .build();
+
+            Path appPath = shell.currentLocation().resolve(descriptor.artifactId);
+
+            shell.println("scaffolding app to `" + appPath.toAbsolutePath() + "` ...");
+            generate(mainTemplates, appPath, scope);
+
+            if (generateIvy) {
+                shell.println("generating module.ivy ...");
+                RestxBuild.convert(appPath.toAbsolutePath() + "/md.restx.json", appPath.toAbsolutePath() + "/module.ivy");
+            }
+            if (generatePom) {
+                shell.println("generating pom.xml ...");
+                RestxBuild.convert(appPath.toAbsolutePath() + "/md.restx.json", appPath.toAbsolutePath() + "/pom.xml");
+            }
+
+            if (descriptor.generateHelloResource) {
+                shell.println("generating hello resource ...");
+                generate(helloResourceTemplates, appPath, scope);
+            }
+            shell.printIn("Congratulations! - Your app is now ready in " + appPath.toAbsolutePath(), RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println("");
+            shell.println("");
+
+            return appPath;
         }
     }
 

@@ -15,12 +15,12 @@ import java.util.Map;
 @Named("time") @Component
 public final class GivenTimeLoader implements RestxSpecLoader.GivenLoader {
     @Override
-    public RestxSpec.Given load(Map given1) {
+    public Given load(Map given1) {
         Object time = given1.get("time");
         if (time instanceof String) {
-            return new RestxSpec.GivenTime(DateTime.parse((String) time));
+            return new GivenTime(DateTime.parse((String) time));
         } else if (time instanceof Date) {
-            return new RestxSpec.GivenTime(new DateTime(time));
+            return new GivenTime(new DateTime(time));
         } else {
             throw new IllegalArgumentException("invalid given time " + given1 + ": " +
                     "unrecognized value type " + time.getClass().getName() + "." +
