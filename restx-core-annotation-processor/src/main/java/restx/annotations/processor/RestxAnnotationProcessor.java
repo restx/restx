@@ -17,10 +17,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -35,12 +32,7 @@ import java.util.regex.Pattern;
  * Time: 10:02 PM
  */
 @SupportedAnnotationTypes({
-        "restx.annotations.RestxResource",
-        "restx.annotations.GET",
-        "restx.annotations.HEAD",
-        "restx.annotations.POST",
-        "restx.annotations.PUT",
-        "restx.annotations.DELETE"
+        "restx.annotations.RestxResource"
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class RestxAnnotationProcessor extends AbstractProcessor {
@@ -312,35 +304,38 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
 
     private Collection<ResourceMethodAnnotation> getResourceMethodAnnotationsInRound(RoundEnvironment roundEnv) {
         Collection<ResourceMethodAnnotation> methodAnnotations = Lists.newArrayList();
-        // iterating through these annotations would be nicer, but we would need to use reflection for "value()"
-        for (Element elem : roundEnv.getElementsAnnotatedWith(GET.class)) {
-            GET annotation = elem.getAnnotation(GET.class);
-            if (annotation != null) {
-                methodAnnotations.add(new ResourceMethodAnnotation("GET", elem, annotation.value()));
+        for (Element resourceElem : roundEnv.getElementsAnnotatedWith(RestxResource.class)) {
+            if (! (resourceElem instanceof TypeElement)) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    String.format("Only a class can be annotated annotated with @RestxResource. Found %s",
+                            resourceElem.getSimpleName()), resourceElem);
+                continue;
             }
-        }
-        for (Element elem : roundEnv.getElementsAnnotatedWith(POST.class)) {
-            POST annotation = elem.getAnnotation(POST.class);
-            if (annotation != null) {
-                methodAnnotations.add(new ResourceMethodAnnotation("POST", elem, annotation.value()));
-            }
-        }
-        for (Element elem : roundEnv.getElementsAnnotatedWith(PUT.class)) {
-            PUT annotation = elem.getAnnotation(PUT.class);
-            if (annotation != null) {
-                methodAnnotations.add(new ResourceMethodAnnotation("PUT", elem, annotation.value()));
-            }
-        }
-        for (Element elem : roundEnv.getElementsAnnotatedWith(DELETE.class)) {
-            DELETE annotation = elem.getAnnotation(DELETE.class);
-            if (annotation != null) {
-                methodAnnotations.add(new ResourceMethodAnnotation("DELETE", elem, annotation.value()));
-            }
-        }
-        for (Element elem : roundEnv.getElementsAnnotatedWith(HEAD.class)) {
-            HEAD annotation = elem.getAnnotation(HEAD.class);
-            if (annotation != null) {
-                methodAnnotations.add(new ResourceMethodAnnotation("HEAD", elem, annotation.value()));
+
+            for (Element elem : resourceElem.getEnclosedElements()) {
+                if (elem.getKind() == ElementKind.METHOD) {
+                    // iterating through these annotations would be nicer, but we would need to use reflection for "value()"
+                    GET get = elem.getAnnotation(GET.class);
+                    if (get != null) {
+                        methodAnnotations.add(new ResourceMethodAnnotation("GET", elem, get.value()));
+                    }
+                    POST post = elem.getAnnotation(POST.class);
+                    if (post != null) {
+                        methodAnnotations.add(new ResourceMethodAnnotation("POST", elem, post.value()));
+                    }
+                    PUT put = elem.getAnnotation(PUT.class);
+                    if (put != null) {
+                        methodAnnotations.add(new ResourceMethodAnnotation("PUT", elem, put.value()));
+                    }
+                    DELETE delete = elem.getAnnotation(DELETE.class);
+                    if (delete != null) {
+                        methodAnnotations.add(new ResourceMethodAnnotation("DELETE", elem, delete.value()));
+                    }
+                    HEAD head = elem.getAnnotation(HEAD.class);
+                    if (head != null) {
+                        methodAnnotations.add(new ResourceMethodAnnotation("HEAD", elem, head.value()));
+                    }
+                }
             }
         }
         return methodAnnotations;
