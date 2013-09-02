@@ -201,3 +201,25 @@ h1 .http-method {
     margin-bottom: 30px;
     border-top: 2px solid #e5e5e5;
 }
+
+@media all and (max-width: 420px) {
+    .container {
+        margin-top: 22px;
+        width: 370px;
+    }
+    .operation textarea {
+        width: 245px;
+        height: 160px;
+    }
+    .send .btn {
+        margin-top: 5px;
+        margin-left: 5px;
+    }
+    .operation .send {
+        min-height: 70px;
+    }
+
+    .bs-docs-sidebar {
+        display: none;
+    }
+}

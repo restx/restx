@@ -1,0 +1,11 @@
+@media all and (max-width: 420px) {
+    .form-horizontal .control-label {
+        width: 100px;
+    }
+    .form-horizontal .controls {
+        margin-left: 115px;
+    }
+    .input-xlarge {
+        width: 220px;
+    }
+}
