@@ -9,7 +9,7 @@ title:  "RESTX Extension Points"
 
 Restx Dependency injection allows to easily write plugins extending some key extension points.
 
-This page is intended to describe how to change or improve some RESTX behaviours.
+This page is intended to describe how to change or improve default RESTX behaviours.
 
 ## RESTX Session cookie names
 
@@ -28,7 +28,7 @@ public class MyModule {
 {% endhighlight %}
 
 <a id="appName"> </a>
-Providing an `app.name String @Component` :
+We strongly encourage you to provide an `app.name String @Component` allowing to distinguish your restx app from another restx app :
 {% highlight java %}
 @Module
 public class MyModule {
@@ -37,14 +37,73 @@ public class MyModule {
 }
 {% endhighlight %}
 
+## Overriding Admin Console security
+
+### Overriding Restx admin password
+
+By default, access to restx admin console is allowed to user with `login=admin` & `password=juma`.
+
+If you want to override this default password, you can either :
+
+- Override the raw password by providing a `restx.admin.password` `String @Component`
+{% highlight java %}
+@Module
+public class MyModule {
+    @Provides @Named("restx.admin.password")
+    public String restxAdminPassword() { return "new-password"; }
+}
+{% endhighlight %}
+
+- Or directly override the password hash by providing a `restx.admin.passwordHash` `String @Component`
+{% highlight java %}
+@Module
+public class MyModule {
+    @Provides @Named("restx.admin.passwordHash")
+    public String restxAdminPasswordHash() { Hashing.md5().hashString("new-password", Charsets.UTF_8).toString(); }
+}
+{% endhighlight %}
+<div class="note">
+	<p>
+	If you override the `restx.admin.passwordHash` hashing strategy (not relying on md5() anymore), you will need to override the `restx/admin/js/login.js` file
+	by overriding the `authenticate()` scope function, particularly to replace the `SparkMD5.hash(password)` statement.
+	</p>
+</div>
+
+### Overriding authentication mecanism
+
+As stated on [ref-security](ref-security.html) page, you can provide your own `BasicPrincipalAuthenticator @Component` by :
+- Using `restx-security-basic` dependency
+- And declaring the component :
+{% highlight java %}
+@Module
+public class MyModule {
+    @Provides
+    public BasicPrincipalAuthenticator basicPrincipalAuthenticator(final UserRepository userRepository) {
+        return new BasicPrincipalAuthenticator() {
+            @Override
+            public Optional<? extends RestxPrincipal> findByName(String name) {
+                return userRepository.findUserByName(name);
+            }
+            @Override
+            public Optional<? extends RestxPrincipal> authenticate(String name, String passwordHash, ImmutableMap<String, ?> principalData) {
+                boolean rememberMe = Boolean.valueOf((String) principalData.get("rememberMe"));
+                Optional<? extends RestxPrincipal> user = userRepository.findUserByNameAndPasswordHash(name, passwordHash);
+                if (user.isPresent()) {
+                    RestxSession.current().expires(rememberMe ? Duration.standardDays(30) : Duration.ZERO);
+                }
+                return user;
+            }
+        };
+    }
+}
+{% endhighlight %}
+
 ## Writing your own RESTX Given statements
 
 ... and Recorder too !
 I think it will need a dedicated page.
 
-## Overriding Admin Console security
-
-We should grab some content from [ref-security](ref-security.html) and put it here
+## Adding some Administration pages
 
 ## Providing new Object deserializers (`StringConverters`)
 
