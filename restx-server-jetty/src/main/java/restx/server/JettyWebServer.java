@@ -141,7 +141,7 @@ public class JettyWebServer implements WebServer {
         return new WebServerSupplier() {
             @Override
             public WebServer newWebServer(int port) {
-                return new JettyWebServer(webInfLocation, appBase, port, "localhost");
+                return new JettyWebServer(webInfLocation, appBase, port, "0.0.0.0");
             }
         };
     }
