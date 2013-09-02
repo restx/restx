@@ -3,7 +3,6 @@ package restx.specs;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.InputSupplier;
@@ -11,11 +10,9 @@ import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
-import restx.SignatureKey;
-import restx.common.Crypto;
+import restx.common.MoreResources;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
-import restx.security.RestxSessionCookieDescriptor;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -68,7 +65,7 @@ public class RestxSpecLoader {
 
     public RestxSpec load(String resource) throws IOException {
         return load(Resources.newReaderSupplier(
-                Resources.getResource(resource),
+                MoreResources.getResource(resource, true),
                 Charsets.UTF_8));
     }
 
