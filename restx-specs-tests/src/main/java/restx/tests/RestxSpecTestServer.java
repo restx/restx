@@ -128,7 +128,10 @@ public class RestxSpecTestServer {
                             try {
                                 runner.runTest(testRequest.getTest());
                                 status = TestResultSummary.Status.SUCCESS;
-                            } catch (Exception e) {
+                            } catch (AssertionError e) {
+                                status = TestResultSummary.Status.FAILURE;
+                                System.err.println(e.getMessage());
+                            } catch (Throwable e) {
                                 e.printStackTrace(System.err);
                             } finally {
                                 System.setOut(out);
