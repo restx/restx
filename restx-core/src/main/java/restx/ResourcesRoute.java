@@ -65,7 +65,8 @@ public class ResourcesRoute implements RestxRoute {
         relativePath = Optional.fromNullable(aliases.get(relativePath)).or(relativePath);
         try {
             URL resource = MoreResources.getResource(
-                    baseResourcePath + relativePath, RestxContext.Modes.DEV.equals(ctx.getMode()));
+                    baseResourcePath + relativePath, RestxContext.Modes.DEV.equals(ctx.getMode())
+                                                    || RestxContext.Modes.TEST.equals(ctx.getMode()));
             resp.setStatus(HttpStatus.OK.getCode());
             resp.setContentType(HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream"));
             ByteStreams.copy(Resources.newInputStreamSupplier(resource), resp.getOutputStream());
