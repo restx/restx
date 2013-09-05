@@ -105,39 +105,39 @@ public class RestxSpecTestServer {
                 testRequest.setRequestTime(DateTime.now());
                 testRequest.setStatus(TestRequest.Status.QUEUED);
                 store(testRequest);
-                    executor.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            Optional<TestRequest> requestOptional = getRequestByKey(requestKey);
-                            if (!requestOptional.isPresent()) {
-                                logger.warn("test request not found when trying to execute it: {}", requestKey);
-                                return;
-                            }
-                            TestRequest testRequest = requestOptional.get();
-                            logger.info("running test request {}", testRequest);
-                            testRequest.setStatus(TestRequest.Status.RUNNING);
-                            store(testRequest);
-
-                            List<String> resultKeys = new ArrayList<>();
-                            try {
-                                String spec = testRequest.getTest();
-                                if (spec.endsWith("*")) {
-                                    String prefix = spec.substring(0, spec.length() - 1);
-                                    for (String s : repository.findAll()) {
-                                        if (s.startsWith(prefix)) {
-                                            runSpecTest(s, resultKeys);
-                                        }
-                                    }
-                                } else {
-                                    runSpecTest(spec, resultKeys);
-                                }
-                            } finally {
-                                testRequest.setStatus(TestRequest.Status.DONE);
-                                testRequest.setTestResultKey(Joiner.on(",").join(resultKeys));
-                                store(testRequest);
-                            }
+                executor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        Optional<TestRequest> requestOptional = getRequestByKey(requestKey);
+                        if (!requestOptional.isPresent()) {
+                            logger.warn("test request not found when trying to execute it: {}", requestKey);
+                            return;
                         }
-                    });
+                        TestRequest testRequest = requestOptional.get();
+                        logger.info("running test request {}", testRequest);
+                        testRequest.setStatus(TestRequest.Status.RUNNING);
+                        store(testRequest);
+
+                        List<String> resultKeys = new ArrayList<>();
+                        try {
+                            String spec = testRequest.getTest();
+                            if (spec.endsWith("*")) {
+                                String prefix = spec.substring(0, spec.length() - 1);
+                                for (String s : repository.findAll()) {
+                                    if (s.startsWith(prefix)) {
+                                        runSpecTest(s, resultKeys);
+                                    }
+                                }
+                            } else {
+                                runSpecTest(spec, resultKeys);
+                            }
+                        } finally {
+                            testRequest.setStatus(TestRequest.Status.DONE);
+                            testRequest.setTestResultKey(Joiner.on(",").join(resultKeys));
+                            store(testRequest);
+                        }
+                    }
+                });
 
                 return testRequest;
             } else {
