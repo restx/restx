@@ -37,9 +37,58 @@ public class MyModule {
 }
 {% endhighlight %}
 
-## Overriding Admin Console security
+## Adding session definition entry
 
-### Overriding Restx admin password
+Restx is a stateless server which relies on a signed cookie sent to the client (see previous section).
+
+The information sent in this cookie is a simple `Map<String,String>` JSON object, where every entry corresponds to a `RestxSession.Definition.Entry`.
+
+Thus, if you want to add your own information sent in the Restx cookie, you will have to provide additionnal `RestxSession.Definition.Entry @Components`.
+
+A `RestxSession.Definition.Entry` is made of 3 things :
+- A unique key name
+- A type `T` : Restx will transform the cookie map's value to this type
+- A `Guava CacheLoader` instance which will load a `T` instance, given the `String` cookie value, only if not found in the cache
+
+Here is an example of a `RestxSession.Definition.Entry` production :
+{% highlight java %}
+@Module
+public class MyModule {
+    @Provides @Named("principal")
+    public RestxSession.Definition.Entry principalSessionEntry(final BasicPrincipalAuthenticator authenticator) {
+        return new RestxSession.Definition.Entry(RestxPrincipal.class, "principal",
+                new CacheLoader<String, RestxPrincipal>() {
+            @Override
+            public RestxPrincipal load(String key) throws Exception {
+                return authenticator.findByName(key).orNull();
+            }
+        });
+    }
+}
+{% endhighlight %}
+
+This will generate a Session cookie similar to :
+{% highlight js %}
+RestxSession: {"_expires":"2013-09-15T18:30:41.234+02:00","principal":"admin"}
+{% endhighlight %}
+
+Thus, when the following code will be called :
+{% highlight java %}
+RestxPrincipal principal = RestxSession.current().get(RestxPrincipal.class, "principal");
+{% endhighlight %}
+
+The `admin` value will be fetched into the `RestxSession.Definition.Entry` cache and, if not found,
+the `load('admin')` method will be called to resolve the corresponding `RestxPrincipal`.
+
+This is a design which allows :
+- To define an exhaustive 'session dictionnary' : you won't be able to add things to the session without providing an appropriate `Definition.Entry`
+- To only *lazy load* session entries, and cache them, without an expensive cost (only `String` as values)
+- To easily scale your application (server is truly stateless)
+
+
+## Admin Console security
+
+### Restx admin password
 
 By default, access to restx admin console is allowed to user with `login=admin` & `password=juma`.
 
@@ -69,7 +118,7 @@ public class MyModule {
 	</p>
 </div>
 
-### Overriding authentication mecanism
+### Authentication mecanism
 
 As stated on [ref-security](ref-security.html) page, you can provide your own `BasicPrincipalAuthenticator @Component` by :
 - Using `restx-security-basic` dependency
