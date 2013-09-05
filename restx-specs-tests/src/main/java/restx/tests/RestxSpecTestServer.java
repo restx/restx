@@ -30,7 +30,6 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -101,11 +100,11 @@ public class RestxSpecTestServer {
         public TestRequest submitTestRequest(TestRequest testRequest) {
             if (testRequest.getTest().startsWith("specs")) {
                 final String requestKey = UUIDGenerator.DEFAULT.doGenerate();
+                logger.info("queuing test request {}", testRequest);
                 testRequest.setKey(requestKey);
                 testRequest.setRequestTime(DateTime.now());
                 testRequest.setStatus(TestRequest.Status.QUEUED);
                 store(testRequest);
-                try {
                     executor.submit(new Runnable() {
                         @Override
                         public void run() {
@@ -115,6 +114,7 @@ public class RestxSpecTestServer {
                                 return;
                             }
                             TestRequest testRequest = requestOptional.get();
+                            logger.info("running test request {}", testRequest);
                             testRequest.setStatus(TestRequest.Status.RUNNING);
                             store(testRequest);
 
@@ -137,12 +137,7 @@ public class RestxSpecTestServer {
                                 store(testRequest);
                             }
                         }
-                    }).get();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e.getCause());
-                }
+                    });
 
                 return testRequest;
             } else {
@@ -154,6 +149,7 @@ public class RestxSpecTestServer {
         }
 
         private void runSpecTest(String spec, List<String> resultKeys) {
+            logger.info("running spec test {}", spec);
             PrintStream out = System.out;
             PrintStream err = System.err;
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
