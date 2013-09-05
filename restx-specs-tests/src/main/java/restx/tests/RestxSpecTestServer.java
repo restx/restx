@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import org.joda.time.DateTime;
@@ -20,6 +21,7 @@ import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;
+import restx.specs.RestxSpecRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -27,10 +29,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,14 +71,16 @@ public class RestxSpecTestServer {
 
         private final WebServer server;
         private final RestxSpecRunner runner;
+        private final RestxSpecRepository repository;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
         private final Path storeLocation = Paths.get(System.getProperty("restx.targetTestsRoot", "tmp/tests"));
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
 
-        public RunningServer(WebServer server, RestxSpecRunner runner) {
+        public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository) {
             this.server = server;
             this.runner = runner;
+            this.repository = repository;
 
             objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JodaModule());
@@ -117,44 +118,24 @@ public class RestxSpecTestServer {
                             testRequest.setStatus(TestRequest.Status.RUNNING);
                             store(testRequest);
 
-                            PrintStream out = System.out;
-                            PrintStream err = System.err;
-                            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-                            System.setOut(new PrintStream(outStream));
-                            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-                            System.setErr(new PrintStream(errStream));
-                            TestResultSummary.Status status = TestResultSummary.Status.ERROR;
-                            long start = System.currentTimeMillis();
+                            List<String> resultKeys = new ArrayList<>();
                             try {
-                                runner.runTest(testRequest.getTest());
-                                status = TestResultSummary.Status.SUCCESS;
-                            } catch (AssertionError e) {
-                                status = TestResultSummary.Status.FAILURE;
-                                System.err.println(e.getMessage());
-                            } catch (Throwable e) {
-                                e.printStackTrace(System.err);
+                                String spec = testRequest.getTest();
+                                if (spec.endsWith("*")) {
+                                    String prefix = spec.substring(0, spec.length() - 1);
+                                    for (String s : repository.findAll()) {
+                                        if (s.startsWith(prefix)) {
+                                            runSpecTest(s, resultKeys);
+                                        }
+                                    }
+                                } else {
+                                    runSpecTest(spec, resultKeys);
+                                }
                             } finally {
-                                System.setOut(out);
-                                System.setErr(err);
-
-                                TestResult result = new TestResult()
-                                        .setSummary(new TestResultSummary()
-                                            .setKey(UUIDGenerator.DEFAULT.doGenerate())
-                                            .setName(testRequest.getTest())
-                                            .setStatus(status)
-                                            .setTestDuration(System.currentTimeMillis() - start)
-                                            .setTestTime(new DateTime(start))
-                                        )
-                                        .setStdOut(new String(outStream.toByteArray()))
-                                        .setStdErr(new String(errStream.toByteArray()))
-                                        ;
-                                store(result);
-
                                 testRequest.setStatus(TestRequest.Status.DONE);
-                                testRequest.setTestResultKey(result.getSummary().getKey());
+                                testRequest.setTestResultKey(Joiner.on(",").join(resultKeys));
                                 store(testRequest);
                             }
-
                         }
                     }).get();
                 } catch (InterruptedException e) {
@@ -169,6 +150,43 @@ public class RestxSpecTestServer {
                         .set(Rules.InvalidTest.TEST, testRequest.getTest())
                         .set(Rules.InvalidTest.DESCRIPTION, "can only run spec test, test field must start with 'specs'")
                         .raise();
+            }
+        }
+
+        private void runSpecTest(String spec, List<String> resultKeys) {
+            PrintStream out = System.out;
+            PrintStream err = System.err;
+            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            System.setOut(new PrintStream(outStream));
+            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+            System.setErr(new PrintStream(errStream));
+            TestResultSummary.Status status = TestResultSummary.Status.ERROR;
+            long start = System.currentTimeMillis();
+            try {
+                runner.runTest(spec);
+                status = TestResultSummary.Status.SUCCESS;
+            } catch (AssertionError e) {
+                status = TestResultSummary.Status.FAILURE;
+                System.err.println(e.getMessage());
+            } catch (Throwable e) {
+                e.printStackTrace(System.err);
+            } finally {
+                System.setOut(out);
+                System.setErr(err);
+
+                TestResult result = new TestResult()
+                        .setSummary(new TestResultSummary()
+                                .setKey(UUIDGenerator.DEFAULT.doGenerate())
+                                .setName(spec)
+                                .setStatus(status)
+                                .setTestDuration(System.currentTimeMillis() - start)
+                                .setTestTime(new DateTime(start))
+                        )
+                        .setStdOut(new String(outStream.toByteArray()))
+                        .setStdErr(new String(errStream.toByteArray()))
+                        ;
+                store(result);
+                resultKeys.add(result.getSummary().getKey());
             }
         }
 
@@ -316,8 +334,9 @@ public class RestxSpecTestServer {
         WebServer server = webServerSupplier.newWebServer(port);
         server.start();
         RestxSpecRunner runner = new RestxSpecRunner(routerPath, server.getServerId(), server.baseUrl(), factory);
+        RestxSpecRepository repository = factory.queryByClass(RestxSpecRepository.class).findOneAsComponent().get();
 
-        return new RunningServer(server, runner);
+        return new RunningServer(server, runner, repository);
     }
 
 }
