@@ -367,7 +367,7 @@ public class CompilationManager {
                 return;
             }
             JavaCompiler.CompilationTask compilationTask = javaCompiler.getTask(
-                    null, fileManager, diagnostics, null, null, javaFileObjects);
+                    null, fileManager, diagnostics, asList("-g"), null, javaFileObjects);
 
             boolean valid = compilationTask.call();
             if (valid) {
