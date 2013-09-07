@@ -7,11 +7,13 @@ import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxContext;
+import restx.classloader.CompilationFinishedEvent;
 import restx.common.UUIDGenerator;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
@@ -332,7 +334,17 @@ public class RestxSpecTestServer {
         RestxSpecRunner runner = new RestxSpecRunner(routerPath, server.getServerId(), server.baseUrl(), factory);
         RestxSpecRepository repository = factory.queryByClass(RestxSpecRepository.class).findOneAsComponent().get();
 
-        return new RunningServer(server, runner, repository);
+        final RunningServer runningServer = new RunningServer(server, runner, repository);
+
+        server.getEventBus().register(new Object() {
+            @Subscribe
+            public void onCompilationFinished(
+                    CompilationFinishedEvent event) {
+                runningServer.submitTestRequest(new TestRequest().setTest("specs/*"));
+            }
+        });
+
+        return runningServer;
     }
 
 }
