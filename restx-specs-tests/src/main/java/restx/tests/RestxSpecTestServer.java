@@ -24,6 +24,8 @@ import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;
+import restx.specs.DevRestxSpecRepository;
+import restx.specs.RestxSpecLoader;
 import restx.specs.RestxSpecRepository;
 
 import java.io.ByteArrayOutputStream;
@@ -125,6 +127,14 @@ public class RestxSpecTestServer {
                         try {
                             String spec = testRequest.getTest();
                             if (spec.endsWith("*")) {
+                                // clear last results when we run all tests
+                                // this is currently the only way to cleanup last results
+                                if (spec.equals("specs/*")) {
+                                    synchronized (lastResults) {
+                                        lastResults.clear();
+                                    }
+                                }
+
                                 String prefix = spec.substring(0, spec.length() - 1);
                                 for (String s : repository.findAll()) {
                                     if (s.startsWith(prefix)) {
@@ -162,7 +172,7 @@ public class RestxSpecTestServer {
             TestResultSummary.Status status = TestResultSummary.Status.ERROR;
             long start = System.currentTimeMillis();
             try {
-                runner.runTest(spec);
+                runner.runTest(repository.findSpecById(spec).get());
                 status = TestResultSummary.Status.SUCCESS;
             } catch (AssertionError e) {
                 status = TestResultSummary.Status.FAILURE;
@@ -332,8 +342,9 @@ public class RestxSpecTestServer {
         System.setProperty("restx.mode", RestxContext.Modes.TEST);
         WebServer server = webServerSupplier.newWebServer(port);
         server.start();
-        RestxSpecRunner runner = new RestxSpecRunner(routerPath, server.getServerId(), server.baseUrl(), factory);
-        RestxSpecRepository repository = factory.queryByClass(RestxSpecRepository.class).findOneAsComponent().get();
+        RestxSpecLoader specLoader = new RestxSpecLoader(factory);
+        RestxSpecRunner runner = new RestxSpecRunner(specLoader, routerPath, server.getServerId(), server.baseUrl(), factory);
+        RestxSpecRepository repository = new DevRestxSpecRepository(specLoader);
 
         final RunningServer runningServer = new RunningServer(server, runner, repository);
 

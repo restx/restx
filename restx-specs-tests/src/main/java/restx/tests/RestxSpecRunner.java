@@ -36,7 +36,7 @@ public class RestxSpecRunner {
     }
 
     private final String routerPath;
-    private final RestxSpecLoader specLoader = new RestxSpecLoader();
+    private final RestxSpecLoader specLoader;
 
     private final Iterable<GivenSpecRule> givenSpecRules;
     private final Iterable<GivenRunner> givenRunners;
@@ -51,6 +51,11 @@ public class RestxSpecRunner {
      *                This is not used for the server itself.
      */
     public RestxSpecRunner(String routerPath, String serverId, String baseUrl, Factory factory) {
+        this(new RestxSpecLoader(), routerPath, serverId, baseUrl, factory);
+    }
+
+    public RestxSpecRunner(RestxSpecLoader specLoader, String routerPath, String serverId, String baseUrl, Factory factory) {
+        this.specLoader = checkNotNull(specLoader);
         this.routerPath = checkNotNull(routerPath);
         this.serverId = checkNotNull(serverId);
         this.baseUrl = checkNotNull(baseUrl);
