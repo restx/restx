@@ -1,6 +1,7 @@
 package restx.server;
 
 import com.google.common.base.Strings;
+import com.google.common.eventbus.EventBus;
 import org.eclipse.jetty.security.DefaultIdentityService;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Handler;
@@ -29,6 +30,8 @@ public class JettyWebServer implements WebServer {
     private String appBase;
     private String webInfLocation;
     private String serverId;
+    private final EventBus eventBus = new EventBus();
+
 
     public JettyWebServer(String appBase, int aPort) {
         this(null, appBase, aPort, null);
@@ -40,6 +43,11 @@ public class JettyWebServer implements WebServer {
         this.appBase = appBase;
         this.webInfLocation = webInfLocation;
         this.serverId = "Jetty#" + SERVER_ID.incrementAndGet();
+    }
+
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
     }
 
     @Override
@@ -59,6 +67,7 @@ public class JettyWebServer implements WebServer {
 
     public void start() throws Exception {
         server = new Server();
+        WebServers.register(this);
 
         server.setThreadPool(createThreadPool());
         server.addConnector(createConnector());
@@ -75,6 +84,7 @@ public class JettyWebServer implements WebServer {
 
     public void stop() throws Exception {
         server.stop();
+        WebServers.unregister(serverId);
     }
 
     private ThreadPool createThreadPool() {

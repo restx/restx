@@ -13,6 +13,7 @@ import restx.classloader.HotReloadingClassLoader;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
+import restx.server.WebServers;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
@@ -260,7 +261,7 @@ public class RestxMainRouterFactory {
             }
         }
 
-        EventBus eventBus = new EventBus();
+        EventBus eventBus = WebServers.getServerById(serverId).get().getEventBus();
 
         Optional<RestxSpecRecorder> recorder;
         if (RestxContext.Modes.RECORDING.equals(getMode())) {

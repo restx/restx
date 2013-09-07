@@ -1,5 +1,6 @@
 package restx.server.simple.simple;
 
+import com.google.common.eventbus.EventBus;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.core.Container;
@@ -95,6 +96,7 @@ public abstract class SimpleWebServer implements WebServer {
     private final String routerPath;
     private final String appBase;
     private final int port;
+    private final EventBus eventBus = new EventBus();
 
     private RestxMainRouter router;
     private Connection connection;
@@ -104,6 +106,11 @@ public abstract class SimpleWebServer implements WebServer {
         this.routerPath = routerPath;
         this.appBase = appBase;
         this.port = port;
+    }
+
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
     }
 
     public String getServerId() {
@@ -117,6 +124,7 @@ public abstract class SimpleWebServer implements WebServer {
     @Override
     public synchronized void start() throws Exception {
         logger.debug("starting web server");
+        WebServers.register(this);
 
         router = setupRouter();
 
@@ -157,6 +165,7 @@ public abstract class SimpleWebServer implements WebServer {
             ((AutoCloseable) router).close();
         }
         connection.close();
+        WebServers.unregister(serverId);
     }
 
     @Override

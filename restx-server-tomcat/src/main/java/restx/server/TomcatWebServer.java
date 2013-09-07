@@ -1,6 +1,7 @@
 package restx.server;
 
 import com.google.common.base.Throwables;
+import com.google.common.eventbus.EventBus;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;
@@ -23,6 +24,7 @@ public class TomcatWebServer implements WebServer {
     private final Tomcat tomcat;
     private final int port;
     private final String serverId;
+    private final EventBus eventBus = new EventBus();
 
     public TomcatWebServer(String appBase, int port) throws ServletException {
         this.port = port;
@@ -46,6 +48,11 @@ public class TomcatWebServer implements WebServer {
     }
 
     @Override
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
+    @Override
     public String getServerId() {
         return serverId;
     }
@@ -61,6 +68,7 @@ public class TomcatWebServer implements WebServer {
     }
 
     public void start() throws LifecycleException {
+        WebServers.register(this);
         tomcat.start();
     }
 
@@ -71,6 +79,7 @@ public class TomcatWebServer implements WebServer {
 
     public void stop() throws LifecycleException {
         tomcat.stop();
+        WebServers.unregister(serverId);
     }
 
     public static WebServerSupplier tomcatWebServerSupplier(final String appBase) {
