@@ -13,6 +13,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxContext;
+import restx.classloader.ClasspathResourceEvent;
 import restx.classloader.CompilationFinishedEvent;
 import restx.common.UUIDGenerator;
 import restx.exceptions.ErrorCode;
@@ -341,6 +342,15 @@ public class RestxSpecTestServer {
             public void onCompilationFinished(
                     CompilationFinishedEvent event) {
                 runningServer.submitTestRequest(new TestRequest().setTest("specs/*"));
+            }
+
+            @Subscribe
+            public void onResourceEvent(ClasspathResourceEvent event) {
+                if (event.getResourcePath().startsWith("specs")) {
+                    runningServer.submitTestRequest(new TestRequest().setTest(event.getResourcePath()));
+                } else {
+                    runningServer.submitTestRequest(new TestRequest().setTest("specs/*"));
+                }
             }
         });
 
