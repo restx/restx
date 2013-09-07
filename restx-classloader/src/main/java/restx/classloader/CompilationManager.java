@@ -108,7 +108,10 @@ public class CompilationManager {
                         rebuild();
                     }
                 } else {
-                    copyResource(event.getDir(), event.getPath());
+                    Optional<SourcePath> sourcePath = SourcePath.resolve(CompilationManager.this.sourceRoots, source);
+                    if (sourcePath.isPresent()) {
+                        copyResource(sourcePath.get());
+                    }
                 }
             }
         });
@@ -126,17 +129,21 @@ public class CompilationManager {
         return sourceRoots;
     }
 
-    private void copyResource(final Path dir, final Path resourcePath) {
+    private void copyResource(final SourcePath resourcePath) {
         compileExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                File source = dir.resolve(resourcePath).toFile();
+                File source = resourcePath.toAbsolutePath().toFile();
                 if (source.isFile()) {
                     try {
-                        File to = destination.resolve(resourcePath).toFile();
+                        File to = destination.resolve(resourcePath.getPath()).toFile();
                         to.getParentFile().mkdirs();
-                        if (!to.exists() || to.lastModified() < source.lastModified()) {
+                        boolean existed = to.exists();
+                        if (!existed || to.lastModified() < source.lastModified()) {
                             com.google.common.io.Files.copy(source, to);
+                            ClasspathResourceEvent.Kind kind = existed ?
+                                    ClasspathResourceEvent.Kind.UPDATED : ClasspathResourceEvent.Kind.CREATED;
+                            eventBus.post(new ClasspathResourceEvent(kind, resourcePath.getPath().toString()));
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -246,7 +253,7 @@ public class CompilationManager {
                                                 sources.add(file);
                                             }
                                         } else if (file.toFile().isFile()) {
-                                            copyResource(sourceRoot, sourceRoot.relativize(file));
+                                            copyResource(SourcePath.valueOf(sourceRoot, sourceRoot.relativize(file)));
                                         }
                                         return FileVisitResult.CONTINUE;
                                     }
@@ -300,7 +307,7 @@ public class CompilationManager {
                                         if (isSource(file)) {
                                             sources.add(file);
                                         } else if (file.toFile().isFile()) {
-                                            copyResource(sourceRoot, sourceRoot.relativize(file));
+                                            copyResource(SourcePath.valueOf(sourceRoot, sourceRoot.relativize(file)));
                                         }
                                         return FileVisitResult.CONTINUE;
                                     }
@@ -372,22 +379,11 @@ public class CompilationManager {
             boolean valid = compilationTask.call();
             if (valid) {
                 for (Path source : sources) {
-                    Path dir = null;
-                    for (Path sourceRoot : sourceRoots) {
-                        if ((source.isAbsolute() && source.startsWith(sourceRoot.toAbsolutePath()))
-                                || (!source.isAbsolute() && source.startsWith(sourceRoot))) {
-                            dir = sourceRoot;
-                            break;
-                        }
-                    }
-                    if (dir == null) {
-                        logger.warn("can't find sourceRoot for {}", source);
-                    } else {
-                        SourceHash sourceHash = newSourceHashFor(dir, source.isAbsolute() ?
-                                dir.toAbsolutePath().relativize(source) :
-                                dir.relativize(source)
-                        );
+                    Optional<SourcePath> sourcePath = SourcePath.resolve(sourceRoots, source);
+                    if (sourcePath.isPresent()) {
+                        SourceHash sourceHash = newSourceHashFor(sourcePath.get());
                         hashes.put(source.toAbsolutePath(), sourceHash);
+
                     }
                 }
 
@@ -436,7 +432,7 @@ public class CompilationManager {
                 String line;
                 while ((line = r.readLine()) != null) {
                     SourceHash sourceHash = parse(line);
-                    hashes.put(sourceHash.getDir().resolve(sourceHash.getSourcePath()).toAbsolutePath(), sourceHash);
+                    hashes.put(sourceHash.getSourcePath().toAbsolutePath(), sourceHash);
                 }
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
@@ -470,14 +466,65 @@ public class CompilationManager {
         }
     }
 
+    private static class SourcePath {
+        public static Optional<SourcePath> resolve(Iterable<Path> sourceRoots, Path source) {
+            Path dir = null;
+            for (Path sourceRoot : sourceRoots) {
+                if ((source.isAbsolute() && source.startsWith(sourceRoot.toAbsolutePath()))
+                        || (!source.isAbsolute() && source.startsWith(sourceRoot))) {
+                    dir = sourceRoot;
+                    break;
+                }
+            }
+            if (dir == null) {
+                logger.warn("can't find sourceRoot for {}", source);
+                return Optional.absent();
+            } else {
+                return Optional.of(new SourcePath(dir, source.isAbsolute() ?
+                                        dir.toAbsolutePath().relativize(source) :
+                                        dir.relativize(source)));
+            }
+        }
+
+        public static SourcePath valueOf(Path sourceRoot, Path path) {
+            return new SourcePath(sourceRoot, path);
+        }
+
+        private final Path sourceDir;
+        private final Path path;
+
+        private SourcePath(Path sourceDir, Path path) {
+            this.sourceDir = sourceDir;
+            this.path = path;
+        }
+
+        public Path getSourceDir() {
+            return sourceDir;
+        }
+
+        public Path getPath() {
+            return path;
+        }
+
+        public Path toAbsolutePath() {
+            return sourceDir.resolve(path).toAbsolutePath();
+        }
+
+        @Override
+        public String toString() {
+            return "SourcePath{" +
+                    "sourceDir=" + sourceDir +
+                    ", path=" + path +
+                    '}';
+        }
+    }
+
     private class SourceHash {
-        private final Path dir;
-        private final Path sourcePath;
+        private final SourcePath sourcePath;
         private final String hash;
         private final long lastModified;
 
-        private SourceHash(Path dir, Path sourcePath, String hash, long lastModified) {
-            this.dir = dir;
+        private SourceHash(SourcePath sourcePath, String hash, long lastModified) {
             this.sourcePath = sourcePath;
             this.hash = hash;
             this.lastModified = lastModified;
@@ -486,18 +533,13 @@ public class CompilationManager {
         @Override
         public String toString() {
             return "SourceHash{" +
-                    "dir=" + dir +
-                    ", sourcePath=" + sourcePath +
+                    "sourcePath=" + sourcePath +
                     ", hash='" + hash + '\'' +
                     ", lastModified=" + lastModified +
                     '}';
         }
 
-        public Path getDir() {
-            return dir;
-        }
-
-        public Path getSourcePath() {
+        public SourcePath getSourcePath() {
             return sourcePath;
         }
 
@@ -510,16 +552,16 @@ public class CompilationManager {
         }
 
         public SourceHash hasChanged() throws IOException {
-            File sourceFile = dir.resolve(sourcePath).toFile();
+            File sourceFile = sourcePath.toAbsolutePath().toFile();
             if (useLastModifiedTocheckChanges) {
                 if (lastModified < sourceFile.lastModified()) {
-                    return new SourceHash(dir, sourcePath,
+                    return new SourceHash(sourcePath,
                             computeHash(), sourceFile.lastModified());
                 }
             } else {
                 String currentHash = computeHash();
                 if (!currentHash.equals(hash)) {
-                    return new SourceHash(dir, sourcePath,
+                    return new SourceHash(sourcePath,
                             currentHash, sourceFile.lastModified());
                 }
             }
@@ -527,17 +569,17 @@ public class CompilationManager {
         }
 
         private String computeHash() throws IOException {
-            return hash(dir.resolve(sourcePath).toFile());
+            return hash(sourcePath.toAbsolutePath().toFile());
         }
 
         public String serializeAsString() throws IOException {
-            return Joiner.on("**").join(dir, sourcePath, hash, lastModified);
+            return Joiner.on("**").join(sourcePath.getSourceDir(), sourcePath.getPath(), hash, lastModified);
         }
     }
 
-    private SourceHash newSourceHashFor(Path dir, Path sourcePath) throws IOException {
-        File sourceFile = dir.resolve(sourcePath).toFile();
-        return new SourceHash(dir, sourcePath, hash(sourceFile), sourceFile.lastModified());
+    private SourceHash newSourceHashFor(SourcePath sourcePath) throws IOException {
+        File sourceFile = sourcePath.toAbsolutePath().toFile();
+        return new SourceHash(sourcePath, hash(sourceFile), sourceFile.lastModified());
     }
 
     private String hash(File file) throws IOException {
@@ -548,8 +590,8 @@ public class CompilationManager {
         Iterator<String> parts = Splitter.on("**").split(str).iterator();
         FileSystem fileSystem = FileSystems.getDefault();
         return new SourceHash(
-                fileSystem.getPath(parts.next()),
-                fileSystem.getPath(parts.next()),
+                SourcePath.valueOf(fileSystem.getPath(parts.next()),
+                               fileSystem.getPath(parts.next())),
                 parts.next(),
                 Long.parseLong(parts.next())
         );
