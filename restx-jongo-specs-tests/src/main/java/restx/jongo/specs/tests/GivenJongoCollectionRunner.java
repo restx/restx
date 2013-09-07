@@ -41,15 +41,19 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                     checkNotNull(params.get(DB_URI),
                             DB_URI + " param is required"));
             Jongo jongo = new Jongo(new MongoClient(mongoClientURI).getDB(mongoClientURI.getDatabase()));
-            Stopwatch stopwatch = new Stopwatch().start();
-            MongoCollection collection = jongo.getCollection(given.getCollection());
-            Iterable<String> items = Splitter.on("\n").trimResults().omitEmptyStrings().split(given.getData());
-            int count = 0;
-            for (String item : items) {
-                collection.insert(item);
-                count++;
+            try {
+                Stopwatch stopwatch = new Stopwatch().start();
+                MongoCollection collection = jongo.getCollection(given.getCollection());
+                Iterable<String> items = Splitter.on("\n").trimResults().omitEmptyStrings().split(given.getData());
+                int count = 0;
+                for (String item : items) {
+                    collection.insert(item);
+                    count++;
+                }
+                System.out.printf("imported %s[%d] -- %s%n", given.getCollection(), count, stopwatch.stop().toString());
+            } finally {
+                jongo.getDatabase().getMongo().close();
             }
-            System.out.printf("imported %s[%d] -- %s%n", given.getCollection(), count, stopwatch.stop().toString());
 
             final UnmodifiableIterator<String> it = given.getSequence().iterator();
             final CollectionSequence iteratingSequence = new CollectionSequence() {
