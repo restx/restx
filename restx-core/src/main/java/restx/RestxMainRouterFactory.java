@@ -20,9 +20,10 @@ import restx.specs.RestxSpecTape;
 import javax.tools.Diagnostic;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.nio.file.Files;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
@@ -184,7 +185,7 @@ public class RestxMainRouterFactory {
         private final String rootPackage;
         private final Path destinationDir;
         private final CompilationManager compilationManager;
-        private HotReloadingClassLoader hotReloadingClassLoader;
+        private ClassLoader classLoader;
 
         public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus) {
             this.delegate = delegate;
@@ -206,16 +207,13 @@ public class RestxMainRouterFactory {
         }
 
         private void setClassLoader() {
-            hotReloadingClassLoader = new HotReloadingClassLoader(
-                    Thread.currentThread().getContextClassLoader(), rootPackage) {
-                protected InputStream getInputStream(String path) {
-                    try {
-                        return Files.newInputStream(destinationDir.resolve(path));
-                    } catch (IOException e) {
-                        return null;
-                    }
-                }
-            };
+            try {
+                classLoader = new URLClassLoader(
+                        new URL[] {destinationDir.toUri().toURL()},
+                        Thread.currentThread().getContextClassLoader());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
@@ -241,7 +239,7 @@ public class RestxMainRouterFactory {
                     return;
                 }
 
-                Thread.currentThread().setContextClassLoader(hotReloadingClassLoader);
+                Thread.currentThread().setContextClassLoader(classLoader);
                 delegate.route(restxRequest, restxResponse);
             } finally {
                 Thread.currentThread().setContextClassLoader(previousLoader);
