@@ -5,7 +5,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
-
 import restx.factory.*;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -18,14 +17,12 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
-
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
@@ -145,6 +142,8 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
             ComponentClass componentClass = new ComponentClass(
                     component.getQualifiedName().toString(),
+                    getPackage(component).getQualifiedName().toString(),
+                    component.getSimpleName().toString(),
                     getInjectionName(component.getAnnotation(Named.class)),
                     component.getAnnotation(Component.class).priority(),
                     component);
@@ -157,8 +156,18 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
             } else {
                 generateMachineFile(componentClass, when);
             }
-
         }
+    }
+
+    private PackageElement getPackage(TypeElement typeElement) {
+        Element el = typeElement.getEnclosingElement();
+        while (el != null) {
+            if (el instanceof PackageElement) {
+                return (PackageElement) el;
+            }
+            el = el.getEnclosingElement();
+        }
+        throw new IllegalStateException("no package for " + typeElement);
     }
 
     private void processAlternatives(RoundEnvironment roundEnv) throws IOException {
@@ -186,12 +195,16 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
             ComponentClass componentClass = new ComponentClass(
                     component.getQualifiedName().toString(),
+                    getPackage(component).getQualifiedName().toString(),
+                    component.getSimpleName().toString(),
                     getInjectionName(component.getAnnotation(Named.class)),
                     alternative.priority(),
                     component);
 
             ComponentClass alternativeToComponentClass = new ComponentClass(
                     alternativeTo.getQualifiedName().toString(),
+                    getPackage(alternativeTo).getQualifiedName().toString(),
+                    alternativeTo.getSimpleName().toString(),
                     getInjectionName(alternativeTo.getAnnotation(Named.class)),
                     alternative.priority(),
                     alternativeTo);
@@ -302,7 +315,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
                 .build();
 
-        generateJavaClass(componentClass.fqcn + "FactoryMachine", alternativeMachineTpl, ctx,
+        generateJavaClass(componentClass.pack + "." + componentClass.name + "FactoryMachine", alternativeMachineTpl, ctx,
                 Collections.singleton(componentClass.originatingElement));
     }
 
@@ -322,7 +335,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
                 .build();
 
-        generateJavaClass(componentClass.fqcn + "FactoryMachine", conditionalMachineTpl, ctx,
+        generateJavaClass(componentClass.pack + "." + componentClass.name + "FactoryMachine", conditionalMachineTpl, ctx,
                 Collections.singleton(componentClass.originatingElement));
     }
 
@@ -340,7 +353,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
                 .build();
 
-        generateJavaClass(componentClass.fqcn + "FactoryMachine", componentMachineTpl, ctx,
+        generateJavaClass(componentClass.pack + "." + componentClass.name + "FactoryMachine", componentMachineTpl, ctx,
                 Collections.singleton(componentClass.originatingElement));
 
     }
@@ -388,12 +401,15 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         final int priority;
         final Optional<String> injectionName;
 
-        ComponentClass(String fqcn, Optional<String> injectionName, int priority, Element originatingElement) {
+        ComponentClass(String fqcn,
+                       String pack, String name,
+                       Optional<String> injectionName, int priority, Element originatingElement) {
             this.fqcn = fqcn;
             this.injectionName = injectionName;
             this.priority = priority;
-            this.pack = fqcn.substring(0, fqcn.lastIndexOf('.'));
-            this.name = fqcn.substring(fqcn.lastIndexOf('.') + 1);
+
+            this.pack = pack;
+            this.name = name;
             this.originatingElement = originatingElement;
         }
     }
