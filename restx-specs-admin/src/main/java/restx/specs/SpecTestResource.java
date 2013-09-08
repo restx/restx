@@ -1,9 +1,11 @@
 package restx.specs;
 
 import com.google.common.base.Optional;
+import restx.RestxLogLevel;
 import restx.annotations.GET;
 import restx.annotations.POST;
 import restx.annotations.RestxResource;
+import restx.annotations.Verbosity;
 import restx.factory.Component;
 import restx.factory.When;
 import restx.tests.RestxSpecTestServer;
@@ -36,6 +38,7 @@ public class SpecTestResource {
     }
 
     @GET("/@/tests/results/summaries")
+    @Verbosity(RestxLogLevel.QUIET)
     public Iterable<TestResultSummary> findCurrentTestResults() {
         return server.findCurrentTestResults();
     }
