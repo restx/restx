@@ -31,5 +31,6 @@
     </resolvers>
     <modules>
         <module revision="latest.integration" resolver="latest" />
+        <module revision=".*-SNAPSHOT" resolver="latest" matcher="regexp" />
     </modules>
 </ivysettings>
