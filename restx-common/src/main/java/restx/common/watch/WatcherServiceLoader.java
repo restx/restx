@@ -22,6 +22,11 @@ public class WatcherServiceLoader {
 
         if (watcher == null) {
             watcher = new StdWatcherService();
+            String osName = System.getProperty("os.name");
+            if (osName.startsWith("Mac OS X") || osName.startsWith("Darwin")) {
+                System.out.println("WARN: using default watch service on MacOSX uses polling.\n" +
+                        "Add `restx-barbarywatch` to your classpath to have real time file system notifications.");
+            }
         }
 
         WATCHER_SERVICE = watcher;
