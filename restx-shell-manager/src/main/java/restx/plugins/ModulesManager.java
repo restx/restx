@@ -68,6 +68,7 @@ public class ModulesManager {
         }
         List<File> files = new ArrayList<>();
         for (ModuleDescriptor module : modules) {
+            ivy.pushContext(); // DefaultModuleDescriptor access Ivy current context, so we need to push it.
             try {
                 DefaultModuleDescriptor md = DefaultModuleDescriptor.newCallerInstance(
                         toMrid(module.getId()), new String[]{"master", "runtime"}, true, false);
@@ -93,6 +94,8 @@ public class ModulesManager {
                 }
             } catch (ParseException e) {
                 throw new RuntimeException(e);
+            } finally {
+                ivy.popContext();
             }
         }
         return files;
