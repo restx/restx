@@ -29,13 +29,27 @@
             </table>
         </section>
         <section ng-show="try" class="send">
-            <div class="pull-right">
+            <div class="pull-right" ng-show="!expect">
                     SU
                     <input placeholder="johndoe@acme.com" ng-model="su">
-            <button ng-click="send()" class="btn btn-primary">Send (⌘+enter)</button>
-            <button ng-click="sendAndRecord()" class="btn btn-primary">Send & Record</button>
+            <button ng-click="send()" class="btn btn-primary btn-send">Send</button>
+            <button ng-click="sendAndRecord()" class="btn btn-success btn-send-record">Send & Record</button>
+            <button ng-click="sendAndFix()" class="btn btn-inverse btn-send-fix">Send & Fix</button>
             </div>
-            <div ng-show="request">
+            <div ng-show="expect" class="expect">
+                <h3>Fix Expectation</h3>
+                <h4>Request</h4>
+                <pre><code>{{request.httpMethod}} {{request.path}}</code></pre>
+                <div ng-show="request.body">Body: <pre><code>{{request.body}}</code></pre> </div>
+                <div ng-show="request.response.status">
+                    <h4>Response</h4>
+                    <input ng-model="expect.status">
+                    <textarea ng-model="expect.body"></textarea>
+                    <button ng-click="expect = false" class="btn">Cancel</button>
+                    <button ng-click="fix()" class="btn btn-success">Fix</button>
+                </div>
+            </div>
+            <div ng-show="request && !expect">
                 <h3>Result</h3>
                 <h4>Request</h4>
                 <pre><code>{{request.httpMethod}} {{request.path}}</code></pre>

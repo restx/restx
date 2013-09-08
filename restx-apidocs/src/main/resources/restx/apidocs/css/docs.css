@@ -202,10 +202,23 @@ h1 .http-method {
     border-top: 2px solid #e5e5e5;
 }
 
+@media all and (min-width: 420px) {
+    .btn-send:after {
+        content: " (⌘+enter)";
+    }
+}
+
 @media all and (max-width: 420px) {
     .container {
         margin-top: 22px;
         width: 370px;
+    }
+    .operation .expect textarea {
+        width: 355px;
+    }
+    .operation .send .expect input {
+        width: 355px;
+        margin-bottom: 10px;
     }
     .operation textarea {
         width: 245px;
@@ -214,6 +227,13 @@ h1 .http-method {
     .send .btn {
         margin-top: 5px;
         margin-left: 5px;
+    }
+    .operation .send .pull-right {
+        padding-left: 10px;
+        padding-top: 5px;
+    }
+    .operation .send input {
+        width: 290px;
     }
     .operation .send {
         min-height: 70px;
