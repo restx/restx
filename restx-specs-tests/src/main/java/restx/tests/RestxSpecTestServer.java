@@ -24,7 +24,7 @@ import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;
-import restx.specs.DevRestxSpecRepository;
+import restx.specs.HotReloadRestxSpecRepository;
 import restx.specs.RestxSpecLoader;
 import restx.specs.RestxSpecRepository;
 
@@ -344,7 +344,7 @@ public class RestxSpecTestServer {
         server.start();
         RestxSpecLoader specLoader = new RestxSpecLoader(factory);
         RestxSpecRunner runner = new RestxSpecRunner(specLoader, routerPath, server.getServerId(), server.baseUrl(), factory);
-        RestxSpecRepository repository = new DevRestxSpecRepository(specLoader);
+        RestxSpecRepository repository = new HotReloadRestxSpecRepository(specLoader);
 
         final RunningServer runningServer = new RunningServer(server, runner, repository);
 
