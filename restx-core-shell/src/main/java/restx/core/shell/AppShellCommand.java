@@ -1,7 +1,9 @@
 package restx.core.shell;
 
 import com.github.mustachejava.Mustache;
-import com.google.common.base.*;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -19,13 +21,10 @@ import restx.shell.StdShellCommand;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
-
-import static restx.common.MoreFiles.copyDir;
 
 /**
  * User: xavierhanin
@@ -261,62 +260,19 @@ public class AppShellCommand extends StdShellCommand {
 
         @Override
         public void run(RestxShell shell) throws Exception {
-            Path mainSourceRoot = shell.currentLocation().resolve("src/main/java");
             if (appClassName == null) {
-                String[] packages = mainSourceRoot.toFile().list();
-                if (packages == null || packages.length != 1) {
-                    shell.printIn("can't find base app package, src/main/java should have exactly one directory below",
+                Optional<String> pack = Apps.guessAppBasePackage(shell.currentLocation());
+                if (!pack.isPresent()) {
+                    shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
                             RestxShell.AnsiCodes.ANSI_RED);
                     shell.println("");
                     shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
                     return;
                 }
-                appClassName = packages[0] + ".AppServer";
+                appClassName = pack.get() + ".AppServer";
             }
-
-            Path targetClasses = Paths.get("target/classes");
-            Path dependenciesDir = Paths.get("target/dependency");
-            Path mainSources = Paths.get("src/main/java");
-            Path mainResources = Paths.get("src/main/resources");
-
-            shell.print("compiling App...");
-            shell.currentLocation().resolve(targetClasses).toFile().mkdirs();
-            int compiled = new ProcessBuilder(
-                    "javac", "-cp", dependenciesDir + "/*", "-sourcepath", mainSources.toString(), "-d", targetClasses.toString(),
-                    shell.currentLocation().relativize(
-                            mainSourceRoot.resolve(appClassName.replace('.', '/') + ".java")).toString())
-                    .redirectErrorStream(true)
-                    .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                    .directory(shell.currentLocation().toFile().getAbsoluteFile())
-                    .start()
-                    .waitFor();
-            if (compiled != 0) {
-                shell.printIn(" [ERROR]", RestxShell.AnsiCodes.ANSI_RED);
-                shell.println("");
-                return;
-            }
-            shell.printIn(" [DONE]", RestxShell.AnsiCodes.ANSI_GREEN);
-            shell.println("");
-
-            shell.print("copying resources...");
-            copyDir(
-                    shell.currentLocation().resolve(mainResources),
-                    shell.currentLocation().resolve(targetClasses)
-            );
-            shell.printIn(" [DONE]", RestxShell.AnsiCodes.ANSI_GREEN);
-            shell.println("");
-
-            shell.println("starting AppServer... - type `stop` to stop it and go back to restx shell");
-            Process run = Apps.run(shell.currentLocation().toFile(),
-                    targetClasses, dependenciesDir, appClassName);
-
-            while (!shell.ask("", "").equals("stop")) {
-                shell.printIn("restx> unrecognized command - type `stop` to stop the app",
-                        RestxShell.AnsiCodes.ANSI_YELLOW);
-                shell.println("");
-            }
-            run.destroy();
-            run.waitFor();
+            new ShellAppRunner(appClassName.substring(0, appClassName.lastIndexOf('.')), appClassName, true)
+                .run(shell);
         }
     }
 }
