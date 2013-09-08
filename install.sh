@@ -89,15 +89,25 @@ trap "echo Installation failed." EXIT
 # install here:
 [ -e "$HOME/.restx" ] && rm -rf "$HOME/.restx"
 
-# get current version from web site
-VERSION=`curl -s http://restx.io/version | head -n 1`
+if [ "${1:-unset}" = "unset" ] ; then
+	# get current version from web site
+	VERSION=`curl -s http://restx.io/version | head -n 1`
 
-# get current tarball URL from web site
-TARBALL_URL=`curl -s http://restx.io/version | tail -n 1`
+	# get current tarball URL from web site
+	TARBALL_URL=`curl -s http://restx.io/version | tail -n 1`
 
-# the url has no extension on web site, because it's used for updates where choosing between zip and tar.gz 
-# depends on platform
-TARBALL_URL="$TARBALL_URL.tar.gz"
+	# the url has no extension on web site, because it's used for updates where choosing between zip and tar.gz 
+	# depends on platform
+	TARBALL_URL="$TARBALL_URL.tar.gz"
+else
+	VERSION=$1
+	
+	if [ "${2:-unset}" = "unset" ] ; then	
+			TARBALL_URL="http://repo1.maven.org/maven2/io/restx/restx-package/${VERSION}/restx-package-${VERSION}.tar.gz"
+  else
+			TARBALL_URL=$2
+	fi
+fi
 
 INSTALL_TMPDIR="$HOME/.restx-install-tmp"
 rm -rf "$INSTALL_TMPDIR"
