@@ -1,9 +1,6 @@
 package restx.plugins;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
@@ -84,13 +81,18 @@ public class PluginsShellCommand extends StdShellCommand {
                 shell.println("\t\t" + plugin.getDescription());
             }
 
-            String sel = shell.ask("Which plugin would you like to install (eg '1 3 5')? \n", "");
+            String sel = shell.ask("Which plugin would you like to install (eg '1 3 5')? \nYou can also provide a plugin id in the form <groupId>:<moduleId>:<version>\n plugin to install: ", "");
             Iterable<String> selected = Splitter.on(" ").trimResults().omitEmptyStrings().split(sel);
             File pluginsDir = new File(shell.installLocation().toFile(), "plugins");
             int count = 0;
             for (String s : selected) {
-                int i = Integer.parseInt(s);
-                ModuleDescriptor md = plugins.get(i - 1);
+                ModuleDescriptor md;
+                if (CharMatcher.DIGIT.matchesAllOf(s)) {
+                    int i = Integer.parseInt(s);
+                    md = plugins.get(i - 1);
+                } else {
+                    md = new ModuleDescriptor(s, "shell", "");
+                }
                 shell.printIn("installing " + md.getId() + "...", RestxShell.AnsiCodes.ANSI_CYAN);
                 shell.println("");
                 List<File> copied = modulesManager.download(ImmutableList.of(md), pluginsDir, defaultExcludes);
