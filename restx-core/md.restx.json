@@ -12,6 +12,7 @@
             "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
             "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson.version}",
+            "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jackson.version}",
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-classloader:${restx.version}",
             "javax.inject:javax.inject:${javax.inject.version}",
