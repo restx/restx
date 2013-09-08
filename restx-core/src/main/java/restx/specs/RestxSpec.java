@@ -8,6 +8,8 @@ import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -112,6 +114,15 @@ public class RestxSpec {
         }
     }
 
+    public RestxSpec withWhens(ImmutableList<When> whens) {
+        return new RestxSpec(path, title, given, whens);
+    }
+
+    public RestxSpec withWhenAt(int index, When when) {
+        List<When> whens = new ArrayList<>(getWhens());
+        whens.set(index, when);
+        return withWhens(ImmutableList.copyOf(whens));
+    }
 
     public ImmutableList<Given> getGiven() {
         return given;
@@ -120,5 +131,4 @@ public class RestxSpec {
     public ImmutableList<When> getWhens() {
         return whens;
     }
-
 }

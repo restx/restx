@@ -15,4 +15,6 @@ public abstract class When<T extends Then> {
     }
 
     public abstract void toString(StringBuilder sb);
+
+    public abstract When<T> withThen(T then);
 }

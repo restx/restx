@@ -66,6 +66,11 @@ public class WhenHttpRequest extends When<ThenHttpResponse> {
         return cookies;
     }
 
+    @Override
+    public When<ThenHttpResponse> withThen(ThenHttpResponse then) {
+        return new WhenHttpRequest(method, path, cookies, body, then);
+    }
+
     public static Builder builder(){
         return new Builder();
     }

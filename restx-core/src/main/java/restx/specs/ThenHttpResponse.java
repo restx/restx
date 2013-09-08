@@ -1,5 +1,8 @@
 package restx.specs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import static restx.common.MoreStrings.indent;
 
 /**
@@ -9,7 +12,9 @@ public class ThenHttpResponse implements Then {
     private final int expectedCode;
     private final String expected;
 
-    public ThenHttpResponse(int expectedCode, String expected) {
+    @JsonCreator
+    public ThenHttpResponse(@JsonProperty("expectedCode") int expectedCode,
+                            @JsonProperty("expected") String expected) {
         this.expectedCode = expectedCode;
         this.expected = expected;
     }
