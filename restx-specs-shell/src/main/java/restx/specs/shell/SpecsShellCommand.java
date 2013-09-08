@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableList;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
+import restx.Apps;
+import restx.core.shell.ShellAppRunner;
 import restx.factory.Component;
 import restx.server.simple.simple.SimpleWebServer;
 import restx.shell.RestxShell;
@@ -25,7 +27,7 @@ import java.util.List;
 @Component
 public class SpecsShellCommand extends StdShellCommand {
     protected SpecsShellCommand() {
-        super(ImmutableList.of("spec"), "restx spec commands: list, server, ... ");
+        super(ImmutableList.of("spec"), "restx spec commands: server, test, ... ");
     }
 
     @Override
@@ -38,6 +40,11 @@ public class SpecsShellCommand extends StdShellCommand {
         switch (args.get(1)) {
             case "server":
                 return Optional.<ShellCommandRunner>of(new SpecServerCommandRunner(args));
+            case "test":
+                if (args.size() > 2 && args.get(2).equals("server")) {
+                    return Optional.<ShellCommandRunner>of(new SpecTestServerCommandRunner(args));
+                }
+                // keep other arguments to run spec test directly with spec test <spec/test/to/run.spec.yaml>
         }
 
         return Optional.absent();
@@ -46,10 +53,36 @@ public class SpecsShellCommand extends StdShellCommand {
     @Override
     public Iterable<Completer> getCompleters() {
         return ImmutableList.<Completer>of(
-                new ArgumentCompleter(new StringsCompleter("spec"), new StringsCompleter("server")));
+                new ArgumentCompleter(new StringsCompleter("spec"), new StringsCompleter("server", "test"), new StringsCompleter("server")));
     }
 
+    private class SpecTestServerCommandRunner implements ShellCommandRunner {
+        private final List<String> args;
 
+        public SpecTestServerCommandRunner(List<String> args) {
+            this.args = args;
+        }
+
+        @Override
+        public void run(final RestxShell shell) throws Exception {
+            String basePack;
+            if (args.size() > 3) {
+                basePack = args.get(3);
+            } else {
+                Optional<String> pack = Apps.guessAppBasePackage(shell.currentLocation());
+                if (!pack.isPresent()) {
+                    shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
+                            RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("");
+                    shell.println("alternatively you can provide the base package with `spec test server <base.pack>`");
+                    return;
+                }
+                basePack = pack.get();
+            }
+
+            new ShellAppRunner(basePack, "restx.tests.RestxSpecTestServer", false).run(shell);
+        }
+    }
 
     private class SpecServerCommandRunner implements ShellCommandRunner {
         private final List<String> args;

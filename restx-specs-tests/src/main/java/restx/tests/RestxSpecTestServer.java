@@ -368,4 +368,7 @@ public class RestxSpecTestServer {
         return runningServer;
     }
 
+    public static void main(String[] args) throws Exception {
+        RestxSpecTestServer.newInstance().start();
+    }
 }
