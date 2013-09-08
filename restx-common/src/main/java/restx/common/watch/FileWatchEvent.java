@@ -16,7 +16,7 @@ public class FileWatchEvent {
 
     public FileWatchEvent(Path dir, Path path, WatchEvent.Kind kind, int count) {
         this.dir = dir;
-        this.path = path;
+        this.path = normalizePath(dir, path);
         this.kind = kind;
         this.count = count;
     }
@@ -45,5 +45,15 @@ public class FileWatchEvent {
                 ", kind=" + kind +
                 ", count=" + count +
                 '}';
+    }
+
+    private static Path normalizePath(Path dir, Path path) {
+        if (path.startsWith(dir)) {
+            return dir.relativize(path);
+        }
+        if (path.isAbsolute() && path.startsWith(dir.toAbsolutePath())) {
+            return dir.toAbsolutePath().relativize(path);
+        }
+        return path;
     }
 }
