@@ -7,6 +7,7 @@ import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.RestxLogLevel;
 import restx.RestxResponse;
 import restx.server.HTTP;
 
@@ -26,6 +27,7 @@ public class SimpleRestxResponse implements RestxResponse {
     private String charset;
     private PrintWriter writer;
     private OutputStream outputStream;
+    private RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
 
     public SimpleRestxResponse(Response response) {
         this.response = response;
@@ -113,5 +115,13 @@ public class SimpleRestxResponse implements RestxResponse {
             outputStream.close();
         }
         response.close();
+    }
+
+    public RestxLogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(RestxLogLevel logLevel) {
+        this.logLevel = logLevel;
     }
 }

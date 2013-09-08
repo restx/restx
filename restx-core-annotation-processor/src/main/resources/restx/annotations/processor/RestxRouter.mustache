@@ -29,7 +29,7 @@ public class {{{router}}} extends RestxRouter {
         super(
                 "{{{router}}}", new RestxRoute[] {
 {{#routes}}
-        new StdEntityRoute("{{{routeId}}}", mapper, new StdRouteMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}) {
+        new StdEntityRoute("{{{routeId}}}", mapper, new StdRouteMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
             @Override
             protected Optional<?> doRoute(RestxRequest request, RestxRouteMatch match) throws IOException {
                 {{{securityCheck}}}

@@ -57,4 +57,14 @@ public class RestxResponseWrapper implements RestxResponse {
     public void addCookie(String cookie, String value) {
         restxResponse.addCookie(cookie, value);
     }
+
+    @Override
+    public void setLogLevel(RestxLogLevel level) {
+        restxResponse.setLogLevel(level);
+    }
+
+    @Override
+    public RestxLogLevel getLogLevel() {
+        return restxResponse.getLogLevel();
+    }
 }

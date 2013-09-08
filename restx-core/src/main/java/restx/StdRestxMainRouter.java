@@ -206,7 +206,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
             try { restxResponse.close(); } catch (Exception ex) { }
             monitor.stop();
             stopwatch.stop();
-            logger.info("<< {} >> {} - {}", restxRequest, restxResponse.getStatus(), stopwatch);
+            restxResponse.getLogLevel().log(logger, restxRequest, restxResponse, stopwatch);
         }
     }
 

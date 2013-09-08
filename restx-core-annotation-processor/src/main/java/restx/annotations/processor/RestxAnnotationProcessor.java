@@ -6,6 +6,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import restx.HttpStatus;
+import restx.RestxLogLevel;
 import restx.annotations.*;
 import restx.common.Mustaches;
 import restx.factory.When;
@@ -61,6 +62,9 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
                 HttpStatus successStatus = successStatusAnn==null?HttpStatus.OK:successStatusAnn.value();
 
+                Verbosity verbosity = annotation.methodElem.getAnnotation(Verbosity.class);
+                RestxLogLevel logLevel = verbosity == null ? RestxLogLevel.DEFAULT : verbosity.value();
+
                 ResourceGroup group = getResourceGroup(r, groups);
                 ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
 
@@ -71,7 +75,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                         annotation.httpMethod, annotation.path,
                         annotation.methodElem.getSimpleName().toString(),
                         annotation.methodElem.getReturnType().toString(),
-                        successStatus, permission);
+                        successStatus, logLevel, permission);
 
                 resourceClass.resourceMethods.add(resourceMethod);
                 resourceClass.originatingElements.add(annotation.methodElem);
@@ -269,6 +273,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                             String.format("protected ObjectWriter getObjectWriter(ObjectMapper mapper) { return super.getObjectWriter(mapper).withType(new TypeReference<%s>() { }); }", resourceMethod.returnType)
                             : "")
                     .put("successStatusName", resourceMethod.successStatus.name())
+                    .put("logLevelName", resourceMethod.logLevel.name())
                     .build()
             );
         }
@@ -395,15 +400,17 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final String id;
         final Collection<String> pathParamNames;
         final HttpStatus successStatus;
+        final RestxLogLevel logLevel;
         final String permission;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
         ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
-                       HttpStatus successStatus, String permission) {
+                       HttpStatus successStatus, RestxLogLevel logLevel, String permission) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
+            this.logLevel = logLevel;
             this.permission = permission;
             Matcher m = optionalPattern.matcher(returnType);
             this.realReturnType = returnType;

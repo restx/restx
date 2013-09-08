@@ -2,6 +2,7 @@ package restx.servlet;
 
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
+import restx.RestxLogLevel;
 import restx.RestxResponse;
 import restx.server.HTTP;
 
@@ -22,6 +23,7 @@ public class HttpServletRestxResponse implements RestxResponse {
     private final HttpServletResponse resp;
     private final HttpServletRequest request;
     private int status = 200;
+    private RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
 
     public HttpServletRestxResponse(HttpServletResponse resp, HttpServletRequest request) {
         this.resp = resp;
@@ -118,5 +120,13 @@ public class HttpServletRestxResponse implements RestxResponse {
     @Override
     public String toString() {
         return "[RESTX RESPONSE] " + status;
+    }
+
+    public RestxLogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(RestxLogLevel logLevel) {
+        this.logLevel = logLevel;
     }
 }

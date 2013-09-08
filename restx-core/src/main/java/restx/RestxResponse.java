@@ -27,4 +27,11 @@ public interface RestxResponse extends AutoCloseable {
 
     void setHeader(String headerName, String header);
 
+    /**
+     * Sets the log level of this response.
+     *
+     * @param level the new level
+     */
+    void setLogLevel(RestxLogLevel level);
+    RestxLogLevel getLogLevel();
 }
