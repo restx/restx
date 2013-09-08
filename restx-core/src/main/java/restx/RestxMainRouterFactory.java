@@ -14,6 +14,7 @@ import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.server.WebServers;
+import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
@@ -97,8 +98,12 @@ public class RestxMainRouterFactory {
                                 Optional<String> recordPath = restxRequest.getHeader("RestxRecordPath");
                                 if (recordPath.isPresent()) {
                                     // save directly the recorded spec
-                                    Optional<String> title = restxRequest.getHeader("RestxRecordTitle");
-                                    File recordFile = recordedSpec.getSpec().store(recordPath, title);
+                                    String title = restxRequest.getHeader("RestxRecordTitle")
+                                                                .or(recordedSpec.getSpec().getTitle());
+                                    File recordFile = recordedSpec.getSpec()
+                                            .withTitle(title)
+                                            .withPath(RestxSpec.buildPath(recordPath, title))
+                                            .store();
                                     logger.info("saved recorded spec in {}", recordFile);
                                 }
                             }

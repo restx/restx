@@ -61,7 +61,9 @@ public class SpecRecorderRoute extends RestxRouter {
                                 Optional<String> path = req.getQueryParam("path");
                                 Optional<String> title = req.getQueryParam("title");
 
-                                File destFile = spec.getSpec().store(path, title);
+                                File destFile = spec.getSpec()
+                                        .withTitle(title)
+                                        .withPath(RestxSpec.buildPath(path, title.or(spec.getSpec().getTitle()))).store();
 
                                 resp.setContentType("text/plain");
                                 resp.getWriter().println(destFile.getAbsolutePath());

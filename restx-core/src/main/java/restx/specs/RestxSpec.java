@@ -1,5 +1,6 @@
 package restx.specs;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -16,43 +17,50 @@ import static com.google.common.base.Preconditions.checkNotNull;
 * Time: 9:51 PM
 */
 public class RestxSpec {
+    private final String path;
     private final String title;
     private final ImmutableList<Given> given;
     private final ImmutableList<When> whens;
 
     public RestxSpec(String title, ImmutableList<Given> given, ImmutableList<When> whens) {
-        checkNotNull(title);
-        this.title = title;
+        this(buildPath(Optional.<String>absent(), title), title, given, whens);
+    }
+
+    public RestxSpec(String path, String title, ImmutableList<Given> given, ImmutableList<When> whens) {
+        this.path = checkNotNull(path);
+        this.title = checkNotNull(title);
         this.given = given;
         this.whens = whens;
     }
 
     /**
-     * Stores this recorded spec as a .spec.yaml file.
+     * Stores this spec as a .spec.yaml file.
      *
-     * @param path the path where this spec should be stored, relative to restx.recorder.basePath system property
-     * @param title the spec title, use the recorded one if absent
      * @return the file where the spec has been stored
      *
      * @throws IOException in case of IO error while saving file.
      */
-    public File store(Optional<String> path, Optional<String> title) throws IOException {
-        File destFile = getStoreFile(path, title);
-        store(destFile, title);
+    public File store() throws IOException {
+        File destFile = getStoreFile();
+        store(destFile);
         return destFile;
     }
 
-    public void store(File destFile, Optional<String> title) throws IOException {
+    public void store(File destFile) throws IOException {
         destFile.getParentFile().mkdirs();
 
-        Files.write(withTitle(title.or(getTitle())).toString(),
+        Files.write(this.toString(),
                 destFile, Charsets.UTF_8);
     }
 
-    public File getStoreFile(Optional<String> path, Optional<String> title) {
-        String basePath = System.getProperty("restx.recorder.basePath", "src/main/resources/specs");
-        return new File(basePath + "/" + path.or("") + "/"
-                + title.or(getTitle()).replace(' ', '_').replace('/', '_') + ".spec.yaml");
+    @JsonIgnore
+    public File getStoreFile() {
+        String basePath = System.getProperty("restx.recorder.basePath", "src/main/resources");
+        return new File(basePath + "/" + path);
+    }
+
+    public static String buildPath(Optional<String> dir, String title) {
+        return dir.or(System.getProperty("restx.recorder.baseSpecPath", "specs")) + "/" + title.replace(' ', '_').replace('/', '_') + ".spec.yaml";
     }
 
     @Override
@@ -72,13 +80,38 @@ public class RestxSpec {
         return sb.toString();
     }
 
+    public String getPath() {
+        return path;
+    }
+
     public String getTitle() {
         return title;
     }
 
     public RestxSpec withTitle(String title) {
-        return new RestxSpec(title, given, whens);
+        return new RestxSpec(path, title, given, whens);
     }
+
+    public RestxSpec withTitle(Optional<String> title) {
+        if (title.isPresent()) {
+            return withTitle(title.get());
+        } else {
+            return this;
+        }
+    }
+
+    public RestxSpec withPath(String path) {
+        return new RestxSpec(path, title, given, whens);
+    }
+
+    public RestxSpec withPath(Optional<String> path) {
+        if (path.isPresent()) {
+            return withPath(path.get());
+        } else {
+            return this;
+        }
+    }
+
 
     public ImmutableList<Given> getGiven() {
         return given;

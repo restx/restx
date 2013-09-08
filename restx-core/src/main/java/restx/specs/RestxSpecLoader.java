@@ -64,12 +64,12 @@ public class RestxSpecLoader {
     }
 
     public RestxSpec load(String resource) throws IOException {
-        return load(Resources.newReaderSupplier(
+        return load(resource, Resources.newReaderSupplier(
                 MoreResources.getResource(resource, true),
                 Charsets.UTF_8));
     }
 
-    public RestxSpec load(InputSupplier<InputStreamReader> inputSupplier) throws IOException {
+    public RestxSpec load(String path, InputSupplier<InputStreamReader> inputSupplier) throws IOException {
         Yaml yaml = new Yaml();
         Map spec = (Map) yaml.load(inputSupplier.getInput());
         List<Given> givens = loadGivens(spec);
@@ -140,7 +140,7 @@ public class RestxSpecLoader {
             }
         }
 
-        return new RestxSpec(checkInstanceOf("title", spec.get("title"), String.class),
+        return new RestxSpec(path, checkInstanceOf("title", spec.get("title"), String.class),
                 ImmutableList.copyOf(givens),
                 ImmutableList.copyOf(whens));
     }

@@ -22,9 +22,7 @@ public class GivenJongoCollectionTest {
     @Test
     public void should_load_from_yaml() throws Exception {
         RestxSpec testCase = restxSpecLoader.load(
-                Resources.newReaderSupplier(
-                        Resources.getResource("restx/tests/restx_test_case_example_1.yaml"),
-                        Charsets.UTF_8));
+                "restx/tests/restx_test_case_example_1.yaml");
 
         assertThat(testCase).isNotNull();
         assertThat(testCase.getTitle()).isEqualTo("should validate salary for casual reception 1st month");
@@ -72,9 +70,7 @@ public class GivenJongoCollectionTest {
     @Test
     public void should_generate_yaml() throws Exception {
         RestxSpec testCase = restxSpecLoader.load(
-                Resources.newReaderSupplier(
-                        Resources.getResource("restx/tests/restx_test_case_example_1.yaml"),
-                        Charsets.UTF_8));
+                "restx/tests/restx_test_case_example_1.yaml");
 
         String actual = testCase.toString();
         System.out.println("actual = " + actual);

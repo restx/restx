@@ -66,7 +66,7 @@ public class RestxSpecRepository {
         Map<String, URL> specs = MoreResources.findResources("", Pattern.compile(".*\\.spec\\.yaml"), searchInSources);
         for (final Map.Entry<String, URL> spec : specs.entrySet()) {
             try {
-                specsMap.put(spec.getKey(), specLoader.load(new InputSupplier<InputStreamReader>() {
+                specsMap.put(spec.getKey(), specLoader.load(spec.getKey(), new InputSupplier<InputStreamReader>() {
                     @Override
                     public InputStreamReader getInput() throws IOException {
                         return new InputStreamReader(spec.getValue().openStream(), Charsets.UTF_8);

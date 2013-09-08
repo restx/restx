@@ -30,11 +30,11 @@ public class RestxSpecTest {
         RestxSpec spec = new RestxSpec("title 1",
                 ImmutableList.<Given>of(),
                 ImmutableList.<When>of());
-        assertThat(spec.getStoreFile(Optional.<String>absent(), Optional.<String>absent()))
+        assertThat(spec.withPath(RestxSpec.buildPath(Optional.<String>absent(), "title 1"))
+                .getStoreFile())
                 .isEqualTo(new File("src/main/resources/specs/title_1.spec.yaml"));
-        assertThat(spec.getStoreFile(Optional.of("test1"), Optional.<String>absent()))
+        assertThat(spec.withPath(RestxSpec.buildPath(Optional.of("specs/test1"), "title 1"))
+                .getStoreFile())
                 .isEqualTo(new File("src/main/resources/specs/test1/title_1.spec.yaml"));
-        assertThat(spec.getStoreFile(Optional.of("test1"), Optional.of("another title")))
-                .isEqualTo(new File("src/main/resources/specs/test1/another_title.spec.yaml"));
     }
 }
