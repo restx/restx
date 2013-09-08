@@ -74,13 +74,15 @@ public class RestxSpecRecorder {
      * request handling.
      * </p>
      *
+     *
      * @param restxRequest  the request to record
      * @param restxResponse the response to record
-     * @return a recorder tape
+     * @param restxRecordPath
+     *@param restxRecordTitle @return a recorder tape
      * @throws IOException
      */
-    public RestxSpecTape record(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-        return new RestxSpecTape(restxRequest, restxResponse, recorders, sessionFilter).doRecord();
+    public RestxSpecTape record(RestxRequest restxRequest, RestxResponse restxResponse, Optional<String> recordPath, Optional<String> recordTitle) throws IOException {
+        return new RestxSpecTape(restxRequest, restxResponse, recorders, sessionFilter).doRecord(recordPath, recordTitle);
     }
 
     public RecordedSpec stop(RestxSpecTape tape) {

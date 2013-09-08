@@ -1,6 +1,7 @@
 package restx.specs;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -47,6 +48,7 @@ public class RestxSpecTape {
 
     private RestxRequest recordingRequest;
     private RestxResponse recordingResponse;
+    private int id;
 
     RestxSpecTape(RestxRequest restxRequest, RestxResponse restxResponse,
                   Set<RestxSpecRecorder.GivenRecorder> recorders, RestxSessionFilter sessionFilter) {
@@ -82,7 +84,8 @@ public class RestxSpecTape {
         return recordedSpec;
     }
 
-    public RestxSpecTape doRecord() throws IOException {
+    public RestxSpecTape doRecord(final Optional<String> recordPath,
+                                  final Optional<String> recordTitle) throws IOException {
         specTape.set(this);
 
         for (RestxSpecRecorder.GivenRecorder recorder : recorders) {
@@ -103,6 +106,10 @@ public class RestxSpecTape {
         System.out.println(" >> recorded request " + method + " " + path + " (" + requestBody.length + " bytes) -- " + stopwatch.stop());
         recordedSpec.setCapturedRequestSize(requestBody.length);
 
+        id = specId.incrementAndGet();
+        final String title = recordTitle.or(buildTitle(id, method, path));
+        final String specPath = RestxSpec.buildPath(recordPath, title);
+
         recordingRequest = new RestxRequestWrapper(restxRequest) {
             @Override
             public InputStream getContentStream() throws IOException {
@@ -120,6 +127,9 @@ public class RestxSpecTape {
             @Override
             public PrintWriter getWriter() throws IOException {
                 if (writer == null) {
+                    if (recordPath.isPresent()) {
+                        super.setHeader("RestxSpecPath", specPath);
+                    }
                     System.out.print("RECORDING RESPONSE...");
                     stopwatch.start();
                     realWriter = super.getWriter();
@@ -131,6 +141,9 @@ public class RestxSpecTape {
 
             @Override
             public OutputStream getOutputStream() throws IOException {
+                if (recordPath.isPresent()) {
+                    super.setHeader("RestxSpecPath", specPath);
+                }
                 System.out.print("RECORDING RESPONSE...");
                 stopwatch.start();
                 realOS = super.getOutputStream();
@@ -158,9 +171,8 @@ public class RestxSpecTape {
                 }
                 super.close();
 
-                int id = specId.incrementAndGet();
                 RestxSpec restxSpec = new RestxSpec(
-                        buildTitle(id, method, path),
+                        specPath, title,
                         ImmutableList.copyOf(givens.values()), ImmutableList.<When>of(
                         new WhenHttpRequest(method, path, cookies, new String(requestBody, Charsets.UTF_8),
                                 new ThenHttpResponse(status, baos.toString(Charsets.UTF_8.name())))));

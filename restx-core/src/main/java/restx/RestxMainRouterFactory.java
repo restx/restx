@@ -14,7 +14,6 @@ import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.server.WebServers;
-import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
@@ -81,7 +80,9 @@ public class RestxMainRouterFactory {
                     RestxSpecRecorder.doWithRecorder(restxSpecRecorder, new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
-                            RestxSpecTape tape = restxSpecRecorder.record(restxRequest, restxResponse);
+                            Optional<String> recordPath = restxRequest.getHeader("RestxRecordPath");
+                            RestxSpecTape tape = restxSpecRecorder.record(restxRequest, restxResponse,
+                                    recordPath, restxRequest.getHeader("RestxRecordTitle"));
                             try {
                                 // when recording a request we don't use the provided router, we
                                 // need to load a new factory, some recorders rely on being available in the factory
@@ -95,15 +96,9 @@ public class RestxMainRouterFactory {
                             } finally {
                                 RestxSpecRecorder.RecordedSpec recordedSpec = restxSpecRecorder.stop(tape);
 
-                                Optional<String> recordPath = restxRequest.getHeader("RestxRecordPath");
                                 if (recordPath.isPresent()) {
                                     // save directly the recorded spec
-                                    String title = restxRequest.getHeader("RestxRecordTitle")
-                                                                .or(recordedSpec.getSpec().getTitle());
-                                    File recordFile = recordedSpec.getSpec()
-                                            .withTitle(title)
-                                            .withPath(RestxSpec.buildPath(recordPath, title))
-                                            .store();
+                                    File recordFile = recordedSpec.getSpec().store();
                                     logger.info("saved recorded spec in {}", recordFile);
                                 }
                             }
