@@ -69,7 +69,12 @@ public class MoreFiles {
         Files.walkFileTree(sourceDir, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.copy(file, targetDir.resolve(sourceDir.relativize(file)),
+                Path target = targetDir.resolve(sourceDir.relativize(file));
+                File targetDir = target.getParent().toAbsolutePath().toFile();
+                if (!targetDir.exists() && !targetDir.mkdirs()) {
+                    throw new IOException("can't create directory: `" + targetDir + "`");
+                }
+                Files.copy(file, target,
                         StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
                 return FileVisitResult.CONTINUE;
             }
