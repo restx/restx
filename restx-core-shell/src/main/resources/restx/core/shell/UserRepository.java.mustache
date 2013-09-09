@@ -12,6 +12,8 @@ import restx.admin.AdminModule;
 import restx.factory.Component;
 import restx.security.RestxPrincipal;
 
+import javax.inject.Named;
+
 /**
  * This is a fake, in-memory, User repository intended to provide
  * basic authentication for Hello Resource
@@ -46,12 +48,23 @@ public class UserRepository {
         }
     }
 
-    // Creating in-memory Users pool
-    private static final ImmutableList<User> USERS = ImmutableList.of(
-        new User("admin", Hashing.md5().hashString("admin-pwd", Charsets.UTF_8).toString(), AdminModule.RESTX_ADMIN_ROLE),
-        new User("user1", Hashing.md5().hashString("user1-pwd", Charsets.UTF_8).toString(), User.HELLO_ROLE),
-        new User("user2", Hashing.md5().hashString("user2-pwd", Charsets.UTF_8).toString())
-    );
+    private final ImmutableList<User> users;
+
+    public UserRepository(@Named("restx.admin.password") String adminPassword) {
+        users = ImmutableList.of(
+                // admin password is injected, it is defined in AppModule
+                new User("admin", hashPwd(adminPassword),
+                        AdminModule.RESTX_ADMIN_ROLE, User.HELLO_ROLE),
+
+                // define 2 other users
+                new User("user1", hashPwd("user1-pwd"), User.HELLO_ROLE),
+                new User("user2", hashPwd("user2-pwd"))
+            );
+    }
+
+    private static String hashPwd(String pwd) {
+        return Hashing.md5().hashString(pwd, Charsets.UTF_8).toString();
+    }
 
     public Optional<? extends RestxPrincipal> findUserByName(final String name) {
         return findUserByPredicate(new Predicate<User>() {
@@ -71,7 +84,7 @@ public class UserRepository {
         });
     }
 
-    private static Optional<? extends RestxPrincipal> findUserByPredicate(Predicate<User> predicate) {
-        return Optional.fromNullable(Iterables.getFirst(Collections2.filter(USERS, predicate), null));
+    private Optional<? extends RestxPrincipal> findUserByPredicate(Predicate<User> predicate) {
+        return Optional.fromNullable(Iterables.getFirst(Collections2.filter(users, predicate), null));
     }
 }

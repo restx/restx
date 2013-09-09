@@ -93,7 +93,7 @@ public class AppShellCommand extends StdShellCommand {
                 .put("Message.java.mustache", "src/main/java/{{packagePath}}/domain/Message.java")
                 .put("HelloResource.java.mustache", "src/main/java/{{packagePath}}/rest/HelloResource.java")
                 .put("HelloResourceSpecTest.java.mustache", "src/test/java/{{packagePath}}/rest/HelloResourceSpecTest.java")
-                .put("should_admin_not_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_admin_not_say_hello.spec.yaml")
+                .put("should_admin_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_admin_not_say_hello.spec.yaml")
                 .put("should_user1_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user1_say_hello.spec.yaml")
                 .put("should_user2_not_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user2_not_say_hello.spec.yaml")
                 .build()
