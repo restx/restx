@@ -1,5 +1,6 @@
 package restx.server.simple.simple;
 
+import com.google.common.base.Optional;
 import com.google.common.eventbus.EventBus;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
@@ -70,8 +71,8 @@ public abstract class SimpleWebServer implements WebServer {
                     @Override
                     protected RestxMainRouter setupRouter() {
                         return RestxMainRouterFactory.newInstance(
-                                                    serverId,
-                                                    WebServers.baseUri("0.0.0.0", port, routerPath));
+                                serverId,
+                                Optional.of(WebServers.baseUri("0.0.0.0", port, routerPath)));
                     }
                 };
             } else {

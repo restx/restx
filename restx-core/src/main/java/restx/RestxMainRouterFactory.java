@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.StdRestxMainRouter.getMode;
 
 /**
@@ -247,7 +248,9 @@ public class RestxMainRouterFactory {
         }
     }
 
-    public static RestxMainRouter newInstance(final String serverId, String baseUri) {
+    public static RestxMainRouter newInstance(final String serverId, Optional<String> baseUri) {
+        checkNotNull(serverId);
+
         logger.info("LOADING MAIN ROUTER");
         if (RestxContext.Modes.DEV.equals(getMode()) && !useHotCompile()) {
             logger.info("\nHot compile is not enabled, no on the fly compilation will be performed\n" +
@@ -297,16 +300,16 @@ public class RestxMainRouterFactory {
         }
     }
 
-    private static void logPrompt(String baseUri, String state, StdRestxMainRouter mainRouter) {
+    private static void logPrompt(Optional<String> baseUri, String state, StdRestxMainRouter mainRouter) {
         logger.info("\n" +
                 "--------------------------------------\n" +
                 " -- RESTX " + state + " >> " + getMode().toUpperCase(Locale.ENGLISH)+ " MODE <<" +
                 getHotIndicator() + "\n" +
                 (mainRouter != null ? (" -- " + mainRouter.getNbFilters() + " filters\n") : "") +
                 (mainRouter != null ? (" -- " + mainRouter.getNbRoutes() + " routes\n") : "") +
-                (baseUri == null || baseUri.isEmpty() ? "" :
+                (baseUri.or("").isEmpty() ? "" :
                         " -- for admin console,\n" +
-                        " --   VISIT " + baseUri + "/@/ui/\n") +
+                        " --   VISIT " + baseUri.get() + "/@/ui/\n") +
                 " --\n");
     }
 
