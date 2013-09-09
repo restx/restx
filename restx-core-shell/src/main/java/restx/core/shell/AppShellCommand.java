@@ -21,10 +21,7 @@ import restx.shell.StdShellCommand;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 
 /**
  * User: xavierhanin
@@ -251,8 +248,16 @@ public class AppShellCommand extends StdShellCommand {
 
     private class RunAppCommandRunner implements ShellCommandRunner {
         private String appClassName;
+        private boolean quiet;
 
         public RunAppCommandRunner(List<String> args) {
+            args = new ArrayList<>(args);
+            quiet = false;
+            if (args.size() > 2 && args.get(2).equalsIgnoreCase("--quiet")) {
+                args.remove(2);
+                quiet = true;
+            }
+
             if (args.size() >= 3) {
                 appClassName = args.get(2);
             }
@@ -271,7 +276,7 @@ public class AppShellCommand extends StdShellCommand {
                 }
                 appClassName = pack.get() + ".AppServer";
             }
-            new ShellAppRunner(appClassName.substring(0, appClassName.lastIndexOf('.')), appClassName, true)
+            new ShellAppRunner(appClassName.substring(0, appClassName.lastIndexOf('.')), appClassName, true, quiet)
                 .run(shell);
         }
     }

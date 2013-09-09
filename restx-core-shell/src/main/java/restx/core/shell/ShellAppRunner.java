@@ -20,11 +20,13 @@ public class ShellAppRunner {
     private final String appBasePackage;
     private final String appClassName;
     private final boolean compile;
+    private final boolean quiet;
 
-    public ShellAppRunner(String appBasePackage, String appClassName, boolean compile) {
+    public ShellAppRunner(String appBasePackage, String appClassName, boolean compile, boolean quiet) {
         this.appBasePackage = appBasePackage;
         this.appClassName = appClassName;
         this.compile = compile;
+        this.quiet = quiet;
     }
 
     public void run(RestxShell shell) throws IOException, InterruptedException {
@@ -65,7 +67,7 @@ public class ShellAppRunner {
         shell.println("starting " + appClassName + "... - type `stop` to stop it and go back to restx shell");
         Process run = Apps.run(shell.currentLocation().toFile(),
                 targetClasses, dependenciesDir, asList("-Drestx.app.package=" + appBasePackage),
-                appClassName, Collections.<String>emptyList());
+                appClassName, Collections.<String>emptyList(), quiet);
 
         while (!shell.ask("", "").equals("stop")) {
             shell.printIn("restx> unrecognized command - type `stop` to stop the app",

@@ -17,6 +17,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,12 +61,18 @@ public class SpecsShellCommand extends StdShellCommand {
         private final List<String> args;
 
         public SpecTestServerCommandRunner(List<String> args) {
-            this.args = args;
+            this.args = new ArrayList<>(args);
         }
 
         @Override
         public void run(final RestxShell shell) throws Exception {
             String basePack;
+            boolean quiet = false;
+            if (args.size() > 3 && args.get(3).equalsIgnoreCase("--quiet")) {
+                args.remove(3);
+                quiet = true;
+            }
+
             if (args.size() > 3) {
                 basePack = args.get(3);
             } else {
@@ -80,7 +87,7 @@ public class SpecsShellCommand extends StdShellCommand {
                 basePack = pack.get();
             }
 
-            new ShellAppRunner(basePack, "restx.tests.RestxSpecTestServer", false).run(shell);
+            new ShellAppRunner(basePack, "restx.tests.RestxSpecTestServer", false, quiet).run(shell);
         }
     }
 

@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
+import com.google.common.io.ByteStreams;
 import restx.classloader.CompilationManager;
 import restx.common.MoreFiles;
 
@@ -64,20 +65,34 @@ public class Apps {
 
 
     public static Process run(File workingDirectory, Path targetClasses, Path dependenciesDir, List<String> vmOptions,
-                              String mainClassName, List<String> args) throws IOException {
-        return new ProcessBuilder(
+                              String mainClassName, List<String> args, boolean quiet) throws IOException {
+        final Process process = new ProcessBuilder(
                 ImmutableList.<String>builder()
                         .add("java",
-                             "-cp",
-                             targetClasses.toString() + ":" + dependenciesDir.toString() + "/*")
+                                "-cp",
+                                targetClasses.toString() + ":" + dependenciesDir.toString() + "/*")
                         .addAll(vmOptions)
                         .add(mainClassName)
                         .addAll(args)
                         .build()
         )
                 .redirectErrorStream(true)
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .redirectOutput(quiet ? ProcessBuilder.Redirect.PIPE : ProcessBuilder.Redirect.INHERIT)
                 .directory(workingDirectory.getAbsoluteFile())
                 .start();
+
+        if (quiet) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ByteStreams.copy(process.getInputStream(), ByteStreams.nullOutputStream());
+                    } catch (IOException e) {
+                        // ignore
+                    }
+                }
+            }).start();
+        }
+        return process;
     }
 }
