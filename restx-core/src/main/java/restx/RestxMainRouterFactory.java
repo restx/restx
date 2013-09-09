@@ -287,13 +287,20 @@ public class RestxMainRouterFactory {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
             RestxMainRouter router = new PerRequestFactoryLoader(serverId, eventBus);
+
+            // wrap in a recording router, as any request may ask for recording with RestxMode header
+            router = new RecordingMainRouter(serverId, eventBus, recorder, router);
+
+            // wrap in hot reloading or hoy compile router if needed.
+            // this must be the last wrapping so that the classloader is used for the full request, including
+            // for recording
             if (useHotCompile()) {
                 router = new CompilationManagerRouter(router, eventBus);
             } else if (useHotReload()) {
                 router = new HotReloadRouter(router);
             }
 
-            return new RecordingMainRouter(serverId, eventBus, recorder, router);
+            return router;
         } else {
             throw new IllegalStateException("illegal load factory mode: '" + getLoadFactoryMode() + "'. " +
                     "It must be either 'onstartup' or 'onrequest'.");
