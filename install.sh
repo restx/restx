@@ -63,26 +63,6 @@ if [ "$UNAME" != "Linux" -a "$UNAME" != "Darwin" ] ; then
     exit 1
 fi
 
-if [ "$UNAME" = "Linux" ] ; then
-  if [ "x86_64" != `uname -p` ] ; then
-    echo "Only 64-bit Intel processors are supported at this time."
-    exit 1
-  fi
-  ARCH="x86_64"
-fi
-
-if [ "$UNAME" = "Darwin" ] ; then
-  ### OSX ###
-  if [ "i386" != `uname -p` -o "1" != `sysctl -n hw.cpu64bit_capable 2>/dev/null || echo 0` ] ; then
-    # Can't just test uname -m = x86_64, because Snow Leopard can
-    # return other values.
-    echo "Only 64-bit Intel processors are supported at this time."
-    exit 1
-  fi
-  ARCH="x86_64"
-fi
-PLATFORM="${UNAME}_${ARCH}"
-
 trap "echo Installation failed." EXIT
 
 # If you already have an existing installation (but don't have restx in PATH), we do a clean
