@@ -44,8 +44,10 @@ public class StdWatcherService implements WatcherService {
         private final WatchService watcher;
         private final Map<WatchKey,Path> keys;
         private final boolean recursive;
-        private final EventBus eventBus;
+        private final EventCoalescor coalescor;
+        private final Path root;
         private boolean trace = false;
+
 
         @SuppressWarnings("unchecked")
         static <T> WatchEvent<T> cast(WatchEvent<?> event) {
@@ -93,7 +95,9 @@ public class StdWatcherService implements WatcherService {
             this.watcher = FileSystems.getDefault().newWatchService();
             this.keys = new HashMap<>();
             this.recursive = recursive;
-            this.eventBus = eventBus;
+            this.root = dir;
+            this.coalescor = new EventCoalescor(eventBus,
+                    Integer.parseInt(System.getProperty("restx.fs.watch.coalesce.period", "50")));
 
             if (recursive) {
                 registerAll(dir);
@@ -130,7 +134,7 @@ public class StdWatcherService implements WatcherService {
                     // Context for directory entry event is the file name of entry
                     WatchEvent<Path> ev = cast(event);
 
-                    eventBus.post(new FileWatchEvent(dir, ev.context(), ev.kind(), ev.count()));
+                    coalescor.post(FileWatchEvent.newInstance(root, dir, ev.context(), ev.kind(), ev.count()));
 
                     if (kind == OVERFLOW) {
                         continue;

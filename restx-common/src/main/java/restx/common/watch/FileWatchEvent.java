@@ -9,14 +9,18 @@ import java.nio.file.WatchEvent;
 * Time: 2:17 PM
 */
 public class FileWatchEvent {
+    public static FileWatchEvent newInstance(Path root, Path dir, Path path, WatchEvent.Kind kind, int count) {
+        return new FileWatchEvent(root, normalizePath(root, dir.resolve(normalizePath(dir, path))), kind, count);
+    }
+
     private final Path dir;
     private final Path path;
     private final WatchEvent.Kind kind;
     private final int count;
 
-    public FileWatchEvent(Path dir, Path path, WatchEvent.Kind kind, int count) {
+    private FileWatchEvent(Path dir, Path path, WatchEvent.Kind kind, int count) {
         this.dir = dir;
-        this.path = normalizePath(dir, path);
+        this.path = path;
         this.kind = kind;
         this.count = count;
     }
@@ -45,6 +49,28 @@ public class FileWatchEvent {
                 ", kind=" + kind +
                 ", count=" + count +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FileWatchEvent that = (FileWatchEvent) o;
+
+        if (!dir.equals(that.dir)) return false;
+        if (!kind.equals(that.kind)) return false;
+        if (!path.equals(that.path)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = dir.hashCode();
+        result = 31 * result + path.hashCode();
+        result = 31 * result + kind.hashCode();
+        return result;
     }
 
     private static Path normalizePath(Path dir, Path path) {

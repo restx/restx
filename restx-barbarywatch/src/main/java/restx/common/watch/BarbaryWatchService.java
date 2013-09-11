@@ -48,7 +48,8 @@ public class BarbaryWatchService implements WatcherService {
         private final WatchService watcher;
         private final Map<WatchKey, Path> keys;
         private final boolean recursive;
-        private final EventBus eventBus;
+        private final EventCoalescor coalescor;
+        private final Path root;
         private boolean trace = false;
 
         /**
@@ -95,7 +96,9 @@ public class BarbaryWatchService implements WatcherService {
             this.watcher = com.barbarysoftware.watchservice.WatchService.newWatchService();
             this.keys = new HashMap<>();
             this.recursive = recursive;
-            this.eventBus = eventBus;
+            this.root = dir;
+            this.coalescor = new EventCoalescor(eventBus,
+                    Integer.parseInt(System.getProperty("restx.fs.watch.coalesce.period", "50")));
 
             if (recursive) {
                 registerAll(dir);
@@ -140,8 +143,9 @@ public class BarbaryWatchService implements WatcherService {
                     } else if (ev.kind().equals(StandardWatchEventKind.OVERFLOW)) {
                         nkind = StandardWatchEventKinds.OVERFLOW;
                     }
-                    eventBus.post(new FileWatchEvent(
-                            dir, ev.context().toPath(), nkind, ev.count()));
+
+                    coalescor.post(FileWatchEvent.newInstance(
+                            root, dir, ev.context().toPath(), nkind, ev.count()));
 
                     if (kind == StandardWatchEventKind.OVERFLOW) {
                         continue;
