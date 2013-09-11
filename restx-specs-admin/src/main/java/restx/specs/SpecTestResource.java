@@ -18,7 +18,7 @@ import restx.tests.TestResultSummary;
  * Date: 7/31/13
  * Time: 10:24 PM
  */
-@Component @RestxResource
+@Component @RestxResource(group = "restx-admin")
 @When(name="restx.mode", value="test")
 public class SpecTestResource {
     private final RestxSpecTestServer.RunningServer server;

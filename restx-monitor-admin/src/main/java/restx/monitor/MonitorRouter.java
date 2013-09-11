@@ -17,7 +17,7 @@ import java.util.Locale;
 @Component
 public class MonitorRouter extends RestxRouter {
     public MonitorRouter() {
-        super("MonitorRouter",
+        super("restx-admin", "MonitorRouter",
                 new ResourcesRoute("MonitorUIRoute", "/@/ui/monitor",
                     MonitorRouter.class.getPackage().getName(), ImmutableMap.of("", "index.html")),
 

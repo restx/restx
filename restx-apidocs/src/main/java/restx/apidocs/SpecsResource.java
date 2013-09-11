@@ -20,7 +20,7 @@ import java.net.URLDecoder;
  * Date: 4/2/13
  * Time: 9:09 PM
  */
-@Component @RestxResource(group = "admin")
+@Component @RestxResource(group = "restx-admin")
 public class SpecsResource {
     private final RestxSpecRepository repository;
 
