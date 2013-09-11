@@ -313,7 +313,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         for (Element resourceElem : roundEnv.getElementsAnnotatedWith(RestxResource.class)) {
             if (! (resourceElem instanceof TypeElement)) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                    String.format("Only a class can be annotated annotated with @RestxResource. Found %s",
+                    String.format("Only a class can be annotated with @RestxResource. Found %s",
                             resourceElem.getSimpleName()), resourceElem);
                 continue;
             }
