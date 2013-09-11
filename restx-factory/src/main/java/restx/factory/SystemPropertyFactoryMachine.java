@@ -6,10 +6,6 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
-/**
- * This will be moved to restx-factory in a later release
- */
-@Machine
 public class SystemPropertyFactoryMachine implements FactoryMachine {
     @Override
     public boolean canBuild(Name<?> name) {
@@ -41,5 +37,9 @@ public class SystemPropertyFactoryMachine implements FactoryMachine {
     @Override
     public int priority() {
         return -1000;
+    }
+
+    public String toString() {
+        return getClass().getSimpleName();
     }
 }
