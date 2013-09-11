@@ -199,6 +199,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
 
                 ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                         .put("package", resourceClass.pack)
+                        .put("routerGroup", group.name)
                         .put("router", resourceClass.name + "Router")
                         .put("resource", resourceClass.name)
                         .put("priority", resourceClass.priority)

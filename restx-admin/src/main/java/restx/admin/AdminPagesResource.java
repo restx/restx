@@ -16,7 +16,7 @@ import java.util.List;
  * Date: 4/7/13
  * Time: 1:54 PM
  */
-@Component @RestxResource
+@Component @RestxResource(group = "restx-admin")
 public class AdminPagesResource {
     private final Iterable<AdminPage> pages;
 

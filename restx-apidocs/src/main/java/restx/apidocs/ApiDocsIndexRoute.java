@@ -63,6 +63,7 @@ public class ApiDocsIndexRoute extends StdEntityRoute {
             apis.add(ImmutableMap.of(
                     "path", "/@/api-docs/" + routerApiPath,
                     "name", routerApiPath,
+                    "group", router.getComponent().getGroupName(),
                     "description", ""));
         }
         return apis;

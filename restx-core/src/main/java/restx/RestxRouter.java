@@ -12,12 +12,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class RestxRouter {
     private final ImmutableList<RestxRoute> routes;
     private final String name;
+    private final String groupName;
 
     public RestxRouter(String name, RestxRoute... routes) {
-        this(name, ImmutableList.copyOf(routes));
+        this("default", name, routes);
     }
 
-    public RestxRouter(String name, ImmutableList<RestxRoute> routes) {
+    public RestxRouter(String groupName, String name, RestxRoute... routes) {
+        this(groupName, name, ImmutableList.copyOf(routes));
+    }
+
+    public RestxRouter(String groupName, String name, ImmutableList<RestxRoute> routes) {
+        this.groupName = checkNotNull(groupName);
         this.name = checkNotNull(name);
         this.routes = checkNotNull(routes);
     }
@@ -39,6 +45,10 @@ public class RestxRouter {
 
     public int getNbRoutes() {
         return routes.size();
+    }
+
+    public String getGroupName() {
+        return groupName;
     }
 
     public ImmutableList<RestxRoute> getRoutes() {

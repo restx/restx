@@ -27,7 +27,7 @@ public class {{{router}}} extends RestxRouter {
     public {{{router}}}(final {{{resource}}} resource, final ObjectMapper mapper, final MainStringConverter converter,
                     final Validator validator, final RestxSecurityManager securityManager) {
         super(
-                "{{{router}}}", new RestxRoute[] {
+            "{{{routerGroup}}}", "{{{router}}}", new RestxRoute[] {
 {{#routes}}
         new StdEntityRoute("{{{routeId}}}", mapper, new StdRouteMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
             @Override

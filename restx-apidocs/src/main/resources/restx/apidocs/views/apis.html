@@ -2,7 +2,13 @@
     <div class="row">
         <div class="span3 bs-docs-sidebar">
             <ul class="nav nav-list bs-docs-sidenav">
-                 <li ng-repeat="api in doc.apis"><a href="#{{api.name}}" ng-click="scrollTo(api.name)" eat-click>
+                <li style="padding: 10px">
+                Show groups:
+                <label class="checkbox" ng-repeat="group in groups">
+                  <input type="checkbox" ng-model="group.selected"> {{group.name}}
+                </label>
+                </li>
+                 <li ng-repeat="api in doc.apis" ng-hide="api.filtered()"><a href="#{{api.name}}" ng-click="scrollTo(api.name)" eat-click>
                      <i class="icon-chevron-right"></i> {{api.name}}</a></li>
             </ul>
         </div>
