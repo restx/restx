@@ -110,6 +110,7 @@ public class CompilationManager {
                 } else {
                     Optional<SourcePath> sourcePath = SourcePath.resolve(CompilationManager.this.sourceRoots, source);
                     if (sourcePath.isPresent()) {
+                        logger.info("classpath resource updated: {}", sourcePath.get().getPath());
                         copyResource(sourcePath.get());
                     }
                 }
@@ -141,7 +142,6 @@ public class CompilationManager {
                         boolean existed = to.exists();
                         if (!existed || to.lastModified() < source.lastModified()) {
                             com.google.common.io.Files.copy(source, to);
-                            logger.info("classpath resource updated: {}", resourcePath);
                             ClasspathResourceEvent.Kind kind = existed ?
                                     ClasspathResourceEvent.Kind.UPDATED : ClasspathResourceEvent.Kind.CREATED;
                             eventBus.post(new ClasspathResourceEvent(kind, resourcePath.getPath().toString()));
