@@ -20,10 +20,12 @@ import restx.specs.RestxSpecTape;
 import javax.tools.Diagnostic;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Locale;
@@ -209,9 +211,18 @@ public class RestxMainRouterFactory {
 
         private void setClassLoader() {
             try {
-                classLoader = new URLClassLoader(
-                        new URL[] {destinationDir.toUri().toURL()},
-                        Thread.currentThread().getContextClassLoader());
+                classLoader = new HotReloadingClassLoader(
+                        new URLClassLoader(
+                                new URL[] {destinationDir.toUri().toURL()},
+                                Thread.currentThread().getContextClassLoader()), rootPackage) {
+                    protected InputStream getInputStream(String path) {
+                        try {
+                            return Files.newInputStream(destinationDir.resolve(path));
+                        } catch (IOException e) {
+                            return null;
+                        }
+                    }
+                };
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
