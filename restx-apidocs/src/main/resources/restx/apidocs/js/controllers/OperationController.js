@@ -108,7 +108,7 @@ adminApp.controller('OperationController', function OperationController(
         $scope.request.headers['RestxMode'] = 'recording';
         $scope.request.headers['RestxRecordPath'] = 'specs/' + $routeParams.name;
         $scope.request.headers['RestxRecordTitle'] = _.str.humanize($scope.operation.nickname) + ' '
-            + $filter('date')(new Date(), 'yyyyMMdd HHmm');
+            + $filter('date')(new Date(), 'yyyyMMdd HHmmss');
     }
 
     $scope.send = function() {
