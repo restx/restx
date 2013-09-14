@@ -1,5 +1,6 @@
 package restx.shell;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -72,7 +73,7 @@ public class RestxShell implements Appendable {
     }
 
     public void start() throws IOException {
-        banner();
+        banner(ExecMode.INTERACTIVE);
 
         installCompleters();
 
@@ -80,6 +81,25 @@ public class RestxShell implements Appendable {
         while (!exit) {
             String line = consoleReader.readLine();
             exit = exec(line);
+        }
+
+        consoleReader.println("Bye.");
+        synchronized (this) {
+            if (watcher != null) {
+                watcherExecutorService.shutdownNow();
+                watcher = null;
+            }
+        }
+        consoleReader.shutdown();
+    }
+
+    public void exec(Iterable<String> commands) throws IOException {
+        banner(ExecMode.BATCH);
+
+        for (String command : commands) {
+            printIn("> " + command, AnsiCodes.ANSI_PURPLE);
+            println("");
+            exec(command);
         }
 
         consoleReader.println("Bye.");
@@ -226,9 +246,12 @@ public class RestxShell implements Appendable {
         consoleReader.setHistoryEnabled(true);
     }
 
-    protected void banner() throws IOException {
+    protected void banner(ExecMode execMode) throws IOException {
         consoleReader.println("===============================================================================");
-        consoleReader.println("== WELCOME TO RESTX SHELL - " + version() + " - type `help` for help on available commands");
+        consoleReader.println("== WELCOME TO RESTX SHELL - " + version()
+                + (execMode == ExecMode.INTERACTIVE
+                    ? (" - type `help` for help on available commands")
+                    : " - BATCH MODE"));
         consoleReader.println("===============================================================================");
     }
 
@@ -291,7 +314,12 @@ public class RestxShell implements Appendable {
 
     public static void main(String[] args) throws Exception {
         ConsoleReader consoleReader = new ConsoleReader();
-        new RestxShell(consoleReader).start();
+        RestxShell restxShell = new RestxShell(consoleReader);
+        if (args.length > 0) {
+            restxShell.exec(Splitter.on("+").trimResults().split(Joiner.on(" ").join(args)));
+        } else {
+            restxShell.start();
+        }
     }
 
     public String version() {
@@ -366,5 +394,9 @@ public class RestxShell implements Appendable {
 
     public static interface WatchListener {
         public void onEvent(RestxShell shell, WatchEvent.Kind<?> kind, Path path);
+    }
+
+    public static enum ExecMode {
+        INTERACTIVE, BATCH
     }
 }
