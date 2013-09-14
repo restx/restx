@@ -332,10 +332,6 @@ public class RestxMainRouterFactory {
     }
 
     private static String getHotIndicator() {
-        if (!RestxContext.Modes.DEV.equals(getMode())
-                && !RestxContext.Modes.TEST.equals(getMode())) {
-            return "";
-        }
         if (useAutoCompile()) {
             return " >> AUTO COMPILE <<";
         }
@@ -396,14 +392,43 @@ public class RestxMainRouterFactory {
     }
 
     private static boolean useHotReload() {
-        return "true".equalsIgnoreCase(System.getProperty("restx.router.hotreload", "true"))
+        if ("true".equals(System.getProperty("restx.router.hotreload"))) {
+            // hotreload is explicitly set
+            if (System.getProperty("restx.app.package") == null) {
+                logger.info("can't enable hot reload: restx.app.package is not set.\n" +
+                        "Run your app with -Drestx.app.package=<app.base.package> to enable hot reload.");
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return "true".equalsIgnoreCase(System.getProperty("restx.router.hotreload", "true"))
+                && !getMode().equals("prod")
                 && System.getProperty("restx.app.package") != null;
+        }
     }
 
     private static boolean useHotCompile() {
-        return "true".equalsIgnoreCase(System.getProperty("restx.router.hotcompile", "true"))
+        if ("true".equals(System.getProperty("restx.router.hotcompile"))
+                || "true".equals(System.getProperty("restx.router.autocompile"))) {
+            // hotcompile or autocompile is explicitly set
+            if (System.getProperty("restx.app.package") == null) {
+                logger.info("can't enable hot compile: restx.app.package is not set.\n" +
+                        "Run your app with -Drestx.app.package=<app.base.package> to enable hot compile.");
+                return false;
+            } else if (!hasToolsJar()) {
+                logger.info("can't enable hot compile: tools.jar is not in classpath.\n" +
+                        "Run your app with a JDK rather than a JRE to enable hot compile.");
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return "true".equalsIgnoreCase(System.getProperty("restx.router.hotcompile", "true"))
+                && !getMode().equals("prod")
                 && System.getProperty("restx.app.package") != null
                 && hasToolsJar();
+        }
     }
 
     private static boolean hasToolsJar() {
