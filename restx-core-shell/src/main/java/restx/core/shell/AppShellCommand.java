@@ -249,17 +249,31 @@ public class AppShellCommand extends StdShellCommand {
     private class RunAppCommandRunner implements ShellCommandRunner {
         private String appClassName;
         private boolean quiet;
+        private ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.MAIN_CLASS;
+        private List<String> vmOptions = new ArrayList<>();
 
         public RunAppCommandRunner(List<String> args) {
             args = new ArrayList<>(args);
             quiet = false;
-            if (args.size() > 2 && args.get(2).equalsIgnoreCase("--quiet")) {
-                args.remove(2);
-                quiet = true;
-            }
 
-            if (args.size() >= 3) {
-                appClassName = args.get(2);
+            while (args.size() > 2) {
+                String arg = args.get(2);
+                if (arg.equalsIgnoreCase("--quiet")) {
+                    quiet = true;
+                } else if (arg.startsWith("--mode=")) {
+                    String mode = arg.substring("--mode=".length());
+                    vmOptions.add("-Drestx.mode=" + mode);
+                    if (mode.equals("prod")) {
+                        compileMode = ShellAppRunner.CompileMode.ALL;
+                    }
+                } else if (arg.startsWith("-D") || arg.startsWith("-X")) {
+                    vmOptions.add(arg);
+                } else if (appClassName == null) {
+                    appClassName = arg;
+                } else {
+                    throw new IllegalArgumentException("app run argument not recognized: " + arg);
+                }
+                args.remove(2);
             }
         }
 
@@ -276,7 +290,7 @@ public class AppShellCommand extends StdShellCommand {
                 }
                 appClassName = pack.get() + ".AppServer";
             }
-            new ShellAppRunner(appClassName.substring(0, appClassName.lastIndexOf('.')), appClassName, true, quiet)
+            new ShellAppRunner(appClassName.substring(0, appClassName.lastIndexOf('.')), appClassName, compileMode, quiet, vmOptions)
                 .run(shell);
         }
     }

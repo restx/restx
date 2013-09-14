@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -87,7 +88,8 @@ public class SpecsShellCommand extends StdShellCommand {
                 basePack = pack.get();
             }
 
-            new ShellAppRunner(basePack, "restx.tests.RestxSpecTestServer", false, quiet).run(shell);
+            new ShellAppRunner(basePack, "restx.tests.RestxSpecTestServer",
+                    ShellAppRunner.CompileMode.NO, quiet, Collections.<String>emptyList()).run(shell);
         }
     }
 
