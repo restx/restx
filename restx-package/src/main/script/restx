@@ -13,7 +13,7 @@ while [ 1 ]; do
     rm -f "$dir/upgrade.sh"
   fi
 
-  sh "$dir/launch.sh"
+  sh "$dir/launch.sh" "$@"
 
   if [ -f "$dir/.restart" ]; then
      rm -f "$dir/.restart"
