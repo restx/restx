@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-build-shell" revision="0.2.9" status="integration">
+    <info organisation="io.restx" module="restx-build-shell" revision="0.30" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -7,6 +7,7 @@
     </info>
     <configurations>
         <conf name="default"/>
+        <conf name="runtime"/>
         <conf name="test"/>
     </configurations>
     <publications>
