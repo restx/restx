@@ -130,7 +130,7 @@ public class ShellAppRunner {
         this.appClassName = appClassName;
         this.compile = compile;
         this.quiet = quiet;
-        this.vmOptions = vmOptions;
+        this.vmOptions = new ArrayList<>(vmOptions);
     }
 
     public void run(RestxShell shell) throws IOException, InterruptedException {
