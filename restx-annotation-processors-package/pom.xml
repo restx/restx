@@ -5,12 +5,12 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.30-SNAPSHOT</version>
+        <version>0.2.9.1</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-annotation-processors-package</artifactId>
-    <version>0.30-SNAPSHOT</version>
+    <version>0.2.9.1</version>
     <packaging>jar</packaging>
     <description>
         This RESTX module is used to provide a packaged version of all the official RESTX annotation processors.
