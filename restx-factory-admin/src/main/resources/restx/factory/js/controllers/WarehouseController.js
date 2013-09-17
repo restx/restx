@@ -10,7 +10,7 @@ function createWarehouseGraph(selector) {
         //noinspection JSValidateTypes
         graph.forEachNode(function (node) {
             node.ui.attr('opacity', opacityForNode(node));
-            node.ui.children('text')[0].attr('opacity', opacityForNodeLabel(node));
+            $(node.ui).children('text')[0].attr('opacity', opacityForNodeLabel(node));
         });
     }
 
@@ -42,13 +42,13 @@ function createWarehouseGraph(selector) {
             var opacity = isOn ? 1 : opacityForNode(node);
             var labelOpacity = isOn ? 1 : opacityForNodeLabel(node);
             node.ui.attr('opacity', opacity);
-            node.ui.children('text')[0].attr('opacity', labelOpacity);
+            $(node.ui).children('text')[0].attr('opacity', labelOpacity);
             graph.forEachLinkedNode(node.id, function(node, link){
                if (link && link.ui) {
                    link.ui.attr('opacity', isOn ? 1 : (searchedQuery ? defaultOpacity : 1));
                    link.ui.attr('stroke', isOn ? 'orange' : 'gray');
                    node.ui.attr('opacity', isOn ? 1 : opacityForNode(node));
-                   node.ui.children('text')[0].attr('opacity', isOn ? 1 : opacityForNodeLabel(node));
+                   $(node.ui).children('text')[0].attr('opacity', isOn ? 1 : opacityForNodeLabel(node));
                }
             });
         },
