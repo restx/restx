@@ -18,6 +18,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.isEmpty;
 import static com.google.common.collect.Iterables.transform;
 import static java.util.Arrays.asList;
@@ -39,9 +40,22 @@ public class CompilationManager {
         public void run() {
         }
     };
+    public static final Predicate<Path> DEFAULT_CLASSPATH_RESOURCE_FILTER = new Predicate<Path>() {
+        @Override
+        public boolean apply(java.nio.file.Path path) {
+            return
+                    // Intellij IDEA temporary files
+                       !path.toString().endsWith("___jb_old___")
+                    && !path.toString().endsWith("___jb_bak___")
+
+                    // svn
+                    && path.toAbsolutePath().toString().replace('\\', '/').indexOf("/.svn/") == -1;
+        }
+    };
 
     private static final Logger logger = LoggerFactory.getLogger(CompilationManager.class);
     private final EventBus eventBus;
+    private final Predicate<Path> classpathResourceFilter;
 
     private final JavaCompiler javaCompiler;
 
@@ -69,9 +83,14 @@ public class CompilationManager {
     private Collection<Diagnostic<?>> lastDiagnostics = new CopyOnWriteArrayList<>();
 
     public CompilationManager(EventBus eventBus, Iterable<Path> sourceRoots, Path destination) {
-        this.eventBus = eventBus;
-        this.sourceRoots = sourceRoots;
-        this.destination = destination;
+        this(eventBus, sourceRoots, destination, DEFAULT_CLASSPATH_RESOURCE_FILTER);
+    }
+
+    public CompilationManager(EventBus eventBus, Iterable<Path> sourceRoots, Path destination, Predicate<Path> classpathResourceFilter) {
+        this.eventBus = checkNotNull(eventBus);
+        this.sourceRoots = checkNotNull(sourceRoots);
+        this.destination = checkNotNull(destination);
+        this.classpathResourceFilter = checkNotNull(classpathResourceFilter);
 
         javaCompiler = ToolProvider.getSystemJavaCompiler();
         fileManager = javaCompiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), Locale.ENGLISH, Charsets.UTF_8);
@@ -134,24 +153,29 @@ public class CompilationManager {
         compileExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                File source = resourcePath.toAbsolutePath().toFile();
-                if (source.isFile()) {
-                    try {
-                        File to = destination.resolve(resourcePath.getPath()).toFile();
-                        to.getParentFile().mkdirs();
-                        boolean existed = to.exists();
-                        if (!existed || to.lastModified() < source.lastModified()) {
-                            com.google.common.io.Files.copy(source, to);
-                            ClasspathResourceEvent.Kind kind = existed ?
-                                    ClasspathResourceEvent.Kind.UPDATED : ClasspathResourceEvent.Kind.CREATED;
-                            eventBus.post(new ClasspathResourceEvent(kind, resourcePath.getPath().toString()));
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+                doCopyResource(resourcePath);
             }
         });
+    }
+
+    // IMPORTANT: this should be called in compile executor thread only
+    private void doCopyResource(SourcePath resourcePath) {
+        File source = resourcePath.toAbsolutePath().toFile();
+        if (source.isFile() && classpathResourceFilter.apply(source.toPath())) {
+            try {
+                File to = destination.resolve(resourcePath.getPath()).toFile();
+                to.getParentFile().mkdirs();
+                boolean existed = to.exists();
+                if (!existed || to.lastModified() < source.lastModified()) {
+                    com.google.common.io.Files.copy(source, to);
+                    ClasspathResourceEvent.Kind kind = existed ?
+                            ClasspathResourceEvent.Kind.UPDATED : ClasspathResourceEvent.Kind.CREATED;
+                    eventBus.post(new ClasspathResourceEvent(kind, resourcePath.getPath().toString()));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private boolean queueCompile(final Path source) {
@@ -256,7 +280,7 @@ public class CompilationManager {
                                                 sources.add(file);
                                             }
                                         } else if (file.toFile().isFile()) {
-                                            copyResource(SourcePath.valueOf(sourceRoot, sourceRoot.relativize(file)));
+                                            doCopyResource(SourcePath.valueOf(sourceRoot, sourceRoot.relativize(file)));
                                         }
                                         return FileVisitResult.CONTINUE;
                                     }
@@ -310,7 +334,7 @@ public class CompilationManager {
                                         if (isSource(file)) {
                                             sources.add(file);
                                         } else if (file.toFile().isFile()) {
-                                            copyResource(SourcePath.valueOf(sourceRoot, sourceRoot.relativize(file)));
+                                            doCopyResource(SourcePath.valueOf(sourceRoot, sourceRoot.relativize(file)));
                                         }
                                         return FileVisitResult.CONTINUE;
                                     }

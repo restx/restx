@@ -12,7 +12,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -30,17 +29,49 @@ public class CompilationManagerTest {
     List<Path> sourceRoots = asList(sourceRoot);
     Path destination = fileSystem.getPath("tmp/classes");
     EventBus eventBus = new EventBus();
-    Collection<CompilationFinishedEvent> events = new ArrayList<>();
+    List<Object> events = new ArrayList<>();
 
     @Before
     public void setup() {
         Files.delete(destination.toFile());
+        Files.delete(sourceRoot.toFile());
         eventBus.register(new Object() {
             @Subscribe
             public void onCompilationFinished(CompilationFinishedEvent event) {
                 events.add(event);
             }
+            @Subscribe
+            public void onClasspathResource(ClasspathResourceEvent event) {
+                events.add(event);
+            }
         });
+    }
+
+    @Test
+    public void should_copy_resources() throws Exception {
+        CompilationManager compilationManager = new CompilationManager(eventBus, sourceRoots, destination);
+
+        File resource = destination.resolve("restx/classloader/test_resource.txt").toFile();
+        assertThat(resource).doesNotExist();
+
+        prepareSource("restx/classloader/test_resource.txt");
+        compilationManager.rebuild();
+        assertThat(resource).exists();
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0)).isInstanceOf(ClasspathResourceEvent.class);
+    }
+
+    @Test
+    public void should_filter_resources() throws Exception {
+        CompilationManager compilationManager = new CompilationManager(eventBus, sourceRoots, destination);
+
+        File resource = destination.resolve("restx/classloader/test_resource.txt___jb_old___").toFile();
+        assertThat(resource).doesNotExist();
+
+        prepareSource("restx/classloader/test_resource.txt___jb_old___");
+        compilationManager.rebuild();
+        assertThat(resource).doesNotExist();
+        assertThat(events).isEmpty();
     }
 
     @Test
