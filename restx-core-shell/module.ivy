@@ -19,5 +19,8 @@
         <dependency org="io.restx" name="restx-shell" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-build" rev="latest.integration" conf="default" />
         <dependency org="org.apache.ivy" name="ivy" rev="2.3.0" conf="default" />
+        <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
+        <dependency org="org.apache.maven.shared" name="maven-verifier" rev="1.4" conf="test->default" />
+        <dependency org="org.mockito" name="mockito-all" rev="1.9.5" conf="test->default" />
     </dependencies>
 </ivy-module>

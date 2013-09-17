@@ -13,6 +13,11 @@
             "io.restx:restx-shell:${restx.version}",
             "io.restx:restx-build:${restx.version}",
             "org.apache.ivy:ivy:${ivy.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.apache.maven.shared:maven-verifier:${maven-verifier.version}",
+            "org.mockito:mockito-all:${mockito.version}"
         ]
     }
 }
