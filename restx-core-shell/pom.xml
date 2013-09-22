@@ -5,17 +5,17 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.30-SNAPSHOT</version>
+        <version>0.2.9.2</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-core-shell</artifactId>
-    <version>0.30-SNAPSHOT</version>
+    <version>0.2.9.2</version>
     <packaging>jar</packaging>
     <name>restx-core-shell</name>
 
     <properties>
-        <restx.version>0.30-SNAPSHOT</restx.version>
+        <restx.version>0.2.9.2</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <ivy.version>2.3.0</ivy.version>
