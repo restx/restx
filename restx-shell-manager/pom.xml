@@ -5,12 +5,12 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.30-SNAPSHOT</version>
+        <version>0.2.9.2</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-shell-manager</artifactId>
-    <version>0.30-SNAPSHOT</version>
+    <version>0.2.9.2</version>
     <packaging>jar</packaging>
     <name>restx-shell-manager</name>
 
