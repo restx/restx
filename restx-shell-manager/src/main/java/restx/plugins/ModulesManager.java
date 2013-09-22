@@ -3,6 +3,7 @@ package restx.plugins;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.LogOptions;
@@ -12,6 +13,7 @@ import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
+import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.plugins.matcher.ExactOrRegexpPatternMatcher;
@@ -86,7 +88,16 @@ public class ModulesManager {
                         (ResolveOptions) new ResolveOptions()
                                 .setLog(LogOptions.LOG_QUIET)
                 );
+                if (!report.getAllProblemMessages().isEmpty()) {
+                    throw new IllegalStateException("plugin installation failed: " + module.getId() + "\n"
+                            + Joiner.on("\n").join(report.getAllProblemMessages()));
+                }
                 for (ArtifactDownloadReport artifactDownloadReport : report.getAllArtifactsReports()) {
+                    if (artifactDownloadReport.getDownloadStatus().equals(DownloadStatus.FAILED)) {
+                        logger.warn(String.format("artifact download %s.%s failed",
+                                artifactDownloadReport.getName(), artifactDownloadReport.getExt()));
+                        continue;
+                    }
                     File localFile = artifactDownloadReport.getLocalFile();
                     File to = new File(toDir, artifactDownloadReport.getName() + "." + artifactDownloadReport.getExt());
                     Files.copy(localFile, to);
