@@ -16,6 +16,7 @@ import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
@@ -68,7 +69,7 @@ public class PluginsShellCommand extends StdShellCommand {
         @Override
         public void run(RestxShell shell) throws Exception {
             ModulesManager modulesManager = new ModulesManager(
-                    new URL("http://restx.io/modules"), ShellIvy.loadIvy(shell.installLocation()));
+                    new URL("http://restx.io/modules"), ShellIvy.loadIvy(shell));
 
             shell.println("looking for plugins...");
             List<ModuleDescriptor> plugins = modulesManager.searchModules("category=shell");
@@ -95,17 +96,25 @@ public class PluginsShellCommand extends StdShellCommand {
                 }
                 shell.printIn("installing " + md.getId() + "...", RestxShell.AnsiCodes.ANSI_CYAN);
                 shell.println("");
-                List<File> copied = modulesManager.download(ImmutableList.of(md), pluginsDir, defaultExcludes);
-                if (!copied.isEmpty()) {
-                    shell.printIn("installed " + md.getId(), RestxShell.AnsiCodes.ANSI_GREEN);
+                try {
+                    List<File> copied = modulesManager.download(ImmutableList.of(md), pluginsDir, defaultExcludes);
+                    if (!copied.isEmpty()) {
+                        shell.printIn("installed " + md.getId(), RestxShell.AnsiCodes.ANSI_GREEN);
+                        shell.println("");
+                        count++;
+                        Files.write(md.getId() + "\n"
+                                + DateTime.now() + "\n"
+                                + Joiner.on("\n").join(copied),
+                                pluginFile(pluginsDir, md), Charsets.UTF_8);
+                    } else {
+                        shell.printIn("problem while installing " + md.getId(), RestxShell.AnsiCodes.ANSI_RED);
+                        shell.println("");
+                    }
+                } catch (IOException e) {
+                    shell.printIn("IO problem while installing " + md.getId() + "\n" + e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
                     shell.println("");
-                    count++;
-                    Files.write(md.getId() + "\n"
-                            + DateTime.now() + "\n"
-                            + Joiner.on("\n").join(copied),
-                            pluginFile(pluginsDir, md), Charsets.UTF_8);
-                } else {
-                    shell.printIn("problem while installing " + md.getId(), RestxShell.AnsiCodes.ANSI_RED);
+                } catch (IllegalStateException e) {
+                    shell.printIn(e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
                     shell.println("");
                 }
             }

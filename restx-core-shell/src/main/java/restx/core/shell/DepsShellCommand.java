@@ -67,7 +67,7 @@ public class DepsShellCommand extends StdShellCommand {
                         "md.restx.json file not found in " + shell.currentLocation() + "." +
                                 " It is required to perform deps management");
             }
-            Ivy ivy = ShellIvy.loadIvy(shell.installLocation());
+            Ivy ivy = ShellIvy.loadIvy(shell);
             File tempFile = File.createTempFile("restx-md", ".ivy");
             try (FileInputStream is = new FileInputStream(mdFile)) {
                 ModuleDescriptor descriptor = new RestxJsonSupport().parse(is);

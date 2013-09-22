@@ -353,26 +353,26 @@ public class RestxShell implements Appendable {
         }
     }
 
-    private void endProgress(String name) throws IOException {
+    public void endProgress(String name) throws IOException {
         consoleReader.println();
     }
 
-    private void startProgress(String name, int total) throws IOException {
+    public void startProgress(String name, long total) throws IOException {
         updateProgress(name, 0, total);
     }
 
-    private void updateProgress(String name, int progress, int total) throws IOException {
+    public void updateProgress(String name, long progress, long total) throws IOException {
         int barWidth = 70;
         StringBuilder line = new StringBuilder();
 
         if (progress >= total) {
             line.append("[").append(Strings.repeat("=", barWidth)).append("]");
         } else {
-            int p = Math.min(progress * barWidth / total, barWidth - 1);
+            int p = (int) Math.min(progress * barWidth / total, barWidth - 1);
             line.append("[").append(Strings.repeat("=", p)).append(">").append(Strings.repeat(" ", barWidth - p - 1)).append("]");
         }
 
-        line.append(String.format(" %3d", progress * 100 / total)).append("%");
+        line.append(String.format(" %3d", (progress >= total) ? (100) : (progress * 100 / total))).append("%");
 
         consoleReader.print("" + RESET_LINE + line);
     }
