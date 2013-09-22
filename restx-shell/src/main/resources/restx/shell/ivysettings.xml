@@ -1,5 +1,4 @@
 <ivysettings>
-    <property name="m2localrepo" value="${user.home}/.m2/repository" override="false" />
     <settings defaultResolver="default" />
     <include url="${ivy.default.settings.dir}/ivysettings-shared.xml"/>
     <include url="${ivy.default.settings.dir}/ivysettings-local.xml"/>
@@ -8,23 +7,16 @@
         <ibiblio name="sonatype-snapshots" m2compatible="true"
                  root="https://oss.sonatype.org/content/repositories/snapshots/" />
 
-        <filesystem name="local-m2" m2compatible="true">
-            <ivy pattern="${m2localrepo}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" />
-            <artifact pattern="${m2localrepo}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" />
-        </filesystem>
-
         <chain name="main" dual="true">
             <resolver ref="shared"/>
             <resolver ref="public"/>
         </chain>
         <chain name="default" returnFirst="true">
             <resolver ref="local"/>
-            <resolver ref="local-m2"/>
             <resolver ref="main"/>
         </chain>
         <chain name="latest">
             <resolver ref="local"/>
-            <resolver ref="local-m2"/>
             <resolver ref="sonatype-snapshots"/>
             <resolver ref="main"/>
         </chain>
