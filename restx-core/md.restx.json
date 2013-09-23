@@ -18,6 +18,7 @@
             "javax.inject:javax.inject:${javax.inject.version}",
             "com.google.guava:guava:${guava.version}",
             "joda-time:joda-time:${joda-time.version}",
+            "com.typesafe:config:${config.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}",
             "com.google.code.maven-play-plugin.com.jamonapi:jamon:${jamon.version}",
             "org.hibernate:hibernate-validator:${hibernate-validator.version}",

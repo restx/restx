@@ -8,6 +8,8 @@
     "guava.version": "14.0.1",
     "joda-time.version": "2.2",
 
+    "config.version": "1.0.2",
+
     "jackson.version": "2.1.2",
 
     "mustache.version": "0.8.11",

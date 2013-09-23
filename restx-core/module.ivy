@@ -24,6 +24,7 @@
         <dependency org="javax.inject" name="javax.inject" rev="1" conf="default" />
         <dependency org="com.google.guava" name="guava" rev="14.0.1" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.2" conf="default" />
+        <dependency org="com.typesafe" name="config" rev="1.0.2" conf="default" />
         <dependency org="org.slf4j" name="slf4j-api" rev="1.7.5" conf="default" />
         <dependency org="com.google.code.maven-play-plugin.com.jamonapi" name="jamon" rev="2.7" conf="default" />
         <dependency org="org.hibernate" name="hibernate-validator" rev="5.0.0.Final" conf="default" />
