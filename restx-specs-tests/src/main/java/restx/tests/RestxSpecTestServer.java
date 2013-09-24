@@ -9,6 +9,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
+import com.typesafe.config.Config;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
 import restx.exceptions.RestxError;
 import restx.factory.Factory;
+import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.server.WebServer;
@@ -77,14 +79,15 @@ public class RestxSpecTestServer {
         private final RestxSpecRunner runner;
         private final RestxSpecRepository repository;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
-        private final Path storeLocation = Paths.get(System.getProperty("restx.targetTestsRoot", "tmp/tests"));
+        private final Path storeLocation;
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
 
-        public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository) {
+        public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository, Config config) {
             this.server = server;
             this.runner = runner;
             this.repository = repository;
+            storeLocation = Paths.get(config.getString("restx.targetTestsRoot"));
 
             objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JodaModule());
@@ -324,7 +327,7 @@ public class RestxSpecTestServer {
     }
 
     /**
-     * Constructs a new RestxSpecRule.
+     * Constructs a new RestxSpecTestServer.
      *
      * @param routerPath the path at which restx router is mounted. eg '/api'
      * @param webServerSupplier a supplier of WebServer, you can use #jettyWebServerSupplier for jetty.
@@ -346,7 +349,8 @@ public class RestxSpecTestServer {
         RestxSpecRunner runner = new RestxSpecRunner(specLoader, routerPath, server.getServerId(), server.baseUrl(), factory);
         RestxSpecRepository repository = new HotReloadRestxSpecRepository(specLoader);
 
-        final RunningServer runningServer = new RunningServer(server, runner, repository);
+        final RunningServer runningServer = new RunningServer(server, runner, repository,
+                factory.queryByName(Name.of(Config.class)).mandatory().findOneAsComponent().get());
 
         server.getEventBus().register(new Object() {
             @Subscribe
