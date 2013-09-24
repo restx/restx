@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import restx.RestxContext;
 import restx.classloader.ClasspathResourceEvent;
 import restx.classloader.CompilationFinishedEvent;
+import restx.common.RestxConfig;
 import restx.common.UUIDGenerator;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
@@ -77,14 +78,16 @@ public class RestxSpecTestServer {
         private final RestxSpecRunner runner;
         private final RestxSpecRepository repository;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
-        private final Path storeLocation = Paths.get(System.getProperty("restx.targetTestsRoot", "tmp/tests"));
+        private final Path storeLocation;
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
 
-        public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository) {
+        public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository, RestxConfig config) {
             this.server = server;
             this.runner = runner;
             this.repository = repository;
+
+            storeLocation = Paths.get(config.getString("restx.targetTestsRoot").get());
 
             objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JodaModule());
@@ -346,7 +349,8 @@ public class RestxSpecTestServer {
         RestxSpecRunner runner = new RestxSpecRunner(specLoader, routerPath, server.getServerId(), server.baseUrl(), factory);
         RestxSpecRepository repository = new HotReloadRestxSpecRepository(specLoader);
 
-        final RunningServer runningServer = new RunningServer(server, runner, repository);
+        final RunningServer runningServer = new RunningServer(server, runner, repository,
+                factory.queryByClass(RestxConfig.class).mandatory().findOneAsComponent().get());
 
         server.getEventBus().register(new Object() {
             @Subscribe
