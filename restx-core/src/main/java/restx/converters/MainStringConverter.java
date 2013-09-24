@@ -31,6 +31,11 @@ public class MainStringConverter {
     }
 
     public <T> T convert(String value, Class<T> toClass) {
+        // Handling special enum case
+        if(toClass.isEnum()) {
+            return (T) Enum.valueOf((Class<Enum>)toClass, value);
+        }
+
         StringConverter converter = converters.get(Primitives.wrap(toClass));
         if (converter == null) {
             throw new IllegalArgumentException(String.format(
