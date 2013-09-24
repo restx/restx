@@ -127,7 +127,7 @@ public class AppShellCommand extends StdShellCommand {
                             "Examples: myapp, todo, foo-app, ...")
                     .replaceAll("\\s+", "-");
             descriptor.mainPackage = shell.ask("main package [%s]? ",
-                    descriptor.artifactId.replaceAll("\\-", ".").toLowerCase(Locale.ENGLISH),
+                    descriptor.groupId.replaceAll("\\-", ".").toLowerCase(Locale.ENGLISH),
                     "This is the main package in which you will develop your application.\n" +
                             "In Java convention it should start with a reversed domain name followed by the app name\n" +
                             "but for applications (as opposed to APIs) we prefer to use a short name, like that app name.\n" +
