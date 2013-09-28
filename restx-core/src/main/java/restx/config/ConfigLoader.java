@@ -1,4 +1,4 @@
-package restx.common;
+package restx.config;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
@@ -6,6 +6,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.common.ConfigElement;
+import restx.common.RestxConfig;
+import restx.common.StdRestxConfig;
 import restx.factory.Component;
 
 import javax.inject.Named;

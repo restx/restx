@@ -1,7 +1,10 @@
-package restx.common;
+package restx.config;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
+import restx.common.ConfigElement;
+import restx.common.RestxConfig;
+import restx.common.StdRestxConfig;
 import restx.factory.*;
 
 import java.util.ArrayList;

@@ -13,9 +13,10 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxContext;
+import restx.config.Settings;
+import restx.config.SettingsKey;
 import restx.classloader.ClasspathResourceEvent;
 import restx.classloader.CompilationFinishedEvent;
-import restx.common.RestxConfig;
 import restx.common.UUIDGenerator;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
@@ -56,7 +57,7 @@ public class RestxSpecTestServer {
     public static RestxSpecTestServer newInstance() {
         Factory f = defaultFactory();
         return new RestxSpecTestServer("/api", 8076,
-                f.queryByClass(WebServerSupplier.class).findOne().get().getComponent(), f);
+                f.queryByClass(WebServerSupplier.class).mandatory().findOne().get().getComponent(), f);
     }
 
     /**
@@ -71,6 +72,12 @@ public class RestxSpecTestServer {
     private final WebServerSupplier webServerSupplier;
     private final Factory factory;
 
+    @Settings
+    public static interface RunningServerSettings {
+        @SettingsKey(key = "restx.targetTestsRoot", defaultValue = "tmp/tests")
+        String targetTestsRoot();
+    }
+
     public static class RunningServer {
         private static final Logger logger = LoggerFactory.getLogger(RunningServer.class);
 
@@ -82,12 +89,13 @@ public class RestxSpecTestServer {
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
 
-        public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository, RestxConfig config) {
+        public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository,
+                             RunningServerSettings settings) {
             this.server = server;
             this.runner = runner;
             this.repository = repository;
 
-            storeLocation = Paths.get(config.getString("restx.targetTestsRoot").get());
+            storeLocation = Paths.get(settings.targetTestsRoot());
 
             objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JodaModule());
@@ -350,7 +358,7 @@ public class RestxSpecTestServer {
         RestxSpecRepository repository = new HotReloadRestxSpecRepository(specLoader);
 
         final RunningServer runningServer = new RunningServer(server, runner, repository,
-                factory.queryByClass(RestxConfig.class).mandatory().findOneAsComponent().get());
+                factory.queryByClass(RunningServerSettings.class).mandatory().findOneAsComponent().get());
 
         server.getEventBus().register(new Object() {
             @Subscribe

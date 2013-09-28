@@ -1,7 +1,13 @@
-package restx.common;
+package restx.config;
 
 import com.google.common.base.Optional;
 import org.junit.Test;
+import restx.common.ConfigElement;
+import restx.common.RestxConfig;
+import restx.common.StdRestxConfig;
+import restx.config.ConfigSupplier;
+import restx.config.ConsolidatedConfigFactoryMachine;
+import restx.config.ElementsFromConfigFactoryMachine;
 import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.NamedComponent;
