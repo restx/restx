@@ -1,6 +1,7 @@
 package restx.common;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
@@ -53,8 +54,14 @@ public class StdRestxConfig implements RestxConfig {
     private StdRestxConfig(Iterable<ConfigElement> elements) {
         Map<String, ConfigElement> m = new LinkedHashMap<>();
         for (ConfigElement element : elements) {
-            if (!m.containsKey(element.getKey())) {
+            ConfigElement curElement = m.get(element.getKey());
+            if (curElement == null) {
                 m.put(element.getKey(), element);
+            } else {
+                if (Strings.isNullOrEmpty(curElement.getDoc())
+                        && !Strings.isNullOrEmpty(element.getDoc())) {
+                    m.put(element.getKey(), curElement.withDoc(element.getDoc()));
+                }
             }
         }
         this.elements = ImmutableMap.copyOf(m);

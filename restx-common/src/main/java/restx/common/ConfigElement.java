@@ -44,6 +44,10 @@ public class ConfigElement {
         return value;
     }
 
+    public ConfigElement withDoc(String doc) {
+        return new ConfigElement(origin, doc, key, value);
+    }
+
     @Override
     public String toString() {
         return "ConfigElement{" +

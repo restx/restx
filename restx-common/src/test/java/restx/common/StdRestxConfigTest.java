@@ -49,6 +49,19 @@ public class StdRestxConfigTest {
     }
 
     @Test
+    public void should_merge_doc() throws Exception {
+        RestxConfig config = StdRestxConfig.of(asList(
+                ConfigElement.of("source1", "", "key1", "val1"),
+                ConfigElement.of("source2", "doc2", "key1", "val2")));
+
+        assertThat(config.getString("key1").isPresent()).isTrue();
+        assertThat(config.getString("key1").get()).isEqualTo("val1");
+        assertThat(config.getElement("key1").isPresent()).isTrue();
+        assertThat(config.getElement("key1").get()).isEqualsToByComparingFields(
+                ConfigElement.of("source1", "doc2", "key1", "val1"));
+    }
+
+    @Test
     public void should_parse_properties() throws Exception {
         RestxConfig config = StdRestxConfig.parse(
                 "restx/common/config.properties", Resources.newReaderSupplier(
