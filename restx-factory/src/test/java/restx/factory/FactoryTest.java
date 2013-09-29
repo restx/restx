@@ -29,6 +29,15 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_concat_new_single_machine() throws Exception {
+        Factory factory = Factory.builder().addMachine(testMachine()).build();
+        factory = factory.concat(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "c2", "v2")));
+
+        assertThat(factory.getComponent(Name.of(String.class, "test"))).isEqualTo("value1");
+        assertThat(factory.getComponent(Name.of(String.class, "c2"))).isEqualTo("v2");
+    }
+
+    @Test
     public void should_build_new_component_with_deps() throws Exception {
         Factory factory = Factory.builder()
                 .addMachine(testMachine())

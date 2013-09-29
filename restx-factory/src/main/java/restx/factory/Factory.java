@@ -542,6 +542,14 @@ public class Factory implements AutoCloseable {
         this.warehouse = checkNotNull(warehouse);
     }
 
+    public Factory concat(FactoryMachine machine) {
+        Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
+        machines.putAll(machinesByBuilder);
+        machines.removeAll("FactoryMachine");
+        machines.put("IndividualMachines", machine);
+        return new Factory(usedServiceLoader, machines, customizerEngines, new Warehouse());
+    }
+
     public String getId() {
         return id;
     }
