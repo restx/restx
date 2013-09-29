@@ -22,22 +22,30 @@ import static com.google.common.collect.Iterables.transform;
  * Time: 8:16 AM
  */
 public class Apps {
-    public static CompilationManager newAppCompilationManager(EventBus eventBus) {
+    public static Apps with(AppSettings appSettings) {
+        return new Apps(appSettings);
+    }
+
+    private final AppSettings settings;
+
+    public Apps(AppSettings settings) {
+        this.settings = settings;
+    }
+
+    public CompilationManager newAppCompilationManager(EventBus eventBus) {
         return new CompilationManager(eventBus, getSourceRoots(), getTargetClasses());
     }
 
-    public static Path getTargetClasses() {
-        return FileSystems.getDefault().getPath(System.getProperty("restx.targetClasses", "tmp/classes"));
+    public Path getTargetClasses() {
+        return FileSystems.getDefault().getPath(settings.targetClasses());
     }
 
-    public static Iterable<Path> getSourceRoots() {
-        return transform(Splitter.on(',').trimResults().split(
-                    System.getProperty("restx.sourceRoots",
-                            "src/main/java, src/main/resources")),
+    public Iterable<Path> getSourceRoots() {
+        return transform(Splitter.on(',').trimResults().split(settings.sourceRoots()),
                     MoreFiles.strToPath);
     }
 
-    public static Optional<String> guessAppBasePackage(Path fromDir) {
+    public Optional<String> guessAppBasePackage(Path fromDir) {
         for (Path sourceRoot : getSourceRoots()) {
             Path sourceRootDir = fromDir.resolve(sourceRoot);
 
@@ -64,7 +72,7 @@ public class Apps {
     }
 
 
-    public static Process run(File workingDirectory, Path targetClasses, Path dependenciesDir, List<String> vmOptions,
+    public Process run(File workingDirectory, Path targetClasses, Path dependenciesDir, List<String> vmOptions,
                               String mainClassName, List<String> args, boolean quiet) throws IOException {
         final Process process = new ProcessBuilder(
                 ImmutableList.<String>builder()

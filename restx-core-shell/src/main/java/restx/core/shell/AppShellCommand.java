@@ -10,11 +10,14 @@ import com.google.common.collect.Lists;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
+import restx.AppSettings;
 import restx.Apps;
 import restx.build.RestxBuild;
 import restx.common.UUIDGenerator;
 import restx.common.Version;
 import restx.factory.Component;
+import restx.factory.NamedComponent;
+import restx.factory.SingletonFactoryMachine;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
@@ -280,7 +283,8 @@ public class AppShellCommand extends StdShellCommand {
         @Override
         public void run(RestxShell shell) throws Exception {
             if (appClassName == null) {
-                Optional<String> pack = Apps.guessAppBasePackage(shell.currentLocation());
+                Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
+                                                .guessAppBasePackage(shell.currentLocation());
                 if (!pack.isPresent()) {
                     shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
                             RestxShell.AnsiCodes.ANSI_RED);
@@ -290,7 +294,11 @@ public class AppShellCommand extends StdShellCommand {
                 }
                 appClassName = pack.get() + ".AppServer";
             }
-            new ShellAppRunner(appClassName.substring(0, appClassName.lastIndexOf('.')), appClassName, compileMode, quiet, vmOptions)
+            String basePack = appClassName.substring(0, appClassName.lastIndexOf('.'));
+            AppSettings appSettings = shell.getFactory()
+                    .concat(new SingletonFactoryMachine<>(-10000, NamedComponent.of(String.class, "restx.app.package", basePack)))
+                    .getComponent(AppSettings.class);
+            new ShellAppRunner(appSettings, appClassName, compileMode, quiet, vmOptions)
                 .run(shell);
         }
     }

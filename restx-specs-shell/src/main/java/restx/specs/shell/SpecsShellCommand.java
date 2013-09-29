@@ -5,9 +5,12 @@ import com.google.common.collect.ImmutableList;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
+import restx.AppSettings;
 import restx.Apps;
 import restx.core.shell.ShellAppRunner;
 import restx.factory.Component;
+import restx.factory.NamedComponent;
+import restx.factory.SingletonFactoryMachine;
 import restx.server.simple.simple.SimpleWebServer;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
@@ -77,7 +80,8 @@ public class SpecsShellCommand extends StdShellCommand {
             if (args.size() > 3) {
                 basePack = args.get(3);
             } else {
-                Optional<String> pack = Apps.guessAppBasePackage(shell.currentLocation());
+                Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
+                        .guessAppBasePackage(shell.currentLocation());
                 if (!pack.isPresent()) {
                     shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
                             RestxShell.AnsiCodes.ANSI_RED);
@@ -87,8 +91,11 @@ public class SpecsShellCommand extends StdShellCommand {
                 }
                 basePack = pack.get();
             }
+            AppSettings appSettings = shell.getFactory()
+                    .concat(new SingletonFactoryMachine<>(-10000, NamedComponent.of(String.class, "restx.app.package", basePack)))
+                    .getComponent(AppSettings.class);
 
-            new ShellAppRunner(basePack, "restx.tests.RestxSpecTestServer",
+            new ShellAppRunner(appSettings, "restx.tests.RestxSpecTestServer",
                     ShellAppRunner.CompileMode.NO, quiet, Collections.<String>emptyList()).run(shell);
         }
     }

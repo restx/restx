@@ -190,10 +190,10 @@ public class RestxMainRouterFactory {
         private final CompilationManager compilationManager;
         private ClassLoader classLoader;
 
-        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus) {
+        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus, AppSettings appSettings) {
             this.delegate = delegate;
             this.rootPackage = System.getProperty("restx.app.package");
-            compilationManager = Apps.newAppCompilationManager(eventBus);
+            compilationManager = Apps.with(appSettings).newAppCompilationManager(eventBus);
             destinationDir = compilationManager.getDestination();
             eventBus.register(new Object() {
                 @Subscribe
@@ -306,7 +306,9 @@ public class RestxMainRouterFactory {
             // this must be the last wrapping so that the classloader is used for the full request, including
             // for recording
             if (useHotCompile()) {
-                router = new CompilationManagerRouter(router, eventBus);
+                AppSettings appSettings = loadFactory(newFactoryBuilder(serverId, eventBus))
+                        .getComponent(AppSettings.class);
+                router = new CompilationManagerRouter(router, eventBus, appSettings);
             } else if (useHotReload()) {
                 router = new HotReloadRouter(router);
             }
