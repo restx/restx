@@ -53,6 +53,7 @@ public class FactoryTest {
         assertThat(component.isPresent()).isTrue();
         assertThat(component.get().getName()).isEqualTo(Name.of(String.class, "test2"));
         assertThat(component.get().getComponent()).isEqualTo("value1 value2");
+        assertThat(factory.getComponent(Name.of(String.class, "test2"))).isEqualTo("value1 value2");
 
         assertThat(factory.queryByName(Name.of(String.class, "test2")).findOne().get()).isEqualTo(component.get());
     }
@@ -304,6 +305,7 @@ public class FactoryTest {
         Factory factory = Factory.builder().build();
 
         assertThat(factory.queryByClass(Factory.class).findAsComponents()).containsExactly(factory);
+        assertThat(factory.getComponent(Factory.class)).isEqualTo(factory);
     }
 
     @Test

@@ -558,6 +558,36 @@ public class Factory implements AutoCloseable {
         return new ClassQuery(componentClass).bind(this);
     }
 
+    /**
+     * Gets a component by class.
+     *
+     * This is a shortcut for queryByClass(cls).mandatory().findOneAsComponent().get()
+     *
+     * Therefore it raises an exception if no component of this class is found or if several one match.
+     *
+     * @param componentClass
+     * @param <T>
+     * @return
+     */
+    public <T> T getComponent(Class<T> componentClass) {
+        return queryByClass(componentClass).mandatory().findOneAsComponent().get();
+    }
+
+    /**
+     * Gets a component by name.
+     *
+     * This is a shortcut for queryByName(name).mandatory().findOneAsComponent().get()
+     *
+     * Therefore it raises an exception if no component of this name is found.
+     *
+     * @param componentName
+     * @param <T>
+     * @return
+     */
+    public <T> T getComponent(Name<T> componentName) {
+        return queryByName(componentName).mandatory().findOneAsComponent().get();
+    }
+
     public void close() {
         warehouse.close();
     }
