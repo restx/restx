@@ -45,13 +45,16 @@ public class RestxSpecTape {
     private final Set<RestxSpecRecorder.GivenRecorder> recorders;
     private final Set<AutoCloseable> givenTapes = Sets.newLinkedHashSet();
     private final RestxSessionFilter sessionFilter;
+    private final RestxSpec.Storage storage;
 
     private RestxRequest recordingRequest;
     private RestxResponse recordingResponse;
     private int id;
 
     RestxSpecTape(RestxRequest restxRequest, RestxResponse restxResponse,
-                  Set<RestxSpecRecorder.GivenRecorder> recorders, RestxSessionFilter sessionFilter) {
+                  Set<RestxSpecRecorder.GivenRecorder> recorders, RestxSessionFilter sessionFilter,
+                  RestxSpec.StorageSettings storageSettings) {
+        this.storage = RestxSpec.Storage.with(storageSettings);
         try {
             lock.tryLock(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -108,7 +111,7 @@ public class RestxSpecTape {
 
         id = specId.incrementAndGet();
         final String title = recordTitle.or(buildTitle(id, method, path));
-        final String specPath = RestxSpec.buildPath(recordPath, title);
+        final String specPath = storage.buildPath(recordPath, title);
 
         recordingRequest = new RestxRequestWrapper(restxRequest) {
             @Override

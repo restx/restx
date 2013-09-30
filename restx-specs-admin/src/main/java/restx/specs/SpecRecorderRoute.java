@@ -16,7 +16,7 @@ import java.util.List;
  * Time: 9:37 PM
  */
 public class SpecRecorderRoute extends RestxRouter {
-    public SpecRecorderRoute(final RestxSpecRecorder specRecorder) {
+    public SpecRecorderRoute(final RestxSpecRecorder specRecorder, final RestxSpec.StorageSettings storageSettings) {
         super("SpecRecorderRouter",
                 new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs.recorder", ImmutableMap.of("", "index.html")),
                 new StdRoute("RecorderRoute", new StdRouteMatcher("GET", "/@/recorders")) {
@@ -61,9 +61,12 @@ public class SpecRecorderRoute extends RestxRouter {
                                 Optional<String> path = req.getQueryParam("path");
                                 Optional<String> title = req.getQueryParam("title");
 
-                                File destFile = spec.getSpec()
-                                        .withTitle(title)
-                                        .withPath(RestxSpec.buildPath(path, title.or(spec.getSpec().getTitle()))).store();
+                                RestxSpec.Storage storage = RestxSpec.Storage.with(storageSettings);
+
+                                File destFile = storage.store(
+                                        spec.getSpec()
+                                            .withTitle(title)
+                                            .withPath(storage.buildPath(path, title.or(spec.getSpec().getTitle()))));
 
                                 resp.setContentType("text/plain");
                                 resp.getWriter().println(destFile.getAbsolutePath());

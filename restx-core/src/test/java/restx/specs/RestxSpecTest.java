@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RestxSpecTest {
     @Test
     public void should_set_title() throws Exception {
-        RestxSpec spec = new RestxSpec("title 1",
+        RestxSpec spec = newRestxSpec("title 1",
                 ImmutableList.<Given>of(),
                 ImmutableList.<When>of());
 
@@ -27,14 +27,29 @@ public class RestxSpecTest {
 
     @Test
     public void should_get_store_file() throws Exception {
-        RestxSpec spec = new RestxSpec("title 1",
+        RestxSpec spec = newRestxSpec("title 1",
                 ImmutableList.<Given>of(),
                 ImmutableList.<When>of());
-        assertThat(spec.withPath(RestxSpec.buildPath(Optional.<String>absent(), "title 1"))
-                .getStoreFile())
+
+        RestxSpec.Storage storage = RestxSpec.Storage.with(new RestxSpec.StorageSettings() {
+            @Override
+            public String recorderBasePath() {
+                return "src/main/resources";
+            }
+
+            @Override
+            public String recorderBaseSpecPath() {
+                return "specs";
+            }
+        });
+
+        assertThat(storage.getStoreFile(storage.buildPath(Optional.<String>absent(), "title 1")))
                 .isEqualTo(new File("src/main/resources/specs/title_1.spec.yaml"));
-        assertThat(spec.withPath(RestxSpec.buildPath(Optional.of("specs/test1"), "title 1"))
-                .getStoreFile())
+        assertThat(storage.getStoreFile(storage.buildPath(Optional.of("specs/test1"), "title 1")))
                 .isEqualTo(new File("src/main/resources/specs/test1/title_1.spec.yaml"));
+    }
+
+    private RestxSpec newRestxSpec(String title, ImmutableList<Given> givens, ImmutableList<When> whens) {
+        return new RestxSpec(title, title, givens, whens);
     }
 }

@@ -10,6 +10,7 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
     public static final Name<SpecRecorderRoute> RECORDER_ROUTE_NAME = Name.of(SpecRecorderRoute.class, "SpecRecorderRoute");
 
     private static final Factory.Query<RestxSpecRecorder> specRecorder = Factory.Query.byClass(RestxSpecRecorder.class);
+    private static final Factory.Query<RestxSpec.StorageSettings> storageSettings = Factory.Query.byClass(RestxSpec.StorageSettings.class).mandatory();
     private static final Name<AdminPage> ADMIN_PAGE_NAME = Name.of(AdminPage.class, "Recorder");
 
     public SpecRecorderRouteFactoryMachine() {
@@ -24,7 +25,7 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
 
                 @Override
                 public BillOfMaterials getBillOfMaterial() {
-                    return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(specRecorder));
+                    return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(specRecorder, storageSettings));
                 }
 
                 @Override
@@ -34,7 +35,9 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
                         return new EmptyBox<>(RECORDER_ROUTE_NAME);
                     }
                     return BoundlessComponentBox.FACTORY.of(new NamedComponent(RECORDER_ROUTE_NAME,
-                            new SpecRecorderRoute(recorder.get().getComponent())));
+                            new SpecRecorderRoute(recorder.get().getComponent(),
+                                    satisfiedBOM.getOneAsComponent(storageSettings).get()
+                                    )));
                 }
 
                 @Override

@@ -23,9 +23,11 @@ import java.net.URLDecoder;
 @Component @RestxResource(group = "restx-admin")
 public class SpecsResource {
     private final RestxSpecRepository repository;
+    private final RestxSpec.Storage storage;
 
-    public SpecsResource(RestxSpecRepository repository) {
+    public SpecsResource(RestxSpecRepository repository, RestxSpec.StorageSettings storageSettings) {
         this.repository = repository;
+        storage = RestxSpec.Storage.with(storageSettings);
     }
 
     @GET("/@/specs")
@@ -56,7 +58,8 @@ public class SpecsResource {
             }
 
             When when = spec.get().getWhens().get(wtsIndex);
-            spec.get().withWhenAt(wtsIndex, when.withThen(response)).store();
+            storage.store(
+                    spec.get().withWhenAt(wtsIndex, when.withThen(response)));
 
             return Optional.of(response);
         } catch (UnsupportedEncodingException e) {
