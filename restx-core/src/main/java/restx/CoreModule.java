@@ -10,7 +10,7 @@ import restx.factory.Provides;
 @Module
 public class CoreModule {
     @Provides
-    public ConfigSupplier appConfigLoader(ConfigLoader configLoader) {
+    public ConfigSupplier appConfigSupplier(ConfigLoader configLoader) {
         return configLoader.fromResource("restx/appConfig");
     }
 }
