@@ -18,7 +18,8 @@ public class StdRestxConfigTest {
     public void should_access_properties() throws Exception {
         RestxConfig config = StdRestxConfig.of(asList(
                 ConfigElement.of("key1", "val1"),
-                ConfigElement.of("key2", "2")));
+                ConfigElement.of("key2", "2"),
+                ConfigElement.of("key3", "true")));
 
         assertThat(config.getString("key1").isPresent()).isTrue();
         assertThat(config.getString("key1").get()).isEqualTo("val1");
@@ -29,9 +30,28 @@ public class StdRestxConfigTest {
         assertThat(config.getInt("key2").isPresent()).isTrue();
         assertThat(config.getInt("key2").get()).isEqualTo(2);
 
-        assertThat(config.getString("key3").isPresent()).isFalse();
+        assertThat(config.getString("key3").isPresent()).isTrue();
+        assertThat(config.getBoolean("key3").isPresent()).isTrue();
+        assertThat(config.getBoolean("key3").get()).isTrue();
 
-        assertThat(config.elements()).extracting("key", "value").containsExactly(tuple("key1", "val1"), tuple("key2", "2"));
+        assertThat(config.getString("key4").isPresent()).isFalse();
+
+        assertThat(config.elements()).extracting("key", "value").containsExactly(
+                tuple("key1", "val1"), tuple("key2", "2"), tuple("key3", "true"));
+    }
+
+    @Test
+    public void should_empty_be_absent() throws Exception {
+        RestxConfig config = StdRestxConfig.of(asList(
+                ConfigElement.of("key1", "")));
+
+        assertThat(config.getString("key1").isPresent()).isFalse();
+        assertThat(config.getInt("key1").isPresent()).isFalse();
+        assertThat(config.getBoolean("key1").isPresent()).isFalse();
+        assertThat(config.getElement("key1").isPresent()).isTrue();
+        assertThat(config.getElement("key1").get()).isEqualsToByComparingFields(ConfigElement.of("key1", ""));
+
+        assertThat(config.elements()).extracting("key", "value").containsExactly(tuple("key1", ""));
     }
 
     @Test

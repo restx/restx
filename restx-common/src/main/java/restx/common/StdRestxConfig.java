@@ -8,10 +8,10 @@ import com.google.common.io.InputSupplier;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Arrays.asList;
 
 /**
  * A standard implementation of RestxConfig.
@@ -20,6 +20,8 @@ import java.util.Map;
  * properties file, where docs can be inserted using lines starting with #.
  */
 public class StdRestxConfig implements RestxConfig {
+    private static final Collection TRUE_VALUES = asList("true", "yes", "on", "1", "y");
+
     public static RestxConfig parse(String origin, InputSupplier<InputStreamReader> readerSupplier) throws IOException {
         List<ConfigElement> elements = new ArrayList<>();
         StringBuilder doc = new StringBuilder();
@@ -58,8 +60,8 @@ public class StdRestxConfig implements RestxConfig {
             if (curElement == null) {
                 m.put(element.getKey(), element);
             } else {
-                if (Strings.isNullOrEmpty(curElement.getDoc())
-                        && !Strings.isNullOrEmpty(element.getDoc())) {
+                if (isNullOrEmpty(curElement.getDoc())
+                        && !isNullOrEmpty(element.getDoc())) {
                     m.put(element.getKey(), curElement.withDoc(element.getDoc()));
                 }
             }
@@ -80,7 +82,7 @@ public class StdRestxConfig implements RestxConfig {
     @Override
     public Optional<String> getString(String elementKey) {
         ConfigElement element = elements.get(elementKey);
-        if (element == null) {
+        if (element == null || isNullOrEmpty(element.getValue())) {
             return Optional.absent();
         }
         return Optional.of(element.getValue());
@@ -89,7 +91,7 @@ public class StdRestxConfig implements RestxConfig {
     @Override
     public Optional<Integer> getInt(String elementKey) {
         ConfigElement element = elements.get(elementKey);
-        if (element == null) {
+        if (element == null || isNullOrEmpty(element.getValue())) {
             return Optional.absent();
         }
         try {
@@ -99,5 +101,14 @@ public class StdRestxConfig implements RestxConfig {
                     " as int" +
                     " (parse exception " + e.getMessage() + ")");
         }
+    }
+
+    @Override
+    public Optional<Boolean> getBoolean(String elementKey) {
+        ConfigElement element = elements.get(elementKey);
+        if (element == null || isNullOrEmpty(element.getValue())) {
+            return Optional.absent();
+        }
+        return Optional.of(TRUE_VALUES.contains(element.getValue().toLowerCase(Locale.ENGLISH)));
     }
 }

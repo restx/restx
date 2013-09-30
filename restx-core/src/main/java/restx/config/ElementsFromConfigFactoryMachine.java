@@ -1,6 +1,7 @@
 package restx.config;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import restx.common.ConfigElement;
@@ -30,8 +31,11 @@ public class ElementsFromConfigFactoryMachine extends DefaultFactoryMachine {
                 return new FactoryMachine() {
                     @Override
                     public boolean canBuild(Name<?> name) {
-                        return (name.getClazz() == String.class || name.getClazz() == ConfigElement.class)
-                                && config.getElement(name.getName()).isPresent();
+                        return config.getElement(name.getName()).isPresent()
+                            && (name.getClazz() == ConfigElement.class
+                                || (name.getClazz() == String.class
+                                    && !Strings.isNullOrEmpty(config.getElement(name.getName()).get().getValue()))
+                              );
                     }
 
                     @Override
