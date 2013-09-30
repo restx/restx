@@ -1,0 +1,22 @@
+body {
+    padding-top: 60px;
+}
+
+.key {
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+    font-size: 14px;
+}
+
+.value {
+    width: 380px;
+}
+.origin {
+    width: 180px;
+}
+
+.key, .value, .origin {
+    text-overflow: ellipsis; white-space: nowrap;
+}
+
+table { table-layout: fixed; }
+table th, table td { overflow: hidden; }
