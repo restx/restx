@@ -7,10 +7,7 @@ import restx.common.RestxConfig;
 import restx.common.StdRestxConfig;
 import restx.factory.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.collect.Iterables.addAll;
 
@@ -40,11 +37,24 @@ public class ConsolidatedConfigFactoryMachine implements FactoryMachine {
             protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
                 List<ConfigElement> elements = new ArrayList<>();
 
+                // fetch system properties as ConfigElements, of strongest priority
+
+                /* they are also available through named strings thanks to SystemPropertyFactoryMachine
+                 * but fetching them here ensures they get highest priority and give clear indication of their origin.
+                 * We could get rid of SystemPropertyFactoryMachine, but it may be helpful for someone who doesn't use
+                 * RestxConfig at all.
+                 */
+                for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+                    elements.add(ConfigElement.of("system", "", (String) entry.getKey(), (String) entry.getValue()));
+                }
+
+                // now fetch elements coming from ConfigSuppliers
                 for (NamedComponent<ConfigSupplier> supplier : satisfiedBOM.get(configSupplierQuery)) {
                     addAll(elements, supplier.getComponent().get().elements());
                 }
                 RestxConfig config = StdRestxConfig.of(elements);
 
+                // and now String components
                 List<ConfigElement> factoryElements = new ArrayList<>();
                 for (NamedComponent<String> s : satisfiedBOM.get(stringsQuery)) {
                     Optional<ConfigElement> element = config.getElement(s.getName().getName());

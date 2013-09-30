@@ -8,10 +8,7 @@ import restx.common.StdRestxConfig;
 import restx.config.ConfigSupplier;
 import restx.config.ConsolidatedConfigFactoryMachine;
 import restx.config.ElementsFromConfigFactoryMachine;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.NamedComponent;
-import restx.factory.SingletonFactoryMachine;
+import restx.factory.*;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +19,23 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Time: 10:05 PM
  */
 public class ConfigMachineTest {
+    @Test
+    public void should_load_configs_from_system_properties() throws Exception {
+        System.setProperty("restx.test.system.property", "v1");
+        Factory factory = Factory.builder()
+                // we add system property machine just to make sure it doesn't break anything, it isn't required
+                .addMachine(new SystemPropertyFactoryMachine())
+
+                .addMachine(new ConsolidatedConfigFactoryMachine())
+                .build();
+
+        Optional<RestxConfig> configOptional = factory.queryByClass(RestxConfig.class).findOneAsComponent();
+
+        assertThat(configOptional.isPresent()).isTrue();
+        assertThat(configOptional.get().getString("restx.test.system.property")).isEqualTo(Optional.of("v1"));
+        assertThat(configOptional.get().getElement("restx.test.system.property").get().getOrigin()).isEqualTo("system");
+    }
+
     @Test
     public void should_load_configs_from_suppliers() throws Exception {
         Factory factory = Factory.builder()
