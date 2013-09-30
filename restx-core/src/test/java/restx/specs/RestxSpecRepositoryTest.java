@@ -70,7 +70,7 @@ public class RestxSpecRepositoryTest {
     }
 
     private RestxSpec spec(String title, WhenHttpRequest request) {
-        return new RestxSpec(title, ImmutableList.<Given>of(), ImmutableList.<When>of(request));
+        return new RestxSpec(title, title, ImmutableList.<Given>of(), ImmutableList.<When>of(request));
     }
 
     private WhenHttpRequest when(String method, String path) {

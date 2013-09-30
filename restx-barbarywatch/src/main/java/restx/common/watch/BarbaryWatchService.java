@@ -23,9 +23,10 @@ public class BarbaryWatchService implements WatcherService {
     }
 
     @Override
-    public Closeable watch(EventBus eventBus, ExecutorService executor, Path dir, boolean recurse) {
+    public Closeable watch(EventBus eventBus, ExecutorService executor,
+                           Path dir, WatcherSettings watcherSettings) {
         try {
-            final WatchDir watchDir = new WatchDir(eventBus, dir, recurse);
+            final WatchDir watchDir = new WatchDir(eventBus, dir, watcherSettings);
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -92,13 +93,12 @@ public class BarbaryWatchService implements WatcherService {
         /**
          * Creates a WatchService and registers the given directory
          */
-        WatchDir(EventBus eventBus, Path dir, boolean recursive) throws IOException {
+        WatchDir(EventBus eventBus, Path dir, WatcherSettings settings) throws IOException {
             this.watcher = com.barbarysoftware.watchservice.WatchService.newWatchService();
             this.keys = new HashMap<>();
-            this.recursive = recursive;
+            this.recursive = settings.recurse();
             this.root = dir;
-            this.coalescor = new EventCoalescor(eventBus,
-                    Integer.parseInt(System.getProperty("restx.fs.watch.coalesce.period", "50")));
+            this.coalescor = new EventCoalescor(eventBus, settings.coalescePeriod());
 
             if (recursive) {
                 registerAll(dir);

@@ -1,0 +1,22 @@
+package {{{package}}};
+
+import restx.common.ConfigElement;
+import restx.config.ConfigSupplier;
+import restx.common.RestxConfig;
+import restx.common.StdRestxConfig;
+import restx.factory.Component;
+
+import static java.util.Arrays.asList;
+
+@Component(priority = 1000)
+public class {{{settingsSimpleType}}}Provider implements ConfigSupplier {
+    @Override
+    public RestxConfig get() {
+        return StdRestxConfig.of(asList(new ConfigElement[] {
+{{#keys}}
+                ConfigElement.of("{{{settingsType}}}", "{{{doc}}}", "{{{key}}}", "{{{defaultValue}}}"),
+{{/keys}}
+        }
+        ));
+    }
+}

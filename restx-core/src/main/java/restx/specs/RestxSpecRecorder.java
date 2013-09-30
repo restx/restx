@@ -40,6 +40,7 @@ public class RestxSpecRecorder {
 
     private final Set<GivenRecorder> recorders;
     private final RestxSessionFilter sessionFilter;
+    private final RestxSpec.StorageSettings storageSettings;
 
     public RestxSpecRecorder() {
         this(Factory.builder()
@@ -52,12 +53,14 @@ public class RestxSpecRecorder {
 
     public RestxSpecRecorder(Factory factory) {
         this(factory.queryByClass(GivenRecorder.class).findAsComponents(),
-                factory.queryByClass(RestxSessionFilter.class).mandatory().findOne().get().getComponent());
+                factory.queryByClass(RestxSessionFilter.class).mandatory().findOne().get().getComponent(),
+                factory.getComponent(RestxSpec.StorageSettings.class));
     }
 
-    public RestxSpecRecorder(Set<GivenRecorder> recorders, RestxSessionFilter sessionFilter) {
+    public RestxSpecRecorder(Set<GivenRecorder> recorders, RestxSessionFilter sessionFilter, RestxSpec.StorageSettings storageSettings) {
         this.recorders = recorders;
         this.sessionFilter = sessionFilter;
+        this.storageSettings = storageSettings;
     }
 
     public void install() {
@@ -82,7 +85,8 @@ public class RestxSpecRecorder {
      * @throws IOException
      */
     public RestxSpecTape record(RestxRequest restxRequest, RestxResponse restxResponse, Optional<String> recordPath, Optional<String> recordTitle) throws IOException {
-        return new RestxSpecTape(restxRequest, restxResponse, recorders, sessionFilter).doRecord(recordPath, recordTitle);
+        return new RestxSpecTape(restxRequest, restxResponse, recorders, sessionFilter, storageSettings)
+                .doRecord(recordPath, recordTitle);
     }
 
     public RecordedSpec stop(RestxSpecTape tape) {
