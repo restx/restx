@@ -1,6 +1,7 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -9,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
+import restx.classloader.CompilationSettings;
 import restx.classloader.HotReloadingClassLoader;
+import restx.common.RestxConfig;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
@@ -190,10 +193,10 @@ public class RestxMainRouterFactory {
         private final CompilationManager compilationManager;
         private ClassLoader classLoader;
 
-        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus, AppSettings appSettings) {
+        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus, AppSettings appSettings, CompilationSettings compilationSettings) {
             this.delegate = delegate;
             this.rootPackage = System.getProperty("restx.app.package");
-            compilationManager = Apps.with(appSettings).newAppCompilationManager(eventBus);
+            compilationManager = Apps.with(appSettings).newAppCompilationManager(eventBus, compilationSettings);
             destinationDir = compilationManager.getDestination();
             eventBus.register(new Object() {
                 @Subscribe
@@ -306,9 +309,20 @@ public class RestxMainRouterFactory {
             // this must be the last wrapping so that the classloader is used for the full request, including
             // for recording
             if (useHotCompile()) {
-                AppSettings appSettings = loadFactory(newFactoryBuilder(serverId, eventBus))
-                        .getComponent(AppSettings.class);
-                router = new CompilationManagerRouter(router, eventBus, appSettings);
+                Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus));
+                AppSettings appSettings = factory.getComponent(AppSettings.class);
+                final RestxConfig config = factory.getComponent(RestxConfig.class);
+                router = new CompilationManagerRouter(router, eventBus, appSettings, new CompilationSettings() {
+                    @Override
+                    public int autoCompileCoalescePeriod() {
+                        return config.getInt("restx.fs.watch.coalesce.period").get();
+                    }
+
+                    @Override
+                    public Predicate<Path> classpathResourceFilter() {
+                        return CompilationManager.DEFAULT_CLASSPATH_RESOURCE_FILTER;
+                    }
+                });
             } else if (useHotReload()) {
                 router = new HotReloadRouter(router);
             }

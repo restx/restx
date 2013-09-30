@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.ByteStreams;
 import restx.classloader.CompilationManager;
+import restx.classloader.CompilationSettings;
 import restx.common.MoreFiles;
 
 import java.io.File;
@@ -32,8 +33,8 @@ public class Apps {
         this.settings = settings;
     }
 
-    public CompilationManager newAppCompilationManager(EventBus eventBus) {
-        return new CompilationManager(eventBus, getSourceRoots(), getTargetClasses());
+    public CompilationManager newAppCompilationManager(EventBus eventBus, CompilationSettings compilationSettings) {
+        return new CompilationManager(eventBus, getSourceRoots(), getTargetClasses(), compilationSettings);
     }
 
     public Path getTargetClasses() {
