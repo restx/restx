@@ -3,10 +3,7 @@ package restx;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Optional;
-import com.google.common.base.Stopwatch;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
@@ -21,6 +18,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * User: xavierhanin
@@ -77,9 +76,15 @@ public class StdRestxMainRouter implements RestxMainRouter {
     private final Logger logger = LoggerFactory.getLogger(StdRestxMainRouter.class);
 
     private final RestxRouting routing;
+    private final String mode;
 
     public StdRestxMainRouter(RestxRouting routing) {
-        this.routing = routing;
+        this(routing, RestxContext.Modes.PROD);
+    }
+
+    public StdRestxMainRouter(RestxRouting routing, String mode) {
+        this.routing = checkNotNull(routing);
+        this.mode = checkNotNull(mode);
     }
 
     @Override
@@ -122,7 +127,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                         restxResponse.setHeader("Cache-Control", "no-cache");
                     }
                 };
-                RestxContext context = new RestxContext(getMode(restxRequest), noCache, ImmutableList.copyOf(m.get().getMatches()));
+                RestxContext context = new RestxContext(getMode(), noCache, ImmutableList.copyOf(m.get().getMatches()));
                 RestxRouteMatch match = context.nextHandlerMatch();
                 match.getHandler().handle(match, restxRequest, restxResponse, context);
             }
@@ -210,12 +215,8 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
     }
 
-    static String getMode() {
-        return System.getProperty("restx.mode", RestxContext.Modes.PROD);
-    }
-
-    static String getMode(RestxRequest req) {
-        return req.getHeader("RestxMode").or(getMode());
+    String getMode() {
+        return mode;
     }
 
     private boolean hasApiDocs() {

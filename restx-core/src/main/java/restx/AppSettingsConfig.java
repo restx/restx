@@ -1,5 +1,7 @@
 package restx;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import restx.common.RestxConfig;
 import restx.factory.Component;
 
@@ -14,8 +16,8 @@ public class AppSettingsConfig implements AppSettings {
     }
 
     @Override
-    public String appPackage() {
-        return config.getString("restx.app.package").get();
+    public Optional<String> appPackage() {
+        return config.getString("restx.app.package");
     }
 
     @Override
@@ -41,5 +43,31 @@ public class AppSettingsConfig implements AppSettings {
     @Override
     public String mainResources() {
         return config.getString("restx.mainResources").get();
+    }
+
+    @Override
+    public Optional<Boolean> autoCompile() {
+        return config.getBoolean("restx.router.autocompile");
+    }
+
+    @Override
+    public Optional<Boolean> hotCompile() {
+        return config.getBoolean("restx.router.hotcompile");
+    }
+
+    @Override
+    public Optional<Boolean> hotReload() {
+        return config.getBoolean("restx.router.hotreload");
+    }
+
+    @Override
+    public String mode() {
+        return config.getString("restx.mode").get();
+    }
+
+    @Override
+    public Optional<String> factoryLoadMode() {
+        return Optional.fromNullable(Strings.emptyToNull(
+                config.getString("restx.factory.load").or("")));
     }
 }
