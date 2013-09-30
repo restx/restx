@@ -17,4 +17,5 @@ public interface ShellCommand {
     void man(Appendable appendable) throws IOException;
     Iterable<Completer> getCompleters();
     ImmutableList<String> getAliases();
+    void start(RestxShell shell) throws IOException;
 }

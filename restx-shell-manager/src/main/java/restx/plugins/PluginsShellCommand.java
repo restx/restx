@@ -5,22 +5,26 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import com.google.common.io.PatternFilenameFilter;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import restx.factory.Component;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * User: xavierhanin
@@ -29,6 +33,8 @@ import java.util.List;
  */
 @Component
 public class PluginsShellCommand extends StdShellCommand {
+    private static final Logger logger = LoggerFactory.getLogger(PluginsShellCommand.class);
+
     /*
      * this is the default exlcusions list used when fetching plugins (to avoid confusion between lib and plugins dir):
      * - we exclude the main modules already part of the shell itself (shell and shell-manager)
@@ -65,6 +71,108 @@ public class PluginsShellCommand extends StdShellCommand {
                 new ArgumentCompleter(new StringsCompleter("shell"), new StringsCompleter("install", "upgrade")));
     }
 
+    @Override
+    public void start(RestxShell shell) throws IOException {
+        File versionFile = new File(shell.installLocation().toFile(), shell.version());
+        if (versionFile.exists()) {
+            // upgrade check already done
+            return;
+        }
+
+        try {
+            // upgrading to a new version, we check if plugins need to be upgraded
+            File[] pluginFiles = pluginFiles(pluginsDir(shell));
+
+            if (pluginFiles.length == 0) {
+                // no plugin installed, nothing to upgrade
+                return;
+            }
+
+            shell.printIn("upgrading to " + shell.version() + " ...", RestxShell.AnsiCodes.ANSI_YELLOW);
+            shell.println("");
+
+            ModulesManager modulesManager = new ModulesManager(
+                    new URL("http://restx.io/modules"), ShellIvy.loadIvy(shell));
+
+            List<ModuleDescriptor> plugins = modulesManager.searchModules("category=shell");
+
+            Set<String> allJars = new LinkedHashSet<>();
+            Set<String> keepJars = new LinkedHashSet<>();
+            List<ModuleDescriptor> pluginsToInstall = new ArrayList<>();
+            List<String> unmatchedPlugins = new ArrayList<>();
+            for (File pluginFile : pluginFiles) {
+                try {
+                    List<String> desc = Files.readLines(pluginFile, Charsets.UTF_8);
+                    String id = desc.get(0);
+                    ModuleRevisionId mrid = ModulesManager.toMrid(id);
+                    List<String> jars = desc.subList(2, desc.size());
+
+
+                    allJars.addAll(jars);
+
+                    ModuleDescriptor matchingModule = findMatchingPlugin(plugins, mrid);
+
+                    if (matchingModule == null) {
+                        keepJars.addAll(jars);
+                        unmatchedPlugins.add(id);
+                    } else if (ModulesManager.toMrid(matchingModule.getId()).getRevision()
+                                        .equals(mrid.getRevision())) {
+                        // up to date
+                        keepJars.addAll(jars);
+                    } else {
+                        pluginsToInstall.add(matchingModule);
+                    }
+                } catch (Exception e) {
+                    shell.printIn("error while parsing plugin file " + pluginFile + ": " + e, RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("");
+                }
+            }
+
+            if (!unmatchedPlugins.isEmpty()) {
+                shell.printIn("found unmanaged installed plugins, they won't be upgraded automatically:\n"
+                        + Joiner.on("\n").join(unmatchedPlugins), RestxShell.AnsiCodes.ANSI_YELLOW);
+                shell.println("");
+            }
+
+            Set<String> jarsToRemove = new LinkedHashSet<>();
+            jarsToRemove.addAll(allJars);
+            jarsToRemove.removeAll(keepJars);
+
+            for (String jarToRemove : jarsToRemove) {
+                logger.debug("removing {}", jarToRemove);
+                new File(jarToRemove).delete();
+            }
+
+            if (!pluginsToInstall.isEmpty()) {
+                int count = 0;
+                shell.println("found " + pluginsToInstall.size() + " plugins to upgrade");
+                for (ModuleDescriptor md : pluginsToInstall) {
+                    if (installPlugin(shell, modulesManager, pluginsDir(shell), md)) {
+                        count++;
+                    }
+                }
+                if (count > 0) {
+                    shell.println("upgraded " + count + " plugins, restarting shell");
+                    shell.restart();
+                }
+            }
+        } finally {
+            Files.write(DateTime.now().toString(), versionFile, Charsets.UTF_8);
+        }
+    }
+
+    private ModuleDescriptor findMatchingPlugin(List<ModuleDescriptor> plugins, ModuleRevisionId mrid) {
+        ModuleDescriptor matchingModule = null;
+        for (ModuleDescriptor plugin : plugins) {
+            ModuleRevisionId pluginId = ModulesManager.toMrid(plugin.getId());
+            if (pluginId.getModuleId().equals(mrid.getModuleId())) {
+                matchingModule = plugin;
+                break;
+            }
+        }
+        return matchingModule;
+    }
+
     private class InstallPluginRunner implements ShellCommandRunner {
         @Override
         public void run(RestxShell shell) throws Exception {
@@ -84,7 +192,7 @@ public class PluginsShellCommand extends StdShellCommand {
 
             String sel = shell.ask("Which plugin would you like to install (eg '1 3 5')? \nYou can also provide a plugin id in the form <groupId>:<moduleId>:<version>\n plugin to install: ", "");
             Iterable<String> selected = Splitter.on(" ").trimResults().omitEmptyStrings().split(sel);
-            File pluginsDir = new File(shell.installLocation().toFile(), "plugins");
+            File pluginsDir = pluginsDir(shell);
             int count = 0;
             for (String s : selected) {
                 ModuleDescriptor md;
@@ -94,28 +202,8 @@ public class PluginsShellCommand extends StdShellCommand {
                 } else {
                     md = new ModuleDescriptor(s, "shell", "");
                 }
-                shell.printIn("installing " + md.getId() + "...", RestxShell.AnsiCodes.ANSI_CYAN);
-                shell.println("");
-                try {
-                    List<File> copied = modulesManager.download(ImmutableList.of(md), pluginsDir, defaultExcludes);
-                    if (!copied.isEmpty()) {
-                        shell.printIn("installed " + md.getId(), RestxShell.AnsiCodes.ANSI_GREEN);
-                        shell.println("");
-                        count++;
-                        Files.write(md.getId() + "\n"
-                                + DateTime.now() + "\n"
-                                + Joiner.on("\n").join(copied),
-                                pluginFile(pluginsDir, md), Charsets.UTF_8);
-                    } else {
-                        shell.printIn("problem while installing " + md.getId(), RestxShell.AnsiCodes.ANSI_RED);
-                        shell.println("");
-                    }
-                } catch (IOException e) {
-                    shell.printIn("IO problem while installing " + md.getId() + "\n" + e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
-                    shell.println("");
-                } catch (IllegalStateException e) {
-                    shell.printIn(e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
-                    shell.println("");
+                if (installPlugin(shell, modulesManager, pluginsDir, md)) {
+                    count++;
                 }
             }
             if (count > 0) {
@@ -129,8 +217,43 @@ public class PluginsShellCommand extends StdShellCommand {
         }
     }
 
+    private boolean installPlugin(RestxShell shell, ModulesManager modulesManager, File pluginsDir, ModuleDescriptor md) throws IOException {
+        shell.printIn("installing " + md.getId() + "...", RestxShell.AnsiCodes.ANSI_CYAN);
+        shell.println("");
+        try {
+            List<File> copied = modulesManager.download(ImmutableList.of(md), pluginsDir, defaultExcludes);
+            if (!copied.isEmpty()) {
+                shell.printIn("installed " + md.getId(), RestxShell.AnsiCodes.ANSI_GREEN);
+                shell.println("");
+                Files.write(md.getId() + "\n"
+                        + DateTime.now() + "\n"
+                        + Joiner.on("\n").join(copied),
+                        pluginFile(pluginsDir, md), Charsets.UTF_8);
+                return true;
+            } else {
+                shell.printIn("problem while installing " + md.getId(), RestxShell.AnsiCodes.ANSI_RED);
+                shell.println("");
+            }
+        } catch (IOException e) {
+            shell.printIn("IO problem while installing " + md.getId() + "\n" + e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
+            shell.println("");
+        } catch (IllegalStateException e) {
+            shell.printIn(e.getMessage(), RestxShell.AnsiCodes.ANSI_RED);
+            shell.println("");
+        }
+        return false;
+    }
+
+    private File pluginsDir(RestxShell shell) {
+        return new File(shell.installLocation().toFile(), "plugins");
+    }
+
     private File pluginFile(File pluginsDir, ModuleDescriptor md) {
         return new File(pluginsDir, md.getModuleId() + ".plugin");
+    }
+
+    private File[] pluginFiles(File pluginsDir) {
+        return pluginsDir.listFiles(new PatternFilenameFilter(".*\\.plugin"));
     }
 
     private class UpgradeShellRunner implements ShellCommandRunner {

@@ -75,6 +75,15 @@ public class RestxShell implements Appendable {
     public void start() throws IOException {
         banner(ExecMode.INTERACTIVE);
 
+        try {
+            for (ShellCommand command : commands) {
+                command.start(this);
+            }
+        } catch (ExitShell e) {
+            terminate();
+            return;
+        }
+
         installCompleters();
 
         boolean exit = false;
@@ -83,6 +92,10 @@ public class RestxShell implements Appendable {
             exit = exec(line);
         }
 
+        terminate();
+    }
+
+    private void terminate() throws IOException {
         consoleReader.println("Bye.");
         synchronized (this) {
             if (watcher != null) {
@@ -102,14 +115,7 @@ public class RestxShell implements Appendable {
             exec(command);
         }
 
-        consoleReader.println("Bye.");
-        synchronized (this) {
-            if (watcher != null) {
-                watcherExecutorService.shutdownNow();
-                watcher = null;
-            }
-        }
-        consoleReader.shutdown();
+        terminate();
     }
 
     public static void printIn(Appendable appendable, String msg, String ansiCode) throws IOException {

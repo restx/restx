@@ -110,4 +110,8 @@ public abstract class StdShellCommand implements ShellCommand {
     protected List<String> splitArgs(String line) {
         return RestxShell.splitArgs(line);
     }
+
+    @Override
+    public void start(RestxShell shell) throws IOException {
+    }
 }

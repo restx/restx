@@ -112,7 +112,7 @@ public class ModulesManager {
         return files;
     }
 
-    ModuleId toModuleId(String id) {
+    public static ModuleId toModuleId(String id) {
         String[] parts = id.split(":");
         if (parts.length != 2) {
             throw new IllegalArgumentException("can't parse module id '" + id + "': it must be of the form groupId:artifactId");
@@ -120,7 +120,7 @@ public class ModulesManager {
         return ModuleId.newInstance(parts[0], parts[1]);
     }
 
-    ModuleRevisionId toMrid(String id) {
+    public static ModuleRevisionId toMrid(String id) {
         String[] parts = id.split(":");
         if (parts.length != 3) {
             throw new IllegalArgumentException("can't parse module revision id '" + id + "': it must be of the form groupId:artifactId:version");
