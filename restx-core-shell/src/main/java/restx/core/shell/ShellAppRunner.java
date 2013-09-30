@@ -3,6 +3,7 @@ package restx.core.shell;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
+import restx.AppSettings;
 import restx.Apps;
 import restx.shell.RestxShell;
 
@@ -118,15 +119,15 @@ public class ShellAppRunner {
         abstract boolean compile(RestxShell shell, Path targetClasses, Path dependenciesDir, Path mainSources, Path mainResources, String className) throws IOException, InterruptedException;
 
     }
-    private final String appBasePackage;
+    private final AppSettings appSettings;
 
     private final String appClassName;
     private final CompileMode compile;
     private final boolean quiet;
     private final List<String> vmOptions;
 
-    public ShellAppRunner(String appBasePackage, String appClassName, CompileMode compile, boolean quiet, List<String> vmOptions) {
-        this.appBasePackage = appBasePackage;
+    public ShellAppRunner(AppSettings appSettings, String appClassName, CompileMode compile, boolean quiet, List<String> vmOptions) {
+        this.appSettings = appSettings;
         this.appClassName = appClassName;
         this.compile = compile;
         this.quiet = quiet;
@@ -134,18 +135,19 @@ public class ShellAppRunner {
     }
 
     public void run(RestxShell shell) throws IOException, InterruptedException {
-        Path targetClasses = Paths.get("target/classes");
-        Path dependenciesDir = Paths.get("target/dependency");
-        Path mainSources = Paths.get("src/main/java");
-        Path mainResources = Paths.get("src/main/resources");
+        Path targetClasses = Paths.get(appSettings.targetClasses());
+        Path dependenciesDir = Paths.get(appSettings.targetDependency());
+        Path mainSources = Paths.get(appSettings.mainSources());
+        Path mainResources = Paths.get(appSettings.mainResources());
 
         if (!compile.compile(shell, targetClasses, dependenciesDir, mainSources, mainResources, appClassName)) return;
 
         shell.println("starting " + appClassName + "... - type `stop` to stop it and go back to restx shell");
-        vmOptions.add("-Drestx.app.package=" + appBasePackage);
-        Process run = Apps.run(shell.currentLocation().toFile(),
-                targetClasses, dependenciesDir, vmOptions,
-                appClassName, Collections.<String>emptyList(), quiet);
+        vmOptions.add("-Drestx.app.package=" + appSettings.appPackage());
+        Process run = Apps.with(appSettings)
+                                .run(shell.currentLocation().toFile(),
+                                        targetClasses, dependenciesDir, vmOptions,
+                                        appClassName, Collections.<String>emptyList(), quiet);
 
         while (!shell.ask("", "").equals("stop")) {
             shell.printIn("restx> unrecognized command - type `stop` to stop the app",

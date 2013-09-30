@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.ByteStreams;
 import restx.classloader.CompilationManager;
+import restx.classloader.CompilationSettings;
 import restx.common.MoreFiles;
 
 import java.io.File;
@@ -22,22 +23,30 @@ import static com.google.common.collect.Iterables.transform;
  * Time: 8:16 AM
  */
 public class Apps {
-    public static CompilationManager newAppCompilationManager(EventBus eventBus) {
-        return new CompilationManager(eventBus, getSourceRoots(), getTargetClasses());
+    public static Apps with(AppSettings appSettings) {
+        return new Apps(appSettings);
     }
 
-    public static Path getTargetClasses() {
-        return FileSystems.getDefault().getPath(System.getProperty("restx.targetClasses", "tmp/classes"));
+    private final AppSettings settings;
+
+    public Apps(AppSettings settings) {
+        this.settings = settings;
     }
 
-    public static Iterable<Path> getSourceRoots() {
-        return transform(Splitter.on(',').trimResults().split(
-                    System.getProperty("restx.sourceRoots",
-                            "src/main/java, src/main/resources")),
+    public CompilationManager newAppCompilationManager(EventBus eventBus, CompilationSettings compilationSettings) {
+        return new CompilationManager(eventBus, getSourceRoots(), getTargetClasses(), compilationSettings);
+    }
+
+    public Path getTargetClasses() {
+        return FileSystems.getDefault().getPath(settings.targetClasses());
+    }
+
+    public Iterable<Path> getSourceRoots() {
+        return transform(Splitter.on(',').trimResults().split(settings.sourceRoots()),
                     MoreFiles.strToPath);
     }
 
-    public static Optional<String> guessAppBasePackage(Path fromDir) {
+    public Optional<String> guessAppBasePackage(Path fromDir) {
         for (Path sourceRoot : getSourceRoots()) {
             Path sourceRootDir = fromDir.resolve(sourceRoot);
 
@@ -64,7 +73,7 @@ public class Apps {
     }
 
 
-    public static Process run(File workingDirectory, Path targetClasses, Path dependenciesDir, List<String> vmOptions,
+    public Process run(File workingDirectory, Path targetClasses, Path dependenciesDir, List<String> vmOptions,
                               String mainClassName, List<String> args, boolean quiet) throws IOException {
         final Process process = new ProcessBuilder(
                 ImmutableList.<String>builder()

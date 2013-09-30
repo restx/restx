@@ -12,6 +12,6 @@ import java.util.concurrent.ExecutorService;
 * Time: 2:17 PM
 */
 public interface WatcherService {
-    Closeable watch(EventBus eventBus, ExecutorService executor, Path dir, boolean recurse);
+    Closeable watch(EventBus eventBus, ExecutorService executor, Path dir, WatcherSettings watcherSettings);
     boolean isEnabled();
 }

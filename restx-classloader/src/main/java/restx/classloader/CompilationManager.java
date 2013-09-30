@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.MoreFiles;
 import restx.common.watch.FileWatchEvent;
+import restx.common.watch.WatcherSettings;
 
 import javax.tools.*;
 import java.io.*;
@@ -52,6 +53,17 @@ public class CompilationManager {
                     && path.toAbsolutePath().toString().replace('\\', '/').indexOf("/.svn/") == -1;
         }
     };
+    public static final CompilationSettings DEFAULT_SETTINGS = new CompilationSettings() {
+        @Override
+        public int autoCompileCoalescePeriod() {
+            return 50;
+        }
+
+        @Override
+        public Predicate<Path> classpathResourceFilter() {
+            return DEFAULT_CLASSPATH_RESOURCE_FILTER;
+        }
+    };
 
     private static final Logger logger = LoggerFactory.getLogger(CompilationManager.class);
     private final EventBus eventBus;
@@ -61,6 +73,7 @@ public class CompilationManager {
 
     private final Iterable<Path> sourceRoots;
     private final Path destination;
+    private final CompilationSettings settings;
 
     private final StandardJavaFileManager fileManager;
 
@@ -83,14 +96,15 @@ public class CompilationManager {
     private Collection<Diagnostic<?>> lastDiagnostics = new CopyOnWriteArrayList<>();
 
     public CompilationManager(EventBus eventBus, Iterable<Path> sourceRoots, Path destination) {
-        this(eventBus, sourceRoots, destination, DEFAULT_CLASSPATH_RESOURCE_FILTER);
+        this(eventBus, sourceRoots, destination, DEFAULT_SETTINGS);
     }
 
-    public CompilationManager(EventBus eventBus, Iterable<Path> sourceRoots, Path destination, Predicate<Path> classpathResourceFilter) {
+    public CompilationManager(EventBus eventBus, Iterable<Path> sourceRoots, Path destination, CompilationSettings settings) {
         this.eventBus = checkNotNull(eventBus);
         this.sourceRoots = checkNotNull(sourceRoots);
         this.destination = checkNotNull(destination);
-        this.classpathResourceFilter = checkNotNull(classpathResourceFilter);
+        this.classpathResourceFilter = checkNotNull(settings.classpathResourceFilter());
+        this.settings = settings;
 
         javaCompiler = ToolProvider.getSystemJavaCompiler();
         fileManager = javaCompiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), Locale.ENGLISH, Charsets.UTF_8);
@@ -220,7 +234,17 @@ public class CompilationManager {
             if (watcherExecutor == null) {
                 watcherExecutor = Executors.newCachedThreadPool();
                 for (Path sourceRoot : sourceRoots) {
-                    MoreFiles.watch(sourceRoot, eventBus, watcherExecutor);
+                    MoreFiles.watch(sourceRoot, eventBus, watcherExecutor, new WatcherSettings() {
+                        @Override
+                        public int coalescePeriod() {
+                            return settings.autoCompileCoalescePeriod();
+                        }
+
+                        @Override
+                        public boolean recurse() {
+                            return true;
+                        }
+                    });
                 }
                 logger.info("watching for changes in {}; current location is {}",
                         sourceRoots, new File(".").getAbsoluteFile());

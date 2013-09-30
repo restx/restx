@@ -37,6 +37,11 @@
             <version>${restx.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-core-annotation-processor</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>

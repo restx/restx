@@ -3,6 +3,7 @@ package restx.common;
 import com.google.common.base.Function;
 import com.google.common.eventbus.EventBus;
 import restx.common.watch.WatcherServiceLoader;
+import restx.common.watch.WatcherSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,8 +62,9 @@ public class MoreFiles {
         }
     }
 
-    public static void watch(final Path dir, final EventBus eventBus, ExecutorService executor) {
-        WatcherServiceLoader.getWatcherService().watch(eventBus, executor, dir, true);
+    public static void watch(Path dir, EventBus eventBus,
+                             ExecutorService executor, WatcherSettings watcherSettings) {
+        WatcherServiceLoader.getWatcherService().watch(eventBus, executor, dir, watcherSettings);
     }
 
     public static void copyDir(final Path sourceDir, final Path targetDir) throws IOException {

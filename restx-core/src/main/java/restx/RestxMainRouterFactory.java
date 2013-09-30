@@ -1,6 +1,7 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -9,11 +10,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
+import restx.classloader.CompilationSettings;
 import restx.classloader.HotReloadingClassLoader;
+import restx.common.RestxConfig;
 import restx.factory.Factory;
+import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.server.WebServers;
+import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRecorder;
 import restx.specs.RestxSpecTape;
 
@@ -32,7 +37,6 @@ import java.util.Locale;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static restx.StdRestxMainRouter.getMode;
 
 /**
  * User: xavierhanin
@@ -41,6 +45,16 @@ import static restx.StdRestxMainRouter.getMode;
  */
 public class RestxMainRouterFactory {
     private static final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
+
+    public static RestxMainRouter newInstance(final String serverId, Optional<String> baseUri) {
+        checkNotNull(serverId);
+        EventBus eventBus = WebServers.getServerById(serverId).get().getEventBus();
+
+        AppSettings settings = loadFactory(newFactoryBuilder(serverId, eventBus))
+                .getComponent(AppSettings.class);
+
+        return new RestxMainRouterFactory(settings).newInstance(serverId, baseUri, eventBus);
+    }
 
     /**
      * A main router decorator that may record all or some requests.
@@ -51,11 +65,12 @@ public class RestxMainRouterFactory {
      *
      * Therefore this class is not intended to be exposed outside the main router factory class.
      */
-    private static class RecordingMainRouter implements RestxMainRouter {
+    private class RecordingMainRouter implements RestxMainRouter {
         private final EventBus eventBus;
         private final Optional<RestxSpecRecorder> restxSpecRecorder;
         private final RestxMainRouter router;
         private final String serverId;
+        private final RestxSpec.Storage storage;
         private final Supplier<RestxSpecRecorder> recorderSupplier = new Supplier<RestxSpecRecorder>() {
             @Override
             public RestxSpecRecorder get() {
@@ -65,18 +80,20 @@ public class RestxMainRouterFactory {
             }
         };
 
-        public RecordingMainRouter(String serverId, EventBus eventBus, Optional<RestxSpecRecorder> restxSpecRecorder, RestxMainRouter router) {
+        public RecordingMainRouter(String serverId, EventBus eventBus, Optional<RestxSpecRecorder> restxSpecRecorder, RestxMainRouter router, RestxSpec.StorageSettings storageSettings) {
             this.serverId = serverId;
             this.eventBus = eventBus;
             this.restxSpecRecorder = restxSpecRecorder;
             this.router = router;
+            this.storage = RestxSpec.Storage.with(storageSettings);
         }
 
 
         @Override
         public void route(final RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
             if (!restxRequest.getRestxPath().startsWith("/@/")
-                    && (restxSpecRecorder.isPresent() || RestxContext.Modes.RECORDING.equals(getMode(restxRequest)))) {
+                    && (restxSpecRecorder.isPresent()
+                    || RestxContext.Modes.RECORDING.equals(getMode(restxRequest)))) {
                 logger.debug("RECORDING {}", restxRequest);
 
                 final RestxSpecRecorder restxSpecRecorder = this.restxSpecRecorder.or(recorderSupplier);
@@ -91,7 +108,7 @@ public class RestxMainRouterFactory {
                                 // when recording a request we don't use the provided router, we
                                 // need to load a new factory, some recorders rely on being available in the factory
                                 Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus,
-                                                                                restxSpecRecorder));
+                                                                                restxSpecRecorder, getMode(restxRequest)));
                                 try {
                                     newStdRouter(factory).route(tape.getRecordingRequest(), tape.getRecordingResponse());
                                 } finally {
@@ -102,7 +119,7 @@ public class RestxMainRouterFactory {
 
                                 if (recordPath.isPresent()) {
                                     // save directly the recorded spec
-                                    File recordFile = recordedSpec.getSpec().store();
+                                    File recordFile = storage.store(recordedSpec.getSpec());
                                     logger.info("saved recorded spec in {}", recordFile);
                                 }
                             }
@@ -136,7 +153,7 @@ public class RestxMainRouterFactory {
         }
     }
 
-    private static class PerRequestFactoryLoader implements RestxMainRouter {
+    private class PerRequestFactoryLoader implements RestxMainRouter {
         private final String serverId;
         private final EventBus eventBus;
 
@@ -148,7 +165,8 @@ public class RestxMainRouterFactory {
         @Override
         public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
             Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus,
-                    RestxSpecRecorder.current().orNull()));
+                    RestxSpecRecorder.current().orNull(), getMode(restxRequest)));
+
             try {
                 newStdRouter(factory).route(restxRequest, restxResponse);
             } finally {
@@ -160,13 +178,13 @@ public class RestxMainRouterFactory {
     /**
      * Enables hot reload: this rely on classes compiled by an external compiler
      */
-    private static class HotReloadRouter implements RestxMainRouter {
+    private class HotReloadRouter implements RestxMainRouter {
         private final RestxMainRouter delegate;
         private final String rootPackage;
 
         public HotReloadRouter(RestxMainRouter delegate) {
             this.delegate = delegate;
-            this.rootPackage = System.getProperty("restx.app.package");
+            this.rootPackage = appSettings.appPackage().get();
         }
 
         @Override
@@ -183,17 +201,17 @@ public class RestxMainRouterFactory {
         }
     }
 
-    private static class CompilationManagerRouter implements RestxMainRouter {
+    private class CompilationManagerRouter implements RestxMainRouter {
         private final RestxMainRouter delegate;
         private final String rootPackage;
         private final Path destinationDir;
         private final CompilationManager compilationManager;
         private ClassLoader classLoader;
 
-        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus) {
+        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus, CompilationSettings compilationSettings) {
             this.delegate = delegate;
-            this.rootPackage = System.getProperty("restx.app.package");
-            compilationManager = Apps.newAppCompilationManager(eventBus);
+            this.rootPackage = appSettings.appPackage().get();
+            compilationManager = Apps.with(appSettings).newAppCompilationManager(eventBus, compilationSettings);
             destinationDir = compilationManager.getDestination();
             eventBus.register(new Object() {
                 @Subscribe
@@ -259,8 +277,16 @@ public class RestxMainRouterFactory {
         }
     }
 
-    public static RestxMainRouter newInstance(final String serverId, Optional<String> baseUri) {
+    private final AppSettings appSettings;
+
+    private RestxMainRouterFactory(AppSettings appSettings) {
+        this.appSettings = appSettings;
+    }
+
+    private RestxMainRouter newInstance(final String serverId, Optional<String> baseUri, EventBus eventBus) {
         checkNotNull(serverId);
+        checkNotNull(baseUri);
+        checkNotNull(eventBus);
 
         logger.info("LOADING MAIN ROUTER");
         if (RestxContext.Modes.DEV.equals(getMode()) && !useHotCompile()) {
@@ -273,8 +299,6 @@ public class RestxMainRouterFactory {
             }
         }
 
-        EventBus eventBus = WebServers.getServerById(serverId).get().getEventBus();
-
         Optional<RestxSpecRecorder> recorder;
         if (RestxContext.Modes.RECORDING.equals(getMode())) {
             recorder = Optional.of(new RestxSpecRecorder());
@@ -284,7 +308,8 @@ public class RestxMainRouterFactory {
         }
 
         if (getLoadFactoryMode().equals("onstartup")) {
-            final StdRestxMainRouter mainRouter = newStdRouter(loadFactory(newFactoryBuilder(serverId, eventBus)));
+            Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus));
+            final StdRestxMainRouter mainRouter = newStdRouter(factory);
             logPrompt(baseUri, "READY", mainRouter);
 
             if (RestxContext.Modes.PROD.equals(getMode())) {
@@ -292,21 +317,37 @@ public class RestxMainRouterFactory {
                 return mainRouter;
             } else {
                 // in other modes we may record requests one by one or all of them, we use the recording decorator
-                return new RecordingMainRouter(serverId, eventBus, recorder, mainRouter);
+                return new RecordingMainRouter(serverId, eventBus, recorder, mainRouter,
+                        factory.getComponent(RestxSpec.StorageSettings.class));
             }
         } else if (getLoadFactoryMode().equals("onrequest")) {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
             RestxMainRouter router = new PerRequestFactoryLoader(serverId, eventBus);
 
+            // this factory is used to look up settings only, then one factory will be created for each request
+            Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus));
+
             // wrap in a recording router, as any request may ask for recording with RestxMode header
-            router = new RecordingMainRouter(serverId, eventBus, recorder, router);
+            router = new RecordingMainRouter(serverId, eventBus, recorder, router,
+                    factory.getComponent(RestxSpec.StorageSettings.class));
 
             // wrap in hot reloading or hoy compile router if needed.
             // this must be the last wrapping so that the classloader is used for the full request, including
             // for recording
             if (useHotCompile()) {
-                router = new CompilationManagerRouter(router, eventBus);
+                final RestxConfig config = factory.getComponent(RestxConfig.class);
+                router = new CompilationManagerRouter(router, eventBus, new CompilationSettings() {
+                    @Override
+                    public int autoCompileCoalescePeriod() {
+                        return config.getInt("restx.fs.watch.coalesce.period").get();
+                    }
+
+                    @Override
+                    public Predicate<Path> classpathResourceFilter() {
+                        return CompilationManager.DEFAULT_CLASSPATH_RESOURCE_FILTER;
+                    }
+                });
             } else if (useHotReload()) {
                 router = new HotReloadRouter(router);
             }
@@ -318,7 +359,7 @@ public class RestxMainRouterFactory {
         }
     }
 
-    private static void logPrompt(Optional<String> baseUri, String state, StdRestxMainRouter mainRouter) {
+    private void logPrompt(Optional<String> baseUri, String state, StdRestxMainRouter mainRouter) {
         logger.info("\n" +
                 "--------------------------------------\n" +
                 " -- RESTX " + state + " >> " + getMode().toUpperCase(Locale.ENGLISH)+ " MODE <<" +
@@ -331,7 +372,7 @@ public class RestxMainRouterFactory {
                 " --\n");
     }
 
-    private static String getHotIndicator() {
+    private String getHotIndicator() {
         if (useAutoCompile()) {
             return " >> AUTO COMPILE <<";
         }
@@ -351,13 +392,17 @@ public class RestxMainRouterFactory {
         return factory;
     }
 
-    private static Factory.Builder newFactoryBuilder(String contextName, EventBus eventBus, RestxSpecRecorder specRecorder) {
+    private static Factory.Builder newFactoryBuilder(String contextName, EventBus eventBus,
+                                                     RestxSpecRecorder specRecorder, String mode) {
         Factory.Builder builder = newFactoryBuilder(contextName, eventBus);
         if (specRecorder != null) {
             builder
                 .addLocalMachines(Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING))
-                .addMachine(new SingletonFactoryMachine<>(
-                        0, NamedComponent.of(RestxSpecRecorder.class, "specRecorder", specRecorder)));
+                    .addMachine(new SingletonFactoryMachine<>(
+                            0, NamedComponent.of(RestxSpecRecorder.class, "specRecorder", specRecorder)))
+                    .addMachine(new SingletonFactoryMachine<>(
+                            -100000, NamedComponent.of(String.class, "restx.mode", mode)))
+            ;
         }
         return builder;
     }
@@ -373,28 +418,29 @@ public class RestxMainRouterFactory {
     private static Factory.Builder newFactoryBuilder(EventBus eventBus) {
         return Factory.builder()
                     .addFromServiceLoader()
-                    .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(String.class, "restx.mode", getMode())))
                     .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(EventBus.class, "eventBus", eventBus)))
                     .addLocalMachines(Factory.LocalMachines.threadLocal());
     }
 
-    private static StdRestxMainRouter newStdRouter(Factory factory) {
-        return new StdRestxMainRouter(factory.queryByClass(RestxRouting.class).findOne().get().getComponent());
+    private StdRestxMainRouter newStdRouter(Factory factory) {
+        return new StdRestxMainRouter(
+                factory.getComponent(RestxRouting.class),
+                factory.getComponent(Name.of(String.class, "restx.mode")));
     }
 
-    private static String getLoadFactoryMode() {
-        return System.getProperty("restx.factory.load",
+    private String getLoadFactoryMode() {
+        return appSettings.factoryLoadMode().or(
                 RestxContext.Modes.TEST.equals(getMode())
-                        || RestxContext.Modes.RECORDING.equals(getMode())
-                        || useHotCompile()
-                        || useHotReload()
+                    || RestxContext.Modes.RECORDING.equals(getMode())
+                    || useHotCompile()
+                    || useHotReload()
                 ? "onrequest" : "onstartup");
     }
 
-    private static boolean useHotReload() {
-        if ("true".equals(System.getProperty("restx.router.hotreload"))) {
+    private boolean useHotReload() {
+        if (appSettings.hotReload().or(Boolean.FALSE)) {
             // hotreload is explicitly set
-            if (System.getProperty("restx.app.package") == null) {
+            if (!appSettings.appPackage().isPresent()) {
                 logger.info("can't enable hot reload: restx.app.package is not set.\n" +
                         "Run your app with -Drestx.app.package=<app.base.package> to enable hot reload.");
                 return false;
@@ -402,17 +448,17 @@ public class RestxMainRouterFactory {
                 return true;
             }
         } else {
-            return "true".equalsIgnoreCase(System.getProperty("restx.router.hotreload", "true"))
+            return appSettings.hotReload().or(Boolean.TRUE)
                 && !getMode().equals("prod")
-                && System.getProperty("restx.app.package") != null;
+                && appSettings.appPackage().isPresent();
         }
     }
 
-    private static boolean useHotCompile() {
-        if ("true".equals(System.getProperty("restx.router.hotcompile"))
-                || "true".equals(System.getProperty("restx.router.autocompile"))) {
+    private boolean useHotCompile() {
+        if (appSettings.hotCompile().or(Boolean.FALSE)
+                || appSettings.autoCompile().or(Boolean.FALSE)) {
             // hotcompile or autocompile is explicitly set
-            if (System.getProperty("restx.app.package") == null) {
+            if (!appSettings.appPackage().isPresent()) {
                 logger.info("can't enable hot compile: restx.app.package is not set.\n" +
                         "Run your app with -Drestx.app.package=<app.base.package> to enable hot compile.");
                 return false;
@@ -424,14 +470,22 @@ public class RestxMainRouterFactory {
                 return true;
             }
         } else {
-            return "true".equalsIgnoreCase(System.getProperty("restx.router.hotcompile", "true"))
+            return appSettings.hotCompile().or(Boolean.TRUE)
                 && !getMode().equals("prod")
-                && System.getProperty("restx.app.package") != null
+                && appSettings.appPackage().isPresent()
                 && hasToolsJar();
         }
     }
 
-    private static boolean hasToolsJar() {
+    private String getMode() {
+        return appSettings.mode();
+    }
+
+    private String getMode(RestxRequest restxRequest) {
+        return restxRequest.getHeader("RestxMode").or(getMode());
+    }
+
+    private boolean hasToolsJar() {
         try {
             Class.forName("javax.tools.ToolProvider");
             return true;
@@ -440,11 +494,9 @@ public class RestxMainRouterFactory {
         }
     }
 
-    private static boolean useAutoCompile() {
-        return "true".equalsIgnoreCase(System.getProperty("restx.router.autocompile", "true"))
+    private boolean useAutoCompile() {
+        return appSettings.autoCompile().or(Boolean.TRUE)
                 && useHotCompile();
     }
 
-
-    private RestxMainRouterFactory() {}
 }
