@@ -36,3 +36,4 @@ Here is the full table of contents of the documentation:
 ### [RESTX HTTP](ref-core.html)
 ### [RESTX Specs](ref-specs.html)
 ### [RESTX Security](ref-security.html)
+### [RESTX Extension points](ref-extension-points.html)
