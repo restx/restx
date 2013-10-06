@@ -4,7 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import restx.*;
 import restx.annotations.RestxResource;
-import restx.converters.StringConverter;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -56,9 +55,6 @@ public class WarehouseRoute extends StdRoute {
         }
         if (RestxRoute.class.isAssignableFrom(name.getClazz())) {
             return RestxRoute.class.getSimpleName();
-        }
-        if (StringConverter.class.isAssignableFrom(name.getClazz())) {
-            return StringConverter.class.getSimpleName();
         }
         if (name.getClazz().getName().endsWith("Resource")) {
             return RestxResource.class.getSimpleName();
