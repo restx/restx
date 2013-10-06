@@ -1,9 +1,9 @@
 package restx.converters;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Primitives;
-import restx.factory.*;
 
 /**
  * User: xavierhanin
@@ -11,15 +11,10 @@ import restx.factory.*;
  * Time: 11:18 PM
  */
 public class MainStringConverter {
-    private final ImmutableMap<Class, StringConverter> converters;
+    private final Iterable<StringConverter> converters;
 
     public MainStringConverter(Iterable<StringConverter> stringConverters) {
-        ImmutableMap.Builder<Class, StringConverter> builder = ImmutableMap.builder();
-        for (StringConverter converter : stringConverters) {
-            builder.put(Primitives.wrap(converter.getConvertedClass()), converter);
-        }
-
-        converters = builder.build();
+        this.converters = ImmutableList.copyOf(stringConverters);
     }
 
     public <T> Optional<T> convert(Optional<String> value, Class<T> toClass) {
@@ -31,18 +26,16 @@ public class MainStringConverter {
     }
 
     public <T> T convert(String value, Class<T> toClass) {
-        // Handling special enum case
-        if(toClass.isEnum()) {
-            return (T) Enum.valueOf((Class<Enum>)toClass, value);
+        for(StringConverter converter : converters){
+            Optional<? extends Function<String, T>> potentialTransformer = converter.accept(Primitives.wrap(toClass));
+            if(potentialTransformer.isPresent()) {
+                return (T) potentialTransformer.get().apply(value);
+            }
         }
 
-        StringConverter converter = converters.get(Primitives.wrap(toClass));
-        if (converter == null) {
-            throw new IllegalArgumentException(String.format(
-                    "no converter registered for %s. Converters are registered for: %s",
-                    toClass.getName(), converters.keySet()));
-        }
-        return (T) converter.apply(value);
+        throw new IllegalArgumentException(String.format(
+            "No converter registered for %s. Converters are registered for: %s",
+            toClass.getName(), converters.toString()));
     }
 
 }
