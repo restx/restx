@@ -1,9 +1,7 @@
 package restx.converters;
 
-import com.google.common.base.Function;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Primitives;
 
 /**
  * User: xavierhanin
@@ -11,10 +9,10 @@ import com.google.common.primitives.Primitives;
  * Time: 11:18 PM
  */
 public class MainStringConverter {
-    private final Iterable<StringConverter> converters;
+    private final ObjectMapper mapper;
 
-    public MainStringConverter(Iterable<StringConverter> stringConverters) {
-        this.converters = ImmutableList.copyOf(stringConverters);
+    public MainStringConverter(ObjectMapper mapper) {
+        this.mapper = mapper;
     }
 
     public <T> Optional<T> convert(Optional<String> value, Class<T> toClass) {
@@ -26,16 +24,6 @@ public class MainStringConverter {
     }
 
     public <T> T convert(String value, Class<T> toClass) {
-        for(StringConverter converter : converters){
-            Optional<? extends Function<String, T>> potentialTransformer = converter.accept(Primitives.wrap(toClass));
-            if(potentialTransformer.isPresent()) {
-                return (T) potentialTransformer.get().apply(value);
-            }
-        }
-
-        throw new IllegalArgumentException(String.format(
-            "No converter registered for %s. Converters are registered for: %s",
-            toClass.getName(), converters.toString()));
+        return mapper.convertValue(value, toClass);
     }
-
 }
