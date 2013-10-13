@@ -45,8 +45,8 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            for (Element elem : roundEnv.getElementsAnnotatedWith(Settings.class)) {
+        for (Element elem : roundEnv.getElementsAnnotatedWith(Settings.class)) {
+            try {
                 TypeElement typeElement = (TypeElement) elem;
                 if (!typeElement.getKind().isInterface()) {
                     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
@@ -122,9 +122,12 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                 if (shouldGenerateProvider) {
                     generateJavaClass(pack + "." + settingsSimpleType + "Provider", settingsProviderTpl, ctx, elem);
                 }
+            } catch (Exception e) {
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "error when processing " + elem + ": " + e,
+                        elem);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return true;
     }

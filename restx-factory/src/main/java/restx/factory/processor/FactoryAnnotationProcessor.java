@@ -71,90 +71,120 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                 processMachines(roundEnv);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "IO error when processing annotations: " + e);
+            return false;
+        } catch (Exception e) {
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "error when processing annotations: " + e);
+            return false;
         }
         return true;
     }
 
     private void processModules(RoundEnvironment roundEnv) throws IOException {
         for (Element annotation : roundEnv.getElementsAnnotatedWith(Module.class)) {
-            if (!(annotation instanceof TypeElement)) {
+            try {
+                if (!(annotation instanceof TypeElement)) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            "annotating element " + annotation + " of type " + annotation.getKind().name()
+                                    + " with @Module is not supported");
+                    continue;
+                }
+                TypeElement typeElem = (TypeElement) annotation;
+                Module mod = typeElem.getAnnotation(Module.class);
+
+                ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
+                for (Element element : typeElem.getEnclosedElements()) {
+                    if (element instanceof ExecutableElement
+                            && element.getKind() == ElementKind.METHOD
+                            && element.getAnnotation(Provides.class) != null) {
+                        ExecutableElement exec = (ExecutableElement) element;
+
+                        ProviderMethod m = new ProviderMethod(
+                                exec.getReturnType().toString(),
+                                exec.getSimpleName().toString(),
+                                getInjectionName(exec.getAnnotation(Named.class)),
+                                exec);
+
+                        buildInjectableParams(exec, m.parameters);
+
+                        buildCheckedExceptions(exec, m.exceptions);
+
+                        module.providerMethods.add(m);
+                    }
+                }
+
+                generateMachineFile(module);
+            } catch (IOException e) {
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
-                        "annotating element " + annotation + " of type " + annotation.getKind().name()
-                                + " with @Module is not supported");
-                continue;
+                        "error when processing " + annotation + ": " + e,
+                        annotation);
             }
-            TypeElement typeElem = (TypeElement) annotation;
-            Module mod = typeElem.getAnnotation(Module.class);
-
-            ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
-            for (Element element : typeElem.getEnclosedElements()) {
-                if (element instanceof ExecutableElement
-                        && element.getKind() == ElementKind.METHOD
-                        && element.getAnnotation(Provides.class) != null) {
-                    ExecutableElement exec = (ExecutableElement) element;
-
-                    ProviderMethod m = new ProviderMethod(
-                            exec.getReturnType().toString(),
-                            exec.getSimpleName().toString(),
-                            getInjectionName(exec.getAnnotation(Named.class)),
-                            exec);
-
-                    buildInjectableParams(exec, m.parameters);
-                    
-                    buildCheckedExceptions(exec, m.exceptions);
-
-                    module.providerMethods.add(m);
-                }
-            }
-
-            generateMachineFile(module);
         }
     }
 
     private void processMachines(RoundEnvironment roundEnv) throws IOException {
         for (Element annotation : roundEnv.getElementsAnnotatedWith(Machine.class)) {
-            if (!(annotation instanceof TypeElement)) {
+            try {
+                if (!(annotation instanceof TypeElement)) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            "annotating element " + annotation + " of type " + annotation.getKind().name()
+                                    + " with @Machine is not supported");
+                    continue;
+                }
+                TypeElement typeElem = (TypeElement) annotation;
+                machinesDeclaration.declareService(typeElem.getQualifiedName().toString());
+            } catch (Exception e) {
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
-                        "annotating element " + annotation + " of type " + annotation.getKind().name()
-                                + " with @Machine is not supported");
-                continue;
+                        "error when processing " + annotation + ": " + e,
+                        annotation);
             }
-            TypeElement typeElem = (TypeElement) annotation;
-            machinesDeclaration.declareService(typeElem.getQualifiedName().toString());
         }
     }
 
     private void processComponents(RoundEnvironment roundEnv) throws IOException {
         for (Element elem : roundEnv.getElementsAnnotatedWith(Component.class)) {
-            if (!(elem instanceof TypeElement)) {
+            try {
+                if (!(elem instanceof TypeElement)) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            "annotating element " + elem + " of type " + elem.getKind().name()
+                                    + " with @Component is not supported");
+                    continue;
+                }
+                TypeElement component = (TypeElement) elem;
+
+                ExecutableElement exec = findInjectableConstructor(component);
+
+                ComponentClass componentClass = new ComponentClass(
+                        component.getQualifiedName().toString(),
+                        getPackage(component).getQualifiedName().toString(),
+                        component.getSimpleName().toString(),
+                        getInjectionName(component.getAnnotation(Named.class)),
+                        component.getAnnotation(Component.class).priority(),
+                        component);
+
+                buildInjectableParams(exec, componentClass.parameters);
+
+                When when = component.getAnnotation(When.class);
+                if (when == null) {
+                    generateMachineFile(componentClass);
+                } else {
+                    generateMachineFile(componentClass, when);
+                }
+            } catch (Exception e) {
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
-                        "annotating element " + elem + " of type " + elem.getKind().name()
-                                + " with @Component is not supported");
-                continue;
-            }
-            TypeElement component = (TypeElement) elem;
+                        "error when processing " + elem + ": " + e,
+                        elem);
 
-            ExecutableElement exec = findInjectableConstructor(component);
-
-            ComponentClass componentClass = new ComponentClass(
-                    component.getQualifiedName().toString(),
-                    getPackage(component).getQualifiedName().toString(),
-                    component.getSimpleName().toString(),
-                    getInjectionName(component.getAnnotation(Named.class)),
-                    component.getAnnotation(Component.class).priority(),
-                    component);
-
-            buildInjectableParams(exec, componentClass.parameters);
-
-            When when = component.getAnnotation(When.class);
-            if (when == null) {
-                generateMachineFile(componentClass);
-            } else {
-                generateMachineFile(componentClass, when);
             }
         }
     }
@@ -172,54 +202,61 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
     private void processAlternatives(RoundEnvironment roundEnv) throws IOException {
         for (Element elem : roundEnv.getElementsAnnotatedWith(Alternative.class)) {
-            if (!(elem instanceof TypeElement)) {
+            try {
+                if (!(elem instanceof TypeElement)) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            "annotating element " + elem + " of type " + elem.getKind().name()
+                                    + " with @Alternative is not supported");
+                    continue;
+                }
+                TypeElement component = (TypeElement) elem;
+
+                ExecutableElement exec = findInjectableConstructor(component);
+
+                Alternative alternative = component.getAnnotation(Alternative.class);
+                TypeElement alternativeTo = null;
+                if (alternative != null) {
+                    try {
+                        alternative.to();
+                    } catch (MirroredTypeException mte) {
+                        alternativeTo = asTypeElement(mte.getTypeMirror());
+                    }
+                }
+
+                ComponentClass componentClass = new ComponentClass(
+                        component.getQualifiedName().toString(),
+                        getPackage(component).getQualifiedName().toString(),
+                        component.getSimpleName().toString(),
+                        getInjectionName(component.getAnnotation(Named.class)),
+                        alternative.priority(),
+                        component);
+
+                ComponentClass alternativeToComponentClass = new ComponentClass(
+                        alternativeTo.getQualifiedName().toString(),
+                        getPackage(alternativeTo).getQualifiedName().toString(),
+                        alternativeTo.getSimpleName().toString(),
+                        getInjectionName(alternativeTo.getAnnotation(Named.class)),
+                        alternative.priority(),
+                        alternativeTo);
+
+                When when = component.getAnnotation(When.class);
+                if (when == null) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                            "an Alternative MUST be annotated with @When to tell when it must be activated",
+                            elem);
+                    continue;
+                }
+
+                buildInjectableParams(exec, componentClass.parameters);
+
+                generateMachineFile(componentClass, alternativeToComponentClass, when);
+            } catch (Exception e) {
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
-                        "annotating element " + elem + " of type " + elem.getKind().name()
-                                + " with @Alternative is not supported");
-                continue;
-            }
-            TypeElement component = (TypeElement) elem;
-
-            ExecutableElement exec = findInjectableConstructor(component);
-
-            Alternative alternative = component.getAnnotation(Alternative.class);
-            TypeElement alternativeTo = null;
-            if (alternative != null) {
-                try {
-                    alternative.to();
-                } catch (MirroredTypeException mte) {
-                    alternativeTo = asTypeElement(mte.getTypeMirror());
-                }
-            }
-
-            ComponentClass componentClass = new ComponentClass(
-                    component.getQualifiedName().toString(),
-                    getPackage(component).getQualifiedName().toString(),
-                    component.getSimpleName().toString(),
-                    getInjectionName(component.getAnnotation(Named.class)),
-                    alternative.priority(),
-                    component);
-
-            ComponentClass alternativeToComponentClass = new ComponentClass(
-                    alternativeTo.getQualifiedName().toString(),
-                    getPackage(alternativeTo).getQualifiedName().toString(),
-                    alternativeTo.getSimpleName().toString(),
-                    getInjectionName(alternativeTo.getAnnotation(Named.class)),
-                    alternative.priority(),
-                    alternativeTo);
-
-            When when = component.getAnnotation(When.class);
-            if (when == null) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                        "an Alternative MUST be annotated with @When to tell when it must be activated",
+                        "error when processing " + elem + ": " + e,
                         elem);
-                continue;
             }
-
-            buildInjectableParams(exec, componentClass.parameters);
-
-            generateMachineFile(componentClass, alternativeToComponentClass, when);
         }
     }
 

@@ -17,6 +17,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
@@ -42,8 +43,8 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            for (Element elem : roundEnv.getElementsAnnotatedWith(ErrorCode.class)) {
+        for (Element elem : roundEnv.getElementsAnnotatedWith(ErrorCode.class)) {
+            try {
                 ErrorCode errorCode = elem.getAnnotation(ErrorCode.class);
                 TypeElement typeElement = (TypeElement) elem;
 
@@ -75,9 +76,12 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
 
 
                 generateJavaClass(pack + "." + descriptor, errorDescriptorTpl, ctx, elem);
+            } catch (Exception e) {
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        "error when processing " + elem + ": " + e,
+                        elem);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return true;
     }

@@ -50,44 +50,59 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             final Set<Element> modulesListOriginatingElements = Sets.newHashSet();
 
             for (ResourceMethodAnnotation annotation : getResourceMethodAnnotationsInRound(roundEnv)) {
-                TypeElement typeElem = (TypeElement) annotation.methodElem.getEnclosingElement();
-                RestxResource r = typeElem.getAnnotation(RestxResource.class);
-                if (r == null) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                        String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
-                                annotation.methodElem.getSimpleName(), typeElem.getSimpleName()), typeElem);
-                    continue;
+                try {
+                    TypeElement typeElem = (TypeElement) annotation.methodElem.getEnclosingElement();
+                    RestxResource r = typeElem.getAnnotation(RestxResource.class);
+                    if (r == null) {
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                            String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
+                                    annotation.methodElem.getSimpleName(), typeElem.getSimpleName()), typeElem);
+                        continue;
+                    }
+
+                    SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
+                    HttpStatus successStatus = successStatusAnn==null?HttpStatus.OK:successStatusAnn.value();
+
+                    Verbosity verbosity = annotation.methodElem.getAnnotation(Verbosity.class);
+                    RestxLogLevel logLevel = verbosity == null ? RestxLogLevel.DEFAULT : verbosity.value();
+
+                    ResourceGroup group = getResourceGroup(r, groups);
+                    ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
+
+                    String permission = buildPermission(annotation, typeElem);
+
+                    ResourceMethod resourceMethod = new ResourceMethod(
+                            resourceClass,
+                            annotation.httpMethod, annotation.path,
+                            annotation.methodElem.getSimpleName().toString(),
+                            annotation.methodElem.getReturnType().toString(),
+                            successStatus, logLevel, permission);
+
+                    resourceClass.resourceMethods.add(resourceMethod);
+                    resourceClass.originatingElements.add(annotation.methodElem);
+
+                    buildResourceMethodParams(annotation, resourceMethod);
+                } catch (Exception e) {
+                    processingEnv.getMessager().printMessage(
+                            Diagnostic.Kind.ERROR,
+                            "error when processing " + annotation.methodElem + ": " + e,
+                            annotation.methodElem);
                 }
-
-                SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
-                HttpStatus successStatus = successStatusAnn==null?HttpStatus.OK:successStatusAnn.value();
-
-                Verbosity verbosity = annotation.methodElem.getAnnotation(Verbosity.class);
-                RestxLogLevel logLevel = verbosity == null ? RestxLogLevel.DEFAULT : verbosity.value();
-
-                ResourceGroup group = getResourceGroup(r, groups);
-                ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
-
-                String permission = buildPermission(annotation, typeElem);
-
-                ResourceMethod resourceMethod = new ResourceMethod(
-                        resourceClass,
-                        annotation.httpMethod, annotation.path,
-                        annotation.methodElem.getSimpleName().toString(),
-                        annotation.methodElem.getReturnType().toString(),
-                        successStatus, logLevel, permission);
-
-                resourceClass.resourceMethods.add(resourceMethod);
-                resourceClass.originatingElements.add(annotation.methodElem);
-
-                buildResourceMethodParams(annotation, resourceMethod);
             }
 
             if (!groups.isEmpty()) {
                 generateFiles(groups, modulesListOriginatingElements);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "IO error when processing annotations: " + e);
+            return false;
+        } catch (Exception e) {
+            processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "error when processing annotations: " + e);
+            return false;
         }
         return true;
     }
