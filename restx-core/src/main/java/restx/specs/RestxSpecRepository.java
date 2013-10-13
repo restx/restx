@@ -72,8 +72,8 @@ public class RestxSpecRepository {
                         return new InputStreamReader(spec.getValue().openStream(), Charsets.UTF_8);
                     }
                 }));
-            } catch (IOException e) {
-                logger.warn("io exception while loading restx spec " + spec + ": " + e, e);
+            } catch (Exception e) {
+                logger.warn("exception while loading restx spec " + spec + ": " + e, e);
             }
         }
         return specsMap;
