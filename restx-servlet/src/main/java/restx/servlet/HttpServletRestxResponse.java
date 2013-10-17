@@ -39,13 +39,14 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void setStatus(HttpStatus httpStatus) {
+    public RestxResponse setStatus(HttpStatus httpStatus) {
         this.status = httpStatus;
         resp.setStatus(httpStatus.getCode());
+        return this;
     }
 
     @Override
-    public void setContentType(String s) {
+    public RestxResponse setContentType(String s) {
         if (HTTP.isTextContentType(s)) {
             Optional<String> cs = HTTP.charsetFromContentType(s);
             if (!cs.isPresent()) {
@@ -53,6 +54,7 @@ public class HttpServletRestxResponse implements RestxResponse {
             }
         }
         resp.setContentType(s);
+        return this;
     }
 
     @Override
@@ -66,12 +68,13 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void addCookie(String cookie, String value) {
+    public RestxResponse addCookie(String cookie, String value) {
         addCookie(cookie, value, Duration.ZERO);
+        return this;
     }
 
     @Override
-    public void addCookie(String cookie, String value, Duration expiration) {
+    public RestxResponse addCookie(String cookie, String value, Duration expiration) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
             if ("/".equals(existingCookie.getPath())) {
@@ -96,10 +99,11 @@ public class HttpServletRestxResponse implements RestxResponse {
             c.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
             resp.addCookie(c);
         }
+        return this;
     }
 
     @Override
-    public void clearCookie(String cookie) {
+    public RestxResponse clearCookie(String cookie) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
             existingCookie.setPath("/");
@@ -107,11 +111,13 @@ public class HttpServletRestxResponse implements RestxResponse {
             existingCookie.setMaxAge(0);
             resp.addCookie(existingCookie);
         }
+        return this;
     }
 
     @Override
-    public void setHeader(String headerName, String header) {
+    public RestxResponse setHeader(String headerName, String header) {
         resp.setHeader(headerName, header);
+        return this;
     }
 
     @Override
@@ -127,7 +133,8 @@ public class HttpServletRestxResponse implements RestxResponse {
         return logLevel;
     }
 
-    public void setLogLevel(RestxLogLevel logLevel) {
+    public RestxResponse setLogLevel(RestxLogLevel logLevel) {
         this.logLevel = logLevel;
+        return this;
     }
 }

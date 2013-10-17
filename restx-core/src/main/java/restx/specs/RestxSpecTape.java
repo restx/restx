@@ -156,9 +156,10 @@ public class RestxSpecTape {
             }
 
             @Override
-            public void setStatus(HttpStatus i) {
+            public RestxResponse setStatus(HttpStatus i) {
                 super.setStatus(i);
                 status = i;
+                return null;
             }
 
             @Override

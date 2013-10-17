@@ -35,8 +35,9 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void setStatus(HttpStatus status) {
+    public RestxResponse setStatus(HttpStatus status) {
         response.setCode(status.getCode());
+        return this;
     }
 
     @Override
@@ -45,7 +46,7 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void setContentType(String s) {
+    public RestxResponse setContentType(String s) {
         if (HTTP.isTextContentType(s)) {
             Optional<String> cs = HTTP.charsetFromContentType(s);
             if (!cs.isPresent()) {
@@ -56,6 +57,7 @@ public class SimpleRestxResponse implements RestxResponse {
             }
         }
         response.setValue("Content-Type", s);
+        return this;
     }
 
     @Override
@@ -82,28 +84,32 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void addCookie(String cookie, String value) {
+    public RestxResponse addCookie(String cookie, String value) {
         addCookie(cookie, value, Duration.ZERO);
+        return this;
     }
 
     @Override
-    public void addCookie(String cookie, String value, Duration expiration) {
+    public RestxResponse addCookie(String cookie, String value, Duration expiration) {
         Cookie c = new Cookie(cookie, value, "/");
         c.setExpiry(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
         response.setCookie(c);
+        return this;
     }
 
     @Override
-    public void clearCookie(String cookie) {
+    public RestxResponse clearCookie(String cookie) {
         Cookie c = new Cookie(cookie, "");
         c.setPath("/");
         c.setExpiry(0);
         response.setCookie(c);
+        return this;
     }
 
     @Override
-    public void setHeader(String headerName, String header) {
+    public RestxResponse setHeader(String headerName, String header) {
         response.setValue(headerName, header);
+        return this;
     }
 
     @Override
@@ -122,7 +128,8 @@ public class SimpleRestxResponse implements RestxResponse {
         return logLevel;
     }
 
-    public void setLogLevel(RestxLogLevel logLevel) {
+    public RestxResponse setLogLevel(RestxLogLevel logLevel) {
         this.logLevel = logLevel;
+        return this;
     }
 }

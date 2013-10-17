@@ -22,20 +22,23 @@ public class RestxResponseWrapper implements RestxResponse {
         return restxResponse.getStatus();
     }
 
-    public void setStatus(HttpStatus i) {
+    public RestxResponse setStatus(HttpStatus i) {
         restxResponse.setStatus(i);
+        return this;
     }
 
     public OutputStream getOutputStream() throws IOException {
         return restxResponse.getOutputStream();
     }
 
-    public void setContentType(String s) {
+    public RestxResponse setContentType(String s) {
         restxResponse.setContentType(s);
+        return this;
     }
 
-    public void addCookie(String cookie, String value, Duration expires) {
+    public RestxResponse addCookie(String cookie, String value, Duration expires) {
         restxResponse.addCookie(cookie, value, expires);
+        return this;
     }
 
     public void close() throws Exception {
@@ -46,21 +49,25 @@ public class RestxResponseWrapper implements RestxResponse {
         return restxResponse.getWriter();
     }
 
-    public void clearCookie(String cookie) {
+    public RestxResponse clearCookie(String cookie) {
         restxResponse.clearCookie(cookie);
+        return this;
     }
 
-    public void setHeader(String headerName, String header) {
+    public RestxResponse setHeader(String headerName, String header) {
         restxResponse.setHeader(headerName, header);
+        return this;
     }
 
-    public void addCookie(String cookie, String value) {
+    public RestxResponse addCookie(String cookie, String value) {
         restxResponse.addCookie(cookie, value);
+        return this;
     }
 
     @Override
-    public void setLogLevel(RestxLogLevel level) {
+    public RestxResponse setLogLevel(RestxLogLevel level) {
         restxResponse.setLogLevel(level);
+        return this;
     }
 
     @Override
