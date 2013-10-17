@@ -1,9 +1,7 @@
 package restx.converters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Primitives;
-import restx.factory.*;
 
 /**
  * User: xavierhanin
@@ -11,15 +9,10 @@ import restx.factory.*;
  * Time: 11:18 PM
  */
 public class MainStringConverter {
-    private final ImmutableMap<Class, StringConverter> converters;
+    private final ObjectMapper mapper;
 
-    public MainStringConverter(Iterable<StringConverter> stringConverters) {
-        ImmutableMap.Builder<Class, StringConverter> builder = ImmutableMap.builder();
-        for (StringConverter converter : stringConverters) {
-            builder.put(Primitives.wrap(converter.getConvertedClass()), converter);
-        }
-
-        converters = builder.build();
+    public MainStringConverter(ObjectMapper mapper) {
+        this.mapper = mapper;
     }
 
     public <T> Optional<T> convert(Optional<String> value, Class<T> toClass) {
@@ -31,13 +24,6 @@ public class MainStringConverter {
     }
 
     public <T> T convert(String value, Class<T> toClass) {
-        StringConverter converter = converters.get(Primitives.wrap(toClass));
-        if (converter == null) {
-            throw new IllegalArgumentException(String.format(
-                    "no converter registered for %s. Converters are registered for: %s",
-                    toClass.getName(), converters.keySet()));
-        }
-        return (T) converter.apply(value);
+        return mapper.convertValue(value, toClass);
     }
-
 }
