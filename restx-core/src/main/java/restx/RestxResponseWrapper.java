@@ -18,11 +18,11 @@ public class RestxResponseWrapper implements RestxResponse {
         this.restxResponse = restxResponse;
     }
 
-    public int getStatus() {
+    public HttpStatus getStatus() {
         return restxResponse.getStatus();
     }
 
-    public void setStatus(int i) {
+    public void setStatus(HttpStatus i) {
         restxResponse.setStatus(i);
     }
 

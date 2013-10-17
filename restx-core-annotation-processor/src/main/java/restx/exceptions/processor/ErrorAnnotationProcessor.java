@@ -69,7 +69,7 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
                 ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                         .put("package", pack)
                         .put("descriptor", descriptor)
-                        .put("errorStatus", String.valueOf(errorCode.status()))
+                        .put("errorStatus", String.valueOf(errorCode.status().getCode()))
                         .put("errorCode", errorCode.code())
                         .put("description", errorCode.description())
                         .put("fields", Joiner.on("\n").join(fields)).build();

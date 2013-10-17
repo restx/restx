@@ -12,8 +12,8 @@ import java.io.PrintWriter;
  * Time: 9:46 PM
  */
 public interface RestxResponse extends AutoCloseable {
-    void setStatus(int i);
-    int getStatus();
+    void setStatus(HttpStatus i);
+    HttpStatus getStatus();
 
     void setContentType(String s);
 

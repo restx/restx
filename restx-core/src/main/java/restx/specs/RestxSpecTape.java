@@ -12,10 +12,7 @@ import com.google.common.io.CharStreams;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
-import restx.RestxRequest;
-import restx.RestxRequestWrapper;
-import restx.RestxResponse;
-import restx.RestxResponseWrapper;
+import restx.*;
 import restx.security.RestxSessionFilter;
 
 import java.io.*;
@@ -125,7 +122,7 @@ public class RestxSpecTape {
             private PrintWriter realWriter;
             private PrintWriter writer;
             private OutputStream realOS;
-            public int status = 200;
+            public HttpStatus status = HttpStatus.OK;
 
             @Override
             public PrintWriter getWriter() throws IOException {
@@ -154,12 +151,12 @@ public class RestxSpecTape {
             }
 
             @Override
-            public int getStatus() {
+            public HttpStatus getStatus() {
                 return status;
             }
 
             @Override
-            public void setStatus(int i) {
+            public void setStatus(HttpStatus i) {
                 super.setStatus(i);
                 status = i;
             }
@@ -178,7 +175,7 @@ public class RestxSpecTape {
                         specPath, title,
                         ImmutableList.copyOf(givens.values()), ImmutableList.<When>of(
                         new WhenHttpRequest(method, path, cookies, new String(requestBody, Charsets.UTF_8),
-                                new ThenHttpResponse(status, baos.toString(Charsets.UTF_8.name())))));
+                                new ThenHttpResponse(status.getCode(), baos.toString(Charsets.UTF_8.name())))));
                 System.out.println("-----------------  RESTX SPEC  ---------------- \n"
                         + restxSpec + "\n"
                         + "------------------------------------------------"

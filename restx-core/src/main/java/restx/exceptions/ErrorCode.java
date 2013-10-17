@@ -1,5 +1,7 @@
 package restx.exceptions;
 
+import restx.HttpStatus;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -26,5 +28,5 @@ public @interface ErrorCode {
      * HTTP error status.
      * @return
      */
-    int status() default 400;
+    HttpStatus status() default HttpStatus.BAD_REQUEST;
 }

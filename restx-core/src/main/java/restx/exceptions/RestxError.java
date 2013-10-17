@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import restx.HttpStatus;
 
 import java.util.Map;
 
@@ -16,18 +17,18 @@ public class RestxError<T> {
 
     public static <E> RestxError<E> on(Class<E> errorCode) {
         ErrorCode code = errorCode.getAnnotation(ErrorCode.class);
-        int errorStatus = code != null ? code.status() : 400;
+        HttpStatus errorStatus = code != null ? code.status() : HttpStatus.BAD_REQUEST;
         String error = code != null ? code.code() : errorCode.getSimpleName();
         String description = code != null ? code.description() : errorCode.getName();
         return new RestxError<>(errorStatus, error, description);
     }
 
-    private final int errorStatus;
+    private final HttpStatus errorStatus;
     private final String error;
     private final String description;
     private final Map<String, String> data = Maps.newLinkedHashMap();
 
-    private RestxError(int errorStatus, String error, String description) {
+    private RestxError(HttpStatus errorStatus, String error, String description) {
         this.errorStatus = errorStatus;
         this.error = error;
         this.description = description;
@@ -52,13 +53,13 @@ public class RestxError<T> {
     public static class RestxException  extends RuntimeException {
         private final String id;
         private final DateTime errorTime;
-        private final int errorStatus;
+        private final HttpStatus errorStatus;
         private final String error;
         private final String description;
         private final ImmutableMap<String, String> data;
 
-        RestxException(String id, DateTime errorTime, int errorStatus, String error, String description, ImmutableMap<String, String> data) {
-            super(String.format("[%s] [%s] [%3d~%s] %s - %s", errorTime, id, errorStatus, error, description, data));
+        RestxException(String id, DateTime errorTime, HttpStatus errorStatus, String error, String description, ImmutableMap<String, String> data) {
+            super(String.format("[%s] [%s] [%3d~%s] %s - %s", errorTime, id, errorStatus.getCode(), error, description, data));
             this.id = id;
             this.errorTime = errorTime;
             this.errorStatus = errorStatus;
@@ -75,7 +76,7 @@ public class RestxError<T> {
             return errorTime;
         }
 
-        public int getErrorStatus() {
+        public HttpStatus getErrorStatus() {
             return errorStatus;
         }
 

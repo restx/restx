@@ -74,7 +74,7 @@ public class WebException extends RuntimeException {
             logger.debug("request raised WebException - " + restxRequest, this);
         }
 
-        restxResponse.setStatus(getStatus().getCode());
+        restxResponse.setStatus(getStatus());
         restxResponse.setContentType(getContentType());
         restxResponse.getWriter().print(getContent());
     }

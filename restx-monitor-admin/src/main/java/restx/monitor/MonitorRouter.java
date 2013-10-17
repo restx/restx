@@ -24,7 +24,7 @@ public class MonitorRouter extends RestxRouter {
                 new StdRoute("MonitorRoute", new StdRouteMatcher("GET", "/@/monitor")) {
                     @Override
                     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        resp.setStatus(HttpStatus.OK.getCode());
+                        resp.setStatus(HttpStatus.OK);
                         resp.setContentType("application/json");
                         resp.getWriter().print("[");
                         int i = 0;

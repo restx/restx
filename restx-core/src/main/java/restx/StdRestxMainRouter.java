@@ -112,7 +112,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                     sb.append(route).append("\n");
                 }
                 sb.append("-----------------------------------");
-                restxResponse.setStatus(HttpStatus.NOT_FOUND.getCode());
+                restxResponse.setStatus(HttpStatus.NOT_FOUND);
                 restxResponse.setContentType("text/plain");
                 PrintWriter out = restxResponse.getWriter();
                 out.print(sb.toString());
@@ -133,7 +133,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
             }
         } catch (JsonProcessingException ex) {
             logger.warn("request raised " + ex.getClass().getSimpleName(), ex);
-            restxResponse.setStatus(400);
+            restxResponse.setStatus(HttpStatus.BAD_REQUEST);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             if (restxRequest.getContentStream() instanceof BufferedInputStream) {
@@ -194,14 +194,14 @@ public class StdRestxMainRouter implements RestxMainRouter {
             ex.writeTo(restxRequest, restxResponse);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             logger.warn("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
-            restxResponse.setStatus(400);
+            restxResponse.setStatus(HttpStatus.BAD_REQUEST);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             out.println("UNEXPECTED CLIENT ERROR:");
             out.print(ex.getMessage());
         } catch (RuntimeException ex) {
             logger.error("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
-            restxResponse.setStatus(500);
+            restxResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             out.println("UNEXPECTED SERVER ERROR:");

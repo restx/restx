@@ -2,6 +2,7 @@ package restx.servlet;
 
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
+import restx.HttpStatus;
 import restx.RestxLogLevel;
 import restx.RestxResponse;
 import restx.server.HTTP;
@@ -22,7 +23,7 @@ public class HttpServletRestxResponse implements RestxResponse {
 
     private final HttpServletResponse resp;
     private final HttpServletRequest request;
-    private int status = 200;
+    private HttpStatus status = HttpStatus.OK;
     private RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
 
     public HttpServletRestxResponse(HttpServletResponse resp, HttpServletRequest request) {
@@ -31,16 +32,16 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
-    public int getStatus() {
+    public HttpStatus getStatus() {
         // HttpServletResponse#getStatus() is available in servlet 3 only.
         //  return resp.getStatus();
         return status;
     }
 
     @Override
-    public void setStatus(int i) {
-        this.status = i;
-        resp.setStatus(i);
+    public void setStatus(HttpStatus httpStatus) {
+        this.status = httpStatus;
+        resp.setStatus(httpStatus.getCode());
     }
 
     @Override

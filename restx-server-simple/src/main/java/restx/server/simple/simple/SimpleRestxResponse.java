@@ -7,6 +7,7 @@ import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.HttpStatus;
 import restx.RestxLogLevel;
 import restx.RestxResponse;
 import restx.server.HTTP;
@@ -34,13 +35,13 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void setStatus(int status) {
-        response.setCode(status);
+    public void setStatus(HttpStatus status) {
+        response.setCode(status.getCode());
     }
 
     @Override
-    public int getStatus() {
-        return response.getStatus().code;
+    public HttpStatus getStatus() {
+        return HttpStatus.havingCode(response.getStatus().code);
     }
 
     @Override

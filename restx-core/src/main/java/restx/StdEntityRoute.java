@@ -39,7 +39,7 @@ public abstract class StdEntityRoute extends StdRoute {
         ctx.getLifecycleListener().onRouteMatch(this);
         Optional<?> result = doRoute(req, match);
         if (result.isPresent()) {
-            resp.setStatus(getSuccessStatus().getCode());
+            resp.setStatus(getSuccessStatus());
             resp.setContentType("application/json");
             Object value = result.get();
             if (value instanceof Iterable) {
