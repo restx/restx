@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -77,13 +76,13 @@ public class RestxRequestWrapper implements RestxRequest {
     }
 
     @Override
-    public Map<String, String> getCookiesMap() {
+    public ImmutableMap<String, String> getCookiesMap() {
         return original.getCookiesMap();
     }
 
     @Override
-    public String getCookieValue(String cookie, String defaultValue) {
-        return original.getCookieValue(cookie, defaultValue);
+    public Optional<String> getCookieValue(String cookieName) {
+        return original.getCookieValue(cookieName);
     }
 
     @Override

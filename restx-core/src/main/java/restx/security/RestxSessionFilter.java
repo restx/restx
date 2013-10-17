@@ -84,11 +84,11 @@ public class RestxSessionFilter implements RestxFilter {
 
     public RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
         String restxSessionCookieName = restxSessionCookieDescriptor.getCookieName();
-        String cookie = req.getCookieValue(restxSessionCookieName, "");
+        String cookie = req.getCookieValue(restxSessionCookieName).or("");
         if (cookie.trim().isEmpty()) {
             return emptySession;
         } else {
-            String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName(), "");
+            String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName()).or("");
             if (!Crypto.sign(cookie, signatureKey.getKey()).equals(sig)) {
                 logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
                 return emptySession;

@@ -125,8 +125,8 @@ public class StdRequest implements RestxRequest {
     }
 
     @Override
-    public String getCookieValue(String cookie, String defaultValue) {
-        return Optional.fromNullable(cookiesMap.get(cookie)).or(defaultValue);
+    public Optional<String> getCookieValue(String cookieName) {
+        return Optional.fromNullable(cookiesMap.get(cookieName));
     }
 
     @Override
@@ -135,7 +135,7 @@ public class StdRequest implements RestxRequest {
     }
 
     @Override
-    public Map<String, String> getCookiesMap() {
+    public ImmutableMap<String, String> getCookiesMap() {
         return cookiesMap;
     }
 
