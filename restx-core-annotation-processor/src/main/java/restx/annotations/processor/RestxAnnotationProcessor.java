@@ -475,13 +475,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         },
         PATH {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                String code = String.format("match.getPathParams().get(\"%s\")", parameter.name);
-                if (parameter.optional) {
-                    code = "Optional.fromNullable(" + code + ")";
-                } else {
-                    code = String.format("checkNotNull(%s, \"path param %s is required\")", code, parameter.name);
-                }
-                return code;
+                return String.format("match.getPathParam(\"%s\")", parameter.name);
             }
         },
         BODY {

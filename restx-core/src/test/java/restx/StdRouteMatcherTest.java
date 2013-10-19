@@ -41,6 +41,7 @@ public class StdRouteMatcherTest {
         Optional<? extends RestxRequestMatch> match = matcher.match("GET", "/user/johndoe");
         assertThat(match.isPresent()).isTrue();
         assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe"));
+        assertThat(match.get().getPathParam("name")).isEqualTo("johndoe");
 
         match = matcher.match("POST", "/user/johndoe");
         assertThat(match.isPresent()).isFalse();

@@ -51,7 +51,7 @@ public class ApiDeclarationRoute extends StdEntityRoute {
 
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
-        String routerName = match.getPathParams().get("router");
+        String routerName = match.getPathParam("router");
         routerName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, routerName);
 
         Optional<NamedComponent<RestxRouter>> router = Optional.absent();

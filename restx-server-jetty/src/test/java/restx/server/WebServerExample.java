@@ -21,7 +21,7 @@ public class WebServerExample {
             .addRoute("GET", "/route1/{id}", new MatchedEntityRoute() {
                 @Override
                 public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
-                    return Optional.of(ImmutableMap.of("id", match.getPathParams().get("id")));
+                    return Optional.of(ImmutableMap.of("id", match.getPathParam("id")));
                 }
             })
             .addRoute("GET", "/route2", new MatchedEntityRoute() {

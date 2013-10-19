@@ -44,6 +44,16 @@ public class StdRestxRequestMatch implements RestxRequestMatch {
     }
 
     @Override
+    public String getPathParam(String paramName) {
+        String v = pathParams.get(paramName);
+        if (v == null) {
+            throw new IllegalStateException(
+                    String.format("path parameter %s was not found", paramName));
+        }
+        return v;
+    }
+
+    @Override
     public ImmutableMap<String, String> getPathParams() {
         return pathParams;
     }

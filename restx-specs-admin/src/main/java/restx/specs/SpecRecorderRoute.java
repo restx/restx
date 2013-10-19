@@ -39,7 +39,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecord", new StdRestxRequestMatcher("GET", "/@/recorders/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        int id = Integer.parseInt(match.getPathParams().get("id"));
+                        int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                             if (spec.getId() == id) {
                                 resp.setContentType("text/yaml");
@@ -55,7 +55,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecordStorage", new StdRestxRequestMatcher("POST", "/@/recorders/storage/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        int id = Integer.parseInt(match.getPathParams().get("id"));
+                        int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                             if (spec.getId() == id) {
                                 Optional<String> path = req.getQueryParam("path");
