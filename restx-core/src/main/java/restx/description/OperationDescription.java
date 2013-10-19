@@ -1,7 +1,7 @@
 package restx.description;
 
 import com.google.common.collect.Lists;
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 
 import java.util.List;
 

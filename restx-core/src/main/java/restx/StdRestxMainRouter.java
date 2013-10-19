@@ -12,6 +12,7 @@ import com.jamonapi.MonitorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.exceptions.RestxError;
+import restx.http.HttpStatus;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

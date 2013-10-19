@@ -2,7 +2,6 @@ package restx.specs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import restx.HttpStatus;
 
 import static restx.common.MoreStrings.indent;
 

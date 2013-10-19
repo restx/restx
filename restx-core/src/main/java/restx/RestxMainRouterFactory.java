@@ -17,6 +17,7 @@ import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
+import restx.http.HttpStatus;
 import restx.server.WebServers;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRecorder;

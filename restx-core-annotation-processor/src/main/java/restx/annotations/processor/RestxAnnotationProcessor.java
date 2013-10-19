@@ -5,7 +5,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 import restx.RestxLogLevel;
 import restx.annotations.*;
 import restx.common.Mustaches;

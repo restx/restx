@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import restx.description.DescribableRoute;
 import restx.description.OperationDescription;
 import restx.description.ResourceDescription;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.Collection;

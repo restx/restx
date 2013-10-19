@@ -10,7 +10,7 @@ import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 import restx.common.MoreResources;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;

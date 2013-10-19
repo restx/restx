@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 
 import java.util.Map;
 

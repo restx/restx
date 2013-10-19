@@ -1,6 +1,7 @@
 package restx;
 
 import org.joda.time.Duration;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -2,10 +2,10 @@ package restx.servlet;
 
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 import restx.RestxLogLevel;
 import restx.RestxResponse;
-import restx.server.HTTP;
+import restx.http.HTTP;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;

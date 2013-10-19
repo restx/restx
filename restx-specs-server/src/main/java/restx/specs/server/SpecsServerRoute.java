@@ -3,6 +3,7 @@ package restx.specs.server;
 import com.google.common.base.Optional;
 import restx.*;
 import restx.factory.Component;
+import restx.http.HttpStatus;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRepository;
 import restx.specs.When;

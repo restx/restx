@@ -1,6 +1,6 @@
 package restx.exceptions;
 
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

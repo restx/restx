@@ -7,10 +7,10 @@ import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 import restx.RestxLogLevel;
 import restx.RestxResponse;
-import restx.server.HTTP;
+import restx.http.HTTP;
 
 import java.io.IOException;
 import java.io.OutputStream;

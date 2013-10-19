@@ -1,6 +1,6 @@
 package restx.annotations;
 
-import restx.HttpStatus;
+import restx.http.HttpStatus;
 
 /**
  * @author fcamblor

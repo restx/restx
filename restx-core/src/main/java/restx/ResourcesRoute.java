@@ -5,7 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 import restx.common.MoreResources;
-import restx.server.HTTP;
+import restx.http.HTTP;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URL;

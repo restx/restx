@@ -1,4 +1,4 @@
-package restx;
+package restx.http;
 
 /**
  * @author fcamblor

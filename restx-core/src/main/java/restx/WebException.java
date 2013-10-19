@@ -2,6 +2,7 @@ package restx;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 

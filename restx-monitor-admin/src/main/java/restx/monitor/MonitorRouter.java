@@ -5,6 +5,7 @@ import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
 import restx.*;
 import restx.factory.Component;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.Locale;
