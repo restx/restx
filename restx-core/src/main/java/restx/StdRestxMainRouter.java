@@ -126,7 +126,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                 };
                 RestxContext context = new RestxContext(getMode(), noCache, ImmutableList.copyOf(m.get().getMatches()));
                 RestxRouteMatch match = context.nextHandlerMatch();
-                match.getHandler().handle(match, restxRequest, restxResponse, context);
+                match.handle(restxRequest, restxResponse, context);
             }
         } catch (JsonProcessingException ex) {
             logger.warn("request raised " + ex.getClass().getSimpleName(), ex);

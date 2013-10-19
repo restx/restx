@@ -41,7 +41,7 @@ public class StdRouteMatcher implements RestxRouteMatcher {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxHandler handler, String method, String path) {
+    public Optional<? extends RestxRouteMatch> match(RestxHandler handler, String method, String path) {
         if (!this.method.equals(method)) {
             return Optional.absent();
         }
@@ -55,7 +55,7 @@ public class StdRouteMatcher implements RestxRouteMatcher {
              params.put(groupNames.get(i), m.group(i + 1));
         }
 
-        return Optional.of(new RestxRouteMatch(handler, pathPattern, path, params.build()));
+        return Optional.of(new StdRestxRouteMatch(handler, pathPattern, path, params.build()));
     }
 
     @Override

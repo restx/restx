@@ -94,7 +94,7 @@ public class RestxSpecRepository {
                     if (requestPath.indexOf("?") != -1) {
                         requestPath = requestPath.substring(0, requestPath.indexOf("?"));
                     }
-                    Optional<RestxRouteMatch> match = matcher.match(HANDLER, request.getMethod(), requestPath);
+                    Optional<? extends RestxRouteMatch> match = matcher.match(HANDLER, request.getMethod(), requestPath);
                     if (match.isPresent()) {
                         specs.add(spec.getKey());
                         break;
@@ -136,11 +136,6 @@ public class RestxSpecRepository {
     }
 
     private static final RestxHandler HANDLER = new RestxHandler() {
-        @Override
-        public Optional<RestxRouteMatch> match(RestxRequest req) {
-            return Optional.absent();
-        }
-
         @Override
         public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         }

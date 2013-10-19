@@ -8,5 +8,5 @@ package restx;
  *
  * This interface has no specific methods, it's mainly a marker interface following the RestxHandler contract.
  */
-public interface RestxFilter extends RestxHandler {
+public interface RestxFilter extends RestxHandlerMatcher {
 }

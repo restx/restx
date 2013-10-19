@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *     </pre>
  * </p>
  */
-public class ResourcesRoute implements RestxRoute {
+public class ResourcesRoute implements RestxRoute, RestxHandler {
     /**
      * Resource name, for toString only.
      */
@@ -52,9 +52,9 @@ public class ResourcesRoute implements RestxRoute {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
+    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
         if (req.getHttpMethod().equals("GET") && req.getRestxPath().startsWith(baseRestPath)) {
-            return Optional.of(new RestxRouteMatch(this, baseRestPath + "*", req.getRestxPath()));
+            return Optional.of(new StdRestxRouteMatch(this, baseRestPath + "*", req.getRestxPath()));
         } else {
             return Optional.absent();
         }

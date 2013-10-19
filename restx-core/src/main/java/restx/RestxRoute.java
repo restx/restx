@@ -7,5 +7,5 @@ package restx;
  *
  * This interface has no specific methods, it's mainly a marker interface following the RestxHandler contract.
  */
-public interface RestxRoute extends RestxHandler {
+public interface RestxRoute extends RestxHandlerMatcher {
 }

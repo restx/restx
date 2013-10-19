@@ -31,13 +31,13 @@ public class RestxRouting {
     public Optional<Match> match(RestxRequest restxRequest) {
         List<RestxRouteMatch> matches = Lists.newArrayListWithCapacity(filters.size() + 1);
         for (RestxFilter filter : filters) {
-            Optional<RestxRouteMatch> match = filter.match(restxRequest);
+            Optional<? extends RestxRouteMatch> match = filter.match(restxRequest);
             if (match.isPresent()) {
                 matches.add(match.get());
             }
         }
         for (RestxRoute route : routes) {
-            Optional<RestxRouteMatch> match = route.match(restxRequest);
+            Optional<? extends RestxRouteMatch> match = route.match(restxRequest);
             if (match.isPresent()) {
                 matches.add(match.get());
                 return Optional.of(new Match(matches, match));
@@ -48,9 +48,9 @@ public class RestxRouting {
 
     public static class Match {
         private final List<RestxRouteMatch> matches;
-        private final Optional<RestxRouteMatch> match;
+        private final Optional<? extends RestxRouteMatch> match;
 
-        private Match(List<RestxRouteMatch> matches, Optional<RestxRouteMatch> match) {
+        private Match(List<RestxRouteMatch> matches, Optional<? extends RestxRouteMatch> match) {
             this.matches = matches;
             this.match = match;
         }
@@ -59,7 +59,7 @@ public class RestxRouting {
             return matches;
         }
 
-        public Optional<RestxRouteMatch> getMatch() {
+        public Optional<? extends RestxRouteMatch> getMatch() {
             return match;
         }
 

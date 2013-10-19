@@ -24,7 +24,7 @@ import java.util.Map;
  * Date: 2/8/13
  * Time: 8:59 PM
  */
-public class RestxSessionFilter implements RestxFilter {
+public class RestxSessionFilter implements RestxFilter, RestxHandler {
     public static final Name<RestxSessionFilter> NAME = Name.of(RestxSessionFilter.class, "RestxSessionFilter");
 
     private static final String EXPIRES = "_expires";
@@ -47,8 +47,8 @@ public class RestxSessionFilter implements RestxFilter {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
-        return Optional.of(new RestxRouteMatch(this, "*", req.getRestxPath()));
+    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
+        return Optional.of(new StdRestxRouteMatch(this, "*", req.getRestxPath()));
     }
 
     @Override
@@ -72,8 +72,7 @@ public class RestxSessionFilter implements RestxFilter {
                     }
                 }
             };
-            RestxRouteMatch next = ctx.nextHandlerMatch();
-            next.getHandler().handle(next, req, resp, ctx.withListener(lifecycleListener));
+            ctx.nextHandlerMatch().handle(req, resp, ctx.withListener(lifecycleListener));
         } finally {
             RestxSession.setCurrent(null);
         }

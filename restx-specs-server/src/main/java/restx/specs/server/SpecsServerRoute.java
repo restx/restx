@@ -18,7 +18,7 @@ import java.util.Iterator;
  * Time: 12:04 PM
  */
 @Component(priority = 1000)
-public class SpecsServerRoute implements RestxRoute {
+public class SpecsServerRoute implements RestxRoute, RestxHandler {
     private final RestxSpecRepository specRepository;
 
     public SpecsServerRoute(RestxSpecRepository specRepository) {
@@ -26,12 +26,12 @@ public class SpecsServerRoute implements RestxRoute {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
+    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
         Iterable<WhenHttpRequest> spec = specRepository.findSpecsByRequest(req);
         Iterator<WhenHttpRequest> iterator = spec.iterator();
         return iterator.hasNext()
-                ? Optional.<RestxRouteMatch>of(new Match(req, iterator.next()))
-                : Optional.<RestxRouteMatch>absent();
+                ? Optional.<StdRestxRouteMatch>of(new Match(req, iterator.next()))
+                : Optional.<StdRestxRouteMatch>absent();
     }
 
     @Override
@@ -63,7 +63,7 @@ public class SpecsServerRoute implements RestxRoute {
         return sb.toString();
     }
 
-    private class Match extends RestxRouteMatch {
+    private class Match extends StdRestxRouteMatch {
         private final WhenHttpRequest spec;
 
         public Match(RestxRequest req, WhenHttpRequest spec) {

@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Date: 1/19/13
  * Time: 8:10 AM
  */
-public abstract class StdRoute implements RestxRoute, DescribableRoute {
+public abstract class StdRoute implements RestxRoute, DescribableRoute, RestxHandler {
     private final String name;
     private final RestxRouteMatcher matcher;
     private final HttpStatus successStatus;
@@ -33,7 +33,7 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
+    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
         String path = req.getRestxPath();
         return matcher.match(this, req.getHttpMethod(), path);
     }
@@ -73,7 +73,6 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
         resp.setStatus(HttpStatus.NOT_FOUND);
         resp.setContentType("text/plain");
         resp.getWriter().println("Route matched, but resource " + match.getPath() + " not found.");
-        resp.getWriter().println("Matched route: " + match.getHandler());
-        resp.getWriter().println("Path params: " + match.getPathParams());
+        resp.getWriter().println("Matched route: " + match);
     }
 }

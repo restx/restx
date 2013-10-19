@@ -11,7 +11,7 @@ import java.io.IOException;
  * Date: 2/7/13
  * Time: 9:33 AM
  */
-public class CORSFilter implements RestxFilter {
+public class CORSFilter implements RestxFilter, RestxHandler {
     private final Iterable<CORSAuthorizer> authorizers;
 
     public CORSFilter(Iterable<CORSAuthorizer> authorizers) {
@@ -19,13 +19,13 @@ public class CORSFilter implements RestxFilter {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
+    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
         Optional<String> origin = req.getHeader("Origin");
         if ("GET".equals(req.getHttpMethod())
                         && origin.isPresent()) {
             CORS cors = CORS.check(authorizers, req, origin.get(), "GET", req.getRestxPath());
             if (cors.isAccepted()) {
-                return Optional.of(new RestxRouteMatch(this, "*", req.getRestxPath(),
+                return Optional.of(new StdRestxRouteMatch(this, "*", req.getRestxPath(),
                         ImmutableMap.<String, String>of(), ImmutableMap.of("cors", cors)));
             }
         }
@@ -35,8 +35,7 @@ public class CORSFilter implements RestxFilter {
     @Override
     public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         resp.setHeader("Access-Control-Allow-Origin", ((CORS) match.getOtherParams().get("cors")).getOrigin());
-        RestxRouteMatch next = ctx.nextHandlerMatch();
-        next.getHandler().handle(next, req, resp, ctx);
+        ctx.nextHandlerMatch().handle(req, resp, ctx);
     }
 
 

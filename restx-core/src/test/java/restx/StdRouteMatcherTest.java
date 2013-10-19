@@ -17,11 +17,6 @@ import static org.assertj.core.api.Assertions.*;
 public class StdRouteMatcherTest {
     private RestxHandler handler = new RestxHandler() {
         @Override
-        public Optional<RestxRouteMatch> match(RestxRequest req) {
-            return Optional.absent();
-        }
-
-        @Override
         public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         }
     };
@@ -30,7 +25,7 @@ public class StdRouteMatcherTest {
     public void should_matcher_with_no_path_param_match_not_match() throws Exception {
         StdRouteMatcher matcher = new StdRouteMatcher("GET", "/user");
 
-        Optional<RestxRouteMatch> match = matcher.match(handler, "GET", "/user");
+        Optional<? extends RestxRouteMatch> match = matcher.match(handler, "GET", "/user");
         assertThat(match.isPresent()).isTrue();
         assertThat(match.get().getPathParams()).isEmpty();
 
@@ -49,7 +44,7 @@ public class StdRouteMatcherTest {
     public void should_matcher_with_one_path_param_match_not_match() throws Exception {
         StdRouteMatcher matcher = new StdRouteMatcher("GET", "/user/{name}");
 
-        Optional<RestxRouteMatch> match = matcher.match(handler, "GET", "/user/johndoe");
+        Optional<? extends RestxRouteMatch> match = matcher.match(handler, "GET", "/user/johndoe");
         assertThat(match.isPresent()).isTrue();
         assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe"));
 
@@ -73,7 +68,7 @@ public class StdRouteMatcherTest {
     public void should_matcher_with_several_path_params_match_not_match() throws Exception {
         StdRouteMatcher matcher = new StdRouteMatcher("GET", "/user/{name}/children/{child}");
 
-        Optional<RestxRouteMatch> match = matcher.match(handler, "GET", "/user/johndoe/children/bobby");
+        Optional<? extends RestxRouteMatch> match = matcher.match(handler, "GET", "/user/johndoe/children/bobby");
         assertThat(match.isPresent()).isTrue();
         assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe", "child", "bobby"));
 

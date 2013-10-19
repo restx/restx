@@ -1,7 +1,5 @@
 package restx;
 
-import com.google.common.base.Optional;
-
 import java.io.IOException;
 
 /**
@@ -10,6 +8,5 @@ import java.io.IOException;
  * Time: 9:30 PM
  */
 public interface RestxHandler {
-    Optional<RestxRouteMatch> match(RestxRequest req);
     void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException;
 }
