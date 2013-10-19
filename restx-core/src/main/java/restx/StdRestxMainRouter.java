@@ -118,11 +118,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                 PrintWriter out = restxResponse.getWriter();
                 out.print(sb.toString());
             } else {
-                RouteLifecycleListener noCache = new RouteLifecycleListener() {
-                    @Override
-                    public void onRouteMatch(RestxRoute source) {
-                    }
-
+                RouteLifecycleListener noCache = new AbstractRouteLifecycleListener() {
                     @Override
                     public void onBeforeWriteContent(RestxRoute source) {
                         restxResponse.setHeader("Cache-Control", "no-cache");

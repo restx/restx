@@ -63,11 +63,7 @@ public class RestxSessionFilter implements RestxFilter {
         }
         RestxSession.setCurrent(session);
         try {
-            RouteLifecycleListener lifecycleListener = new RouteLifecycleListener() {
-                @Override
-                public void onRouteMatch(RestxRoute source) {
-                }
-
+            RouteLifecycleListener lifecycleListener = new AbstractRouteLifecycleListener() {
                 @Override
                 public void onBeforeWriteContent(RestxRoute source) {
                     RestxSession newSession = RestxSession.current();
