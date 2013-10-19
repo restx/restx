@@ -12,4 +12,8 @@ public  abstract class AbstractRouteLifecycleListener implements RouteLifecycleL
     @Override
     public void onBeforeWriteContent(RestxRoute source) {
     }
+
+    @Override
+    public void onAfterWriteContent(RestxRoute source) {
+    }
 }

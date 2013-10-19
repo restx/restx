@@ -70,6 +70,12 @@ public class RestxContext {
                 lifecycleListener.onBeforeWriteContent(source);
                 listener.onBeforeWriteContent(source);
             }
+
+            @Override
+            public void onAfterWriteContent(RestxRoute source) {
+                lifecycleListener.onAfterWriteContent(source);
+                listener.onAfterWriteContent(source);
+            }
         }, matches, matchesIterator);
     }
 

@@ -48,6 +48,7 @@ public abstract class StdEntityRoute extends StdRoute {
             }
             ctx.getLifecycleListener().onBeforeWriteContent(this);
             writeValue(mapper, resp.getWriter(), value);
+            ctx.getLifecycleListener().onAfterWriteContent(this);
         } else {
             notFound(match,resp);
         }

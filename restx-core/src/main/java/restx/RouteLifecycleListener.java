@@ -10,4 +10,5 @@ public interface RouteLifecycleListener {
 
     void onRouteMatch(RestxRoute source);
     void onBeforeWriteContent(RestxRoute source);
+    void onAfterWriteContent(RestxRoute source);
 }
