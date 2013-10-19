@@ -59,9 +59,9 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
 
         public Builder addRoute(String method, String path, final MatchedEntityRoute route) {
-            routes.add(new StdEntityRoute(path, mapper, new StdRouteMatcher(method, path)) {
+            routes.add(new StdEntityRoute(path, mapper, new StdRestxRequestMatcher(method, path)) {
                 @Override
-                protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                     return route.route(restxRequest, match);
                 }
             });
@@ -125,7 +125,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                     }
                 };
                 RestxContext context = new RestxContext(getMode(), noCache, ImmutableList.copyOf(m.get().getMatches()));
-                RestxRouteMatch match = context.nextHandlerMatch();
+                RestxHandlerMatch match = context.nextHandlerMatch();
                 match.handle(restxRequest, restxResponse, context);
             }
         } catch (JsonProcessingException ex) {

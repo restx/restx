@@ -22,9 +22,9 @@ public class MonitorRouter extends RestxRouter {
                 new ResourcesRoute("MonitorUIRoute", "/@/ui/monitor",
                     MonitorRouter.class.getPackage().getName(), ImmutableMap.of("", "index.html")),
 
-                new StdRoute("MonitorRoute", new StdRouteMatcher("GET", "/@/monitor")) {
+                new StdRoute("MonitorRoute", new StdRestxRequestMatcher("GET", "/@/monitor")) {
                     @Override
-                    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         resp.setStatus(HttpStatus.OK);
                         resp.setContentType("application/json");
                         resp.getWriter().print("[");

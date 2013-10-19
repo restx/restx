@@ -15,70 +15,64 @@ import static org.assertj.core.api.Assertions.*;
  * Time: 9:01 AM
  */
 public class StdRouteMatcherTest {
-    private RestxHandler handler = new RestxHandler() {
-        @Override
-        public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        }
-    };
-
     @Test
     public void should_matcher_with_no_path_param_match_not_match() throws Exception {
-        StdRouteMatcher matcher = new StdRouteMatcher("GET", "/user");
+        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user");
 
-        Optional<? extends RestxRouteMatch> match = matcher.match(handler, "GET", "/user");
+        Optional<? extends RestxRequestMatch> match = matcher.match("GET", "/user");
         assertThat(match.isPresent()).isTrue();
         assertThat(match.get().getPathParams()).isEmpty();
 
-        match = matcher.match(handler, "POST", "/user");
+        match = matcher.match("POST", "/user");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/user/johndoe");
+        match = matcher.match("GET", "/user/johndoe");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/use");
+        match = matcher.match("GET", "/use");
         assertThat(match.isPresent()).isFalse();
     }
 
 
     @Test
     public void should_matcher_with_one_path_param_match_not_match() throws Exception {
-        StdRouteMatcher matcher = new StdRouteMatcher("GET", "/user/{name}");
+        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user/{name}");
 
-        Optional<? extends RestxRouteMatch> match = matcher.match(handler, "GET", "/user/johndoe");
+        Optional<? extends RestxRequestMatch> match = matcher.match("GET", "/user/johndoe");
         assertThat(match.isPresent()).isTrue();
         assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe"));
 
-        match = matcher.match(handler, "POST", "/user/johndoe");
+        match = matcher.match("POST", "/user/johndoe");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/user/johndoe/details");
+        match = matcher.match("GET", "/user/johndoe/details");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/users/johndoe");
+        match = matcher.match("GET", "/users/johndoe");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/user");
+        match = matcher.match("GET", "/user");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/user/");
+        match = matcher.match("GET", "/user/");
         assertThat(match.isPresent()).isFalse();
     }
 
     @Test
     public void should_matcher_with_several_path_params_match_not_match() throws Exception {
-        StdRouteMatcher matcher = new StdRouteMatcher("GET", "/user/{name}/children/{child}");
+        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user/{name}/children/{child}");
 
-        Optional<? extends RestxRouteMatch> match = matcher.match(handler, "GET", "/user/johndoe/children/bobby");
+        Optional<? extends RestxRequestMatch> match = matcher.match("GET", "/user/johndoe/children/bobby");
         assertThat(match.isPresent()).isTrue();
         assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe", "child", "bobby"));
 
-        match = matcher.match(handler, "GET", "/user/johndoe");
+        match = matcher.match("GET", "/user/johndoe");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/user");
+        match = matcher.match("GET", "/user");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match(handler, "GET", "/user/johndoe/children/");
+        match = matcher.match("GET", "/user/johndoe/children/");
         assertThat(match.isPresent()).isFalse();
     }
 }

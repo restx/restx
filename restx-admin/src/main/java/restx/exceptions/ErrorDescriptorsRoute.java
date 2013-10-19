@@ -22,7 +22,7 @@ public class ErrorDescriptorsRoute extends StdEntityRoute {
 
     public ErrorDescriptorsRoute(Iterable<ErrorDescriptor> errorDescriptors,
                                  @Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper) {
-        super("ErrorDescriptorsRoute", mapper, new StdRouteMatcher("GET", "/@/errors/descriptors"));
+        super("ErrorDescriptorsRoute", mapper, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"));
         Map<String, ErrorDescriptor> map = Maps.newLinkedHashMap();
         for (ErrorDescriptor errorDescriptor : errorDescriptors) {
             if (map.containsKey(errorDescriptor.getErrorCode())) {
@@ -34,7 +34,7 @@ public class ErrorDescriptorsRoute extends StdEntityRoute {
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
         return Optional.of(errorDescriptors.values());
     }
 }

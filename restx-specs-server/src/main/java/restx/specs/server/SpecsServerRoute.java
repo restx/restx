@@ -18,7 +18,7 @@ import java.util.Iterator;
  * Time: 12:04 PM
  */
 @Component(priority = 1000)
-public class SpecsServerRoute implements RestxRoute, RestxHandler {
+public class SpecsServerRoute implements RestxRoute {
     private final RestxSpecRepository specRepository;
 
     public SpecsServerRoute(RestxSpecRepository specRepository) {
@@ -26,22 +26,28 @@ public class SpecsServerRoute implements RestxRoute, RestxHandler {
     }
 
     @Override
-    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
         Iterable<WhenHttpRequest> spec = specRepository.findSpecsByRequest(req);
         Iterator<WhenHttpRequest> iterator = spec.iterator();
-        return iterator.hasNext()
-                ? Optional.<StdRestxRouteMatch>of(new Match(req, iterator.next()))
-                : Optional.<StdRestxRouteMatch>absent();
-    }
-
-    @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        Match m = (Match) match;
-        resp.setStatus(HttpStatus.havingCode(m.spec.getThen().getExpectedCode()));
-        if (m.spec.getThen().getExpectedCode() == HttpStatus.OK.getCode()) {
-            resp.setContentType("application/json");
+        if (!iterator.hasNext()) {
+            return Optional.absent();
         }
-        resp.getWriter().print(m.spec.getThen().getExpected());
+
+        final WhenHttpRequest whenHttpRequest = iterator.next();
+        return Optional.of(new RestxHandlerMatch(
+                new StdRestxRequestMatch(req.getRestxPath()),
+                new RestxHandler() {
+                    @Override
+                    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp,
+                                       RestxContext ctx) throws IOException {
+                        resp.setStatus(HttpStatus.havingCode(whenHttpRequest.getThen().getExpectedCode()));
+                        if (whenHttpRequest.getThen().getExpectedCode() == HttpStatus.OK.getCode()) {
+                            resp.setContentType("application/json");
+                        }
+                        resp.getWriter().print(whenHttpRequest.getThen().getExpected());
+                    }
+                }
+        ));
     }
 
     @Override
@@ -61,14 +67,5 @@ public class SpecsServerRoute implements RestxRoute, RestxHandler {
         sb.append("--");
 
         return sb.toString();
-    }
-
-    private class Match extends StdRestxRouteMatch {
-        private final WhenHttpRequest spec;
-
-        public Match(RestxRequest req, WhenHttpRequest spec) {
-            super(SpecsServerRoute.this, req.getRestxPath());
-            this.spec = spec;
-        }
     }
 }

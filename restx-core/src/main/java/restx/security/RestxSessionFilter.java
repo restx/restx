@@ -47,12 +47,14 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
     }
 
     @Override
-    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
-        return Optional.of(new StdRestxRouteMatch(this, "*", req.getRestxPath()));
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
+        return Optional.of(new RestxHandlerMatch(
+                new StdRestxRequestMatch("*", req.getRestxPath()),
+                this));
     }
 
     @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
+    public void handle(RestxRequestMatch match, RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
         final RestxSession session = buildContextFromRequest(req);
         if (RestxContext.Modes.RECORDING.equals(ctx.getMode())) {
             // we clean up caches in recording mode so that each request records the cache loading

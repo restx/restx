@@ -10,5 +10,5 @@ import java.io.IOException;
  * Time: 1:06 PM
  */
 public interface MatchedEntityRoute {
-    Optional<?> route(RestxRequest restxRequest, RestxRouteMatch match) throws IOException;
+    Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException;
 }

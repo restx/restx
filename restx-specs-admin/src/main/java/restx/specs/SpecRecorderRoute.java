@@ -19,9 +19,9 @@ public class SpecRecorderRoute extends RestxRouter {
     public SpecRecorderRoute(final RestxSpecRecorder specRecorder, final RestxSpec.StorageSettings storageSettings) {
         super("SpecRecorderRouter",
                 new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs.recorder", ImmutableMap.of("", "index.html")),
-                new StdRoute("RecorderRoute", new StdRouteMatcher("GET", "/@/recorders")) {
+                new StdRoute("RecorderRoute", new StdRestxRequestMatcher("GET", "/@/recorders")) {
                     @Override
-                    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         resp.setContentType("application/json");
                         List<String> data = Lists.newArrayList();
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
@@ -36,9 +36,9 @@ public class SpecRecorderRoute extends RestxRouter {
                     }
                 },
 
-                new StdRoute("RecorderRecord", new StdRouteMatcher("GET", "/@/recorders/{id}")) {
+                new StdRoute("RecorderRecord", new StdRestxRequestMatcher("GET", "/@/recorders/{id}")) {
                     @Override
-                    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         int id = Integer.parseInt(match.getPathParams().get("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                             if (spec.getId() == id) {
@@ -52,9 +52,9 @@ public class SpecRecorderRoute extends RestxRouter {
                     }
                 },
 
-                new StdRoute("RecorderRecordStorage", new StdRouteMatcher("POST", "/@/recorders/storage/{id}")) {
+                new StdRoute("RecorderRecordStorage", new StdRestxRequestMatcher("POST", "/@/recorders/storage/{id}")) {
                     @Override
-                    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         int id = Integer.parseInt(match.getPathParams().get("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
                             if (spec.getId() == id) {

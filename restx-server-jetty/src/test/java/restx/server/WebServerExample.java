@@ -20,19 +20,19 @@ public class WebServerExample {
             .withMapper(mapper)
             .addRoute("GET", "/route1/{id}", new MatchedEntityRoute() {
                 @Override
-                public Optional<?> route(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                     return Optional.of(ImmutableMap.of("id", match.getPathParams().get("id")));
                 }
             })
             .addRoute("GET", "/route2", new MatchedEntityRoute() {
                 @Override
-                public Optional<?> route(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                     return Optional.of(ImmutableMap.of("path", "route2"));
                 }
             })
             .addRoute("GET", "/route3", new MatchedEntityRoute() {
                 @Override
-                public Optional<?> route(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                     return Optional.of(ImmutableMap.of("path", "route3"));
                 }
             })

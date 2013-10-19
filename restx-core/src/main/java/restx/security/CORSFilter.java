@@ -19,21 +19,21 @@ public class CORSFilter implements RestxFilter, RestxHandler {
     }
 
     @Override
-    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
         Optional<String> origin = req.getHeader("Origin");
         if ("GET".equals(req.getHttpMethod())
                         && origin.isPresent()) {
             CORS cors = CORS.check(authorizers, req, origin.get(), "GET", req.getRestxPath());
             if (cors.isAccepted()) {
-                return Optional.of(new StdRestxRouteMatch(this, "*", req.getRestxPath(),
-                        ImmutableMap.<String, String>of(), ImmutableMap.of("cors", cors)));
+                return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("*", req.getRestxPath(),
+                        ImmutableMap.<String, String>of(), ImmutableMap.of("cors", cors)), this));
             }
         }
         return Optional.absent();
     }
 
     @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         resp.setHeader("Access-Control-Allow-Origin", ((CORS) match.getOtherParams().get("cors")).getOrigin());
         ctx.nextHandlerMatch().handle(req, resp, ctx);
     }

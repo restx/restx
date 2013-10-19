@@ -24,18 +24,18 @@ public abstract class StdEntityRoute extends StdRoute {
     /**
      * @deprecated Kept for backward compatibility with version <- 0.2.8
      */
-    public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher) {
+    public StdEntityRoute(String name, ObjectMapper mapper, RestxRequestMatcher matcher) {
         this(name, mapper, matcher, HttpStatus.OK, RestxLogLevel.DEFAULT);
     }
 
-    public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher, HttpStatus successStatus, RestxLogLevel logLevel) {
+    public StdEntityRoute(String name, ObjectMapper mapper, RestxRequestMatcher matcher, HttpStatus successStatus, RestxLogLevel logLevel) {
         super(name, matcher, successStatus);
         this.mapper = checkNotNull(mapper);
         this.logLevel = checkNotNull(logLevel);
     }
 
     @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         resp.setLogLevel(logLevel);
         ctx.getLifecycleListener().onRouteMatch(this);
         Optional<?> result = doRoute(req, match);
@@ -61,5 +61,5 @@ public abstract class StdEntityRoute extends StdRoute {
         return mapper.writerWithView(Views.Transient.class);
     }
 
-    protected abstract Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException;
+    protected abstract Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException;
 }

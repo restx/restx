@@ -8,5 +8,5 @@ import java.io.IOException;
  * Time: 9:30 PM
  */
 public interface RestxHandler {
-    void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException;
+    void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException;
 }

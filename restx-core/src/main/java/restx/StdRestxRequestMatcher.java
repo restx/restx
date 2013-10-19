@@ -14,14 +14,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Date: 1/19/13
  * Time: 7:55 AM
  */
-public class StdRouteMatcher implements RestxRouteMatcher {
+public class StdRestxRequestMatcher implements RestxRequestMatcher {
     private final String method;
     private final String pathPattern;
 
     private final Pattern pattern;
     private final ImmutableList<String> groupNames;
 
-    public StdRouteMatcher(String method, String pathPattern) {
+    public StdRestxRequestMatcher(String method, String pathPattern) {
         this.method = checkNotNull(method);
         this.pathPattern = checkNotNull(pathPattern);
 
@@ -41,7 +41,7 @@ public class StdRouteMatcher implements RestxRouteMatcher {
     }
 
     @Override
-    public Optional<? extends RestxRouteMatch> match(RestxHandler handler, String method, String path) {
+    public Optional<? extends RestxRequestMatch> match(String method, String path) {
         if (!this.method.equals(method)) {
             return Optional.absent();
         }
@@ -55,7 +55,7 @@ public class StdRouteMatcher implements RestxRouteMatcher {
              params.put(groupNames.get(i), m.group(i + 1));
         }
 
-        return Optional.of(new StdRestxRouteMatch(handler, pathPattern, path, params.build()));
+        return Optional.of(new StdRestxRequestMatch(pathPattern, path, params.build()));
     }
 
     @Override

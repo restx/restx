@@ -8,5 +8,5 @@ import com.google.common.base.Optional;
  * Time: 9:30 PM
  */
 public interface RestxHandlerMatcher {
-    Optional<? extends RestxRouteMatch> match(RestxRequest req);
+    Optional<RestxHandlerMatch> match(RestxRequest req);
 }

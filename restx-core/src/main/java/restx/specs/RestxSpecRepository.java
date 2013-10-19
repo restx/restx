@@ -81,7 +81,7 @@ public class RestxSpecRepository {
 
     Iterable<String> filterSpecsByOperation(ImmutableMap<String, RestxSpec> allSpecs,
                                                     String httpMethod, String path) {
-        StdRouteMatcher matcher = new StdRouteMatcher(httpMethod, path);
+        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher(httpMethod, path);
         Collection<String> specs = Lists.newArrayList();
         for (Map.Entry<String, RestxSpec> spec : allSpecs.entrySet()) {
             for (When when : spec.getValue().getWhens()) {
@@ -94,7 +94,7 @@ public class RestxSpecRepository {
                     if (requestPath.indexOf("?") != -1) {
                         requestPath = requestPath.substring(0, requestPath.indexOf("?"));
                     }
-                    Optional<? extends RestxRouteMatch> match = matcher.match(HANDLER, request.getMethod(), requestPath);
+                    Optional<? extends RestxRequestMatch> match = matcher.match(request.getMethod(), requestPath);
                     if (match.isPresent()) {
                         specs.add(spec.getKey());
                         break;
@@ -134,12 +134,4 @@ public class RestxSpecRepository {
         }
         return matchingRequestsSpecs;
     }
-
-    private static final RestxHandler HANDLER = new RestxHandler() {
-        @Override
-        public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        }
-    };
-
-
 }

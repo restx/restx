@@ -52,16 +52,18 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
     }
 
     @Override
-    public Optional<? extends RestxRouteMatch> match(RestxRequest req) {
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
         if (req.getHttpMethod().equals("GET") && req.getRestxPath().startsWith(baseRestPath)) {
-            return Optional.of(new StdRestxRouteMatch(this, baseRestPath + "*", req.getRestxPath()));
+            return Optional.of(new RestxHandlerMatch(
+                    new StdRestxRequestMatch(baseRestPath + "*", req.getRestxPath()),
+                    this));
         } else {
             return Optional.absent();
         }
     }
 
     @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         String relativePath = req.getRestxPath().substring(baseRestPath.length());
         relativePath = Optional.fromNullable(aliases.get(relativePath)).or(relativePath);
         try {

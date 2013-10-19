@@ -18,20 +18,20 @@ public class RestxContext {
 
     private final String mode;
     private final RouteLifecycleListener lifecycleListener;
-    private final ImmutableList<RestxRouteMatch> matches;
-    private final UnmodifiableIterator<RestxRouteMatch> matchesIterator;
+    private final ImmutableList<RestxHandlerMatch> matches;
+    private final UnmodifiableIterator<RestxHandlerMatch> matchesIterator;
 
 
     public RestxContext(String mode, RouteLifecycleListener lifecycleListener,
-                        ImmutableList<RestxRouteMatch> matches) {
+                        ImmutableList<RestxHandlerMatch> matches) {
         this.mode = mode;
         this.lifecycleListener = lifecycleListener;
         this.matches = matches;
         this.matchesIterator = matches.iterator();
     }
 
-    public RestxContext(String mode, RouteLifecycleListener lifecycleListener, ImmutableList<RestxRouteMatch> matches,
-                        UnmodifiableIterator<RestxRouteMatch> matchesIterator) {
+    public RestxContext(String mode, RouteLifecycleListener lifecycleListener, ImmutableList<RestxHandlerMatch> matches,
+                        UnmodifiableIterator<RestxHandlerMatch> matchesIterator) {
         this.mode = mode;
         this.lifecycleListener = lifecycleListener;
         this.matches = matches;
@@ -46,7 +46,7 @@ public class RestxContext {
         return lifecycleListener;
     }
 
-    public RestxRouteMatch nextHandlerMatch() {
+    public RestxHandlerMatch nextHandlerMatch() {
         if (matchesIterator.hasNext()) {
             return matchesIterator.next();
         }

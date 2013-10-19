@@ -41,12 +41,12 @@ public class ApiDocsIndexRoute extends StdEntityRoute {
 
     @Inject
     public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper, Factory factory) {
-        super("ApiDocsIndexRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs"));
+        super("ApiDocsIndexRoute", mapper, new StdRestxRequestMatcher("GET", "/@/api-docs"));
         this.factory = factory;
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
         return Optional.of(ImmutableMap.builder()
                 .put("apiVersion", "0.1") // TODO
                 .put("swaggerVersion", "1.1")
