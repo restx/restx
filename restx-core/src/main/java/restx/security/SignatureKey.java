@@ -1,4 +1,4 @@
-package restx;
+package restx.security;
 
 /**
  * User: xavierhanin
