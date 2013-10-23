@@ -9,11 +9,13 @@ import com.google.common.collect.Lists;
 import restx.*;
 import restx.description.DescribableRoute;
 import restx.description.ResourceDescription;
+import restx.entity.StdEntityRoute;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
+import restx.jackson.StdJsonEntityRoute;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -39,7 +41,7 @@ import java.util.List;
  * See <a href="https://github.com/wordnik/swagger-core/wiki/API-Declaration">API Declaration</a>
  */
 @Component
-public class ApiDeclarationRoute extends StdEntityRoute {
+public class ApiDeclarationRoute extends StdJsonEntityRoute {
     private final Factory factory;
 
     @Inject

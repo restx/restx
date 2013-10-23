@@ -4,6 +4,7 @@ import com.github.mustachejava.Mustache;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.*;
 import restx.http.HttpStatus;
 import restx.RestxLogLevel;
@@ -26,6 +27,8 @@ import java.io.Writer;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 
 /**
  * User: xavierhanin
@@ -285,15 +288,14 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
-                    .put("overrideWriteValue", resourceMethod.returnType.startsWith(Iterable.class.getName()) ?
-                            String.format("protected ObjectWriter getObjectWriter(ObjectMapper mapper) { return super.getObjectWriter(mapper).withType(new TypeReference<%s>() { }); }", resourceMethod.returnType)
-                            : "")
+                    .put("entityType", getTypeExpressionFor(resourceMethod.returnType))
                     .put("successStatusName", resourceMethod.successStatus.name())
                     .put("logLevelName", resourceMethod.logLevel.name())
                     .build()
             );
         }
     }
+
 
     private String toTypeDescription(String type) {
         // see https://github.com/wordnik/swagger-core/wiki/datatypes

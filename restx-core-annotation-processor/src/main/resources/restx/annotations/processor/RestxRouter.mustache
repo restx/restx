@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import restx.common.Types;
 import restx.*;
+import restx.entity.*;
 import restx.http.*;
 import restx.factory.*;
 import restx.security.*;
@@ -25,19 +27,17 @@ import java.io.PrintWriter;
 {{{condition}}}
 public class {{{router}}} extends RestxRouter {
 
-    public {{{router}}}(final {{{resource}}} resource, final ObjectMapper mapper, final MainStringConverter converter,
+    public {{{router}}}(final {{{resource}}} resource, final EntityResponseWriterRegistry registry, final ObjectMapper mapper, final MainStringConverter converter,
                     final Validator validator, final RestxSecurityManager securityManager) {
         super(
             "{{{routerGroup}}}", "{{{router}}}", new RestxRoute[] {
 {{#routes}}
-        new StdEntityRoute("{{{routeId}}}", mapper, new StdRestxRequestMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
+        new StdEntityRoute("{{{routeId}}}", registry.build({{entityType}}, Optional.<String>absent()), new StdRestxRequestMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
             @Override
             protected Optional<?> doRoute(RestxRequest request, RestxRequestMatch match) throws IOException {
                 {{{securityCheck}}}
                 return {{{call}}};
             }
-
-            {{{overrideWriteValue}}}
 
             @Override
             protected void describeOperation(OperationDescription operation) {

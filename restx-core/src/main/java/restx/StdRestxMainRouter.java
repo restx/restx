@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.exceptions.RestxError;
 import restx.http.HttpStatus;
+import restx.jackson.StdJsonEntityRoute;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -59,7 +60,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
 
         public Builder addRoute(String method, String path, final MatchedEntityRoute route) {
-            routes.add(new StdEntityRoute(path, mapper, new StdRestxRequestMatcher(method, path)) {
+            routes.add(new StdJsonEntityRoute(path, mapper, new StdRestxRequestMatcher(method, path)) {
                 @Override
                 protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                     return route.route(restxRequest, match);

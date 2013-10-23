@@ -6,10 +6,12 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
+import restx.entity.StdEntityRoute;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
+import restx.jackson.StdJsonEntityRoute;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,7 +38,7 @@ import java.util.Set;
  * }
  */
 @Component
-public class ApiDocsIndexRoute extends StdEntityRoute {
+public class ApiDocsIndexRoute extends StdJsonEntityRoute {
     private final Factory factory;
 
     @Inject
