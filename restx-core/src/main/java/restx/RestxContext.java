@@ -60,21 +60,21 @@ public class RestxContext {
     public RestxContext withListener(final RouteLifecycleListener listener) {
         return new RestxContext(mode, new RouteLifecycleListener() {
             @Override
-            public void onRouteMatch(RestxRoute source) {
-                lifecycleListener.onRouteMatch(source);
-                listener.onRouteMatch(source);
+            public void onRouteMatch(RestxRoute source, RestxRequest req, RestxResponse resp) {
+                lifecycleListener.onRouteMatch(source, req, resp);
+                listener.onRouteMatch(source, req, resp);
             }
 
             @Override
-            public void onBeforeWriteContent(RestxRoute source) {
-                lifecycleListener.onBeforeWriteContent(source);
-                listener.onBeforeWriteContent(source);
+            public void onBeforeWriteContent(RestxRequest req, RestxResponse resp) {
+                lifecycleListener.onBeforeWriteContent(req, resp);
+                listener.onBeforeWriteContent(req, resp);
             }
 
             @Override
-            public void onAfterWriteContent(RestxRoute source) {
-                lifecycleListener.onAfterWriteContent(source);
-                listener.onAfterWriteContent(source);
+            public void onAfterWriteContent(RestxRequest req, RestxResponse resp) {
+                lifecycleListener.onAfterWriteContent(req, resp);
+                listener.onAfterWriteContent(req, resp);
             }
         }, matches, matchesIterator);
     }

@@ -67,7 +67,7 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
         try {
             RouteLifecycleListener lifecycleListener = new AbstractRouteLifecycleListener() {
                 @Override
-                public void onBeforeWriteContent(RestxRoute source) {
+                public void onBeforeWriteContent(RestxRequest req, RestxResponse resp) {
                     RestxSession newSession = RestxSession.current();
                     if (newSession != session) {
                         updateSessionInClient(resp, newSession);

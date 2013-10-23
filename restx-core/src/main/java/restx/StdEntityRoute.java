@@ -37,7 +37,7 @@ public abstract class StdEntityRoute extends StdRoute {
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         resp.setLogLevel(logLevel);
-        ctx.getLifecycleListener().onRouteMatch(this);
+        ctx.getLifecycleListener().onRouteMatch(this, req, resp);
         Optional<?> result = doRoute(req, match);
         if (result.isPresent()) {
             resp.setStatus(getSuccessStatus());
@@ -46,9 +46,9 @@ public abstract class StdEntityRoute extends StdRoute {
             if (value instanceof Iterable) {
                 value = Lists.newArrayList((Iterable) value);
             }
-            ctx.getLifecycleListener().onBeforeWriteContent(this);
+            ctx.getLifecycleListener().onBeforeWriteContent(req, resp);
             writeValue(mapper, resp.getWriter(), value);
-            ctx.getLifecycleListener().onAfterWriteContent(this);
+            ctx.getLifecycleListener().onAfterWriteContent(req, resp);
         } else {
             notFound(match,resp);
         }

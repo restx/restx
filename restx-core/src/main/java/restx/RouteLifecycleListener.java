@@ -8,7 +8,7 @@ package restx;
 public interface RouteLifecycleListener {
     public static final RouteLifecycleListener DEAF = new AbstractRouteLifecycleListener() {};
 
-    void onRouteMatch(RestxRoute source);
-    void onBeforeWriteContent(RestxRoute source);
-    void onAfterWriteContent(RestxRoute source);
+    void onRouteMatch(RestxRoute route, RestxRequest req, RestxResponse resp);
+    void onBeforeWriteContent(RestxRequest req, RestxResponse resp);
+    void onAfterWriteContent(RestxRequest req, RestxResponse resp);
 }

@@ -6,14 +6,14 @@ package restx;
  */
 public  abstract class AbstractRouteLifecycleListener implements RouteLifecycleListener {
     @Override
-    public void onRouteMatch(RestxRoute source) {
+    public void onRouteMatch(RestxRoute route, RestxRequest req, RestxResponse resp) {
     }
 
     @Override
-    public void onBeforeWriteContent(RestxRoute source) {
+    public void onBeforeWriteContent(RestxRequest req, RestxResponse resp) {
     }
 
     @Override
-    public void onAfterWriteContent(RestxRoute source) {
+    public void onAfterWriteContent(RestxRequest req, RestxResponse resp) {
     }
 }
