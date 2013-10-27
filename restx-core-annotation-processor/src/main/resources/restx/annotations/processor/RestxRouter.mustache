@@ -27,14 +27,23 @@ import java.io.PrintWriter;
 {{{condition}}}
 public class {{{router}}} extends RestxRouter {
 
-    public {{{router}}}(final {{{resource}}} resource, final EntityResponseWriterRegistry registry, final ObjectMapper mapper, final MainStringConverter converter,
-                    final Validator validator, final RestxSecurityManager securityManager) {
+    public {{{router}}}(
+                    final {{{resource}}} resource,
+                    final EntityRequestBodyReaderRegistry readerRegistry,
+                    final EntityResponseWriterRegistry writerRegistry,
+                    final MainStringConverter converter,
+                    final Validator validator,
+                    final RestxSecurityManager securityManager) {
         super(
             "{{{routerGroup}}}", "{{{router}}}", new RestxRoute[] {
 {{#routes}}
-        new StdEntityRoute("{{{routeId}}}", registry.build({{entityType}}, Optional.<String>absent()), new StdRestxRequestMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
+        new StdEntityRoute<{{{inEntity}}}, {{{outEntity}}}>("{{{routeId}}}",
+                readerRegistry.<{{{inEntity}}}>build({{inEntityType}}, Optional.<String>absent()),
+                writerRegistry.<{{{outEntity}}}>build({{outEntityType}}, Optional.<String>absent()),
+                new StdRestxRequestMatcher("{{{method}}}", "{{{path}}}"),
+                HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
             @Override
-            protected Optional<?> doRoute(RestxRequest request, RestxRequestMatch match) throws IOException {
+            protected Optional<{{{outEntity}}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {
                 {{{securityCheck}}}
                 return {{{call}}};
             }

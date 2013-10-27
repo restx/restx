@@ -9,13 +9,12 @@ import com.google.common.collect.Lists;
 import restx.*;
 import restx.description.DescribableRoute;
 import restx.description.ResourceDescription;
-import restx.entity.StdEntityRoute;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
-import restx.jackson.StdJsonEntityRoute;
+import restx.jackson.StdJsonProducerEntityRoute;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,7 +40,7 @@ import java.util.List;
  * See <a href="https://github.com/wordnik/swagger-core/wiki/API-Declaration">API Declaration</a>
  */
 @Component
-public class ApiDeclarationRoute extends StdJsonEntityRoute {
+public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
 
     @Inject
@@ -52,7 +51,7 @@ public class ApiDeclarationRoute extends StdJsonEntityRoute {
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object body) throws IOException {
         String routerName = match.getPathParam("router");
         routerName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, routerName);
 

@@ -246,11 +246,14 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             List<String> callParameters = Lists.newArrayList();
             List<String> parametersDescription = Lists.newArrayList();
 
+            String inEntityClass = "Void";
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
                 String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
                 if (!String.class.getName().equals(parameter.type)
                         && parameter.kind != ResourceMethodParameterKind.BODY) {
                     getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
+                } else if (parameter.kind == ResourceMethodParameterKind.BODY) {
+                    inEntityClass = parameter.type;
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
 
@@ -288,7 +291,10 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
-                    .put("entityType", getTypeExpressionFor(resourceMethod.returnType))
+                    .put("inEntity", inEntityClass)
+                    .put("inEntityType", getTypeExpressionFor(inEntityClass))
+                    .put("outEntity", resourceMethod.returnType)
+                    .put("outEntityType", getTypeExpressionFor(resourceMethod.returnType))
                     .put("successStatusName", resourceMethod.successStatus.name())
                     .put("logLevelName", resourceMethod.logLevel.name())
                     .build()
@@ -482,7 +488,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         },
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                return String.format("checkValid(validator, mapper.readValue(request.getContentStream(), %s.class))", parameter.type);
+                return String.format("checkValid(validator, body)", parameter.type);
             }
         },
         CONTEXT {

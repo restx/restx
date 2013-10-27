@@ -13,34 +13,17 @@ import java.util.Set;
  * Time: 09:53
  */
 public class EntityResponseWriterRegistry {
-    private final Iterable<EntityDefaultContentTypeProvider> entityDefaultContentTypeProviders;
+    private final EntityContentTypeResolver entityContentTypeResolver;
     private final Iterable<EntityResponseWriterFactory> entityResponseWriterFactories;
 
     public EntityResponseWriterRegistry(Iterable<EntityDefaultContentTypeProvider> entityDefaultContentTypeProviders,
                                         Iterable<EntityResponseWriterFactory> entityResponseWriterFactories) {
-        this.entityDefaultContentTypeProviders = entityDefaultContentTypeProviders;
+        entityContentTypeResolver = new EntityContentTypeResolver(entityDefaultContentTypeProviders);
         this.entityResponseWriterFactories = entityResponseWriterFactories;
     }
 
     public <T> EntityResponseWriter<T> build(final Type type, Optional<String> contentType) {
-        String ct = contentType.or(new Supplier<String>() {
-            @Override
-            public String get() {
-                for (EntityDefaultContentTypeProvider entityDefaultContentTypeProvider : entityDefaultContentTypeProviders) {
-                    Optional<String> contentType = entityDefaultContentTypeProvider.mayProvideDefaultContentType(type);
-                    if (contentType.isPresent()) {
-                        return contentType.get();
-                    }
-                }
-                throw new IllegalStateException(String.format(
-                        "no EntityDefaultContentTypeProvider provided for %s.\n\n" +
-                                "The list of providers are:\n%s.\n\n" +
-                                "By default RESTX should provide a 'application/json' default content type for any type\n" +
-                                "through JsonEntityDefaultContentTypeProvider, if you haven't removed it on purpose you\n" +
-                                "may have to double check your restx distribution and your classpath\n",
-                        type, Joiner.on("\n\t").join(entityDefaultContentTypeProviders)));
-            }
-        });
+        String ct = entityContentTypeResolver.resolveContentType(type, contentType);
 
         for (EntityResponseWriterFactory writerFactory : entityResponseWriterFactories) {
             Optional<? extends EntityResponseWriter<Object>> writer = writerFactory.mayBuildFor(type, ct);
