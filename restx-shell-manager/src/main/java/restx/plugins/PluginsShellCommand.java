@@ -57,7 +57,7 @@ public class PluginsShellCommand extends StdShellCommand {
         }
         switch (args.get(1)) {
             case "install":
-                return Optional.<ShellCommandRunner>of(new InstallPluginRunner());
+                return Optional.<ShellCommandRunner>of(new InstallPluginRunner(args));
             case "upgrade":
                 return Optional.<ShellCommandRunner>of(new UpgradeShellRunner());
         }
@@ -174,6 +174,16 @@ public class PluginsShellCommand extends StdShellCommand {
     }
 
     private class InstallPluginRunner implements ShellCommandRunner {
+        private final Optional<List<String>> pluginIds;
+
+        public InstallPluginRunner(List<String> args) {
+            if (args.size() > 1) {
+                pluginIds = Optional.<List<String>>of(new ArrayList<>(args.subList(1, args.size())));
+            } else {
+                pluginIds = Optional.absent();
+            }
+        }
+
         @Override
         public void run(RestxShell shell) throws Exception {
             ModulesManager modulesManager = new ModulesManager(
@@ -181,17 +191,24 @@ public class PluginsShellCommand extends StdShellCommand {
 
             shell.println("looking for plugins...");
             List<ModuleDescriptor> plugins = modulesManager.searchModules("category=shell");
-            shell.printIn("found " + plugins.size() + " available plugins", RestxShell.AnsiCodes.ANSI_CYAN);
-            shell.println("");
 
-            for (int i = 0; i < plugins.size(); i++) {
-                ModuleDescriptor plugin = plugins.get(i);
-                shell.printIn(String.format(" [%3d] %s%n", i + 1, plugin.getId()), RestxShell.AnsiCodes.ANSI_PURPLE);
-                shell.println("\t\t" + plugin.getDescription());
+            Iterable<String> selected = null;
+            if (!pluginIds.isPresent()) {
+                shell.printIn("found " + plugins.size() + " available plugins", RestxShell.AnsiCodes.ANSI_CYAN);
+                shell.println("");
+
+                for (int i = 0; i < plugins.size(); i++) {
+                    ModuleDescriptor plugin = plugins.get(i);
+                    shell.printIn(String.format(" [%3d] %s%n", i + 1, plugin.getId()), RestxShell.AnsiCodes.ANSI_PURPLE);
+                    shell.println("\t\t" + plugin.getDescription());
+                }
+
+                String sel = shell.ask("Which plugin would you like to install (eg '1 3 5')? \nYou can also provide a plugin id in the form <groupId>:<moduleId>:<version>\n plugin to install: ", "");
+                selected = Splitter.on(" ").trimResults().omitEmptyStrings().split(sel);
+            } else {
+                selected = pluginIds.get();
             }
 
-            String sel = shell.ask("Which plugin would you like to install (eg '1 3 5')? \nYou can also provide a plugin id in the form <groupId>:<moduleId>:<version>\n plugin to install: ", "");
-            Iterable<String> selected = Splitter.on(" ").trimResults().omitEmptyStrings().split(sel);
             File pluginsDir = pluginsDir(shell);
             int count = 0;
             for (String s : selected) {
