@@ -277,10 +277,19 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     "                        " +
                     Joiner.on(",\n                        ").join(callParameters) + "\n" +
                     "                )";
-            if (!resourceMethod.returnTypeOptional) {
-                call = "Optional.of(" + call + ")";
+
+            if (resourceMethod.returnType.equalsIgnoreCase("void")) {
+                call = call + ";\n" +
+                        "                return Optional.of(Empty.EMPTY);";
+            } else {
+                if (!resourceMethod.returnTypeOptional) {
+                    call = "Optional.of(" + call + ")";
+                }
+
+                call = "return " + call + ";";
             }
 
+            String outEntity = resourceMethod.returnType.equalsIgnoreCase("void") ? "Empty" : resourceMethod.returnType;
             routes.add(ImmutableMap.<String, Object>builder()
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
@@ -293,7 +302,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
                     .put("inEntity", inEntityClass)
                     .put("inEntityType", getTypeExpressionFor(inEntityClass))
-                    .put("outEntity", resourceMethod.returnType)
+                    .put("outEntity", outEntity)
                     .put("outEntityType", getTypeExpressionFor(resourceMethod.returnType))
                     .put("successStatusName", resourceMethod.successStatus.name())
                     .put("logLevelName", resourceMethod.logLevel.name())

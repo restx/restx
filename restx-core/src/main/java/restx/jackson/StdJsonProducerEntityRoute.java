@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import restx.RestxLogLevel;
 import restx.RestxRequestMatcher;
 import restx.entity.StdEntityRoute;
-import restx.entity.VoidEntityRequestBodyReader;
+import restx.entity.VoidContentTypeModule;
 import restx.http.HttpStatus;
 
 /**
@@ -14,7 +14,7 @@ import restx.http.HttpStatus;
 public abstract class StdJsonProducerEntityRoute<O> extends StdEntityRoute<Void,O> {
     public StdJsonProducerEntityRoute(String name, ObjectMapper mapper, RestxRequestMatcher matcher) {
         super(name,
-                VoidEntityRequestBodyReader.INSTANCE,
+                VoidContentTypeModule.VoidEntityRequestBodyReader.INSTANCE,
                 JsonEntityResponseWriter.<O>using(mapper),
                 matcher,
                 HttpStatus.OK, RestxLogLevel.DEFAULT);
