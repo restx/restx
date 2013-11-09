@@ -96,7 +96,7 @@ public class SpecsShellCommand extends StdShellCommand {
                     .getComponent(AppSettings.class);
 
             new ShellAppRunner(appSettings, "restx.tests.RestxSpecTestServer",
-                    ShellAppRunner.CompileMode.NO, quiet, Collections.<String>emptyList()).run(shell);
+                    ShellAppRunner.CompileMode.NO, quiet, false, Collections.<String>emptyList()).run(shell);
         }
     }
 

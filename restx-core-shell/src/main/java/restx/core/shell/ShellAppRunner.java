@@ -124,13 +124,16 @@ public class ShellAppRunner {
     private final String appClassName;
     private final CompileMode compile;
     private final boolean quiet;
+    private final boolean daemon;
     private final List<String> vmOptions;
 
-    public ShellAppRunner(AppSettings appSettings, String appClassName, CompileMode compile, boolean quiet, List<String> vmOptions) {
+    public ShellAppRunner(AppSettings appSettings, String appClassName, CompileMode compile,
+                          boolean quiet, boolean daemon, List<String> vmOptions) {
         this.appSettings = appSettings;
         this.appClassName = appClassName;
         this.compile = compile;
         this.quiet = quiet;
+        this.daemon = daemon;
         this.vmOptions = new ArrayList<>(vmOptions);
     }
 
@@ -142,19 +145,22 @@ public class ShellAppRunner {
 
         if (!compile.compile(shell, targetClasses, dependenciesDir, mainSources, mainResources, appClassName)) return;
 
-        shell.println("starting " + appClassName + "... - type `stop` to stop it and go back to restx shell");
+        shell.println("starting " + appClassName + "..." +
+                (daemon ? " - type `stop` to stop it and go back to restx shell" : ""));
         vmOptions.add("-Drestx.app.package=" + appSettings.appPackage());
         Process run = Apps.with(appSettings)
                                 .run(shell.currentLocation().toFile(),
                                         targetClasses, dependenciesDir, vmOptions,
                                         appClassName, Collections.<String>emptyList(), quiet);
 
-        while (!shell.ask("", "").equals("stop")) {
-            shell.printIn("restx> unrecognized command - type `stop` to stop the app",
-                    RestxShell.AnsiCodes.ANSI_YELLOW);
-            shell.println("");
+        if (daemon) {
+            while (!shell.ask("", "").equals("stop")) {
+                shell.printIn("restx> unrecognized command - type `stop` to stop the app",
+                        RestxShell.AnsiCodes.ANSI_YELLOW);
+                shell.println("");
+            }
+            run.destroy();
         }
-        run.destroy();
         run.waitFor();
     }
 

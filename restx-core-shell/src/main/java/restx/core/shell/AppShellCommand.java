@@ -1,12 +1,14 @@
 package restx.core.shell;
 
 import com.github.mustachejava.Mustache;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
@@ -22,8 +24,10 @@ import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -48,6 +52,10 @@ public class AppShellCommand extends StdShellCommand {
         switch (args.get(1)) {
             case "new":
                 return Optional.of(new NewAppCommandRunner());
+            case "compile":
+                return Optional.of(new CompileAppCommandRunner(args));
+            case "generate-start-script":
+                return Optional.of(new GenerateStartCommandRunner(args));
             case "run":
                 return Optional.of(new RunAppCommandRunner(args));
         }
@@ -58,7 +66,7 @@ public class AppShellCommand extends StdShellCommand {
     @Override
     public Iterable<Completer> getCompleters() {
         return ImmutableList.<Completer>of(new ArgumentCompleter(
-                new StringsCompleter("app"), new StringsCompleter("new", "run")));
+                new StringsCompleter("app"), new StringsCompleter("new", "run", "compile", "generate-start-script")));
     }
 
     static class NewAppDescriptor {
@@ -249,20 +257,101 @@ public class AppShellCommand extends StdShellCommand {
         }
     }
 
+    private class CompileAppCommandRunner implements ShellCommandRunner {
+        private ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.ALL;
+
+        public CompileAppCommandRunner(List<String> args) {
+        }
+
+        @Override
+        public void run(RestxShell shell) throws Exception {
+            AppSettings appSettings = shell.getFactory()
+                    .getComponent(AppSettings.class);
+            compileMode.compile(
+                    shell,
+                    Paths.get(appSettings.targetClasses()),
+                    Paths.get(appSettings.targetDependency()),
+                    Paths.get(appSettings.mainSources()),
+                    Paths.get(appSettings.mainResources()),
+                    null);
+        }
+    }
+
+    private class GenerateStartCommandRunner implements ShellCommandRunner {
+        private String appClassName;
+
+        public GenerateStartCommandRunner(List<String> args) {
+            if (args.size() > 2) {
+                appClassName = args.get(2);
+            }
+        }
+
+        @Override
+        public void run(RestxShell shell) throws Exception {
+            AppSettings appSettings = shell.getFactory()
+                    .getComponent(AppSettings.class);
+            Optional<String> pack = Optional.absent();
+            if (appClassName == null) {
+                pack = Apps.with(appSettings)
+                        .guessAppBasePackage(shell.currentLocation());
+                if (!pack.isPresent()) {
+                    shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
+                            RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("");
+                    shell.println("alternatively you can provide the class to run with `app generate-start-script <class.to.Run>`");
+                    return;
+                }
+                appClassName = pack.get() + ".AppServer";
+            } else {
+                pack = Optional.of(appClassName.substring(0, appClassName.lastIndexOf('.')));
+            }
+
+
+
+            String command = "java" +
+                    " -cp \"" + appSettings.targetClasses() + ":" + appSettings.targetDependency() + "/*\"" +
+                    " -Drestx.app.package=" + pack.get()
+                    ;
+
+            File startSh = shell.currentLocation().resolve("start.sh").toFile();
+            Files.write(
+                    "#!/bin/sh\n\n" +
+                            command + " $VM_OPTIONS " +
+                            " " + appClassName + "\n",
+                    startSh, Charsets.UTF_8);
+            startSh.setExecutable(true);
+
+            File startBat = shell.currentLocation().resolve("start.bat").toFile();
+            Files.write(
+                    command + " %VM_OPTIONS% " +
+                    " " + appClassName + "\r\n",
+                    startBat, Charsets.ISO_8859_1);
+
+            shell.printIn("generated start scripts:\n" +
+                    "\t" + startSh.getAbsolutePath() + "\n" +
+                    "\t" + startBat.getAbsolutePath() + "\n",
+                    RestxShell.AnsiCodes.ANSI_GREEN);
+        }
+    }
+
     private class RunAppCommandRunner implements ShellCommandRunner {
         private String appClassName;
         private boolean quiet;
+        private boolean daemon;
         private ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.MAIN_CLASS;
         private List<String> vmOptions = new ArrayList<>();
 
         public RunAppCommandRunner(List<String> args) {
             args = new ArrayList<>(args);
             quiet = false;
+            daemon = true;
 
             while (args.size() > 2) {
                 String arg = args.get(2);
                 if (arg.equalsIgnoreCase("--quiet")) {
                     quiet = true;
+                } else if (arg.startsWith("--fg")) {
+                    daemon = false;
                 } else if (arg.startsWith("--mode=")) {
                     String mode = arg.substring("--mode=".length());
                     vmOptions.add("-Drestx.mode=" + mode);
@@ -298,7 +387,7 @@ public class AppShellCommand extends StdShellCommand {
             AppSettings appSettings = shell.getFactory()
                     .concat(new SingletonFactoryMachine<>(-10000, NamedComponent.of(String.class, "restx.app.package", basePack)))
                     .getComponent(AppSettings.class);
-            new ShellAppRunner(appSettings, appClassName, compileMode, quiet, vmOptions)
+            new ShellAppRunner(appSettings, appClassName, compileMode, quiet, daemon, vmOptions)
                 .run(shell);
         }
     }
