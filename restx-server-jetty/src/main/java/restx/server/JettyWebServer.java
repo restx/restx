@@ -145,4 +145,15 @@ public class JettyWebServer implements WebServer {
             }
         };
     }
+
+    public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            System.err.println("usage: jetty-run <appbase> [<port>]");
+            System.exit(1);
+        }
+
+        String appBase = args[0];
+        int port = args.length > 1 ? Integer.parseInt(args[1]) : 8086;
+        new JettyWebServer(appBase + "WEB-INF/web.xml", appBase, port, "0.0.0.0").startAndAwait();
+    }
 }
