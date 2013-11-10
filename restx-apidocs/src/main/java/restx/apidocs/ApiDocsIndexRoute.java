@@ -10,6 +10,7 @@ import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
+import restx.jackson.StdJsonProducerEntityRoute;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -36,7 +37,7 @@ import java.util.Set;
  * }
  */
 @Component
-public class ApiDocsIndexRoute extends StdEntityRoute {
+public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
 
     @Inject
@@ -46,7 +47,7 @@ public class ApiDocsIndexRoute extends StdEntityRoute {
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
         return Optional.of(ImmutableMap.builder()
                 .put("apiVersion", "0.1") // TODO
                 .put("swaggerVersion", "1.1")

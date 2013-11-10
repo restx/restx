@@ -4,6 +4,7 @@ import com.github.mustachejava.Mustache;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.*;
 import restx.http.HttpStatus;
 import restx.RestxLogLevel;
@@ -26,6 +27,8 @@ import java.io.Writer;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 
 /**
  * User: xavierhanin
@@ -243,11 +246,14 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             List<String> callParameters = Lists.newArrayList();
             List<String> parametersDescription = Lists.newArrayList();
 
+            String inEntityClass = "Void";
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
                 String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
                 if (!String.class.getName().equals(parameter.type)
                         && parameter.kind != ResourceMethodParameterKind.BODY) {
                     getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
+                } else if (parameter.kind == ResourceMethodParameterKind.BODY) {
+                    inEntityClass = parameter.type;
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
 
@@ -271,10 +277,19 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     "                        " +
                     Joiner.on(",\n                        ").join(callParameters) + "\n" +
                     "                )";
-            if (!resourceMethod.returnTypeOptional) {
-                call = "Optional.of(" + call + ")";
+
+            if (resourceMethod.returnType.equalsIgnoreCase("void")) {
+                call = call + ";\n" +
+                        "                return Optional.of(Empty.EMPTY);";
+            } else {
+                if (!resourceMethod.returnTypeOptional) {
+                    call = "Optional.of(" + call + ")";
+                }
+
+                call = "return " + call + ";";
             }
 
+            String outEntity = resourceMethod.returnType.equalsIgnoreCase("void") ? "Empty" : resourceMethod.returnType;
             routes.add(ImmutableMap.<String, Object>builder()
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
@@ -285,15 +300,17 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
-                    .put("overrideWriteValue", resourceMethod.returnType.startsWith(Iterable.class.getName()) ?
-                            String.format("protected ObjectWriter getObjectWriter(ObjectMapper mapper) { return super.getObjectWriter(mapper).withType(new TypeReference<%s>() { }); }", resourceMethod.returnType)
-                            : "")
+                    .put("inEntity", inEntityClass)
+                    .put("inEntityType", getTypeExpressionFor(inEntityClass))
+                    .put("outEntity", outEntity)
+                    .put("outEntityType", getTypeExpressionFor(resourceMethod.returnType))
                     .put("successStatusName", resourceMethod.successStatus.name())
                     .put("logLevelName", resourceMethod.logLevel.name())
                     .build()
             );
         }
     }
+
 
     private String toTypeDescription(String type) {
         // see https://github.com/wordnik/swagger-core/wiki/datatypes
@@ -480,7 +497,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         },
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                return String.format("checkValid(validator, mapper.readValue(request.getContentStream(), %s.class))", parameter.type);
+                return String.format("checkValid(validator, body)", parameter.type);
             }
         },
         CONTEXT {

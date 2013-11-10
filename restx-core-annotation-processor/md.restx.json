@@ -16,6 +16,10 @@
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.assertj:assertj-core:${assertj-core.version}"
         ]
     }
 }
