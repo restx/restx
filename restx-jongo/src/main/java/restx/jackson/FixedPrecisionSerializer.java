@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.math.BigDecimal;
 
 /**
@@ -40,9 +41,12 @@ public class FixedPrecisionSerializer extends StdSerializer<BigDecimal> implemen
 
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) throws JsonMappingException {
-        FixedPrecision fixedPrecision = ((Field) property.getMember().getMember()).getAnnotation(FixedPrecision.class);
-        if (fixedPrecision != null) {
-            return new FixedPrecisionSerializer(fixedPrecision.value());
+        Member member = property.getMember().getMember();
+        if (member instanceof Field) {
+            FixedPrecision fixedPrecision = ((Field) member).getAnnotation(FixedPrecision.class);
+            if (fixedPrecision != null) {
+                return new FixedPrecisionSerializer(fixedPrecision.value());
+            }
         }
         return this;
     }
