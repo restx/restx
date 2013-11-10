@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -17,12 +19,12 @@
     <properties>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
-        <guava.version>14.0.1</guava.version>
-        <joda-time.version>2.2</joda-time.version>
-        <mustache.version>0.8.11</mustache.version>
+        <guava.version>15.0</guava.version>
+        <joda-time.version>2.3</joda-time.version>
+        <mustache.version>0.8.13</mustache.version>
         <reflections.version>0.9.9-RC1</reflections.version>
         <junit.version>4.11</junit.version>
-        <assertj-core.version>1.1.0</assertj-core.version>
+        <assertj-core.version>1.5.0</assertj-core.version>
     </properties>
 
     <dependencies>

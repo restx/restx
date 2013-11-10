@@ -16,6 +16,6 @@
     </publications>
     <dependencies>
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
-        <dependency org="org.assertj" name="assertj-core" rev="1.1.0" conf="test->default" />
+        <dependency org="org.assertj" name="assertj-core" rev="1.5.0" conf="test->default" />
     </dependencies>
 </ivy-module>

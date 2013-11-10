@@ -3,19 +3,19 @@
     "java.version": "1.7",
 
     "slf4j-api.version": "1.7.5",
-    "logback.version": "1.0.11",
+    "logback.version": "1.0.13",
 
-    "guava.version": "14.0.1",
-    "joda-time.version": "2.2",
+    "guava.version": "15.0",
+    "joda-time.version": "2.3",
 
     "jackson.version": "2.1.2",
 
-    "mustache.version": "0.8.11",
-    "http-request.version": "4.1",
+    "mustache.version": "0.8.13",
+    "http-request.version": "5.5",
 
-    "snakeyaml.version": "1.12",
+    "snakeyaml.version": "1.13",
 
-    "hibernate-validator.version": "5.0.0.Final",
+    "hibernate-validator.version": "5.0.1.Final",
 
     "reflections.version": "0.9.9-RC1",
     "janino.version": "2.6.1",
@@ -23,9 +23,9 @@
     "jamon.version": "2.7",
     "javax.inject.version": "1",
 
-    "jline.version": "2.10",
+    "jline.version": "2.11",
 
-    "mongo-java-driver.version": "2.11.1",
+    "mongo-java-driver.version": "2.11.3",
     "bson4jackson.version": "2.1.1",
     "jongo.version": "0.4",
 
@@ -34,11 +34,11 @@
     "servlet-api.version": "2.5",
 
     "jetty.version": "8.1.8.v20121106",
-    "embedded.tomcat.version": "7.0.35",
-    "simple.version": "5.1.1",
+    "embedded.tomcat.version": "7.0.47",
+    "simple.version": "5.1.6",
 
     "junit.version": "4.11",
-    "assertj-core.version": "1.1.0",
+    "assertj-core.version": "1.5.0",
 
     "maven-verifier.version": "1.4",
     "mockito.version": "1.9.5",

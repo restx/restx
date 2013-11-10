@@ -16,7 +16,7 @@
     <dependencies>
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
-        <dependency org="org.simpleframework" name="simple" rev="5.1.1" conf="default" />
+        <dependency org="org.simpleframework" name="simple" rev="5.1.6" conf="default" />
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
         <dependency org="org.mockito" name="mockito-all" rev="1.9.5" conf="test->default" />
     </dependencies>
