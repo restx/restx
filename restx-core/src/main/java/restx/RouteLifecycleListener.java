@@ -6,16 +6,9 @@ package restx;
  * Time: 10:12 PM
  */
 public interface RouteLifecycleListener {
-    public static final RouteLifecycleListener DEAF = new RouteLifecycleListener() {
-        @Override
-        public void onRouteMatch(RestxRoute source) {
-        }
+    public static final RouteLifecycleListener DEAF = new AbstractRouteLifecycleListener() {};
 
-        @Override
-        public void onBeforeWriteContent(RestxRoute source) {
-        }
-    };
-
-    void onRouteMatch(RestxRoute source);
-    void onBeforeWriteContent(RestxRoute source);
+    void onRouteMatch(RestxRoute route, RestxRequest req, RestxResponse resp);
+    void onBeforeWriteContent(RestxRequest req, RestxResponse resp);
+    void onAfterWriteContent(RestxRequest req, RestxResponse resp);
 }

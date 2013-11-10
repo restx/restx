@@ -3,7 +3,7 @@ package restx.specs;
 import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.SignatureKey;
+import restx.security.SignatureKey;
 import restx.common.Crypto;
 import restx.factory.Component;
 import restx.security.RestxSessionCookieDescriptor;

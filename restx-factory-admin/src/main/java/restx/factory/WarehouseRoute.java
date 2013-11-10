@@ -20,12 +20,12 @@ public class WarehouseRoute extends StdRoute {
     }
 
     public WarehouseRoute(Warehouse warehouse) {
-        super("WarehouseRoute", new StdRouteMatcher("GET", "/@/warehouse"));
+        super("WarehouseRoute", new StdRestxRequestMatcher("GET", "/@/warehouse"));
         this.warehouse = warehouse;
     }
 
     @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         resp.setContentType("application/json");
 
         List<String> nodesCode = Lists.newArrayList();

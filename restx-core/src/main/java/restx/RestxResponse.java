@@ -1,6 +1,7 @@
 package restx;
 
 import org.joda.time.Duration;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,26 +13,26 @@ import java.io.PrintWriter;
  * Time: 9:46 PM
  */
 public interface RestxResponse extends AutoCloseable {
-    void setStatus(int i);
-    int getStatus();
+    RestxResponse setStatus(HttpStatus i);
+    HttpStatus getStatus();
 
-    void setContentType(String s);
+    RestxResponse setContentType(String s);
 
     PrintWriter getWriter() throws IOException;
 
     OutputStream getOutputStream() throws IOException;
 
-    void addCookie(String cookie, String value);
-    void addCookie(String cookie, String value, Duration expires);
-    void clearCookie(String cookie);
+    RestxResponse addCookie(String cookie, String value);
+    RestxResponse addCookie(String cookie, String value, Duration expires);
+    RestxResponse clearCookie(String cookie);
 
-    void setHeader(String headerName, String header);
+    RestxResponse setHeader(String headerName, String header);
 
     /**
      * Sets the log level of this response.
      *
      * @param level the new level
      */
-    void setLogLevel(RestxLogLevel level);
+    RestxResponse setLogLevel(RestxLogLevel level);
     RestxLogLevel getLogLevel();
 }

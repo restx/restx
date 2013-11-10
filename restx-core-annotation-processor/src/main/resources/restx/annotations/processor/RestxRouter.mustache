@@ -7,6 +7,7 @@ import com.google.common.base.Optional;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import restx.*;
+import restx.http.*;
 import restx.factory.*;
 import restx.security.*;
 import static restx.security.Permissions.*;
@@ -29,9 +30,9 @@ public class {{{router}}} extends RestxRouter {
         super(
             "{{{routerGroup}}}", "{{{router}}}", new RestxRoute[] {
 {{#routes}}
-        new StdEntityRoute("{{{routeId}}}", mapper, new StdRouteMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
+        new StdEntityRoute("{{{routeId}}}", mapper, new StdRestxRequestMatcher("{{{method}}}", "{{{path}}}"), HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
             @Override
-            protected Optional<?> doRoute(RestxRequest request, RestxRouteMatch match) throws IOException {
+            protected Optional<?> doRoute(RestxRequest request, RestxRequestMatch match) throws IOException {
                 {{{securityCheck}}}
                 return {{{call}}};
             }

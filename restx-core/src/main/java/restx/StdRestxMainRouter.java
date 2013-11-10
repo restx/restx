@@ -12,6 +12,7 @@ import com.jamonapi.MonitorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.exceptions.RestxError;
+import restx.http.HttpStatus;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -58,9 +59,9 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
 
         public Builder addRoute(String method, String path, final MatchedEntityRoute route) {
-            routes.add(new StdEntityRoute(path, mapper, new StdRouteMatcher(method, path)) {
+            routes.add(new StdEntityRoute(path, mapper, new StdRestxRequestMatcher(method, path)) {
                 @Override
-                protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
+                protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                     return route.route(restxRequest, match);
                 }
             });
@@ -112,28 +113,24 @@ public class StdRestxMainRouter implements RestxMainRouter {
                     sb.append(route).append("\n");
                 }
                 sb.append("-----------------------------------");
-                restxResponse.setStatus(HttpStatus.NOT_FOUND.getCode());
+                restxResponse.setStatus(HttpStatus.NOT_FOUND);
                 restxResponse.setContentType("text/plain");
                 PrintWriter out = restxResponse.getWriter();
                 out.print(sb.toString());
             } else {
-                RouteLifecycleListener noCache = new RouteLifecycleListener() {
+                RouteLifecycleListener noCache = new AbstractRouteLifecycleListener() {
                     @Override
-                    public void onRouteMatch(RestxRoute source) {
-                    }
-
-                    @Override
-                    public void onBeforeWriteContent(RestxRoute source) {
+                    public void onBeforeWriteContent(RestxRequest req, RestxResponse resp) {
                         restxResponse.setHeader("Cache-Control", "no-cache");
                     }
                 };
                 RestxContext context = new RestxContext(getMode(), noCache, ImmutableList.copyOf(m.get().getMatches()));
-                RestxRouteMatch match = context.nextHandlerMatch();
-                match.getHandler().handle(match, restxRequest, restxResponse, context);
+                RestxHandlerMatch match = context.nextHandlerMatch();
+                match.handle(restxRequest, restxResponse, context);
             }
         } catch (JsonProcessingException ex) {
             logger.warn("request raised " + ex.getClass().getSimpleName(), ex);
-            restxResponse.setStatus(400);
+            restxResponse.setStatus(HttpStatus.BAD_REQUEST);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             if (restxRequest.getContentStream() instanceof BufferedInputStream) {
@@ -194,14 +191,14 @@ public class StdRestxMainRouter implements RestxMainRouter {
             ex.writeTo(restxRequest, restxResponse);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             logger.warn("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
-            restxResponse.setStatus(400);
+            restxResponse.setStatus(HttpStatus.BAD_REQUEST);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             out.println("UNEXPECTED CLIENT ERROR:");
             out.print(ex.getMessage());
         } catch (RuntimeException ex) {
             logger.error("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
-            restxResponse.setStatus(500);
+            restxResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             out.println("UNEXPECTED SERVER ERROR:");

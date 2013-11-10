@@ -29,15 +29,15 @@ public class RestxRouting {
     }
 
     public Optional<Match> match(RestxRequest restxRequest) {
-        List<RestxRouteMatch> matches = Lists.newArrayListWithCapacity(filters.size() + 1);
+        List<RestxHandlerMatch> matches = Lists.newArrayListWithCapacity(filters.size() + 1);
         for (RestxFilter filter : filters) {
-            Optional<RestxRouteMatch> match = filter.match(restxRequest);
+            Optional<? extends RestxHandlerMatch> match = filter.match(restxRequest);
             if (match.isPresent()) {
                 matches.add(match.get());
             }
         }
         for (RestxRoute route : routes) {
-            Optional<RestxRouteMatch> match = route.match(restxRequest);
+            Optional<? extends RestxHandlerMatch> match = route.match(restxRequest);
             if (match.isPresent()) {
                 matches.add(match.get());
                 return Optional.of(new Match(matches, match));
@@ -47,19 +47,19 @@ public class RestxRouting {
     }
 
     public static class Match {
-        private final List<RestxRouteMatch> matches;
-        private final Optional<RestxRouteMatch> match;
+        private final List<RestxHandlerMatch> matches;
+        private final Optional<? extends RestxHandlerMatch> match;
 
-        private Match(List<RestxRouteMatch> matches, Optional<RestxRouteMatch> match) {
+        private Match(List<RestxHandlerMatch> matches, Optional<? extends RestxHandlerMatch> match) {
             this.matches = matches;
             this.match = match;
         }
 
-        public List<RestxRouteMatch> getMatches() {
+        public List<RestxHandlerMatch> getMatches() {
             return matches;
         }
 
-        public Optional<RestxRouteMatch> getMatch() {
+        public Optional<? extends RestxHandlerMatch> getMatch() {
             return match;
         }
 

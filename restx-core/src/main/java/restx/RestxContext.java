@@ -18,20 +18,20 @@ public class RestxContext {
 
     private final String mode;
     private final RouteLifecycleListener lifecycleListener;
-    private final ImmutableList<RestxRouteMatch> matches;
-    private final UnmodifiableIterator<RestxRouteMatch> matchesIterator;
+    private final ImmutableList<RestxHandlerMatch> matches;
+    private final UnmodifiableIterator<RestxHandlerMatch> matchesIterator;
 
 
     public RestxContext(String mode, RouteLifecycleListener lifecycleListener,
-                        ImmutableList<RestxRouteMatch> matches) {
+                        ImmutableList<RestxHandlerMatch> matches) {
         this.mode = mode;
         this.lifecycleListener = lifecycleListener;
         this.matches = matches;
         this.matchesIterator = matches.iterator();
     }
 
-    public RestxContext(String mode, RouteLifecycleListener lifecycleListener, ImmutableList<RestxRouteMatch> matches,
-                        UnmodifiableIterator<RestxRouteMatch> matchesIterator) {
+    public RestxContext(String mode, RouteLifecycleListener lifecycleListener, ImmutableList<RestxHandlerMatch> matches,
+                        UnmodifiableIterator<RestxHandlerMatch> matchesIterator) {
         this.mode = mode;
         this.lifecycleListener = lifecycleListener;
         this.matches = matches;
@@ -46,7 +46,7 @@ public class RestxContext {
         return lifecycleListener;
     }
 
-    public RestxRouteMatch nextHandlerMatch() {
+    public RestxHandlerMatch nextHandlerMatch() {
         if (matchesIterator.hasNext()) {
             return matchesIterator.next();
         }
@@ -60,15 +60,21 @@ public class RestxContext {
     public RestxContext withListener(final RouteLifecycleListener listener) {
         return new RestxContext(mode, new RouteLifecycleListener() {
             @Override
-            public void onRouteMatch(RestxRoute source) {
-                lifecycleListener.onRouteMatch(source);
-                listener.onRouteMatch(source);
+            public void onRouteMatch(RestxRoute source, RestxRequest req, RestxResponse resp) {
+                lifecycleListener.onRouteMatch(source, req, resp);
+                listener.onRouteMatch(source, req, resp);
             }
 
             @Override
-            public void onBeforeWriteContent(RestxRoute source) {
-                lifecycleListener.onBeforeWriteContent(source);
-                listener.onBeforeWriteContent(source);
+            public void onBeforeWriteContent(RestxRequest req, RestxResponse resp) {
+                lifecycleListener.onBeforeWriteContent(req, resp);
+                listener.onBeforeWriteContent(req, resp);
+            }
+
+            @Override
+            public void onAfterWriteContent(RestxRequest req, RestxResponse resp) {
+                lifecycleListener.onAfterWriteContent(req, resp);
+                listener.onAfterWriteContent(req, resp);
             }
         }, matches, matchesIterator);
     }

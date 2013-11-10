@@ -1,4 +1,4 @@
-package restx.server;
+package restx.http;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;

@@ -114,7 +114,7 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     @Override
-    public Map<String, String> getCookiesMap() {
+    public ImmutableMap<String, String> getCookiesMap() {
         Map<String, String> cookies = Maps.newLinkedHashMap();
         Cookie[] requestCookies = request.getCookies();
         if (requestCookies != null) {
@@ -123,12 +123,12 @@ public class HttpServletRestxRequest implements RestxRequest {
                 cookies.put(cookie.getName(), cookie.getValue());
             }
         }
-        return cookies;
+        return ImmutableMap.copyOf(cookies);
     }
 
     @Override
-    public String getCookieValue(String cookieName, String defaultValue) {
-        return getCookieValue(request.getCookies(), cookieName, defaultValue);
+    public Optional<String> getCookieValue(String cookieName) {
+        return Optional.fromNullable(getCookieValue(request.getCookies(), cookieName));
     }
 
     @Override
@@ -138,17 +138,16 @@ public class HttpServletRestxRequest implements RestxRequest {
     }
 
     private static String getCookieValue(Cookie[] cookies,
-                                    String cookieName,
-                                    String defaultValue) {
+                                    String cookieName) {
         if (cookies == null) {
-            return defaultValue;
+            return null;
         }
         for (int i = 0; i < cookies.length; i++) {
             Cookie cookie = cookies[i];
             if (cookieName.equals(cookie.getName()))
                 return cookie.getValue();
         }
-        return defaultValue;
+        return null;
     }
 
     static Cookie getCookie(Cookie[] cookies, String cookieName) {

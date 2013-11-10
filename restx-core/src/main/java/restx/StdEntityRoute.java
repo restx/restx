@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import restx.http.HttpStatus;
 import restx.jackson.Views;
 
 import java.io.IOException;
@@ -23,30 +24,31 @@ public abstract class StdEntityRoute extends StdRoute {
     /**
      * @deprecated Kept for backward compatibility with version <- 0.2.8
      */
-    public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher) {
+    public StdEntityRoute(String name, ObjectMapper mapper, RestxRequestMatcher matcher) {
         this(name, mapper, matcher, HttpStatus.OK, RestxLogLevel.DEFAULT);
     }
 
-    public StdEntityRoute(String name, ObjectMapper mapper, RestxRouteMatcher matcher, HttpStatus successStatus, RestxLogLevel logLevel) {
+    public StdEntityRoute(String name, ObjectMapper mapper, RestxRequestMatcher matcher, HttpStatus successStatus, RestxLogLevel logLevel) {
         super(name, matcher, successStatus);
         this.mapper = checkNotNull(mapper);
         this.logLevel = checkNotNull(logLevel);
     }
 
     @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         resp.setLogLevel(logLevel);
-        ctx.getLifecycleListener().onRouteMatch(this);
+        ctx.getLifecycleListener().onRouteMatch(this, req, resp);
         Optional<?> result = doRoute(req, match);
         if (result.isPresent()) {
-            resp.setStatus(getSuccessStatus().getCode());
+            resp.setStatus(getSuccessStatus());
             resp.setContentType("application/json");
             Object value = result.get();
             if (value instanceof Iterable) {
                 value = Lists.newArrayList((Iterable) value);
             }
-            ctx.getLifecycleListener().onBeforeWriteContent(this);
+            ctx.getLifecycleListener().onBeforeWriteContent(req, resp);
             writeValue(mapper, resp.getWriter(), value);
+            ctx.getLifecycleListener().onAfterWriteContent(req, resp);
         } else {
             notFound(match,resp);
         }
@@ -60,5 +62,5 @@ public abstract class StdEntityRoute extends StdRoute {
         return mapper.writerWithView(Views.Transient.class);
     }
 
-    protected abstract Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException;
+    protected abstract Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException;
 }

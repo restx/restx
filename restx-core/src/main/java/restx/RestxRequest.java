@@ -79,9 +79,9 @@ public interface RestxRequest {
     Optional<String> getHeader(String headerName);
     String getContentType();
 
-    String getCookieValue(String cookie, String defaultValue);
+    Optional<String> getCookieValue(String cookieName);
     boolean isPersistentCookie(String cookie);
-    Map<String,String> getCookiesMap();
+    ImmutableMap<String,String> getCookiesMap();
 
     InputStream getContentStream() throws IOException;
 

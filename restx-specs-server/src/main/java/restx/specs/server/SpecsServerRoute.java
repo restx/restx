@@ -3,6 +3,7 @@ package restx.specs.server;
 import com.google.common.base.Optional;
 import restx.*;
 import restx.factory.Component;
+import restx.http.HttpStatus;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRepository;
 import restx.specs.When;
@@ -25,22 +26,28 @@ public class SpecsServerRoute implements RestxRoute {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
         Iterable<WhenHttpRequest> spec = specRepository.findSpecsByRequest(req);
         Iterator<WhenHttpRequest> iterator = spec.iterator();
-        return iterator.hasNext()
-                ? Optional.<RestxRouteMatch>of(new Match(req, iterator.next()))
-                : Optional.<RestxRouteMatch>absent();
-    }
-
-    @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        Match m = (Match) match;
-        resp.setStatus(m.spec.getThen().getExpectedCode());
-        if (m.spec.getThen().getExpectedCode() == HttpStatus.OK.getCode()) {
-            resp.setContentType("application/json");
+        if (!iterator.hasNext()) {
+            return Optional.absent();
         }
-        resp.getWriter().print(m.spec.getThen().getExpected());
+
+        final WhenHttpRequest whenHttpRequest = iterator.next();
+        return Optional.of(new RestxHandlerMatch(
+                new StdRestxRequestMatch(req.getRestxPath()),
+                new RestxHandler() {
+                    @Override
+                    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp,
+                                       RestxContext ctx) throws IOException {
+                        resp.setStatus(HttpStatus.havingCode(whenHttpRequest.getThen().getExpectedCode()));
+                        if (whenHttpRequest.getThen().getExpectedCode() == HttpStatus.OK.getCode()) {
+                            resp.setContentType("application/json");
+                        }
+                        resp.getWriter().print(whenHttpRequest.getThen().getExpected());
+                    }
+                }
+        ));
     }
 
     @Override
@@ -60,14 +67,5 @@ public class SpecsServerRoute implements RestxRoute {
         sb.append("--");
 
         return sb.toString();
-    }
-
-    private class Match extends RestxRouteMatch {
-        private final WhenHttpRequest spec;
-
-        public Match(RestxRequest req, WhenHttpRequest spec) {
-            super(SpecsServerRoute.this, req.getRestxPath());
-            this.spec = spec;
-        }
     }
 }

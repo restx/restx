@@ -17,6 +17,7 @@ import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
+import restx.http.HttpStatus;
 import restx.server.WebServers;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRecorder;
@@ -257,7 +258,7 @@ public class RestxMainRouterFactory {
 
                 Collection<Diagnostic<?>> lastDiagnostics = compilationManager.getLastDiagnostics();
                 if (!lastDiagnostics.isEmpty()) {
-                    restxResponse.setStatus(HttpStatus.SERVICE_UNAVAILABLE.getCode());
+                    restxResponse.setStatus(HttpStatus.SERVICE_UNAVAILABLE);
                     restxResponse.setContentType(MediaType.PLAIN_TEXT_UTF_8.toString());
                     PrintWriter restxResponseWriter = restxResponse.getWriter();
                     restxResponseWriter.write("COMPILATION ERROR(S):\n\n\n");

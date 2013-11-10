@@ -7,9 +7,10 @@ import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.http.HttpStatus;
 import restx.RestxLogLevel;
 import restx.RestxResponse;
-import restx.server.HTTP;
+import restx.http.HTTP;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,17 +35,18 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void setStatus(int status) {
-        response.setCode(status);
+    public RestxResponse setStatus(HttpStatus status) {
+        response.setCode(status.getCode());
+        return this;
     }
 
     @Override
-    public int getStatus() {
-        return response.getStatus().code;
+    public HttpStatus getStatus() {
+        return HttpStatus.havingCode(response.getStatus().code);
     }
 
     @Override
-    public void setContentType(String s) {
+    public RestxResponse setContentType(String s) {
         if (HTTP.isTextContentType(s)) {
             Optional<String> cs = HTTP.charsetFromContentType(s);
             if (!cs.isPresent()) {
@@ -55,6 +57,7 @@ public class SimpleRestxResponse implements RestxResponse {
             }
         }
         response.setValue("Content-Type", s);
+        return this;
     }
 
     @Override
@@ -81,28 +84,32 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
-    public void addCookie(String cookie, String value) {
+    public RestxResponse addCookie(String cookie, String value) {
         addCookie(cookie, value, Duration.ZERO);
+        return this;
     }
 
     @Override
-    public void addCookie(String cookie, String value, Duration expiration) {
+    public RestxResponse addCookie(String cookie, String value, Duration expiration) {
         Cookie c = new Cookie(cookie, value, "/");
         c.setExpiry(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
         response.setCookie(c);
+        return this;
     }
 
     @Override
-    public void clearCookie(String cookie) {
+    public RestxResponse clearCookie(String cookie) {
         Cookie c = new Cookie(cookie, "");
         c.setPath("/");
         c.setExpiry(0);
         response.setCookie(c);
+        return this;
     }
 
     @Override
-    public void setHeader(String headerName, String header) {
+    public RestxResponse setHeader(String headerName, String header) {
         response.setValue(headerName, header);
+        return this;
     }
 
     @Override
@@ -121,7 +128,8 @@ public class SimpleRestxResponse implements RestxResponse {
         return logLevel;
     }
 
-    public void setLogLevel(RestxLogLevel logLevel) {
+    public RestxResponse setLogLevel(RestxLogLevel logLevel) {
         this.logLevel = logLevel;
+        return this;
     }
 }

@@ -1,6 +1,6 @@
 package restx.security;
 
-import static restx.server.HTTP.headerTokenCompatible;
+import static restx.http.HTTP.headerTokenCompatible;
 
 /**
  * @author fcamblor

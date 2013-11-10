@@ -45,13 +45,13 @@ public class ApiDeclarationRoute extends StdEntityRoute {
     @Inject
     public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
                                Factory factory) {
-        super("ApiDeclarationRoute", mapper, new StdRouteMatcher("GET", "/@/api-docs/{router}"));
+        super("ApiDeclarationRoute", mapper, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"));
         this.factory = factory;
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRouteMatch match) throws IOException {
-        String routerName = match.getPathParams().get("router");
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
+        String routerName = match.getPathParam("router");
         routerName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, routerName);
 
         Optional<NamedComponent<RestxRouter>> router = Optional.absent();

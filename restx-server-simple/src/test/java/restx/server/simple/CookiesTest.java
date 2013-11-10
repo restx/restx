@@ -17,8 +17,8 @@ public class CookiesTest {
     @Test
     public void shouldCookiesFetchedCorrectly() throws InterruptedException {
         SimpleRestxRequest restxRequest = createRestxRequest(new Cookie("foo", "valueWhenFound"));
-        assertThat(restxRequest.getCookieValue("foo", "valueWhenNotFound"), is(equalTo("valueWhenFound")));
-        assertThat(restxRequest.getCookieValue("unexistingCookie", "valueWhenNotFound"), is(equalTo("valueWhenNotFound")));
+        assertThat(restxRequest.getCookieValue("foo").or("valueWhenNotFound"), is(equalTo("valueWhenFound")));
+        assertThat(restxRequest.getCookieValue("unexistingCookie").or("valueWhenNotFound"), is(equalTo("valueWhenNotFound")));
     }
 
     @Test

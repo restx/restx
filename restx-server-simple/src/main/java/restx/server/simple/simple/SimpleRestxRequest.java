@@ -108,18 +108,17 @@ public class SimpleRestxRequest implements RestxRequest {
     }
 
     @Override
-    public Map<String, String> getCookiesMap() {
+    public ImmutableMap<String, String> getCookiesMap() {
         Map<String, String> cookies = Maps.newLinkedHashMap();
         for (Cookie cookie : request.getCookies()) {
             cookies.put(cookie.getName(), cookie.getValue().replace("\\\"", "\""));
         }
-        return cookies;
+        return ImmutableMap.copyOf(cookies);
     }
 
     @Override
-    public String getCookieValue(String cookie, String defaultValue) {
-        Map<String, String> cookiesMap = getCookiesMap();
-        return cookiesMap.containsKey(cookie) ? cookiesMap.get(cookie) : defaultValue;
+    public Optional<String> getCookieValue(String cookieName) {
+        return Optional.fromNullable(getCookiesMap().get(cookieName));
     }
 
     @Override

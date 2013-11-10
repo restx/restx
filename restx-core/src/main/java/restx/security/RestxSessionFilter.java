@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import restx.*;
 import restx.common.Crypto;
 import restx.factory.Name;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ import java.util.Map;
  * Date: 2/8/13
  * Time: 8:59 PM
  */
-public class RestxSessionFilter implements RestxFilter {
+public class RestxSessionFilter implements RestxFilter, RestxHandler {
     public static final Name<RestxSessionFilter> NAME = Name.of(RestxSessionFilter.class, "RestxSessionFilter");
 
     private static final String EXPIRES = "_expires";
@@ -46,12 +47,14 @@ public class RestxSessionFilter implements RestxFilter {
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
-        return Optional.of(new RestxRouteMatch(this, "*", req.getRestxPath()));
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
+        return Optional.of(new RestxHandlerMatch(
+                new StdRestxRequestMatch("*", req.getRestxPath()),
+                this));
     }
 
     @Override
-    public void handle(RestxRouteMatch match, RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
+    public void handle(RestxRequestMatch match, RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
         final RestxSession session = buildContextFromRequest(req);
         if (RestxContext.Modes.RECORDING.equals(ctx.getMode())) {
             // we clean up caches in recording mode so that each request records the cache loading
@@ -62,21 +65,16 @@ public class RestxSessionFilter implements RestxFilter {
         }
         RestxSession.setCurrent(session);
         try {
-            RouteLifecycleListener lifecycleListener = new RouteLifecycleListener() {
+            RouteLifecycleListener lifecycleListener = new AbstractRouteLifecycleListener() {
                 @Override
-                public void onRouteMatch(RestxRoute source) {
-                }
-
-                @Override
-                public void onBeforeWriteContent(RestxRoute source) {
+                public void onBeforeWriteContent(RestxRequest req, RestxResponse resp) {
                     RestxSession newSession = RestxSession.current();
                     if (newSession != session) {
                         updateSessionInClient(resp, newSession);
                     }
                 }
             };
-            RestxRouteMatch next = ctx.nextHandlerMatch();
-            next.getHandler().handle(next, req, resp, ctx.withListener(lifecycleListener));
+            ctx.nextHandlerMatch().handle(req, resp, ctx.withListener(lifecycleListener));
         } finally {
             RestxSession.setCurrent(null);
         }
@@ -84,11 +82,11 @@ public class RestxSessionFilter implements RestxFilter {
 
     public RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
         String restxSessionCookieName = restxSessionCookieDescriptor.getCookieName();
-        String cookie = req.getCookieValue(restxSessionCookieName, "");
+        String cookie = req.getCookieValue(restxSessionCookieName).or("");
         if (cookie.trim().isEmpty()) {
             return emptySession;
         } else {
-            String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName(), "");
+            String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName()).or("");
             if (!Crypto.sign(cookie, signatureKey.getKey()).equals(sig)) {
                 logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
                 return emptySession;

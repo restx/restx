@@ -2,6 +2,7 @@ package restx;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 
@@ -74,7 +75,7 @@ public class WebException extends RuntimeException {
             logger.debug("request raised WebException - " + restxRequest, this);
         }
 
-        restxResponse.setStatus(getStatus().getCode());
+        restxResponse.setStatus(getStatus());
         restxResponse.setContentType(getContentType());
         restxResponse.getWriter().print(getContent());
     }

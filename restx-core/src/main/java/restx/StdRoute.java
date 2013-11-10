@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import restx.description.DescribableRoute;
 import restx.description.OperationDescription;
 import restx.description.ResourceDescription;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -16,32 +17,32 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Date: 1/19/13
  * Time: 8:10 AM
  */
-public abstract class StdRoute implements RestxRoute, DescribableRoute {
+public abstract class StdRoute implements RestxRoute, DescribableRoute, RestxHandler {
     private final String name;
-    private final RestxRouteMatcher matcher;
+    private final RestxRequestMatcher matcher;
     private final HttpStatus successStatus;
 
-    public StdRoute(String name, RestxRouteMatcher matcher) {
+    public StdRoute(String name, RestxRequestMatcher matcher) {
         this(name, matcher, HttpStatus.OK);
     }
 
-    public StdRoute(String name, RestxRouteMatcher matcher, HttpStatus successStatus) {
+    public StdRoute(String name, RestxRequestMatcher matcher, HttpStatus successStatus) {
         this.name = checkNotNull(name);
         this.matcher = checkNotNull(matcher);
         this.successStatus = checkNotNull(successStatus);
     }
 
     @Override
-    public Optional<RestxRouteMatch> match(RestxRequest req) {
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
         String path = req.getRestxPath();
-        return matcher.match(this, req.getHttpMethod(), path);
+        return RestxHandlerMatch.of(matcher.match(req.getHttpMethod(), path), this);
     }
 
     @Override
     public Collection<ResourceDescription> describe() {
-        if (matcher instanceof StdRouteMatcher) {
+        if (matcher instanceof StdRestxRequestMatcher) {
             ResourceDescription description = new ResourceDescription();
-            StdRouteMatcher stdRouteMatcher = (StdRouteMatcher) matcher;
+            StdRestxRequestMatcher stdRouteMatcher = (StdRestxRequestMatcher) matcher;
             description.path = stdRouteMatcher.getPathPattern();
             OperationDescription operation = new OperationDescription();
             operation.httpMethod = stdRouteMatcher.getMethod();
@@ -68,11 +69,10 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute {
         return matcher.toString() + " => " + name;
     }
 
-    protected void notFound(RestxRouteMatch match, RestxResponse resp) throws IOException {
-        resp.setStatus(HttpStatus.NOT_FOUND.getCode());
+    protected void notFound(RestxRequestMatch match, RestxResponse resp) throws IOException {
+        resp.setStatus(HttpStatus.NOT_FOUND);
         resp.setContentType("text/plain");
         resp.getWriter().println("Route matched, but resource " + match.getPath() + " not found.");
-        resp.getWriter().println("Matched route: " + match.getHandler());
-        resp.getWriter().println("Path params: " + match.getPathParams());
+        resp.getWriter().println("Matched route: " + this);
     }
 }

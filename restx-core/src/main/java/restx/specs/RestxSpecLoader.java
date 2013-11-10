@@ -10,6 +10,7 @@ import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+import restx.http.HttpStatus;
 import restx.common.MoreResources;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
@@ -73,7 +74,7 @@ public class RestxSpecLoader {
         Yaml yaml = new Yaml();
         Map spec = (Map) yaml.load(inputSupplier.getInput());
         List<Given> givens = loadGivens(spec);
-        List<When> whens = Lists.newArrayList();
+        List<WhenHttpRequest> whens = Lists.newArrayList();
         Iterable wts = checkInstanceOf("wts", spec.get("wts"), Iterable.class);
         for (Object wt : wts) {
             Map whenThen = checkInstanceOf("when/then", wt, Map.class);
@@ -115,7 +116,7 @@ public class RestxSpecLoader {
 
                 if (methodAndPathMatcher.matches()) {
                     String then = checkInstanceOf("then", whenThen.get("then"), String.class).trim();
-                    int code = 200;
+                    HttpStatus code = HttpStatus.OK;
                     int endLineIndex = then.indexOf("\n");
                     if (endLineIndex == -1) {
                         endLineIndex = then.length();
@@ -123,7 +124,7 @@ public class RestxSpecLoader {
                     String firstLine = then.substring(0, endLineIndex);
                     Matcher respMatcher = Pattern.compile("^(\\d{3}).*$").matcher(firstLine);
                     if (respMatcher.matches()) {
-                        code = Integer.parseInt(respMatcher.group(1));
+                        code = HttpStatus.havingCode(Integer.parseInt(respMatcher.group(1)));
                         then = then.substring(endLineIndex).trim();
                     }
 
@@ -131,7 +132,7 @@ public class RestxSpecLoader {
                             .withMethod(methodAndPathMatcher.group(1))
                             .withPath(methodAndPathMatcher.group(2))
                             .withBody(body)
-                            .withThen(new ThenHttpResponse(code, then))
+                            .withThen(new ThenHttpResponse(code.getCode(), then))
                             .build());
                 } else {
                     throw new IllegalArgumentException("unrecognized 'when' format: it must begin with " +
