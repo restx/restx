@@ -63,7 +63,7 @@ public class VoidContentTypeModule {
                 return Optional.of(new EntityResponseWriter<T>() {
                     @Override
                     public void sendResponse(HttpStatus status, T value, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        resp.setStatus(HttpStatus.NO_CONTENT);
+                        resp.setStatus(status == HttpStatus.OK ? HttpStatus.NO_CONTENT : status);
                         ctx.getLifecycleListener().onBeforeWriteContent(req, resp);
                         ctx.getLifecycleListener().onAfterWriteContent(req, resp);
                     }
