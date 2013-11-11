@@ -2,6 +2,7 @@ package restx.entity;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import restx.factory.Component;
 
 import java.lang.reflect.Type;
 
@@ -9,6 +10,7 @@ import java.lang.reflect.Type;
  * Date: 23/10/13
  * Time: 09:53
  */
+@Component
 public class EntityRequestBodyReaderRegistry {
     private final EntityContentTypeResolver entityContentTypeResolver;
     private final Iterable<EntityRequestBodyReaderFactory> entityRequestBodyReaderFactories;

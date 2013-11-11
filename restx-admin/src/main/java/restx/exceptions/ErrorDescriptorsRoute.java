@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import restx.*;
+import restx.factory.Component;
 import restx.jackson.FrontObjectMapperFactory;
 import restx.jackson.StdJsonProducerEntityRoute;
 
@@ -17,6 +18,7 @@ import java.util.Map;
  * Date: 3/18/13
  * Time: 9:37 PM
  */
+@Component
 public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
 
     private final ImmutableMap<String, ErrorDescriptor> errorDescriptors;

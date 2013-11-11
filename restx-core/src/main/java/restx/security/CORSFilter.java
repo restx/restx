@@ -3,6 +3,7 @@ package restx.security;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import restx.*;
+import restx.factory.Component;
 
 import java.io.IOException;
 
@@ -11,6 +12,7 @@ import java.io.IOException;
  * Date: 2/7/13
  * Time: 9:33 AM
  */
+@Component
 public class CORSFilter implements RestxFilter, RestxHandler {
     private final Iterable<CORSAuthorizer> authorizers;
 

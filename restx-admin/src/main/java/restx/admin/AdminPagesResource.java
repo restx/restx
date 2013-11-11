@@ -8,7 +8,6 @@ import restx.factory.Component;
 import restx.factory.Factory;
 import restx.security.RolesAllowed;
 
-import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -19,11 +18,6 @@ import java.util.List;
 @Component @RestxResource(group = "restx-admin")
 public class AdminPagesResource {
     private final Iterable<AdminPage> pages;
-
-    @Inject
-    public AdminPagesResource(Factory factory) {
-        this(factory.queryByClass(AdminPage.class).findAsComponents());
-    }
 
     public AdminPagesResource(Iterable<AdminPage> pages) {
         this.pages = pages;

@@ -3,6 +3,7 @@ package restx.entity;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
+import restx.factory.Component;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -12,6 +13,7 @@ import java.util.Set;
  * Date: 23/10/13
  * Time: 09:53
  */
+@Component
 public class EntityResponseWriterRegistry {
     private final EntityContentTypeResolver entityContentTypeResolver;
     private final Iterable<EntityResponseWriterFactory> entityResponseWriterFactories;
