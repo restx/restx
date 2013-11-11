@@ -72,7 +72,7 @@ public class ModulesManagerTest {
                 toDir,
                 Collections.<String>emptyList());
 
-        assertThat(toDir.list()).containsExactly("http-request.jar");
+        assertThat(toDir.list()).containsOnly("http-request.jar");
         delete(toDir);
     }
 
@@ -85,7 +85,7 @@ public class ModulesManagerTest {
                 toDir,
                 Collections.<String>emptyList());
 
-        assertThat(toDir.list()).containsExactly("commons-httpclient.jar", "commons-lang.jar", "commons-logging.jar");
+        assertThat(toDir.list()).containsOnly("commons-httpclient.jar", "commons-lang.jar", "commons-logging.jar");
         delete(toDir);
     }
 
@@ -98,7 +98,7 @@ public class ModulesManagerTest {
                 toDir,
                 Arrays.asList("commons-logging:commons-logging"));
 
-        assertThat(toDir.list()).containsExactly("commons-httpclient.jar", "commons-lang.jar");
+        assertThat(toDir.list()).containsOnly("commons-httpclient.jar", "commons-lang.jar");
         delete(toDir);
     }
 
