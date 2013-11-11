@@ -62,7 +62,7 @@ public class JettyWebServer implements WebServer {
 
     @Override
     public String baseUrl() {
-        return WebServers.baseUri("localhost", port);
+        return WebServers.baseUri("127.0.0.1", port);
     }
 
     public void start() throws Exception {
