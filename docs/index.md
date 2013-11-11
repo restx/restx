@@ -35,4 +35,5 @@ Here is the full table of contents of the documentation:
 ### [RESTX Factory](ref-factory.html)
 ### [RESTX HTTP](ref-core.html)
 ### [RESTX Specs](ref-specs.html)
+### [RESTX Settings](ref-settings.html)
 ### [RESTX Security](ref-security.html)
