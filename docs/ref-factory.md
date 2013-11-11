@@ -29,6 +29,20 @@ public class MyComponent {
 
 This will generate the corresponding machine and machine engine and declare it to the factory.
 
+### Named components injection with `@Named`
+
+You can use the `@javax.inject.Named` annotation to specify the name of a dependency to be injected, or the name of component you define.
+
+{% highlight java %}
+@Component
+public class MyComponent {
+    public MyComponent(@Named("mydependencyName") MyDependency dependency) {
+       ...
+    }
+}
+{% endhighlight %}
+
+
 ### Declaring a component using `@Provides`
 
 If constructor injection is not enough, you can use the module and its provider methods feature:
@@ -79,6 +93,26 @@ public class MyAppModule {
     ){
         // Simple server will be returned first if found, otherwise jetty, and finally tomcat
         return simpleWebServerSupplier.or(jettyWebServerSupplier).or(tomcatWebServerSupplier).orNull();
+    }
+}
+{% endhighlight %}
+
+### Multi injection
+
+The factory is able to inject all the components implementing a class or interface, you just need to use one of these types:
+
+- Iterable
+- Collection
+- List
+- Set
+- ImmutableList
+- ImmutableSet
+
+{% highlight java %}
+@Component
+public class MyComponent {
+    public MyComponent(List<MyDependency> dependencies) {
+       ...
     }
 }
 {% endhighlight %}
@@ -339,4 +373,12 @@ You can easily declare components which are made available to the factory only u
 
 #### Factory of Factory
 
-You can define a factory machine which in turns builds other factory machines. This is the mechanism used under the hood to provide the alternatives support. 
+You can define a factory machine which in turns builds other factory machines. This is the mechanism used under the hood to provide the alternatives support.
+
+### support for Optional
+
+By default all dependencies are mandatory, but you can use an `Optional<MyType>` to express an optional dependency
+
+### Multi injection
+
+The factory is able to inject all the components implementing a class or interface.
