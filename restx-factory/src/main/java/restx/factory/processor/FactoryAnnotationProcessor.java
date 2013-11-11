@@ -24,6 +24,7 @@ import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import java.io.*;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -452,6 +453,10 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
     }
 
     private static class InjectableParameter {
+        private static final Class[] iterableClasses = new Class[]{
+                Iterable.class, Collection.class, List.class, Set.class,
+                ImmutableList.class, ImmutableSet.class};
+
         final TypeMirror baseType;
         final String name;
         final Optional<String> injectionName;
@@ -463,9 +468,8 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         }
 
         public String getQueryDeclarationCode() {
-            boolean optionalType = isOptionalType();
             TypeMirror targetType = targetType();
-            String optionalOrNotQueryQualifier = optionalType?"optional()":"mandatory()";
+            String optionalOrNotQueryQualifier = isOptionalType() || isMultiType() ? "optional()" : "mandatory()";
 
             if (injectionName.isPresent()) {
                 return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).%s;",
@@ -477,18 +481,32 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         }
 
         public String getFromSatisfiedBomCode() {
-            if(isOptionalType()){
+            if (isOptionalType()) {
                 return String.format("satisfiedBOM.getOneAsComponent(%s)", name);
+            } else if (isMultiType()) {
+                String code = String.format("satisfiedBOM.getAsComponents(%s)", name);
+                if (baseType.toString().startsWith(Collection.class.getCanonicalName())
+                        || baseType.toString().startsWith(List.class.getCanonicalName())) {
+                    code = String.format("com.google.common.collect.Lists.newArrayList(%s)", code);
+                } else if (baseType.toString().startsWith(Set.class.getCanonicalName())) {
+                    code = String.format("com.google.common.collect.Sets.newLinkedHashSet(%s)", code);
+                } else if (baseType.toString().startsWith(ImmutableList.class.getCanonicalName())) {
+                    code = String.format("com.google.common.collect.ImmutableList.copyOf(%s)", code);
+                } else if (baseType.toString().startsWith(ImmutableSet.class.getCanonicalName())) {
+                    code = String.format("com.google.common.collect.ImmutableSet.copyOf(%s)", code);
+                }
+                return code;
             } else {
                 return String.format("satisfiedBOM.getOne(%s).get().getComponent()", name);
             }
         }
 
-        private TypeMirror targetType(){
-            if(isOptionalType()){
+        private TypeMirror targetType() {
+            if (isOptionalType() || isMultiType()) {
                 DeclaredType declaredBaseType = (DeclaredType) baseType;
                 if(declaredBaseType.getTypeArguments().isEmpty()){
-                    throw new RuntimeException("Optional type for parameter "+name+" needs parameterized type (generics) to be processed correctly !");
+                    throw new RuntimeException("Optional | Collection type for parameter " + name + " needs" +
+                            " parameterized type (generics) to be processed correctly !");
                 }
                 return declaredBaseType.getTypeArguments().get(0);
             } else {
@@ -496,8 +514,17 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
             }
         }
 
-        private boolean isOptionalType(){
+        private boolean isOptionalType() {
             return baseType.toString().startsWith(Optional.class.getCanonicalName());
+        }
+
+        private boolean isMultiType() {
+            for (Class it : iterableClasses) {
+                if (baseType.toString().startsWith(it.getCanonicalName())) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
