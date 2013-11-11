@@ -2,10 +2,17 @@ package com.barbarysoftware.watchservice;
 
 import static com.barbarysoftware.watchservice.StandardWatchEventKind.*;
 import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
 
 import java.io.File;
 
 public class WatchServiceTest {
+    @Before
+    public void check() {
+        Assume.assumeTrue(isEnabled());
+    }
+
     @org.junit.Test
     public void testNewWatchService() throws Exception {
         Assert.assertNotNull(WatchService.newWatchService());
@@ -36,4 +43,10 @@ public class WatchServiceTest {
         WatchableFile f = new WatchableFile(File.createTempFile("watcher_", null));
         f.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
     }
+
+    public boolean isEnabled() {
+        String osName = System.getProperty("os.name");
+        return osName.startsWith("Mac OS X") || osName.startsWith("Darwin");
+    }
+
 }
