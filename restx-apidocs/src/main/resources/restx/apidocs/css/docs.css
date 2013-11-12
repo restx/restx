@@ -137,6 +137,10 @@ table.operations {
 .http-method{
     padding: 3px 10px;
     border-radius: 4px;
+    min-width: 35px;
+    display: inline-block;
+    margin: 0 10px;
+    text-align: center;
 }
 
 h1 .http-method {
@@ -173,8 +177,8 @@ h1 .http-method {
     padding-left: 10px;
     border-radius: 2px;
     box-shadow: 0 1px 10px rgba(0,0,0,0.1);
-    background-color: #a9a9a9;
-    background-image: linear-gradient(to bottom,#AAA,#BBB);
+    background-color: #181818;
+    background-image: linear-gradient(to bottom,#363636,#181818);
     background-repeat: repeat-x;
     border: 1px solid #999;
 }
@@ -202,9 +206,23 @@ h1 .http-method {
     border-top: 2px solid #e5e5e5;
 }
 
+.operation .response button {
+    margin: 10px;
+}
+
 @media all and (min-width: 420px) {
     .btn-send:after {
         content: " (⌘+enter)";
+    }
+
+    div.relatedOperations {
+        float: right;
+        margin-right: 120px;
+        margin-top: -110px;
+    }
+
+    .relatedOperations table {
+        width: 460px;
     }
 }
 
