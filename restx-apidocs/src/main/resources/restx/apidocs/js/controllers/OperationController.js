@@ -21,6 +21,7 @@ adminApp.controller('OperationController', function OperationController(
     var path = $routeParams.path.replace(/___/g, '/');
     $scope.doc = ApiDoc.get();
     $scope.su = $rootScope.su;
+    $scope.responseActive = true; // default
 
     function setTry(tryMode) {
         $scope.try = $rootScope.try = tryMode;
