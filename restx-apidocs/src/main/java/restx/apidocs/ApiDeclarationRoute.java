@@ -3,12 +3,10 @@ package restx.apidocs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
 import restx.*;
-import restx.description.DescribableRoute;
-import restx.description.ResourceDescription;
+import restx.description.*;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.Name;
@@ -19,7 +17,9 @@ import restx.jackson.StdJsonProducerEntityRoute;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
+
+import static restx.apidocs.ApiDocsIndexRoute.getRouterApiPath;
 
 /**
  * Serves the swagger api declaration of one router, which looks like that:
@@ -75,7 +75,107 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     }
 
     private List<ResourceDescription> buildApis(NamedComponent<RestxRouter> router) {
-        ImmutableList<RestxRoute> routes = router.getComponent().getRoutes();
+        return fillRelatedOperations(router.getName().getName(), describeAllRoutes(router.getComponent()));
+    }
+
+    private List<ResourceDescription> fillRelatedOperations(final String name, List<ResourceDescription> apis) {
+        Multimap<String, OperationReference> operationsByType = getOperationReferencesByType();
+        Multimap<String, OperationReference> operationsByPath = getOperationReferencesByPath();
+        String routerApiPath = getRouterApiPath(name);
+        for (final ResourceDescription api : apis) {
+            for (final OperationDescription operation : api.operations) {
+                Set<OperationReference> related = new LinkedHashSet<>(operation.relatedOperations);
+
+                // add related by type
+                related.addAll(operationsByType.get(getTargetType(operation.responseClass)));
+                Optional<OperationParameterDescription> bodyParameter = operation.findBodyParameter();
+                if (bodyParameter.isPresent()) {
+                    related.addAll(operationsByType.get(getTargetType(bodyParameter.get().dataType)));
+                }
+
+                // add related by path
+                for (OperationReference operationReference : operationsByPath.get(api.path)) {
+                    related.add(operationReference);
+                }
+
+                // remove reference to self
+                for (Iterator<OperationReference> iterator = related.iterator(); iterator.hasNext(); ) {
+                    OperationReference operationReference = iterator.next();
+                    if ( routerApiPath.equals(operationReference.apiDocName)
+                            && api.path.equals(operationReference.path)
+                            && operation.httpMethod.equals(operationReference.httpMethod)) {
+                        iterator.remove();
+                        break;
+                    }
+                }
+
+                operation.relatedOperations = new ArrayList<>(related);
+            }
+        }
+
+        return apis;
+    }
+
+    private Multimap<String, OperationReference> getOperationReferencesByType() {
+        Multimap<String, OperationReference> operationsByType = ArrayListMultimap.create();
+        Set<NamedComponent<RestxRouter>> routers = factory.queryByClass(RestxRouter.class).find();
+        for (NamedComponent<RestxRouter> r : routers) {
+            String routerApiPath = getRouterApiPath(r.getName().getName());
+
+            for (ResourceDescription resourceDescription : describeAllRoutes(r.getComponent())) {
+                for (OperationDescription operation : resourceDescription.operations) {
+                    OperationReference ref = buildReferenceFor(routerApiPath, resourceDescription.path, operation);
+                    addIfRelevant(operationsByType, ref, operation.responseClass);
+                    Optional<OperationParameterDescription> bodyParameter = operation.findBodyParameter();
+                    if (bodyParameter.isPresent()) {
+                        addIfRelevant(operationsByType, ref, bodyParameter.get().dataType);
+                    }
+                }
+            }
+        }
+        return operationsByType;
+    }
+
+    private Multimap<String, OperationReference> getOperationReferencesByPath() {
+        Multimap<String, OperationReference> operationsByPath = ArrayListMultimap.create();
+        Set<NamedComponent<RestxRouter>> routers = factory.queryByClass(RestxRouter.class).find();
+        for (NamedComponent<RestxRouter> r : routers) {
+            String routerApiPath = getRouterApiPath(r.getName().getName());
+
+            for (ResourceDescription resourceDescription : describeAllRoutes(r.getComponent())) {
+                for (OperationDescription operation : resourceDescription.operations) {
+                    OperationReference ref = buildReferenceFor(routerApiPath, resourceDescription.path, operation);
+                    operationsByPath.put(resourceDescription.path, ref);
+                }
+            }
+        }
+        return operationsByPath;
+    }
+
+    private void addIfRelevant(Multimap<String, OperationReference> operationsByType, OperationReference ref, String dataType) {
+        String targetType = getTargetType(dataType);
+        if (!targetType.equals("void") && !targetType.equals("Status")) {
+            operationsByType.put(targetType, ref);
+        }
+    }
+
+    private String getTargetType(String dataType) {
+        return dataType == null ? "void" : dataType.replaceAll("LIST\\[(.+)\\]", "$1");
+    }
+
+    private OperationReference buildReferenceFor(String routerApiPath, String path, OperationDescription operation) {
+        OperationReference ref = new OperationReference();
+        ref.apiDocName = routerApiPath;
+        ref.path = path;
+        ref.httpMethod = operation.httpMethod;
+        ref.responseClass = operation.responseClass;
+        Optional<OperationParameterDescription> bodyParameter = operation.findBodyParameter();
+        ref.requestClass = bodyParameter.isPresent() ? bodyParameter.get().dataType : "void";
+        return ref;
+    }
+
+    private List<ResourceDescription> describeAllRoutes(RestxRouter component) {
+        ImmutableList<RestxRoute> routes = component.getRoutes();
         List<ResourceDescription> apis = Lists.newArrayList();
         for (RestxRoute route : routes) {
             if (route instanceof DescribableRoute) {

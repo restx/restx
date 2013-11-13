@@ -70,7 +70,7 @@ public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
         return apis;
     }
 
-    private String getRouterApiPath(String path) {
+    static String getRouterApiPath(String path) {
         path = path.replaceAll("Router$", "").replaceAll("Resource$", "");
         path = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, path);
         return path;

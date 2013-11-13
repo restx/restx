@@ -10,11 +10,18 @@ adminApp.run(function($rootScope) {
     });
 })
 
+adminApp.filter('encodePath', function() {
+    return function(input) {
+        return input.replace(/\//g, '___');
+    };
+});
+
 adminApp.controller('OperationController', function OperationController(
-        $rootScope, $scope, $routeParams, $http, $filter, ApiDoc, Api) {
+        $rootScope, $scope, $routeParams, $http, $filter, $location, ApiDoc, Api) {
     var path = $routeParams.path.replace(/___/g, '/');
     $scope.doc = ApiDoc.get();
     $scope.su = $rootScope.su;
+    $scope.responseActive = true; // default
 
     function setTry(tryMode) {
         $scope.try = $rootScope.try = tryMode;
@@ -69,6 +76,7 @@ adminApp.controller('OperationController', function OperationController(
 
     function sendRequest(onSuccess) {
         $rootScope.su = $scope.su;
+        $rootScope.contextData = null; // clear context data
         $scope.request.headers['RestxSu'] = $scope.su ? '{ "principal": "'+ $scope.su +'" }' : "";
         $http(
             {
@@ -83,6 +91,19 @@ adminApp.controller('OperationController', function OperationController(
             .success(function (data, status, headers, config) {
                 $scope.request.response.status = status;
                 $scope.request.response.body = data;
+                $rootScope.contextData = data;
+                $rootScope.contextDataType = $scope.operation.responseClass;
+
+                try {
+                    $scope.request.response.bodyObj = JSON.parse(data);
+                    $scope.request.response.bodyType =
+                        Array.isArray($scope.request.response.bodyObj)
+                        ? "array"
+                        : typeof $scope.request.response.bodyObj;
+                } catch (e) {
+                    $scope.request.response.bodyObj = null;
+                    $scope.request.response.bodyType = "raw";
+                }
                 if (onSuccess) {
                     onSuccess(data, status, headers, config);
                 }
@@ -91,6 +112,13 @@ adminApp.controller('OperationController', function OperationController(
                 $scope.request.response.status = status;
                 $scope.request.response.body = data;
             });
+    }
+
+    $scope.goWithContext = function(rel, el) {
+        $rootScope.contextData = angular.toJson(el, true);
+        $rootScope.contextDataType = $scope.operation.responseClass.replace(/LIST\[(.+)\]/, '$1');
+
+        $location.path('/operation/'+rel.apiDocName+'/' + rel.httpMethod + '/' + rel.path.replace(/\//g, '___'));
     }
 
     function prepareRequest() {
@@ -172,6 +200,27 @@ adminApp.controller('OperationController', function OperationController(
         var findOpByHttpMethod = function(op) { return op.httpMethod ===  $routeParams.httpMethod}
         $scope.opApi = _.find($scope.api.apis, function(o) { return o.path === path && _.any(o.operations, findOpByHttpMethod)}) || { operations: []};
         $scope.operation = _.find($scope.opApi.operations, findOpByHttpMethod) || {};
+
+        if ($rootScope.contextData) {
+            try {
+                var o = JSON.parse($rootScope.contextData);
+
+                if (!o.key && o._id) {o.key = o._id;}
+
+                _.each($scope.operation.parameters, function(p) {
+                    if (p.paramType === 'body') {
+                        if ($rootScope.contextDataType === p.dataType) {
+                            p.value = $rootScope.contextData;
+                        }
+                    } else if (o[p.name]) {
+                        p.value = o[p.name];
+                    }
+                });
+
+            } catch (e) {
+                // ignore
+            }
+        }
         loadAllSpecs();
     });
 

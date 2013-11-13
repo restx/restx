@@ -1,12 +1,24 @@
 <div class="container operation">
     <h1><span class="http-method http-method-{{operation.httpMethod}}">{{operation.httpMethod}}</span> <span class="path">{{opApi.path}}</span></h1>
     <section>
-        <h2>Description</h2>
-        <button ng-click="toggleTry()" class="btn pull-right" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
-        <p><label>Nick name:</label> {{operation.nickname}}</p>
-        <p><label>Response class:</label> {{operation.responseClass}}</p>
-        <p><label>Success status:</label> {{operation.successStatus.code}} - {{operation.successStatus.desc}}</p>
-        <section>
+        <div class="clearfix">
+            <h2>Description</h2>
+            <button ng-click="toggleTry()" class="btn pull-right" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
+            <p><label>Nick name:</label> {{operation.nickname}}</p>
+            <p><label>Response class:</label> {{operation.responseClass}}</p>
+            <p><label>Success status:</label> {{operation.successStatus.code}} - {{operation.successStatus.desc}}</p>
+            <div class="relatedOperations"><label>Related operations:</label>
+                <table class="table table-condensed operations">
+                    <tr class="operation operation-{{rel.httpMethod}}" ng-repeat="rel in operation.relatedOperations">
+                        <td class="http-method">
+                            <a class="btn" href="#/operation/{{rel.apiDocName}}/{{rel.httpMethod}}/{{rel.path | encodePath}}">{{rel.httpMethod}}</a>
+                        </td>
+                        <td class="path">{{rel.path}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div>
             <h3>Parameters</h3>
             <table class="table table-condensed parameters">
                 <thead>
@@ -27,8 +39,8 @@
                     <td class="required">{{param.required}}</td>
                 </tr>
             </table>
-        </section>
-        <section ng-show="try" class="send">
+        </div>
+        <div ng-show="try" class="send">
             <div class="pull-right" ng-show="!expect">
                     SU
                     <input placeholder="johndoe@acme.com" ng-model="su">
@@ -51,16 +63,50 @@
             </div>
             <div ng-show="request && !expect">
                 <h3>Result</h3>
-                <h4>Request</h4>
-                <pre><code>{{request.httpMethod}} {{request.path}}</code></pre>
-                <div ng-show="request.body">Body: <pre><code>{{request.body}}</code></pre> </div>
-                <div ng-show="request.response.status">
-                    <h4>Response</h4>
-                    <pre><code>{{request.response.status}}</code></pre>
-                    <pre><code>{{request.response.body}}</code></pre>
-                </div>
+                <tabset>
+                    <tab heading="Request">
+                        <pre><code>{{request.httpMethod}} {{request.path}}</code></pre>
+                        <div ng-show="request.body">Body: <pre><code>{{request.body}}</code></pre> </div>
+                    </tab>
+                    <tab heading="Response" disabled="!request.response.status" active="responseActive">
+                        <pre><code>{{request.response.status}}</code></pre>
+                        <div class="response" ng-switch="request.response.bodyType">
+                            <ul ng-switch-when="array">
+                                <li ng-repeat="el in request.response.bodyObj">
+                                    <div class="dropdown pull-right">
+                                        <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Use &gt;&gt;</button>
+                                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                            <li ng-repeat="rel in operation.relatedOperations">
+                                                <a href ng-click="goWithContext(rel, el)">
+                                                    <span class="http-method http-method-{{rel.httpMethod}}">{{rel.httpMethod}}</span>
+                                                    <span class="path">{{rel.path}}</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <pre><code>{{el | json}}</code></pre>
+                                </li>
+                            </ul>
+                            <div ng-switch-when="object">
+                                <div class="dropdown pull-right">
+                                    <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Use &gt;&gt;</button>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                        <li ng-repeat="rel in operation.relatedOperations">
+                                            <a href ng-click="goWithContext(rel, request.response.bodyObj)">
+                                                <span class="http-method http-method-{{rel.httpMethod}}">{{rel.httpMethod}}</span>
+                                                <span class="path">{{rel.path}}</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <pre><code>{{request.response.bodyObj | json}}</code></pre>
+                            </div>
+                            <pre ng-switch-default><code>{{request.response.body}}</code></pre>
+                        </div>
+                    </tab>
+                </tabset>
             </div>
-        </section>
+        </div>
     </section>
 
 
