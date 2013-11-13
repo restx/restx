@@ -13,4 +13,4 @@ else
     JAVA="$JAVA_HOME/bin/java"
 fi
 
-"$JAVA" -Drestx.shell.home="$dir" -cp "$dir/lib/*:$dir/plugins/*:." restx.shell.RestxShell "$@"
+"$JAVA" $JAVA_OPTS $RESTX_OPTS -Drestx.shell.home="$dir" -cp "$dir/lib/*:$dir/plugins/*:." restx.shell.RestxShell "$@"
