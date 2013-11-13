@@ -10,7 +10,9 @@
 # Is RESTX already installed (in /usr/local/bin (engine) or /usr/bin
 # (pre-engine)? If so, just ask the user to run the upgrade command
 
-if [ -x /usr/local/bin/restx ]; then
+PREFIX="${RESTX_BIN:-/usr/local}"
+
+if [ -x /usr/local/bin/restx ] || [ -x /usr/bin/restx ] || [ -x $PREFIX/bin/restx ]; then
 	  cat <<"EOF"
 
 RESTX is already installed, to update it:
@@ -29,27 +31,6 @@ EOF
 
   exit 0
 fi
-
-if [ -x /usr/bin/restx ]; then
-	  cat <<"EOF"
-
-RESTX is already installed, to update it:
-  (1) run the 'restx' command
-  (2) run 'shell upgrade' command inside restx shell
-
-If you want to reinstall it from scratch:
-  (1) run 'rm `which restx`'
-  (2) relaunch this script
-
-You can also check the docs at
-
-	http://restx.io/docs/
-
-EOF
-  exit 0
-fi
-
-PREFIX="/usr/local"
 
 set -e
 set -u
