@@ -2,3 +2,4 @@ name: RESTX, the lightweight Java REST framework
 pygments: true
 pullrequesturl: /docs/improve-page.html#
 restx-version: "0.30"
+restx-package-version: "0.30.1"
