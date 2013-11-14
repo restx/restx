@@ -227,7 +227,7 @@ adminApp.controller('OperationController', function OperationController(
     $scope.tryExample = function(request) {
         setTry(true);
         bodyParamValue(request.body);
-        $scope.request = { httpMethod: request.httpMethod, path: request.path, body: request.body, response: {status: '', body: ''} };
+        $scope.request = { httpMethod: request.httpMethod, path: request.path, body: request.body, response: {status: '', body: ''}, headers: {} };
         sendRequest();
     }
 });
