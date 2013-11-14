@@ -46,6 +46,7 @@ public class RestxShell implements Appendable {
     private final List<WatchListener> listeners = new CopyOnWriteArrayList<>();
     private final ExecutorService watcherExecutorService = Executors.newSingleThreadExecutor();
     private Path currentLocation = Paths.get(".").normalize();
+    private ExecMode execMode = ExecMode.INTERACTIVE;
 
     public RestxShell(ConsoleReader consoleReader) {
         this(consoleReader, Factory.builder().addFromServiceLoader().build());
@@ -73,7 +74,8 @@ public class RestxShell implements Appendable {
     }
 
     public void start() throws IOException {
-        banner(ExecMode.INTERACTIVE);
+        execMode = ExecMode.INTERACTIVE;
+        banner();
 
         try {
             for (ShellCommand command : commands) {
@@ -107,7 +109,8 @@ public class RestxShell implements Appendable {
     }
 
     public void exec(Iterable<String> commands) throws IOException {
-        banner(ExecMode.BATCH);
+        execMode = ExecMode.BATCH;
+        banner();
 
         for (String command : commands) {
             printIn("> " + command, AnsiCodes.ANSI_PURPLE);
@@ -206,10 +209,16 @@ public class RestxShell implements Appendable {
 
     public void restart() {
         try {
-            new File(installLocation().toFile(), ".restart").createNewFile();
-            printIn("RESTARTING SHELL...", AnsiCodes.ANSI_RED);
-            println("");
-            throw new ExitShell();
+            if (execMode == ExecMode.BATCH) {
+                printIn("TERMINATING SHELL [NO AUTO RESTART IN BATCH MODE]...", AnsiCodes.ANSI_GREEN);
+                println("");
+                throw new ExitShell();
+            } else {
+                new File(installLocation().toFile(), ".restart").createNewFile();
+                printIn("RESTARTING SHELL...", AnsiCodes.ANSI_RED);
+                println("");
+                throw new ExitShell();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -252,7 +261,7 @@ public class RestxShell implements Appendable {
         consoleReader.setHistoryEnabled(true);
     }
 
-    protected void banner(ExecMode execMode) throws IOException {
+    protected void banner() throws IOException {
         consoleReader.println("===============================================================================");
         consoleReader.println("== WELCOME TO RESTX SHELL - " + version()
                 + (execMode == ExecMode.INTERACTIVE
