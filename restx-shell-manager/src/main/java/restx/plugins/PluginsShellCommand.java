@@ -177,8 +177,8 @@ public class PluginsShellCommand extends StdShellCommand {
         private final Optional<List<String>> pluginIds;
 
         public InstallPluginRunner(List<String> args) {
-            if (args.size() > 1) {
-                pluginIds = Optional.<List<String>>of(new ArrayList<>(args.subList(1, args.size())));
+            if (args.size() > 2) {
+                pluginIds = Optional.<List<String>>of(new ArrayList<>(args.subList(2, args.size())));
             } else {
                 pluginIds = Optional.absent();
             }
@@ -270,7 +270,8 @@ public class PluginsShellCommand extends StdShellCommand {
     }
 
     private File[] pluginFiles(File pluginsDir) {
-        return pluginsDir.listFiles(new PatternFilenameFilter(".*\\.plugin"));
+        File[] files = pluginsDir.listFiles(new PatternFilenameFilter(".*\\.plugin"));
+        return files == null ? new File[0] : files;
     }
 
     private class UpgradeShellRunner implements ShellCommandRunner {
