@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.30-SNAPSHOT</version>
+        <version>0.30</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-shell</artifactId>
-    <version>0.30-SNAPSHOT</version>
+    <version>0.30</version>
     <packaging>jar</packaging>
     <name>restx-shell</name>
 
     <properties>
-        <restx.version>0.30-SNAPSHOT</restx.version>
+        <restx.version>0.30</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <logback.version>1.0.13</logback.version>
