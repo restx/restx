@@ -37,3 +37,4 @@ Here is the full table of contents of the documentation:
 ### [RESTX Specs](ref-specs.html)
 ### [RESTX Settings](ref-settings.html)
 ### [RESTX Security](ref-security.html)
+### [Deploying a RESTX app](ref-deploy.html)
