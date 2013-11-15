@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Query;
 import org.simpleframework.http.Request;
+import restx.AbstractRequest;
 import restx.RestxRequest;
 
 import java.io.BufferedInputStream;
@@ -22,7 +23,7 @@ import java.util.Map;
  * Date: 2/16/13
  * Time: 1:57 PM
  */
-public class SimpleRestxRequest implements RestxRequest {
+public class SimpleRestxRequest  extends AbstractRequest {
     private final String restxPath;
     private final String apiPath;
     private final Request request;
@@ -149,29 +150,4 @@ public class SimpleRestxRequest implements RestxRequest {
     public void closeContentStream() throws IOException {
         bufferedInputStream.close();
     }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("[RESTX REQUEST] ");
-        sb.append(getHttpMethod()).append(" ").append(getRestxPath());
-        dumpParameters(sb);
-        return sb.toString();
-    }
-
-    private void dumpParameters(StringBuilder sb) {
-        if (request.getQuery().isEmpty()) {
-            return;
-        }
-        sb.append(" ? ");
-        for (String key : request.getQuery().keySet()) {
-            List<String> values = request.getQuery().getAll(key);
-            sb.append(key).append("=").append(
-                    values.size() == 1
-                            ? values.get(0)
-                            : Joiner.on("&" + key + "=").join(values));
-            sb.append("&");
-        }
-        sb.setLength(sb.length() - 1);
-    }
-
 }

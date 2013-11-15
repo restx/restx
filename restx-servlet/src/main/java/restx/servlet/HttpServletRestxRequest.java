@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import restx.AbstractRequest;
 import restx.RestxRequest;
 
 import javax.servlet.http.Cookie;
@@ -22,7 +23,7 @@ import java.util.Map;
  * Date: 1/22/13
  * Time: 2:52 PM
  */
-public class HttpServletRestxRequest implements RestxRequest {
+public class HttpServletRestxRequest extends AbstractRequest {
     private final HttpServletRequest request;
     private BufferedInputStream bufferedInputStream;
     private ImmutableMap<String, ImmutableList<String>> queryParams;
@@ -170,29 +171,5 @@ public class HttpServletRestxRequest implements RestxRequest {
     @Override
     public String getContentType() {
         return request.getContentType();
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("[RESTX REQUEST] ");
-        sb.append(getHttpMethod()).append(" ").append(getRestxPath());
-        dumpParameters(sb);
-        return sb.toString();
-    }
-
-    private void dumpParameters(StringBuilder sb) {
-        if (request.getParameterMap().isEmpty()) {
-            return;
-        }
-        sb.append(" ? ");
-        for (Iterator iterator = request.getParameterMap().entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<String, String[]> entry = (Map.Entry<String, String[]>) iterator.next();
-            sb.append(entry.getKey()).append("=").append(
-                    entry.getValue().length == 1
-                            ? entry.getValue()[0]
-                            : Joiner.on("&" + entry.getKey() + "=").join(entry.getValue()));
-            sb.append("&");
-        }
-        sb.setLength(sb.length() - 1);
     }
 }

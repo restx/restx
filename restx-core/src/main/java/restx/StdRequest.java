@@ -23,7 +23,7 @@ import static com.google.common.collect.Iterables.getFirst;
  * Date: 4/2/13
  * Time: 9:16 PM
  */
-public class StdRequest implements RestxRequest {
+public class StdRequest extends AbstractRequest {
 
     public static StdRequestBuilder builder() {
         return new StdRequestBuilder();
