@@ -8,7 +8,7 @@ import restx.factory.Component;
 
 /**
  */
-@RestxResource @Component
+@RestxResource(group = "restx-admin") @Component
 public class ConfigResource {
     private final RestxConfig config;
 
