@@ -14,7 +14,7 @@ public class {{{settingsSimpleType}}}Config implements {{{settingsType}}} {
 
     @Override
     public {{{accessorReturnType}}} {{{accessorName}}}() {
-        return config.{{{configAccessor}}}("{{{key}}}").get();
+        return config.{{{configAccessor}}}("{{{key}}}"){{{get}}};
     }
 {{/keys}}
 }

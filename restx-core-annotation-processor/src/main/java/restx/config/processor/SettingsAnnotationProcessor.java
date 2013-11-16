@@ -1,10 +1,7 @@
 package restx.config.processor;
 
 import com.github.mustachejava.Mustache;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.common.Mustaches;
@@ -19,6 +16,8 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -72,8 +71,26 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                         }
 
                         String accessorReturnType = methodElem.getReturnType().toString();
+                        boolean optional;
+                        String targetType;
+                        if (accessorReturnType.startsWith(Optional.class.getCanonicalName())) {
+                            optional = true;
+                            List<? extends TypeMirror> typeArguments = ((DeclaredType) methodElem.getReturnType()).getTypeArguments();
+                            if (typeArguments.isEmpty()) {
+                                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                        String.format("unsupported return type %s for settings accessor method" +
+                                                " - you must provide generic type when using Optional",
+                                                accessorReturnType), methodElem);
+                                continue;
+                            } else {
+                                targetType = typeArguments.get(0).toString();
+                            }
+                        } else {
+                            optional = false;
+                            targetType = accessorReturnType;
+                        }
                         String configAccessor;
-                        switch (methodElem.getReturnType().toString()) {
+                        switch (targetType) {
                             case "java.lang.String":
                                 configAccessor = "getString";
                                 break;
@@ -84,8 +101,8 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                             default:
                                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                         String.format("unsupported return type %s for settings accessor method" +
-                                                " - it must be one of [String, Integer]",
-                                                methodElem.getReturnType().toString()), methodElem);
+                                                " - it must be one of [String, Integer, int]",
+                                                accessorReturnType), methodElem);
                                 continue;
                         }
 
@@ -106,6 +123,7 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                                 .put("configAccessor", configAccessor)
                                 .put("accessorName", methodElem.getSimpleName().toString())
                                 .put("key", settingsKey.key())
+                                .put("get", optional ? "" : ".get()")
                                 .put("doc", settingsKey.doc())
                                 .put("defaultValue", settingsKey.defaultValue())
                                 .build());
