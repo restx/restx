@@ -82,4 +82,19 @@ public class MoreFiles {
             }
         });
     }
+
+    public static void checkFileExists(String location) {
+        File file = new File(location);
+        if (!file.exists()) {
+            String workingDir = "<unknown location>";
+            try {
+                workingDir = new File(".").getAbsoluteFile().getCanonicalPath();
+            } catch (IOException e) {
+                // ignore
+            }
+            throw new IllegalStateException(
+                    "couldn't find " + location + " in " + workingDir
+                            + "\nCheck your working directory.\n");
+        }
+    }
 }

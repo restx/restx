@@ -9,9 +9,13 @@ import org.apache.catalina.core.StandardServer;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.common.MoreFiles;
 
 import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static restx.common.MoreFiles.checkFileExists;
 
 /**
  * TomcatWebServer allow to run embedded tomcat. But its startup time is much slower than JettyWebServer.
@@ -22,11 +26,14 @@ public class TomcatWebServer implements WebServer {
     private final Logger logger = LoggerFactory.getLogger(TomcatWebServer.class);
 
     private final Tomcat tomcat;
+    private final String appBase;
     private final int port;
     private final String serverId;
     private final EventBus eventBus = new EventBus();
 
     public TomcatWebServer(String appBase, int port) throws ServletException {
+        checkFileExists(appBase);
+        this.appBase = appBase;
         this.port = port;
         this.serverId = "Tomcat#" + SERVER_ID.incrementAndGet();
         tomcat = new Tomcat();

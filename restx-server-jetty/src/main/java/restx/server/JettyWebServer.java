@@ -1,5 +1,6 @@
 package restx.server;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import org.eclipse.jetty.security.DefaultIdentityService;
@@ -16,8 +17,13 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.common.MoreFiles;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static restx.common.MoreFiles.checkFileExists;
 
 public class JettyWebServer implements WebServer {
     private static final AtomicLong SERVER_ID = new AtomicLong();
@@ -38,6 +44,12 @@ public class JettyWebServer implements WebServer {
     }
 
     public JettyWebServer(String webInfLocation, String appBase, int port, String bindInterface) {
+        checkFileExists(checkNotNull(appBase));
+
+        if (webInfLocation != null) {
+            checkFileExists(webInfLocation);
+        }
+
         this.port = port;
         this.bindInterface = bindInterface;
         this.appBase = appBase;
