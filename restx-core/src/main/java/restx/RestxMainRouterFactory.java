@@ -14,10 +14,7 @@ import restx.classloader.CompilationManager;
 import restx.classloader.CompilationSettings;
 import restx.classloader.HotReloadingClassLoader;
 import restx.common.RestxConfig;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.NamedComponent;
-import restx.factory.SingletonFactoryMachine;
+import restx.factory.*;
 import restx.http.HttpStatus;
 import restx.server.WebServers;
 import restx.specs.RestxSpec;
@@ -35,7 +32,9 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,6 +46,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class RestxMainRouterFactory {
     private static final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
+    private static final Map<String, RestxMainRouter> routers = new HashMap<>();
 
     public static RestxMainRouter newInstance(final String serverId, Optional<String> baseUri) {
         checkNotNull(serverId);
@@ -55,12 +55,17 @@ public class RestxMainRouterFactory {
         return newInstance(serverId, baseUri, eventBus, new MetricRegistry());
     }
 
-    public static RestxMainRouter newInstance(String serverId, Optional<String> baseUri,
+    public static synchronized RestxMainRouter newInstance(String serverId, Optional<String> baseUri,
                                               EventBus eventBus, MetricRegistry metrics) {
-        AppSettings settings = loadFactory(newFactoryBuilder(serverId, eventBus, metrics))
-                .getComponent(AppSettings.class);
+        RestxMainRouter router = routers.get(serverId);
+        if (router == null)  {
+            AppSettings settings = loadFactory(newFactoryBuilder(serverId, eventBus, metrics))
+                    .getComponent(AppSettings.class);
 
-        return new RestxMainRouterFactory(settings).build(serverId, baseUri, eventBus, metrics);
+            router = new RestxMainRouterFactory(settings).build(serverId, baseUri, eventBus, metrics);
+            routers.put(serverId, router);
+        }
+        return router;
     }
 
     /**
@@ -166,17 +171,20 @@ public class RestxMainRouterFactory {
         private final String serverId;
         private final EventBus eventBus;
         private final MetricRegistry metrics;
+        private final Warehouse warehouse;
 
-        public PerRequestFactoryLoader(String serverId, EventBus eventBus, MetricRegistry metrics) {
+        public PerRequestFactoryLoader(String serverId, EventBus eventBus, MetricRegistry metrics, Warehouse warehouse) {
             this.serverId = serverId;
             this.eventBus = eventBus;
             this.metrics = metrics;
+            this.warehouse = warehouse;
         }
 
         @Override
         public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
             Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus, metrics,
-                    RestxSpecRecorder.current().orNull(), getMode(restxRequest)));
+                    RestxSpecRecorder.current().orNull(), getMode(restxRequest))
+                    .addWarehouseProvider(warehouse));
 
             try {
                 newStdRouter(factory).route(restxRequest, restxResponse);
@@ -319,7 +327,7 @@ public class RestxMainRouterFactory {
         }
 
         if (getLoadFactoryMode().equals("onstartup")) {
-            Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus, metrics));
+            Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus, metrics)).start();
             final StdRestxMainRouter mainRouter = newStdRouter(factory);
             logPrompt(baseUri, "READY", mainRouter);
 
@@ -334,20 +342,28 @@ public class RestxMainRouterFactory {
         } else if (getLoadFactoryMode().equals("onrequest")) {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
-            RestxMainRouter router = new PerRequestFactoryLoader(serverId, eventBus, metrics);
 
-            // this factory is used to look up settings only, then one factory will be created for each request
-            Factory factory = loadFactory(newFactoryBuilder(serverId, eventBus, metrics));
+            RestxMainRouter router = new PerRequestFactoryLoader(serverId, eventBus, metrics,
+                    // this factory is used to handle autostartable components only,
+                    // then one factory will be created for each request
+                    // its warehouse will be shared among all factories created per request, making
+                    // autostartable components live tied to the router
+                    loadFactory(newFactoryBuilder(serverId, eventBus, metrics)).start().getWarehouse());
+
+
+            // this factory is used to look up settings only
+            // we don't use 'factory' instance to avoid having settings built into the
+            Factory settingsFactory = loadFactory(newFactoryBuilder(serverId, eventBus, metrics));
 
             // wrap in a recording router, as any request may ask for recording with RestxMode header
             router = new RecordingMainRouter(serverId, eventBus, metrics, recorder, router,
-                    factory.getComponent(RestxSpec.StorageSettings.class));
+                    settingsFactory.getComponent(RestxSpec.StorageSettings.class));
 
             // wrap in hot reloading or hoy compile router if needed.
             // this must be the last wrapping so that the classloader is used for the full request, including
             // for recording
             if (useHotCompile()) {
-                final RestxConfig config = factory.getComponent(RestxConfig.class);
+                final RestxConfig config = settingsFactory.getComponent(RestxConfig.class);
                 router = new CompilationManagerRouter(router, eventBus, new CompilationSettings() {
                     @Override
                     public int autoCompileCoalescePeriod() {
