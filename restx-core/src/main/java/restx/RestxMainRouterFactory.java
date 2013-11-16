@@ -51,10 +51,14 @@ public class RestxMainRouterFactory {
         checkNotNull(serverId);
         EventBus eventBus = WebServers.getServerById(serverId).get().getEventBus();
 
+        return newInstance(serverId, baseUri, eventBus);
+    }
+
+    public static RestxMainRouter newInstance(String serverId, Optional<String> baseUri, EventBus eventBus) {
         AppSettings settings = loadFactory(newFactoryBuilder(serverId, eventBus))
                 .getComponent(AppSettings.class);
 
-        return new RestxMainRouterFactory(settings).newInstance(serverId, baseUri, eventBus);
+        return new RestxMainRouterFactory(settings).build(serverId, baseUri, eventBus);
     }
 
     /**
@@ -284,7 +288,7 @@ public class RestxMainRouterFactory {
         this.appSettings = appSettings;
     }
 
-    private RestxMainRouter newInstance(final String serverId, Optional<String> baseUri, EventBus eventBus) {
+    private RestxMainRouter build(final String serverId, Optional<String> baseUri, EventBus eventBus) {
         checkNotNull(serverId);
         checkNotNull(baseUri);
         checkNotNull(eventBus);
