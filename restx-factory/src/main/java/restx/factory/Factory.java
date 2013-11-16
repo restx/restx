@@ -40,6 +40,26 @@ public class Factory implements AutoCloseable {
     };
     private static final AtomicLong ID = new AtomicLong();
 
+    private static final ConcurrentMap<String, Factory> factories = Maps.newConcurrentMap();
+
+    public static Optional<Factory> getFactory(String key) {
+        return Optional.fromNullable(factories.get(key));
+    }
+
+    public static Factory register(String key, Factory factory) {
+        Factory previous = factories.putIfAbsent(key, factory);
+        if (previous != null) {
+            return previous;
+        }
+        return factory;
+    }
+
+    public static boolean unregister(String key, Factory factory) {
+        return factories.remove(key, factory);
+    }
+
+
+
     public static class LocalMachines {
         private static final ThreadLocal<LocalMachines> threadLocals = new ThreadLocal() {
             @Override

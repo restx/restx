@@ -387,6 +387,16 @@ public class FactoryTest {
         factory.close();
     }
 
+    @Test
+    public void should_register_and_unregister() throws Exception {
+        Factory factory = Factory.builder().build();
+        assertThat(Factory.getFactory(factory.getId())).isEqualTo(Optional.absent());
+        Factory.register(factory.getId(), factory);
+        assertThat(Factory.getFactory(factory.getId())).isEqualTo(Optional.of(factory));
+        Factory.unregister(factory.getId(), factory);
+        assertThat(Factory.getFactory(factory.getId())).isEqualTo(Optional.absent());
+    }
+
     private SingleNameFactoryMachine<String> testMachine() {
         return testMachine("test");
     }
