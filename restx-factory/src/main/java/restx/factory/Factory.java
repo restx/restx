@@ -40,10 +40,6 @@ public class Factory implements AutoCloseable {
     };
     private static final AtomicLong ID = new AtomicLong();
 
-    public Warehouse getWarehouse() {
-        return warehouse;
-    }
-
     public static class LocalMachines {
         private static final ThreadLocal<LocalMachines> threadLocals = new ThreadLocal() {
             @Override
@@ -598,6 +594,10 @@ public class Factory implements AutoCloseable {
 
     public String getId() {
         return id;
+    }
+
+    public Warehouse getWarehouse() {
+        return warehouse;
     }
 
     public int getNbMachines() {
