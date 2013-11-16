@@ -1,5 +1,7 @@
 package restx;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,8 +9,6 @@ import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
-import com.jamonapi.Monitor;
-import com.jamonapi.MonitorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.exceptions.RestxError;
@@ -36,11 +36,23 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
     public static class Builder {
         private ObjectMapper mapper;
+        private MetricRegistry metrics;
+        private String mode = RestxContext.Modes.PROD;
         private List<RestxFilter> filters = Lists.newArrayList();
         private List<RestxRoute> routes = Lists.newArrayList();
 
         public Builder withMapper(ObjectMapper mapper) {
             this.mapper = mapper;
+            return this;
+        }
+
+        public Builder withMetrics(MetricRegistry metrics) {
+            this.metrics = metrics;
+            return this;
+        }
+
+        public Builder inMode(String mode) {
+            this.mode = mode;
             return this;
         }
 
@@ -70,8 +82,10 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
 
         public RestxMainRouter build() {
-            return new StdRestxMainRouter(new RestxRouting(
-                    ImmutableList.copyOf(filters), ImmutableList.copyOf(routes)));
+            return new StdRestxMainRouter(
+                    metrics == null ? new MetricRegistry() : metrics,
+                    new RestxRouting(ImmutableList.copyOf(filters), ImmutableList.copyOf(routes)),
+                    mode);
         }
     }
 
@@ -79,12 +93,18 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
     private final RestxRouting routing;
     private final String mode;
+    private final MetricRegistry metrics;
 
     public StdRestxMainRouter(RestxRouting routing) {
         this(routing, RestxContext.Modes.PROD);
     }
 
     public StdRestxMainRouter(RestxRouting routing, String mode) {
+        this(new MetricRegistry(), routing, mode);
+    }
+
+    public StdRestxMainRouter(MetricRegistry metrics, RestxRouting routing, String mode) {
+        this.metrics = checkNotNull(metrics);
         this.routing = checkNotNull(routing);
         this.mode = checkNotNull(mode);
     }
@@ -94,7 +114,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         logger.debug("<< {}", restxRequest);
         Stopwatch stopwatch = new Stopwatch().start();
 
-        Monitor monitor = MonitorFactory.start("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath());
+        Timer.Context monitor = metrics.timer("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath()).time();
         try {
             Optional<RestxRouting.Match> m = routing.match(restxRequest);
 

@@ -1,12 +1,12 @@
 package restx.factory;
 
+import com.codahale.metrics.*;
+import com.codahale.metrics.Timer;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
-import com.jamonapi.Monitor;
-import com.jamonapi.MonitorFactory;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -32,6 +31,7 @@ public class Factory implements AutoCloseable {
     private static final String SERVICE_LOADER = "ServiceLoader";
     private final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
+    private static final Name<MetricRegistry> METRICS_NAME = Name.of(MetricRegistry.class, "METRICS");
     private static final Comparator<ComponentCustomizer> customizerComparator = new Comparator<ComponentCustomizer>() {
         @Override
         public int compare(ComponentCustomizer o1, ComponentCustomizer o2) {
@@ -98,6 +98,7 @@ public class Factory implements AutoCloseable {
     public static class Builder {
         private boolean usedServiceLoader;
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
+        private MetricRegistry metrics;
 
         public Builder addFromServiceLoader() {
             try {
@@ -138,7 +139,16 @@ public class Factory implements AutoCloseable {
             return this;
         }
 
+        public Builder withMetrics(MetricRegistry metrics) {
+            this.metrics = metrics;
+            return this;
+        }
+
         public Factory build() {
+            if (metrics == null) {
+                metrics = new MetricRegistry();
+            }
+
             /*
                Building a Factory is done in several steps:
                1) do a set of rounds until a round is not producing new FactoryMachine
@@ -154,19 +164,19 @@ public class Factory implements AutoCloseable {
                which is better at least in production.
              */
             Factory factory = new Factory(
-                    usedServiceLoader, machines, ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse());
+                    usedServiceLoader, machines, ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse(), metrics);
 
             Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> toBuild = new LinkedHashMap<>();
             ImmutableList<FactoryMachine> factoryMachines = buildFactoryMachines(factory, factory.machines, toBuild);
             while (!factoryMachines.isEmpty()) {
                 machines.putAll("FactoryMachines", factoryMachines);
                 factory = new Factory(usedServiceLoader, machines,
-                        ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse());
+                        ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse(), metrics);
                 factoryMachines = buildFactoryMachines(factory, factoryMachines, toBuild);
             }
 
             factory = new Factory(usedServiceLoader, machines,
-                    buildCustomizerEngines(factory), new Warehouse());
+                    buildCustomizerEngines(factory), new Warehouse(), metrics);
             return factory;
         }
 
@@ -536,14 +546,19 @@ public class Factory implements AutoCloseable {
     private final ImmutableList<ComponentCustomizerEngine> customizerEngines;
     private final String id;
     private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
+    private final MetricRegistry metrics;
 
     private Factory(boolean usedServiceLoader, Multimap<String, FactoryMachine> machines,
-                    ImmutableList<ComponentCustomizerEngine> customizerEngines, Warehouse warehouse) {
+                    ImmutableList<ComponentCustomizerEngine> customizerEngines, Warehouse warehouse,
+                    MetricRegistry metrics) {
         this.usedServiceLoader = usedServiceLoader;
         this.customizerEngines = customizerEngines;
+        this.metrics = metrics;
         machinesByBuilder = ImmutableMultimap.<String, FactoryMachine>builder()
                 .put("FactoryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)))
-                .putAll(machines).build();
+                .put("MetricRegistryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(METRICS_NAME, metrics)))
+                .putAll(machines)
+                .build();
 
         this.machines = ImmutableList.copyOf(
                 Ordering.from(new Comparator<FactoryMachine>() {
@@ -560,8 +575,9 @@ public class Factory implements AutoCloseable {
         Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
         machines.putAll(machinesByBuilder);
         machines.removeAll("FactoryMachine");
+        machines.removeAll("MetricRegistryMachine");
         machines.put("IndividualMachines", machine);
-        return new Factory(usedServiceLoader, machines, customizerEngines, new Warehouse());
+        return new Factory(usedServiceLoader, machines, customizerEngines, new Warehouse(), metrics);
     }
 
     public String getId() {
@@ -786,9 +802,14 @@ public class Factory implements AutoCloseable {
         SatisfiedBOM satisfiedBOM = satisfy(name, bom);
 
         logger.info("building {} with {}", name, engine);
-        Monitor monitor = MonitorFactory.start("<BUILD> " + name.getSimpleName());
-        ComponentBox<T> box = engine.newComponent(satisfiedBOM);
-        monitor.stop();
+        Timer timer = metrics.timer("<BUILD> " + name.getSimpleName());
+        Timer.Context context = timer.time();
+        ComponentBox<T> box;
+        try {
+            box = engine.newComponent(satisfiedBOM);
+        } finally {
+            context.stop();
+        }
 
         if (box instanceof BoundlessComponentBox && box.pick().isPresent()
                 && box.pick().get().getComponent() == this) {
@@ -804,14 +825,17 @@ public class Factory implements AutoCloseable {
             }
         }
         for (ComponentCustomizer customizer : Ordering.from(customizerComparator).sortedCopy(customizers)) {
-            Monitor customizeMonitor = MonitorFactory.start("<CUSTOMIZE> " + name.getSimpleName()
-                    + " <WITH> " + customizer.getClass().getSimpleName());
-            logger.info("customizing {} with {}", name, customizer);
-            box = box.customize(customizer);
-            customizeMonitor.stop();
+            context = metrics.timer("<CUSTOMIZE> " + name.getSimpleName()
+                    + " <WITH> " + customizer.getClass().getSimpleName()).time();
+            try {
+                logger.info("customizing {} with {}", name, customizer);
+                box = box.customize(customizer);
+            } finally {
+                context.stop();
+            }
         }
 
-        warehouse.checkIn(box, satisfiedBOM, monitor);
+        warehouse.checkIn(box, satisfiedBOM, timer.getSnapshot().getMax());
         return warehouse.checkOut(box.getName());
     }
 

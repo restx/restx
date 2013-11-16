@@ -2,7 +2,6 @@ package restx.factory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMultimap;
-import com.jamonapi.MonitorFactory;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.*;
@@ -20,7 +19,7 @@ public class WarehouseTest {
 
         warehouse.checkIn(new DisposableComponentBox<>(NamedComponent.of(String.class, "name", "test")),
                 new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()),
-                MonitorFactory.getRootMonitor());
+                0L);
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
         assertThat(component.isPresent()).isTrue();
@@ -38,7 +37,7 @@ public class WarehouseTest {
 
         warehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")),
                 new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()),
-                MonitorFactory.getRootMonitor());
+                0L);
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
         assertThat(component.isPresent()).isTrue();

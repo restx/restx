@@ -27,7 +27,7 @@
         <snakeyaml.version>1.13</snakeyaml.version>
         <hibernate-validator.version>5.0.1.Final</hibernate-validator.version>
         <reflections.version>0.9.9-RC1</reflections.version>
-        <jamon.version>2.7</jamon.version>
+        <metrics.version>3.0.1</metrics.version>
         <javax.inject.version>1</javax.inject.version>
         <junit.version>4.11</junit.version>
         <assertj-core.version>1.5.0</assertj-core.version>
@@ -90,9 +90,9 @@
             <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.google.code.maven-play-plugin.com.jamonapi</groupId>
-            <artifactId>jamon</artifactId>
-            <version>${jamon.version}</version>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>

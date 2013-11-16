@@ -21,6 +21,7 @@
     "janino.version": "2.6.1",
 
     "jamon.version": "2.7",
+    "metrics.version": "3.0.1",
     "javax.inject.version": "1",
 
     "jline.version": "2.11",

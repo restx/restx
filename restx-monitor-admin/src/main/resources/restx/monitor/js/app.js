@@ -5,15 +5,12 @@ var grid, dataView;
 var columns = [
   {id: "label", name: "Label", field: "label", width: 220, sortable: true},
   {id: "hits", name: "Hits", field: "hits", width: 48, sortable: true},
-  {id: "avg", name: "Avg", field: "avg", width: 48, sortable: true},
-  {id: "lastVal", name: "Last Value", width: 58, field: "lastVal", sortable: true},
-  {id: "min", name: "Min", field: "min", width: 48, sortable: true},
-  {id: "max", name: "Max", field: "max", width: 48, sortable: true},
+  {id: "avg", name: "Avg", field: "avg", width: 78, sortable: true},
+  {id: "lastVal", name: "Last Value", width: 78, field: "lastVal", sortable: true},
+  {id: "min", name: "Min", field: "min", width: 78, sortable: true},
+  {id: "max", name: "Max", field: "max", width: 78, sortable: true},
   {id: "active", name: "Active", field: "active", width: 58, sortable: true},
-  {id: "avgActive", name: "Avg Active", field: "avgActive", width: 60, sortable: true},
-  {id: "maxActive", name: "Max Active", field: "maxActive", width: 60, sortable: true},
-  {id: "firstAccess", name: "First Access", field: "firstAccess", width: 120, sortable: true},
-  {id: "lastAccess", name: "Last Access", field: "lastAccess", width: 120, sortable: true}
+  {id: "avgActive", name: "Avg Active", field: "avgActive", width: 70, sortable: true}
 ];
 
 var sortcol = "label";

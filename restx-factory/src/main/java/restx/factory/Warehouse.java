@@ -4,7 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.jamonapi.Monitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +21,9 @@ public class Warehouse implements AutoCloseable {
     private static class StoredBox<T> {
         private final ComponentBox<T> box;
         private final SatisfiedBOM satisfiedBOM;
-        private final double maxTime;
+        private final long maxTime;
 
-        private StoredBox(ComponentBox<T> box, SatisfiedBOM satisfiedBOM, double maxTime) {
+        private StoredBox(ComponentBox<T> box, SatisfiedBOM satisfiedBOM, long maxTime) {
             this.box = box;
             this.satisfiedBOM = satisfiedBOM;
             this.maxTime = maxTime;
@@ -43,8 +42,8 @@ public class Warehouse implements AutoCloseable {
         return Optional.absent();
     }
 
-    <T> void checkIn(ComponentBox<T> componentBox, SatisfiedBOM satisfiedBOM, Monitor stop) {
-        StoredBox<?> previousBox = boxes.put(componentBox.getName(), new StoredBox(componentBox, satisfiedBOM, stop.getMax()));
+    <T> void checkIn(ComponentBox<T> componentBox, SatisfiedBOM satisfiedBOM, long maxTime) {
+        StoredBox<?> previousBox = boxes.put(componentBox.getName(), new StoredBox(componentBox, satisfiedBOM, maxTime));
         if (previousBox != null) {
             try {
                 previousBox.box.close();
