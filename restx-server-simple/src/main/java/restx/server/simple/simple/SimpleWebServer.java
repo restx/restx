@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxMainRouter;
 import restx.RestxMainRouterFactory;
+import restx.common.MoreIO;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;
 import restx.server.WebServers;
@@ -21,6 +22,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static restx.common.MoreIO.checkCanOpenSocket;
 
 /**
  * User: xavierhanin
@@ -124,6 +127,7 @@ public abstract class SimpleWebServer implements WebServer {
 
     @Override
     public synchronized void start() throws Exception {
+        checkCanOpenSocket(port);
         logger.debug("starting web server");
         WebServers.register(this);
 

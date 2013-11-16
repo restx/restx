@@ -10,12 +10,15 @@ import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.MoreFiles;
+import restx.common.MoreIO;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static restx.common.MoreFiles.checkFileExists;
+import static restx.common.MoreIO.checkCanOpenSocket;
 
 /**
  * TomcatWebServer allow to run embedded tomcat. But its startup time is much slower than JettyWebServer.
@@ -75,6 +78,7 @@ public class TomcatWebServer implements WebServer {
     }
 
     public void start() throws LifecycleException {
+        checkCanOpenSocket(port);
         WebServers.register(this);
         tomcat.start();
     }

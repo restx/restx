@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.common.MoreFiles.checkFileExists;
+import static restx.common.MoreIO.checkCanOpenSocket;
 
 public class JettyWebServer implements WebServer {
     private static final AtomicLong SERVER_ID = new AtomicLong();
@@ -78,6 +79,8 @@ public class JettyWebServer implements WebServer {
     }
 
     public void start() throws Exception {
+        checkCanOpenSocket(port);
+
         server = new Server();
         WebServers.register(this);
 
