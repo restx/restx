@@ -114,7 +114,6 @@ public class Factory implements AutoCloseable {
         private boolean usedServiceLoader;
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
         private List<Warehouse> providers = new ArrayList<>();
-        private MetricRegistry metrics;
 
         public Builder addFromServiceLoader() {
             try {
@@ -162,15 +161,12 @@ public class Factory implements AutoCloseable {
         }
 
         public Builder withMetrics(MetricRegistry metrics) {
-            this.metrics = metrics;
+            machines.put("IndividualMachines",
+                    new SingletonFactoryMachine<MetricRegistry>(0, new NamedComponent(METRICS_NAME, metrics)));
             return this;
         }
 
         public Factory build() {
-            if (metrics == null) {
-                metrics = new MetricRegistry();
-            }
-
             /*
                Building a Factory is done in several steps:
                1) do a set of rounds until a round is not producing new FactoryMachine
@@ -187,19 +183,18 @@ public class Factory implements AutoCloseable {
              */
             Factory factory = new Factory(
                     usedServiceLoader, machines, ImmutableList.<ComponentCustomizerEngine>of(),
-                    new Warehouse(ImmutableList.copyOf(providers)), metrics);
+                    new Warehouse(ImmutableList.copyOf(providers)));
 
             Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> toBuild = new LinkedHashMap<>();
             ImmutableList<FactoryMachine> factoryMachines = buildFactoryMachines(factory, factory.machines, toBuild);
             while (!factoryMachines.isEmpty()) {
                 machines.putAll("FactoryMachines", factoryMachines);
                 factory = new Factory(usedServiceLoader, machines,
-                        ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse(), metrics);
+                        ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse());
                 factoryMachines = buildFactoryMachines(factory, factoryMachines, toBuild);
             }
-
             factory = new Factory(usedServiceLoader, machines,
-                    buildCustomizerEngines(factory), new Warehouse(ImmutableList.copyOf(providers)), metrics);
+                    buildCustomizerEngines(factory), new Warehouse(ImmutableList.copyOf(providers)));
             return factory;
         }
 
@@ -570,18 +565,29 @@ public class Factory implements AutoCloseable {
     private final ImmutableList<ComponentCustomizerEngine> customizerEngines;
     private final String id;
     private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
-    private final MetricRegistry metrics;
+
+    private MetricRegistry metrics;
 
     private Factory(boolean usedServiceLoader, Multimap<String, FactoryMachine> machines,
-                    ImmutableList<ComponentCustomizerEngine> customizerEngines, Warehouse warehouse,
-                    MetricRegistry metrics) {
+                    ImmutableList<ComponentCustomizerEngine> customizerEngines, Warehouse warehouse) {
         this.usedServiceLoader = usedServiceLoader;
         this.customizerEngines = customizerEngines;
-        this.metrics = metrics;
 
         ImmutableMultimap.Builder<String, FactoryMachine> machineBuilder = ImmutableMultimap.<String, FactoryMachine>builder()
                 .put("FactoryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)))
-                .put("MetricRegistryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(METRICS_NAME, metrics)));
+
+                // define a Machine to provide a default provider for MetricRegistry
+                // this won't be used if a MetricsRegistry is provided through a higher priority machine
+                .put("MetricRegistryMachine", new SingleNameFactoryMachine<>(10000,
+                        new NoDepsMachineEngine<MetricRegistry>(METRICS_NAME, BoundlessComponentBox.FACTORY) {
+                            @Override
+                            protected MetricRegistry doNewComponent(SatisfiedBOM satisfiedBOM) {
+                                return new MetricRegistry();
+                            }
+                        }))
+
+                ;
+
         if (!warehouse.getProviders().isEmpty()) {
             machineBuilder
                     .put("WarehouseProvidersMachine", new WarehouseProvidersMachine(warehouse.getProviders()));
@@ -600,6 +606,10 @@ public class Factory implements AutoCloseable {
                 }).sortedCopy(machinesByBuilder.values()));
         this.id = String.format("%03d(%d)", ID.incrementAndGet(), machinesByBuilder.size());
         this.warehouse = checkNotNull(warehouse);
+
+        this.metrics = new MetricRegistry(); // give a value so that we can call getComponent which uses metrics to trace
+                                             // the MetricRegistry building itself
+        this.metrics = getComponent(MetricRegistry.class);
     }
 
     public Factory concat(FactoryMachine machine) {
@@ -610,7 +620,7 @@ public class Factory implements AutoCloseable {
         machines.removeAll("WarehouseProvidersMachine");
         machines.put("IndividualMachines", machine);
         return new Factory(usedServiceLoader, machines, customizerEngines,
-                new Warehouse(warehouse.getProviders()), metrics);
+                new Warehouse(warehouse.getProviders()));
     }
 
     public String getId() {
