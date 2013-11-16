@@ -283,7 +283,7 @@ public class Factory implements AutoCloseable {
             }
             Set<Name<T>> names = findNames();
             if (names.isEmpty()) {
-                throw new IllegalStateException(String.format("component satisfying %s not found.", this));
+                throw new IllegalStateException(String.format("component satisfying %s not found.%s", this));
             }
             Factory f = factory();
             for (Name<T> name : names) {
@@ -809,7 +809,10 @@ public class Factory implements AutoCloseable {
     private <T> void checkSatisfy(Name<T> name) {
         Optional<FactoryMachine> machineFor = findMachineFor(name);
         if (!machineFor.isPresent()) {
-            throw new IllegalStateException(name + " can't be satisfied: no machine found to build it");
+            Set<Name<T>> similarNames = queryByClass(name.getClazz()).findNames();
+            throw new IllegalStateException(name + " can't be satisfied: no machine found to build it." +
+                    (similarNames.isEmpty() ? ""
+                            : " similar components found: " + Joiner.on(", ").join(similarNames)));
         }
 
         BillOfMaterials billOfMaterial = machineFor.get().getEngine(name).getBillOfMaterial();

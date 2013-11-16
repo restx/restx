@@ -85,6 +85,21 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_fail_with_similar_components() throws Exception {
+        SingleNameFactoryMachine<String> machine = machineWithMissingDependency();
+        Factory factory = Factory.builder().addMachine(machine).addMachine(testMachine("ASIMILARCOMPONENT")).build();
+
+        try {
+            factory.queryByName(Name.of(String.class, "test")).findOne();
+            fail("should raise exception when asking for a component with missing dependency");
+        } catch (IllegalStateException e) {
+            assertThat(e)
+                    .hasMessageContaining("ASIMILARCOMPONENT")
+            ;
+        }
+    }
+
+    @Test
     public void should_warn_about_missing_annotated_machine() throws Exception {
         Factory factory = Factory.builder().addFromServiceLoader().build();
 
@@ -327,8 +342,12 @@ public class FactoryTest {
     }
 
     private SingleNameFactoryMachine<String> testMachine() {
+        return testMachine("test");
+    }
+
+    private SingleNameFactoryMachine<String> testMachine(String name) {
         return new SingleNameFactoryMachine<>(
-                0, new NoDepsMachineEngine<String>(Name.of(String.class, "test"), BoundlessComponentBox.FACTORY) {
+                0, new NoDepsMachineEngine<String>(Name.of(String.class, name), BoundlessComponentBox.FACTORY) {
             @Override
             protected String doNewComponent(SatisfiedBOM satisfiedBOM) {
                 return "value1";
