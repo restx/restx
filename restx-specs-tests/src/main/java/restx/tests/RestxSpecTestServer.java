@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
 import org.joda.time.DateTime;
@@ -360,7 +361,7 @@ public class RestxSpecTestServer {
         final RunningServer runningServer = new RunningServer(server, runner, repository,
                 factory.queryByClass(RunningServerSettings.class).mandatory().findOneAsComponent().get());
 
-        server.getEventBus().register(new Object() {
+        Factory.getFactory(server.getServerId()).get().getComponent(EventBus.class).register(new Object() {
             @Subscribe
             public void onCompilationFinished(
                     CompilationFinishedEvent event) {

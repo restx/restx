@@ -77,6 +77,13 @@ public abstract class SimpleWebServer implements WebServer {
                                 serverId,
                                 Optional.of(WebServers.baseUri("0.0.0.0", port, routerPath)));
                     }
+
+                    @Override
+                    public synchronized void stop() throws Exception {
+                        super.stop();
+
+                        RestxMainRouterFactory.clear(serverId);
+                    }
                 };
             } else {
                 return new SimpleWebServer(serverId, routerPath, appBase, port) {
@@ -100,7 +107,6 @@ public abstract class SimpleWebServer implements WebServer {
     private final String routerPath;
     private final String appBase;
     private final int port;
-    private final EventBus eventBus = new EventBus();
 
     private RestxMainRouter router;
     private Connection connection;
@@ -110,11 +116,6 @@ public abstract class SimpleWebServer implements WebServer {
         this.routerPath = routerPath;
         this.appBase = appBase;
         this.port = port;
-    }
-
-    @Override
-    public EventBus getEventBus() {
-        return eventBus;
     }
 
     public String getServerId() {

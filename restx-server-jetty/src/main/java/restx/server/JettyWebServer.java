@@ -37,7 +37,6 @@ public class JettyWebServer implements WebServer {
     private String appBase;
     private String webInfLocation;
     private String serverId;
-    private final EventBus eventBus = new EventBus();
 
 
     public JettyWebServer(String appBase, int aPort) {
@@ -56,11 +55,6 @@ public class JettyWebServer implements WebServer {
         this.appBase = appBase;
         this.webInfLocation = webInfLocation;
         this.serverId = "Jetty#" + SERVER_ID.incrementAndGet();
-    }
-
-    @Override
-    public EventBus getEventBus() {
-        return eventBus;
     }
 
     @Override

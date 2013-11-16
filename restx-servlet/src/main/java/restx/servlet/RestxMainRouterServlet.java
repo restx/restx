@@ -20,6 +20,7 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
     public static final String DEPLOYED_SERVER_ID = "SERVLET-ENGINE-1";
 
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouterServlet.class);
+    private String serverId;
 
     public RestxMainRouterServlet() {
     }
@@ -61,13 +62,22 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
                     " to properly display the startup banner.");
         }
 
-        String serverId = Optional.fromNullable(
+        serverId = Optional.fromNullable(
                 config.getServletContext().getInitParameter("restx.serverId"))
                 .or(DEPLOYED_SERVER_ID);
 
         registerIdNeeded(serverId);
 
         init(RestxMainRouterFactory.newInstance(serverId, baseUri));
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+
+        if (serverId != null) {
+            RestxMainRouterFactory.clear(serverId);
+        }
     }
 
     private static synchronized void registerIdNeeded(String serverId) {
@@ -78,7 +88,6 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
     }
 
     private static class DeployedWebServer implements WebServer {
-        public final EventBus eventBus = new EventBus();
         private final String serverId;
 
         private DeployedWebServer(String serverId) {
@@ -113,11 +122,6 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         @Override
         public int getPort() {
             throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public EventBus getEventBus() {
-            return eventBus;
         }
     }
 }

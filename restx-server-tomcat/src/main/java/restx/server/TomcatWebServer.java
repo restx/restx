@@ -32,7 +32,6 @@ public class TomcatWebServer implements WebServer {
     private final String appBase;
     private final int port;
     private final String serverId;
-    private final EventBus eventBus = new EventBus();
 
     public TomcatWebServer(String appBase, int port) throws ServletException {
         checkFileExists(appBase);
@@ -55,11 +54,6 @@ public class TomcatWebServer implements WebServer {
         Context context = tomcat.addWebapp(contextPath, appBase);
         context.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
         context.getServletContext().setInitParameter("restx.serverId", serverId);
-    }
-
-    @Override
-    public EventBus getEventBus() {
-        return eventBus;
     }
 
     @Override
