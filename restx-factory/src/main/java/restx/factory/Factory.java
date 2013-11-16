@@ -13,6 +13,8 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -98,10 +100,32 @@ public class Factory implements AutoCloseable {
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
 
         public Builder addFromServiceLoader() {
-            usedServiceLoader = true; // we have to store separately, in case the list is empty multimap
-                                      // doesn't keep the key
-            machines.putAll(SERVICE_LOADER, ServiceLoader.load(FactoryMachine.class));
-            return this;
+            try {
+                usedServiceLoader = true; // we have to store separately, in case the list is empty multimap
+                // doesn't keep the key
+                machines.putAll(SERVICE_LOADER, ServiceLoader.load(FactoryMachine.class));
+                return this;
+            } catch (ServiceConfigurationError e) {
+                if (e.getMessage().endsWith("not found")) {
+                    String resources = "";
+                    try {
+                        resources =
+                                "\n\n\t\t>> If the problem persists, check these resources:" +
+                                "\n\t\t\t- " + Joiner.on("\n\t\t\t- ").join(
+                                Iterators.forEnumeration(Thread.currentThread().getContextClassLoader()
+                                        .getResources("META-INF/services/restx.factory.FactoryMachine")));
+                    } catch (IOException e1) {
+                        // ignore
+                    }
+                    throw new RuntimeException(e.getMessage() + "." +
+                            "\n\t\t>> This may be because you renamed or removed it." +
+                            "\n\t\t>> Try to clean and rebuild your application and reload/relaunch." +
+                            resources +
+                            "\n", e);
+                } else {
+                    throw e;
+                }
+            }
         }
 
         public Builder addLocalMachines(LocalMachines localMachines) {
