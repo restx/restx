@@ -19,51 +19,6 @@ import java.util.Collection;
 public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
     public static final String DEPLOYED_SERVER_ID = "SERVLET-ENGINE-1";
 
-    static final WebServer DEPLOYED_SERVER;
-
-    static {
-        // registers a fake singleton WebServer used when restx is used as a deployed app
-        DEPLOYED_SERVER = new WebServer() {
-            public EventBus eventBus = new EventBus();
-
-            @Override
-            public void start() throws Exception {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void startAndAwait() throws Exception {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void stop() throws Exception {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public String baseUrl() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public String getServerId() {
-                return DEPLOYED_SERVER_ID;
-            }
-
-            @Override
-            public int getPort() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public EventBus getEventBus() {
-                return eventBus;
-            }
-        };
-        WebServers.register(DEPLOYED_SERVER);
-    }
-
     private final Logger logger = LoggerFactory.getLogger(RestxMainRouterServlet.class);
 
     public RestxMainRouterServlet() {
@@ -110,6 +65,59 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
                 config.getServletContext().getInitParameter("restx.serverId"))
                 .or(DEPLOYED_SERVER_ID);
 
+        registerIdNeeded(serverId);
+
         init(RestxMainRouterFactory.newInstance(serverId, baseUri));
+    }
+
+    private static synchronized void registerIdNeeded(String serverId) {
+        Optional<WebServer> serverById = WebServers.getServerById(serverId);
+        if (!serverById.isPresent()) {
+            WebServers.register(new DeployedWebServer(serverId));
+        }
+    }
+
+    private static class DeployedWebServer implements WebServer {
+        public final EventBus eventBus = new EventBus();
+        private final String serverId;
+
+        private DeployedWebServer(String serverId) {
+            this.serverId = serverId;
+        }
+
+        @Override
+        public void start() throws Exception {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void startAndAwait() throws Exception {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void stop() throws Exception {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String baseUrl() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String getServerId() {
+            return serverId;
+        }
+
+        @Override
+        public int getPort() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public EventBus getEventBus() {
+            return eventBus;
+        }
     }
 }
