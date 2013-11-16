@@ -39,7 +39,6 @@ public class Factory implements AutoCloseable {
         }
     };
     private static final AtomicLong ID = new AtomicLong();
-    private final boolean usedServiceLoader;
 
     public Warehouse getWarehouse() {
         return warehouse;
@@ -547,6 +546,7 @@ public class Factory implements AutoCloseable {
         }
     }
 
+    private final boolean usedServiceLoader;
     private final ImmutableList<FactoryMachine> machines;
     private final ImmutableMultimap<String, FactoryMachine> machinesByBuilder;
     private final Warehouse warehouse;
