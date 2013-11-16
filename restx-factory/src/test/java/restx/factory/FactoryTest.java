@@ -80,7 +80,6 @@ public class FactoryTest {
                     .hasMessageStartingWith(
                             "Name{name='test', clazz=class java.lang.String}\n" +
                                     "  -> Name{name='missing', clazz=class java.lang.String} can't be satisfied")
-                    .hasMessageContaining(machine.toString())
             ;
         }
     }
