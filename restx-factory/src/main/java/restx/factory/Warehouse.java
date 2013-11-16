@@ -2,13 +2,17 @@ package restx.factory;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -18,7 +22,19 @@ import java.util.concurrent.ConcurrentMap;
  * Time: 5:47 PM
  */
 public class Warehouse implements AutoCloseable {
-    private static class StoredBox<T> {
+    public Warehouse() {
+        this(ImmutableList.<Warehouse>of());
+    }
+
+    public Warehouse(ImmutableList<Warehouse> providers) {
+        this.providers = providers;
+    }
+
+    public ImmutableList<Warehouse> getProviders() {
+        return providers;
+    }
+
+    public static class StoredBox<T> {
         private final ComponentBox<T> box;
         private final SatisfiedBOM satisfiedBOM;
         private final long maxTime;
@@ -28,17 +44,51 @@ public class Warehouse implements AutoCloseable {
             this.satisfiedBOM = satisfiedBOM;
             this.maxTime = maxTime;
         }
+
+        public ComponentBox<T> getBox() {
+            return box;
+        }
+
+        public SatisfiedBOM getSatisfiedBOM() {
+            return satisfiedBOM;
+        }
+
+        public long getMaxTime() {
+            return maxTime;
+        }
+
+        @Override
+        public String toString() {
+            return "StoredBox{" +
+                    "box=" + box +
+                    ", satisfiedBOM=" + satisfiedBOM +
+                    ", maxTime=" + maxTime +
+                    '}';
+        }
     }
 
     private final Logger logger = LoggerFactory.getLogger(Warehouse.class);
 
     private final ConcurrentMap<Name<?>, StoredBox<?>> boxes = new ConcurrentHashMap<>();
+    private final ImmutableList<Warehouse> providers;
+
+    <T> Optional<StoredBox<T>> getStoredBox(Name<T> name) {
+        return Optional.fromNullable((StoredBox<T>) boxes.get(name));
+    }
 
     <T> Optional<NamedComponent<T>> checkOut(Name<T> name) {
         StoredBox<T> storedBox = (StoredBox<T>) boxes.get(name);
         if (storedBox != null) {
             return storedBox.box.pick();
         }
+
+        for (Warehouse provider : providers) {
+            Optional<NamedComponent<T>> component = provider.checkOut(name);
+            if (component.isPresent()) {
+                return component;
+            }
+        }
+
         return Optional.absent();
     }
 
@@ -76,7 +126,13 @@ public class Warehouse implements AutoCloseable {
 
 
     public Iterable<Name<?>> listNames() {
-        return ImmutableSet.copyOf(boxes.keySet());
+        Set<Name<?>> names = new LinkedHashSet<>();
+        names.addAll(boxes.keySet());
+        for (Warehouse provider : providers) {
+            Iterables.addAll(names, provider.listNames());
+        }
+
+        return ImmutableSet.copyOf(names);
     }
 
     public Iterable<Name<?>> listDependencies(Name name) {
@@ -88,6 +144,13 @@ public class Warehouse implements AutoCloseable {
             }
             return deps;
         } else {
+            for (Warehouse provider : providers) {
+                Iterable<Name<?>> deps = provider.listDependencies(name);
+                if (!Iterables.isEmpty(deps)) {
+                    return deps;
+                }
+            }
+
             return Collections.emptySet();
         }
     }
@@ -96,6 +159,7 @@ public class Warehouse implements AutoCloseable {
     public String toString() {
         return "Warehouse{" +
                 "boxes=" + boxes +
+                "; providers=" + providers +
                 '}';
     }
 }

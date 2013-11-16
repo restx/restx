@@ -38,6 +38,52 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_build_with_warehouse() throws Exception {
+        Factory factory = Factory.builder().addMachine(testMachine()).addMachine(testMachine("test3")).build();
+        factory.getComponent(Name.of(String.class, "test")); // this will build the component and put it into the warehouse
+        factory = Factory.builder()
+                .addMachine(testMachine("test2"))
+                .addWarehouseProvider(factory.getWarehouse())
+                .build();
+
+        assertThat(factory.getComponent(Name.of(String.class, "test"))).isEqualTo("value1");
+        assertThat(factory.getComponent(Name.of(String.class, "test2"))).isEqualTo("value1");
+        assertThat(factory.queryByName(Name.of(String.class, "test3")).optional().findOne().isPresent()).isFalse();
+    }
+
+    @Test
+    public void should_start_auto_startable() throws Exception {
+        LifecycleComponent lifecycleComponent = new LifecycleComponent();
+        Factory factory = Factory.builder().addMachine(new SingletonFactoryMachine<>(0,
+                NamedComponent.of(
+                        AutoStartable.class, "t", lifecycleComponent))).build();
+        factory.start();
+
+        assertThat(lifecycleComponent.started).isTrue();
+    }
+
+    @Test
+    public void should_not_close_closeable_from_other_warehouse() throws Exception {
+        LifecycleComponent lifecycleComponent = new LifecycleComponent();
+        Factory factory = Factory.builder().addMachine(new SingletonFactoryMachine<>(0,
+                NamedComponent.of(
+                        AutoStartable.class, "t", lifecycleComponent))).build();
+        factory.start();
+        assertThat(lifecycleComponent.started).isTrue();
+
+        Factory otherFactory = Factory.builder()
+                .addMachine(testMachine())
+                .addWarehouseProvider(factory.getWarehouse())
+                .build();
+        assertThat(otherFactory.queryByClass(AutoStartable.class).findAsComponents()).containsOnly(lifecycleComponent);
+
+        otherFactory.close();
+        assertThat(lifecycleComponent.closed).isFalse();
+        factory.close();
+        assertThat(lifecycleComponent.closed).isTrue();
+    }
+
+    @Test
     public void should_build_new_component_with_deps() throws Exception {
         Factory factory = Factory.builder()
                 .addMachine(testMachine())
@@ -378,5 +424,20 @@ public class FactoryTest {
                 return "value1";
             }
         });
+    }
+
+    private static class LifecycleComponent implements AutoStartable, AutoCloseable {
+        private boolean closed;
+        private boolean started;
+
+        @Override
+        public void close() throws Exception {
+            closed = true;
+        }
+
+        @Override
+        public void start() {
+            started = true;
+        }
     }
 }

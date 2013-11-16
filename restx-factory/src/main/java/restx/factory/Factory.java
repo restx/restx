@@ -98,6 +98,7 @@ public class Factory implements AutoCloseable {
     public static class Builder {
         private boolean usedServiceLoader;
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
+        private List<Warehouse> providers = new ArrayList<>();
         private MetricRegistry metrics;
 
         public Builder addFromServiceLoader() {
@@ -139,6 +140,11 @@ public class Factory implements AutoCloseable {
             return this;
         }
 
+        public Builder addWarehouseProvider(Warehouse warehouse) {
+            providers.add(warehouse);
+            return this;
+        }
+
         public Builder withMetrics(MetricRegistry metrics) {
             this.metrics = metrics;
             return this;
@@ -164,7 +170,8 @@ public class Factory implements AutoCloseable {
                which is better at least in production.
              */
             Factory factory = new Factory(
-                    usedServiceLoader, machines, ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse(), metrics);
+                    usedServiceLoader, machines, ImmutableList.<ComponentCustomizerEngine>of(),
+                    new Warehouse(ImmutableList.copyOf(providers)), metrics);
 
             Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> toBuild = new LinkedHashMap<>();
             ImmutableList<FactoryMachine> factoryMachines = buildFactoryMachines(factory, factory.machines, toBuild);
@@ -176,7 +183,7 @@ public class Factory implements AutoCloseable {
             }
 
             factory = new Factory(usedServiceLoader, machines,
-                    buildCustomizerEngines(factory), new Warehouse(), metrics);
+                    buildCustomizerEngines(factory), new Warehouse(ImmutableList.copyOf(providers)), metrics);
             return factory;
         }
 
@@ -554,9 +561,16 @@ public class Factory implements AutoCloseable {
         this.usedServiceLoader = usedServiceLoader;
         this.customizerEngines = customizerEngines;
         this.metrics = metrics;
-        machinesByBuilder = ImmutableMultimap.<String, FactoryMachine>builder()
+
+        ImmutableMultimap.Builder<String, FactoryMachine> machineBuilder = ImmutableMultimap.<String, FactoryMachine>builder()
                 .put("FactoryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(FACTORY_NAME, this)))
-                .put("MetricRegistryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(METRICS_NAME, metrics)))
+                .put("MetricRegistryMachine", new SingletonFactoryMachine<>(10000, new NamedComponent<>(METRICS_NAME, metrics)));
+        if (!warehouse.getProviders().isEmpty()) {
+            machineBuilder
+                    .put("WarehouseProvidersMachine", new WarehouseProvidersMachine(warehouse.getProviders()));
+        }
+
+        machinesByBuilder = machineBuilder
                 .putAll(machines)
                 .build();
 
@@ -576,8 +590,10 @@ public class Factory implements AutoCloseable {
         machines.putAll(machinesByBuilder);
         machines.removeAll("FactoryMachine");
         machines.removeAll("MetricRegistryMachine");
+        machines.removeAll("WarehouseProvidersMachine");
         machines.put("IndividualMachines", machine);
-        return new Factory(usedServiceLoader, machines, customizerEngines, new Warehouse(), metrics);
+        return new Factory(usedServiceLoader, machines, customizerEngines,
+                new Warehouse(warehouse.getProviders()), metrics);
     }
 
     public String getId() {
@@ -624,6 +640,16 @@ public class Factory implements AutoCloseable {
      */
     public <T> T getComponent(Name<T> componentName) {
         return queryByName(componentName).mandatory().findOneAsComponent().get();
+    }
+
+    /**
+     * Starts all the AutoStartable components of this factory.
+     */
+    public Factory start() {
+        for (AutoStartable startable : queryByClass(AutoStartable.class).findAsComponents()) {
+            startable.start();
+        }
+        return this;
     }
 
     public void close() {
