@@ -44,7 +44,9 @@ public class LogAdminResource {
         // quick and dirty basic implementation to get logs from the default log file.
         // this doesn't scale at all, and is very limited
         try {
-            String logs = Files.toString(new File("app.log"), Charsets.UTF_8);
+            File appLog = new File(System.getProperty("logs.base", "logs"), "app.log");
+            String logs = Files.toString(
+                    appLog, Charsets.UTF_8);
             // limit to around 30k
             int limit = 30000;
             if (logs.length() > limit) {
@@ -53,6 +55,9 @@ public class LogAdminResource {
                 logs = logs.substring(logs.indexOf('\n') + 1);
                 logs = "[... " + ((length - logs.length()) / 1024)  + " kB truncated ...]\n" + logs;
             }
+            logs = "LOGS FROM: " + appLog.getAbsolutePath() + "\n" +
+                    "------------------------------------------------------------------------------------------------\n" +
+                    logs;
             return logs;
         } catch (IOException e) {
             return e.getMessage();
