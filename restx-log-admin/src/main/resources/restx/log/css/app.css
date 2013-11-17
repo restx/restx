@@ -1,0 +1,15 @@
+body {
+    padding-top: 60px;
+}
+
+.WARN {
+    background-color: #ff9c21;
+}
+
+.ERROR {
+    background-color: #ee5f5b;
+}
+
+.DEBUG {
+    background-color: #11b6ff;
+}

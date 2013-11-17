@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html lang="en-US" ng-app="admin">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESTX :: Factory</title>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/admin.css"/>
+    <link rel="stylesheet" type="text/css" href="css/app.css"/>
+</head>
+<body>
+    <div id="navbar-main" class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <a class="brand" href="../">RESTX</a>
+            <ul class="nav">
+                <li class="dropdown" ng-controller="AdminController">
+                    <a id="main-menu" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b></a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="main-menu">
+                        <li ng-repeat="page in pages" role="presentation"><a role="menuitem" tabindex="-1" href="{{page.path}}">{{page.title}}</a></li>
+                    </ul>
+                </li>
+                <li><a href="#/">View Logs</a></li>
+                <li><a href="#/configure">Configure Loggers</a></li>
+            </ul>
+            <div class="pull-right" ng-controller="AdminController">
+                <ul class="nav pull-right">
+                    <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"> {{ session.principal.name }}
+                        <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" ng-click="logout()">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <form class="navbar-search pull-right">
+                <input type="text" class="search-query" placeholder="Search" ng-model="searchQuery" ng-change="$broadcast('search')">
+            </form>
+        </div>
+    </div>
+
+    <ng-view></ng-view>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.0/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular-resource.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+
+  <script src="js/app.js"></script>
+  <script src="../js/securityHandling.js"></script>
+  <script src="../js/admin.js"></script>
+  <script src="js/controllers/ViewLogsController.js"></script>
+  <script src="js/controllers/ConfigureLogsController.js"></script>
+</body>
+</html>

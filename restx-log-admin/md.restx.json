@@ -1,0 +1,18 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-log-admin:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-factory:${restx.version}",
+            "io.restx:restx-core:${restx.version}",
+            "io.restx:restx-core-annotation-processor:${restx.version}",
+            "ch.qos.logback:logback-classic:${logback.version}",
+            "io.restx:restx-admin:${restx.version}"
+        ]
+    }
+}

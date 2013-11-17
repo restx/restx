@@ -1,0 +1,20 @@
+<div class="container">
+    <h3>Configure Loggers</h3>
+    <p>There are {{ loggers.length }} loggers.</p>
+
+    <table class="table table-condensed table-striped table-bordered table-responsive">
+        <thead>
+        <tr title="click to order">
+            <td ng-click="predicate = 'name'; reverse=!reverse">Name</td>
+            <td ng-click="predicate = 'level'; reverse=!reverse">Level</td>
+        </tr>
+        </thead>
+
+        <tr ng-repeat="logger in loggers | filter:searchQuery | orderBy:predicate:reverse">
+            <td><small>{{logger.name}}</small></td>
+            <td>
+                <button ng-repeat="level in levels" ng-click="changeLevel(logger, level)" ng-class="classFor(logger, level)" class="btn btn-default btn-xs">{{level}}</button>
+            </td>
+        </tr>
+    </table>
+</div>
