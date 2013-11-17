@@ -123,7 +123,8 @@ public class Factory implements AutoCloseable {
                 machines.putAll(SERVICE_LOADER, ServiceLoader.load(FactoryMachine.class));
                 return this;
             } catch (ServiceConfigurationError e) {
-                if (e.getMessage().endsWith("not found")) {
+                if (e.getMessage().endsWith("not found")
+                        || e.getMessage().indexOf("java.lang.NoClassDefFoundError") != -1) {
                     String resources = "";
                     try {
                         resources =
