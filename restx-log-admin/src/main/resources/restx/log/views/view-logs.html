@@ -2,7 +2,7 @@
     <button type="button" class="btn btn-primary pull-right" ng-click="init()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
     <h3>View Logs</h3>
 
-    <div class="row" ng-class="line.level" ng-repeat="line in lines | filter:searchQuery">
+    <div class="row logLine" ng-class="line.level" ng-repeat="line in lines | filter:searchQuery">
         {{line.text}}
     </div>
     <p>

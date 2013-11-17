@@ -2,6 +2,10 @@ body {
     padding-top: 60px;
 }
 
+.logLine {
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+
 .WARN {
     background-color: #ff9c21;
 }
