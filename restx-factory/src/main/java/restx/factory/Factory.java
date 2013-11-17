@@ -335,7 +335,7 @@ public class Factory implements AutoCloseable {
             }
             Set<Name<T>> names = findNames();
             if (names.isEmpty()) {
-                throw new IllegalStateException(String.format("component satisfying %s not found.%s", this));
+                throw new IllegalStateException(String.format("component satisfying %s not found.", this));
             }
             Factory f = factory();
             for (Name<T> name : names) {
