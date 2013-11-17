@@ -35,13 +35,16 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
     private final SignatureKey signatureKey;
+    private final Sessions sessions;
     private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
     private final RestxSession emptySession;
 
-    RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, SignatureKey signatureKey, RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
+    RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, SignatureKey signatureKey,
+                       Sessions sessions, RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
         this.sessionDefinition = sessionDefinition;
         this.mapper = mapper;
         this.signatureKey = signatureKey;
+        this.sessions = sessions;
         this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
         this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(),
                 Optional.<RestxPrincipal>absent(), Duration.ZERO);
@@ -66,7 +69,9 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
         }
         RestxSession.setCurrent(session);
         if (session.getPrincipal().isPresent()) {
-            MDC.put("principal", session.getPrincipal().get().getName());
+            String name = session.getPrincipal().get().getName();
+            sessions.touch(name, ImmutableMap.<String, String>of());
+            MDC.put("principal", name);
         }
         try {
             RouteLifecycleListener lifecycleListener = new AbstractRouteLifecycleListener() {
