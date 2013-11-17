@@ -1,0 +1,19 @@
+<div class="container" ng-init="init()">
+    <button type="button" class="btn btn-primary pull-right" ng-click="init()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>
+    <table class="table table-stripped">
+        <thead>
+            <tr title="click to order">
+                <th ng-click="predicate = 'key'; reverse=!reverse">Key</th>
+                <th ng-click="predicate = 'firstAccess'; reverse=!reverse">First Access</th>
+                <th ng-click="predicate = 'lastAccess'; reverse=!reverse">LastAccess</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="session in sessionStats| filter:searchQuery | orderBy:predicate:reverse">
+            <td>{{session.key}}</td>
+            <td>{{session.firstAccess / 1000000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+            <td>{{session.lastAccess / 1000000 | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
