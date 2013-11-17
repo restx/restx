@@ -68,9 +68,7 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
             session.cleanUpCaches();
         }
         RestxSession.setCurrent(session);
-        ImmutableMap<String, String> metadata = ImmutableMap.of(
-                "clientAddress", req.getClientAddress(),
-                "userAgent", req.getHeader("User-Agent").or("Unknown"));
+        ImmutableMap<String, String> metadata = prepareSessionStatsMetadata(req, session);
         if (session.getPrincipal().isPresent()) {
             String name = session.getPrincipal().get().getName();
             sessions.touch(name, metadata);
@@ -93,6 +91,22 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
             RestxSession.setCurrent(null);
             // we don't remove the MDC principal here, we want to keep it until the end of the request
         }
+    }
+
+    /**
+     * Prepares the metadata to be used for session stats monitoring.
+     *
+     * If you override this method, make sure to include the map built by the default implementation if you want
+     * the monitor admin session view to work properly, unless you override it too.
+     *
+     * @param req the request for which metadata should be prepared
+     * @param session the session for which metadata should be prepared
+     * @return the prepared metadata
+     */
+    protected ImmutableMap<String, String> prepareSessionStatsMetadata(RestxRequest req, RestxSession session) {
+        return ImmutableMap.of(
+                    "clientAddress", req.getClientAddress(),
+                    "userAgent", req.getHeader("User-Agent").or("Unknown"));
     }
 
     public RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
