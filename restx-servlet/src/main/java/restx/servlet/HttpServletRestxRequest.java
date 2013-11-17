@@ -37,6 +37,10 @@ public class HttpServletRestxRequest extends AbstractRequest {
         return request.getServerPort();
     }
 
+    public String getClientAddress() {
+        return request.getRemoteAddr();
+    }
+
     @Override
     public String getBaseUri() {
         String url = request.getRequestURL().toString();

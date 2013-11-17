@@ -129,6 +129,11 @@ public class SimpleRestxRequest  extends AbstractRequest {
     }
 
     @Override
+    public String getClientAddress() {
+        return request.getClientAddress().toString();
+    }
+
+    @Override
     public InputStream getContentStream() throws IOException {
         /*
            maybe we could do this buffering only in dev mode?

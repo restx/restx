@@ -140,6 +140,11 @@ public class StdRequest extends AbstractRequest {
     }
 
     @Override
+    public String getClientAddress() {
+        return "";
+    }
+
+    @Override
     public synchronized InputStream getContentStream() throws IOException {
         if (inputStream != null) {
             throw new IllegalStateException("can't get content stream multiple times");

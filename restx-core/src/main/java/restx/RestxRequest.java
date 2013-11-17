@@ -83,6 +83,8 @@ public interface RestxRequest {
     boolean isPersistentCookie(String cookie);
     ImmutableMap<String,String> getCookiesMap();
 
+    String getClientAddress();
+
     InputStream getContentStream() throws IOException;
 
     /**

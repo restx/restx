@@ -91,6 +91,11 @@ public class RestxRequestWrapper implements RestxRequest {
     }
 
     @Override
+    public String getClientAddress() {
+        return original.getClientAddress();
+    }
+
+    @Override
     public InputStream getContentStream() throws IOException {
         return original.getContentStream();
     }
