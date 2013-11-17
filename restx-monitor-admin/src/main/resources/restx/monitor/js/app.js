@@ -1,4 +1,12 @@
-angular.module('admin', ['ngResource']);
+adminApp = angular.module('admin', ['ngResource']);
+
+adminApp.factory('Metrics', function($resource) {
+    return $resource('../../metrics');
+});
+
+adminApp.controller('MetricsController', function($rootScope, $scope, Metrics) {
+    $scope.init = function() { $scope.metrics = Metrics.get(); }
+});
 
 
 var grid, dataView;
