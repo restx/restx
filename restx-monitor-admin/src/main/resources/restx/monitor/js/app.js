@@ -12,6 +12,23 @@ adminApp.config(function($routeProvider) {
         });
 });
 
+adminApp.filter('uaBrowser', function() {
+    return function(input) {
+        var parser = new UAParser();
+        parser.setUA(input);
+        var ua = parser.getResult();
+        return  ua.browser.name + ' ' + ua.browser.version;
+    }
+});
+adminApp.filter('uaOS', function() {
+    return function(input) {
+        var parser = new UAParser();
+        parser.setUA(input);
+        var ua = parser.getResult();
+        return  ua.os.name + ' ' + ua.os.version;
+    }
+});
+
 adminApp.factory('Metrics', function($resource) {
     return $resource('../../metrics');
 });

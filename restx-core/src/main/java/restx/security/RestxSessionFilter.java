@@ -68,10 +68,15 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
             session.cleanUpCaches();
         }
         RestxSession.setCurrent(session);
+        ImmutableMap<String, String> metadata = ImmutableMap.of(
+                "clientAddress", req.getClientAddress(),
+                "userAgent", req.getHeader("User-Agent").or("Unknown"));
         if (session.getPrincipal().isPresent()) {
             String name = session.getPrincipal().get().getName();
-            sessions.touch(name, ImmutableMap.<String, String>of());
+            sessions.touch(name, metadata);
             MDC.put("principal", name);
+        } else {
+            sessions.touch("anonymous@" + req.getClientAddress(), metadata);
         }
         try {
             RouteLifecycleListener lifecycleListener = new AbstractRouteLifecycleListener() {

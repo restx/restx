@@ -4,11 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -23,12 +19,14 @@ public class Sessions {
         private final String key;
         private final long firstAccess;
         private final long lastAccess;
+        private final int count;
         private final ImmutableMap<String, String> metadata;
 
-        private SessionData(String key, long firstAccess, long lastAccess, ImmutableMap<String, String> metadata) {
+        private SessionData(String key, long firstAccess, long lastAccess, int count, ImmutableMap<String, String> metadata) {
             this.key = checkNotNull(key);
-            this.firstAccess = checkNotNull(firstAccess);
-            this.lastAccess = checkNotNull(lastAccess);
+            this.firstAccess = firstAccess;
+            this.lastAccess = lastAccess;
+            this.count = count;
             this.metadata = checkNotNull(metadata);
         }
 
@@ -44,12 +42,16 @@ public class Sessions {
             return lastAccess;
         }
 
+        public int getCount() {
+            return count;
+        }
+
         public ImmutableMap<String, String> getMetadata() {
             return metadata;
         }
 
         private SessionData touch(ImmutableMap<String, String> metadata) {
-            return new SessionData(key, firstAccess, System.nanoTime(), metadata);
+            return new SessionData(key, firstAccess, System.nanoTime(), count + 1, metadata);
         }
 
         @Override
@@ -111,7 +113,7 @@ public class Sessions {
                 updatedSessionData = sessionData.touch(metadata);
             } else {
                 long access = System.nanoTime();
-                updatedSessionData = new SessionData(key, access, access, metadata);
+                updatedSessionData = new SessionData(key, access, access, 1, metadata);
             }
 
             updated = sessions.put(key, updatedSessionData) == sessionData;
