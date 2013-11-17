@@ -20,6 +20,7 @@
             "joda-time:joda-time:${joda-time.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}",
             "com.codahale.metrics:metrics-core:${metrics.version}",
+            "com.codahale.metrics:metrics-healthchecks:${metrics.version}",
             "org.hibernate:hibernate-validator:${hibernate-validator.version}",
             "org.reflections:reflections:${reflections.version}",
             "org.yaml:snakeyaml:${snakeyaml.version}"

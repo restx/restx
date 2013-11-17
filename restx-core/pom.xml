@@ -95,6 +95,11 @@
             <version>${metrics.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-healthchecks</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>${hibernate-validator.version}</version>

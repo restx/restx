@@ -26,6 +26,7 @@
         <dependency org="joda-time" name="joda-time" rev="2.3" conf="default" />
         <dependency org="org.slf4j" name="slf4j-api" rev="1.7.5" conf="default" />
         <dependency org="com.codahale.metrics" name="metrics-core" rev="3.0.1" conf="default" />
+        <dependency org="com.codahale.metrics" name="metrics-healthchecks" rev="3.0.1" conf="default" />
         <dependency org="org.hibernate" name="hibernate-validator" rev="5.0.1.Final" conf="default" />
         <dependency org="org.reflections" name="reflections" rev="0.9.9-RC1" conf="default" />
         <dependency org="org.yaml" name="snakeyaml" rev="1.13" conf="default" />

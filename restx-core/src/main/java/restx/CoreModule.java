@@ -1,5 +1,6 @@
 package restx;
 
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,5 +34,10 @@ public class CoreModule {
                 logger.debug("started EventBus");
             }
         };
+    }
+
+    @Provides
+    public HealthCheckRegistry healthCheckRegistry() {
+        return new HealthCheckRegistry();
     }
 }
