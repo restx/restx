@@ -10,6 +10,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import restx.*;
 import restx.common.Crypto;
 import restx.factory.Name;
@@ -64,6 +65,9 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
             session.cleanUpCaches();
         }
         RestxSession.setCurrent(session);
+        if (session.getPrincipal().isPresent()) {
+            MDC.put("principal", session.getPrincipal().get().getName());
+        }
         try {
             RouteLifecycleListener lifecycleListener = new AbstractRouteLifecycleListener() {
                 @Override
@@ -77,6 +81,7 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
             ctx.nextHandlerMatch().handle(req, resp, ctx.withListener(lifecycleListener));
         } finally {
             RestxSession.setCurrent(null);
+            // we don't remove the MDC principal here, we want to keep it until the end of the request
         }
     }
 

@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import restx.exceptions.RestxError;
 import restx.http.HttpStatus;
 import restx.jackson.StdJsonProducerEntityRoute;
@@ -230,6 +231,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
             monitor.stop();
             stopwatch.stop();
             restxResponse.getLogLevel().log(logger, restxRequest, restxResponse, stopwatch);
+            MDC.clear();
         }
     }
 
