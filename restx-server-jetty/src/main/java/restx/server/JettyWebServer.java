@@ -72,6 +72,7 @@ public class JettyWebServer implements WebServer {
         return WebServers.baseUri("127.0.0.1", port);
     }
 
+    @Override
     public void start() throws Exception {
         checkCanOpenSocket(port);
 
@@ -86,11 +87,18 @@ public class JettyWebServer implements WebServer {
         server.start();
     }
 
+    @Override
     public void startAndAwait() throws Exception {
         start();
+        await();
+    }
+
+    @Override
+    public void await() throws InterruptedException {
         server.join();
     }
 
+    @Override
     public void stop() throws Exception {
         server.stop();
         WebServers.unregister(serverId);

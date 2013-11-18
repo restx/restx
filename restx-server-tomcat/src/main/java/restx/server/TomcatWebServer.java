@@ -71,16 +71,24 @@ public class TomcatWebServer implements WebServer {
         return WebServers.baseUri("localhost", port);
     }
 
+    @Override
     public void start() throws LifecycleException {
         checkCanOpenSocket(port);
         WebServers.register(this);
         tomcat.start();
     }
 
+    @Override
     public void startAndAwait() throws LifecycleException {
         start();
+        await();
+    }
+
+    @Override
+    public void await() {
         tomcat.getServer().await();
     }
+
 
     public void stop() throws LifecycleException {
         tomcat.stop();

@@ -9,6 +9,7 @@ import com.google.common.eventbus.EventBus;
  */
 public interface WebServer {
     public void start() throws Exception;
+    public void await() throws Exception;
     public void startAndAwait() throws Exception;
     public void stop() throws Exception;
     public String baseUrl();

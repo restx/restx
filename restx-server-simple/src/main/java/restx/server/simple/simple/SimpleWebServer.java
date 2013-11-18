@@ -166,6 +166,11 @@ public abstract class SimpleWebServer implements WebServer {
     }
 
     @Override
+    public void await() throws Exception {
+        // does nothing, simple is started in daemon mode which keeps jvm alive
+    }
+
+    @Override
     public synchronized void stop() throws Exception {
         if (router instanceof AutoCloseable) {
             ((AutoCloseable) router).close();

@@ -105,6 +105,11 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         }
 
         @Override
+        public void await() throws Exception {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void stop() throws Exception {
             throw new UnsupportedOperationException();
         }
