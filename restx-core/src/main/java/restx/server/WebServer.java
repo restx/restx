@@ -15,4 +15,5 @@ public interface WebServer {
     public String baseUrl();
     public String getServerId();
     public int getPort();
+    public boolean isStarted();
 }

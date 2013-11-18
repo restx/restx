@@ -73,7 +73,7 @@ public class JettyWebServer implements WebServer {
     }
 
     @Override
-    public void start() throws Exception {
+    public synchronized void start() throws Exception {
         checkCanOpenSocket(port);
 
         server = new Server();
@@ -99,9 +99,15 @@ public class JettyWebServer implements WebServer {
     }
 
     @Override
-    public void stop() throws Exception {
+    public synchronized void stop() throws Exception {
         server.stop();
+        server = null;
         WebServers.unregister(serverId);
+    }
+
+    @Override
+    public synchronized boolean isStarted() {
+        return server != null;
     }
 
     private ThreadPool createThreadPool() {

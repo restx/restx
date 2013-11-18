@@ -176,7 +176,13 @@ public abstract class SimpleWebServer implements WebServer {
             ((AutoCloseable) router).close();
         }
         connection.close();
+        connection = null;
         WebServers.unregister(serverId);
+    }
+
+    @Override
+    public synchronized boolean isStarted() {
+        return connection != null;
     }
 
     @Override

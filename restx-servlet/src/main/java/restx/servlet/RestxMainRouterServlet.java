@@ -115,6 +115,11 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         }
 
         @Override
+        public boolean isStarted() {
+            return false;
+        }
+
+        @Override
         public String baseUrl() {
             throw new UnsupportedOperationException();
         }

@@ -72,7 +72,7 @@ public class TomcatWebServer implements WebServer {
     }
 
     @Override
-    public void start() throws LifecycleException {
+    public synchronized void start() throws LifecycleException {
         checkCanOpenSocket(port);
         WebServers.register(this);
         tomcat.start();
@@ -90,9 +90,14 @@ public class TomcatWebServer implements WebServer {
     }
 
 
-    public void stop() throws LifecycleException {
+    public synchronized void stop() throws LifecycleException {
         tomcat.stop();
         WebServers.unregister(serverId);
+    }
+
+    @Override
+    public synchronized boolean isStarted() {
+        return WebServers.getServerById(serverId).isPresent();
     }
 
     public static WebServerSupplier tomcatWebServerSupplier(final String appBase) {
