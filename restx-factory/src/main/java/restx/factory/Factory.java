@@ -858,7 +858,7 @@ public class Factory implements AutoCloseable {
         BillOfMaterials bom = engine.getBillOfMaterial();
         SatisfiedBOM satisfiedBOM = satisfy(name, bom);
 
-        logger.info("building {} with {}", name, engine);
+        logger.info("{} - building {} with {}", id, name, engine);
         Timer timer = metrics.timer("<BUILD> " + name.getSimpleName());
         Timer.Context context = timer.time();
         ComponentBox<T> box;
@@ -885,7 +885,7 @@ public class Factory implements AutoCloseable {
             context = metrics.timer("<CUSTOMIZE> " + name.getSimpleName()
                     + " <WITH> " + customizer.getClass().getSimpleName()).time();
             try {
-                logger.info("customizing {} with {}", name, customizer);
+                logger.info("{} - customizing {} with {}", id, name, customizer);
                 box = box.customize(customizer);
             } finally {
                 context.stop();
@@ -901,7 +901,7 @@ public class Factory implements AutoCloseable {
     }
 
     private SatisfiedBOM satisfy(Name name, BillOfMaterials bom) {
-        logger.info("satisfying BOM for {} - {}", name, bom);
+        logger.info("{} - satisfying BOM for {} - {}", id, name, bom);
         ImmutableMultimap.Builder<Query<?>, NamedComponent<?>> materials = ImmutableMultimap.builder();
 
         for (Query key : bom.getQueries()) {
@@ -915,7 +915,7 @@ public class Factory implements AutoCloseable {
         Optional<FactoryMachine> machineFor = findMachineFor(name);
         if (!machineFor.isPresent()) {
             Set<Name<T>> similarNames = queryByClass(name.getClazz()).findNames();
-            throw new IllegalStateException(name + " can't be satisfied: no machine found to build it." +
+            throw new IllegalStateException(name + " can't be satisfied in " + id + ": no machine found to build it." +
                     (similarNames.isEmpty() ? ""
                             : " similar components found: " + Joiner.on(", ").join(similarNames)));
         }
