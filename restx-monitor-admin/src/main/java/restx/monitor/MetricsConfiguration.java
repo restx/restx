@@ -4,6 +4,8 @@ import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
 import com.codahale.metrics.jvm.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +25,12 @@ public class MetricsConfiguration implements AutoStartable {
     private static final Logger logger = LoggerFactory.getLogger(MetricsConfiguration.class);
 
     private final MetricRegistry metrics;
+    private final HealthCheckRegistry healthChecks;
     private final GraphiteSettings graphiteSettings;
 
-    public MetricsConfiguration(MetricRegistry metrics, GraphiteSettings graphiteSettings) {
+    public MetricsConfiguration(MetricRegistry metrics, HealthCheckRegistry healthChecks, GraphiteSettings graphiteSettings) {
         this.metrics = metrics;
+        this.healthChecks = healthChecks;
         this.graphiteSettings = graphiteSettings;
     }
 
@@ -37,6 +41,8 @@ public class MetricsConfiguration implements AutoStartable {
         metrics.register("jvm.threads", new ThreadStatesGaugeSet());
         metrics.register("jvm.files", new FileDescriptorRatioGauge());
         metrics.register("jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
+
+        healthChecks.register("threadLocks", new ThreadDeadlockHealthCheck());
 
         setupReporters();
     }
