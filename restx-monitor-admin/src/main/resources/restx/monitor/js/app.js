@@ -9,7 +9,12 @@ adminApp.config(function($routeProvider) {
         when('/sessions', {
             controller: 'SessionsController',
             templateUrl: 'views/sessions.html'
-        });
+        }).
+        when('/thread-dump', {
+            controller: 'ThreadDumpController',
+            templateUrl: 'views/thread-dump.html'
+        })
+    ;
 });
 
 adminApp.filter('uaBrowser', function() {
@@ -54,6 +59,12 @@ adminApp.controller('MetricsController', function($rootScope, $scope, Metrics) {
     }
 
     initGrid();
+});
+
+adminApp.controller('ThreadDumpController', function($rootScope, $scope, $http) {
+    $scope.init = function() {
+        $http.get('../../thread-dump').success(function(data) {$scope.threadDump = data});
+    }
 });
 
 function initGrid() {
