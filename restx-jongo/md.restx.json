@@ -10,6 +10,7 @@
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
+            "io.restx:restx-core-annotation-processor:${restx.version}",
             "com.fasterxml.jackson.core:jackson-core:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
@@ -17,6 +18,7 @@
             "de.undercouch:bson4jackson:${bson4jackson.version}",
             "org.mongodb:mongo-java-driver:${mongo-java-driver.version}",
             "org.jongo:jongo:${jongo.version}",
+            "com.codahale.metrics:metrics-healthchecks:${metrics.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}"
         ],
         "test": [

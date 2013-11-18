@@ -1,11 +1,18 @@
 package restx.jongo;
 
+import com.mongodb.MongoClient;
+import org.jongo.Jongo;
 import org.jongo.Mapper;
 import org.jongo.marshall.jackson.JacksonMapper;
 import restx.factory.Module;
+import restx.factory.Name;
 import restx.factory.Provides;
+import restx.factory.SatisfiedBOM;
 import restx.jackson.BsonJodaTimeModule;
 import restx.jackson.Views;
+import restx.mongo.MongoModule;
+
+import javax.inject.Named;
 
 /**
  * User: xavierhanin
@@ -14,6 +21,7 @@ import restx.jackson.Views;
  */
 @Module
 public class JongoModule {
+    public static final Name<Jongo> NAME = Name.of(Jongo.class, "Jongo");
 
     @Provides
     public Mapper mapper() {
@@ -23,4 +31,10 @@ public class JongoModule {
                         .build();
     }
 
+    @Provides @Named("Jongo")
+    public Jongo jongo(@Named(MongoModule.MONGO_DB_NAME) String dbName,
+                                @Named(MongoModule.MONGO_CLIENT_NAME) MongoClient mongoClient,
+                                Mapper mapper) {
+        return new Jongo(mongoClient.getDB(dbName), mapper);
+    }
 }

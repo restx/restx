@@ -4,17 +4,14 @@ import com.google.common.collect.ImmutableMap;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import org.joda.time.DateTime;
-import restx.factory.Component;
-import restx.factory.Factory;
-import restx.factory.NamedComponent;
-import restx.factory.SingletonFactoryMachine;
-import restx.jongo.JongoFactory;
+import restx.factory.*;
+import restx.mongo.MongoModule;
+import restx.mongo.MongoSettings;
 import restx.specs.mongo.GivenJongoCollection;
 import restx.tests.GivenSpecRule;
 import restx.tests.GivenSpecRuleSupplier;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.net.UnknownHostException;
 import java.util.Map;
 
@@ -28,8 +25,8 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
     private String db;
 
     @Inject
-    public GivenJongoCollectionSpecRuleSupplier(@Named(JongoFactory.JONGO_DB_NAME) String db) {
-        this.db = db;
+    public GivenJongoCollectionSpecRuleSupplier(MongoSettings mongoSettings) {
+        this.db = mongoSettings.dbName();
     }
 
     @Override
@@ -54,7 +51,7 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
             System.out.println("using db " + db);
             localMachines
                     .addMachine(new SingletonFactoryMachine<>(
-                            -10, new NamedComponent<>(JongoFactory.JONGO_DB, db)));
+                            -10, new NamedComponent<>(Name.of(String.class, MongoModule.MONGO_DB_NAME), db)));
         }
 
         @Override

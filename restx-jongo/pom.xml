@@ -22,6 +22,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <jackson.version>2.1.2</jackson.version>
+        <metrics.version>3.0.1</metrics.version>
         <mongo-java-driver.version>2.11.3</mongo-java-driver.version>
         <bson4jackson.version>2.1.1</bson4jackson.version>
         <jongo.version>0.4</jongo.version>
@@ -38,6 +39,11 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-core-annotation-processor</artifactId>
             <version>${restx.version}</version>
         </dependency>
         <dependency>
@@ -74,6 +80,11 @@
             <groupId>org.jongo</groupId>
             <artifactId>jongo</artifactId>
             <version>${jongo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-healthchecks</artifactId>
+            <version>${metrics.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

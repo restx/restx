@@ -14,7 +14,7 @@ import java.util.Set;
 @Machine
 public class JongoCollectionFactory implements FactoryMachine {
 
-    private Factory.Query<Jongo> jongoQuery = Factory.Query.byName(JongoFactory.NAME);
+    private Factory.Query<Jongo> jongoQuery = Factory.Query.byName(JongoModule.NAME);
 
     @Override
     public boolean canBuild(Name<?> name) {
