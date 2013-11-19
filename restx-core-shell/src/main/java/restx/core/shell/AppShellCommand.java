@@ -383,6 +383,12 @@ public class AppShellCommand extends StdShellCommand {
                 }
                 appClassName = pack.get() + ".AppServer";
             }
+
+            if (!DepsShellCommand.depsUpToDate(shell)) {
+                shell.println("restx> deps install");
+                new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+            }
+
             String basePack = appClassName.substring(0, appClassName.lastIndexOf('.'));
             AppSettings appSettings = shell.getFactory()
                     .concat(new SingletonFactoryMachine<>(-10000, NamedComponent.of(String.class, "restx.app.package", basePack)))
