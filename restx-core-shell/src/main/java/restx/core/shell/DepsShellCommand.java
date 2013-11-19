@@ -38,6 +38,11 @@ public class DepsShellCommand extends StdShellCommand {
     }
 
     @Override
+    protected String resourceMan() {
+        return "restx/core/shell/deps.man";
+    }
+
+    @Override
     protected Optional<? extends ShellCommandRunner> doMatch(String line) {
         List<String> args = splitArgs(line);
 
