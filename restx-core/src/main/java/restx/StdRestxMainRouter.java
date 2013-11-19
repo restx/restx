@@ -177,7 +177,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
                         for (int i = 0; i < lines.size(); i++) {
                             String line = lines.get(i);
                             out.println(line);
-                            if (i + 1 == location.getLineNr()) {
+                            if (location != null && (i + 1 == location.getLineNr())) {
                                 boolean farColumn = location.getColumnNr() > 80;
                                 /*
                                  * if error column is too far, we precede the error message with >> to show
