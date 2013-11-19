@@ -8,7 +8,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
@@ -61,6 +63,15 @@ public class AppShellCommand extends StdShellCommand {
         }
 
         return Optional.absent();
+    }
+
+    @Override
+    public void man(Appendable appendable) throws IOException {
+        super.man(appendable);
+    }
+
+    protected String resourceMan() {
+        return "restx/core/shell/app.man";
     }
 
     @Override

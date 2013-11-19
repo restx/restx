@@ -1,0 +1,68 @@
+## app new
+
+`app new` command let you create a new restx app.
+
+It doesn't take any additional argument, it will ask for parameters to generate the app.
+
+## app compile
+
+Compile current application.
+
+This command uses javac to compile your application classes located in `src/main/java` and put compiled classes in
+`target/classes`.
+It uses dependencies located in `target/dependency`.
+
+Note: You need to be placed in a restx app root directory to run this command.
+
+## app generate-start-script [<main.class.Name>]
+
+Generate a start script to run your application outside restx shell.
+
+This can be useful for production, it let you avoid to have a jvm running for the shell (which is the case when you use
+`app run`).
+
+The command actually generates 2 scripts: `start.sh` for *nix and `start.bat` for windows.
+
+You can optionally provide the fully qualified name of the main class, if you don't provide one restx will try to guess
+it.
+
+Note: You need to be placed in a restx app root directory to run this command.
+
+
+## app run [--quiet] [--fg] [-D<property>=<value>] [--mode=<mode>] [<main.class.Name>]
+
+Run a restx application.
+
+Running a restx app is simply launching a java process taking all jars from `target/dependency` + classes
+from `target/classes` in classpath.
+
+It will run `deps install` if needed (if `md.restx.json` file has changed since last `deps install` call).
+If you prefer to use another dependency management mechanism, you just need to fill the `target/dependency` directory
+with all your dependencies jars before calling app run.
+
+It will also compile the main class before running the app. It compiles only the main class because restx has auto
+compile feature, except in prod mode where it will compile all classes as with `app compile`.
+
+### Options
+
+`--quiet`
+  do not show output in console. This is sometimes useful for performance reasons, console writing is synchronous and
+  can thus slow down your application, especially if you run through a slow ssh connection.
+
+`--fg`
+  by default app run the application in a separate process in the background. and wait for a `stop` command on the
+  shell input. Sometimes you may prefer to join the sub process and do not wait for a stop command (eg in situations
+  where you don't want to use shell input, like when running a restx app through batch script).
+
+`-D<property>=<value>`
+  allow to set system properties for the app, which are simply passed as vm options to the sub process
+
+`--mode=<mode>`
+  an easy way to set restx mode.
+  It has the same effect as running -Drestx.mode=<mode>, except that in prod it also influence the way compilation is
+  done (see above).
+
+`<main.class.Name>`
+  the fully qualified name of the main class to run, if not provided restx will try to guess it.
+
+Note: You need to be placed in a restx app root directory to run this command.

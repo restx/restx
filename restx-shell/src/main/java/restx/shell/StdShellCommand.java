@@ -2,11 +2,13 @@ package restx.shell;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.common.Mustaches;
@@ -66,6 +68,16 @@ public abstract class StdShellCommand implements ShellCommand {
         if (aliases.size() > 1) {
             appendable.append("  aliases: " + Joiner.on(", ").join(aliases.subList(1, aliases.size())) + "\n");
         }
+
+        String resourceMan = resourceMan();
+        if (resourceMan != null) {
+            appendable.append("\n");
+            appendResourceMan(appendable, resourceMan);
+        }
+    }
+
+    protected String resourceMan() {
+        return null;
     }
 
     @Override
@@ -113,5 +125,9 @@ public abstract class StdShellCommand implements ShellCommand {
 
     @Override
     public void start(RestxShell shell) throws IOException {
+    }
+
+    protected Appendable appendResourceMan(Appendable appendable, String man) throws IOException {
+        return appendable.append(Resources.toString(Resources.getResource(man), Charsets.UTF_8));
     }
 }
