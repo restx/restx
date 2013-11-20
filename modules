@@ -1,5 +1,15 @@
 [
     { "id": "io.restx:restx-core-shell:0.30", "description": "core commands: generate new app, ...", "category": "shell"},
     { "id": "io.restx:restx-build-shell:0.30", "description": "build commands: generate pom, ivy, ...", "category": "shell"},
-    { "id": "io.restx:restx-specs-shell:0.30", "description": "specs commands: run a specs server, ...", "category": "shell"}
+    { "id": "io.restx:restx-specs-shell:0.30", "description": "specs commands: run a specs server, ...", "category": "shell"},
+    { "id": "io.restx:restx-jongo:0.30", "description": "MongoDB persistency support using Jongo", "category": "app"},
+    { "id": "io.restx:restx-jongo-specs-tests:0.30", "description": "recording and playback of MongoDB datasets in spec tests", "category": "app"},
+    { "id": "io.restx:restx-barbarywatch:0.30", "description": "Improved filesystem watching for MacOS", "category": "app"},
+    { "id": "io.restx:restx-server-jetty:0.30", "description": "Jetty based restx web server", "category": "app"},
+    { "id": "io.restx:restx-server-tomcat:0.30", "description": "Tomcat based restx web server", "category": "app"},
+    { "id": "io.restx:restx-server-simple:0.30", "description": "Simpleframework based restx web server", "category": "app"},
+    { "id": "io.restx:restx-monitor-admin:0.30", "description": "App monitoring admin console plugin", "category": "app"},
+    { "id": "io.restx:restx-log-admin:0.30", "description": "Logs configuration and view through admin console plugin", "category": "app"},
+    { "id": "io.restx:restx-factory-admin:0.30", "description": "RESTX dependency injection container admin console plugin", "category": "app"},
+    { "id": "io.restx:restx-apidocs:0.30", "description": "RESTX famous REST API console", "category": "app"}
 ]
