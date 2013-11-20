@@ -73,6 +73,7 @@ public abstract class StdShellCommand implements ShellCommand {
         if (resourceMan != null) {
             appendable.append("\n");
             appendResourceMan(appendable, resourceMan);
+            appendable.append("\n\n");
         }
     }
 

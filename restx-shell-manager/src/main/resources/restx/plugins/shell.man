@@ -1,0 +1,24 @@
+## shell install [<plugin.id>]
+
+Installs plugins for the shell.
+
+The plugins are installed in `<shell.install.location>/plugins`.
+
+The shell is automatically reloaded to take new plugins into account.
+
+You can provide the plugin as a parameter to the `shell install` command, or select them with what restx proposes when
+you give no parameter.
+
+The plugin id is given in Grails like notation: `<group>:<module>:<version>`. You can use http://search.maven.org to
+search for them and choose "Grails" on the module detail page to get the id.
+
+But most of the time you will simply choose in the choices provided by restx, since all restx shell plugins should be
+listed there.
+
+Please note that this command is only used to install shell plugins, not plugins for your app.
+
+## shell upgrade
+
+Use this command to check if a new version of restx is available and upgrade your shell.
+
+Please note that only the shell is upgraded, not your restx apps.

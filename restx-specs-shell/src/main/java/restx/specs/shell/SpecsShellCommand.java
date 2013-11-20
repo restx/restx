@@ -36,6 +36,11 @@ public class SpecsShellCommand extends StdShellCommand {
     }
 
     @Override
+    protected String resourceMan() {
+        return "restx/specs/shell/spec.man";
+    }
+
+    @Override
     protected Optional<ShellCommandRunner> doMatch(String line) {
         final List<String> args = splitArgs(line);
         if (args.size() < 2) {

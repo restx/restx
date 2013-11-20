@@ -54,6 +54,11 @@ public class BuildShellCommand extends StdShellCommand {
     }
 
     @Override
+    protected String resourceMan() {
+        return "restx/build/shell/build.man";
+    }
+
+    @Override
     public Iterable<Completer> getCompleters() {
         return ImmutableList.<Completer>of(
                 new ArgumentCompleter(new StringsCompleter("build"), new StringsCompleter("generate"), new StringsCompleter("ivy", "pom")),

@@ -50,6 +50,11 @@ public class PluginsShellCommand extends StdShellCommand {
     }
 
     @Override
+    protected String resourceMan() {
+        return "restx/plugins/shell.man";
+    }
+
+    @Override
     protected Optional<? extends ShellCommandRunner> doMatch(String line) {
         final List<String> args = splitArgs(line);
         if (args.size() < 2) {

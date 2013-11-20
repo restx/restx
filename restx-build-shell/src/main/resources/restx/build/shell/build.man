@@ -1,0 +1,15 @@
+## build generate pom|ivy
+
+Use this command to update a pom or ivy file based on your `md.restx.json` file.
+
+Remember that it is recommended in restx app to declare your dependencies in `md.restx.json`, which is a sort of meta
+build file, used by restx to provide basic features: dependencies management with `deps install`, compilation and app
+running with `app run`.
+
+You can use this command at the root of a multi module app in which case it will search for all your `md.restx.json`
+files and update corresponding module files.
+
+## build watch
+
+Use this command to start file system watching to auto update your `pom.xml` and `module.ivy` files when `md.restx.json`
+files change.

@@ -1,0 +1,25 @@
+## spec server [<routerPath> [<port>]]
+
+Starts a spec server, which is recursively scanning current directory for `.spec.yaml` files to use them to mock
+your REST API based on these specifications, while the implementation is not yet implemented.
+
+You can optionnaly specify a router path which by default is `/api` (also called restx mount point), and the port on
+which the server should listen.
+
+## spec test server [--quiet] [<base.pack>]
+
+Starts a spec test server, also known as infinirest.
+
+This server scans your application for changes, and automatically run your spec tests whenever your application source
+code changes.
+
+The spec server is an instance of your app with an additional entry in the admin console, which let you see details
+of executed tests, and run test manually.
+
+Options:
+
+`--quiet`
+Run the server in quiet mode, i.e. without console output.
+
+`<base.pack>`
+Sets the application base package, by default restx will try to guess it.
