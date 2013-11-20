@@ -1,9 +1,6 @@
 package restx.build;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * User: xavierhanin
@@ -57,5 +54,17 @@ public class ModuleDescriptor {
     public List<ModuleFragment> getFragments(String s) {
         List<ModuleFragment> moduleFragments = fragments.get(s);
         return moduleFragments == null ? Collections.<ModuleFragment>emptyList() : moduleFragments;
+    }
+
+    public ModuleDescriptor concatDependency(String scope, ModuleDependency dep) {
+        LinkedHashMap<String, List<ModuleDependency>> newDeps = new LinkedHashMap<>(dependencies);
+        if (!newDeps.containsKey(scope)) {
+            newDeps.put(scope, new ArrayList<ModuleDependency>());
+        } else {
+            newDeps.put(scope, new ArrayList<ModuleDependency>(newDeps.get(scope)));
+        }
+        newDeps.get(scope).add(dep);
+
+        return new ModuleDescriptor(parent, gav, packaging, properties, fragments, newDeps);
     }
 }

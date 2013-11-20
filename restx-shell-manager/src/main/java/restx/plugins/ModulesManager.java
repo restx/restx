@@ -27,6 +27,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.google.common.collect.Iterables.addAll;
 
@@ -48,17 +49,18 @@ public class ModulesManager {
     }
 
     public List<ModuleDescriptor> searchModules(String q) throws IOException {
-        if ("category=shell".equalsIgnoreCase(q)) {
+        if (q.toLowerCase(Locale.ENGLISH).startsWith("category=")) {
+            String category = q.substring("category=".length()).toLowerCase(Locale.ENGLISH);
             List<ModuleDescriptor> mds = loadAllRestxModuleDescriptors();
             List<ModuleDescriptor> modules = new ArrayList<>();
             for (ModuleDescriptor md : mds) {
-                if (md.getCategory().equals("shell")) {
+                if (md.getCategory().equals(category)) {
                     modules.add(md);
                 }
             }
             return modules;
         } else {
-            throw new UnsupportedOperationException("querying for modules other than shell plugins is not supported yet.");
+            throw new UnsupportedOperationException("querying for modules other than by category is not supported yet.");
         }
     }
 

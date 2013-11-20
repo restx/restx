@@ -8,3 +8,18 @@ You can override these Ivy settings by placing a file named ivysettings.xml in y
 (usually `~/.restx`).
 
 Note: You need to be placed in a restx app root directory to run this command.
+
+## deps add [scope:<scope>] [plugin.id]
+
+Declare new dependencies in your `md.restx.json` module descriptor, and update corresponding module descriptors
+(pom and/or ivy).
+
+The plugin id is given in Grails like notation: `<group>:<module>:<version>`. You can use http://search.maven.org to
+search for them and choose "Grails" on the module detail page to get the id.
+
+If you don't provide plugin id as a parameter to the command, the shell will provide a list of typical dependencies
+that can be added to a restx app.
+
+You can also provide a scope as parameter, using the `scope:<scope>` notation, eg `scope:runtime`.
+
+This command does not install the dependencies, use `deps install` command to install them.

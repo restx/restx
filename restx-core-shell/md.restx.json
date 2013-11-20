@@ -11,6 +11,7 @@
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-shell:${restx.version}",
+            "io.restx:restx-shell-manager:${restx.version}",
             "io.restx:restx-build:${restx.version}",
             "org.apache.ivy:ivy:${ivy.version}"
         ],
