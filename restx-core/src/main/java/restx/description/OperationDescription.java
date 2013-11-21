@@ -15,6 +15,7 @@ public class OperationDescription {
     public String httpMethod;
     public String nickname;
     public String responseClass;
+    public String sourceLocation = "";
     public String summary = "";
     public String notes = "";
     public HttpStatus.Descriptor successStatus;

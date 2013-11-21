@@ -4,7 +4,6 @@ import com.github.mustachejava.Mustache;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
 import com.google.common.collect.*;
 import restx.http.HttpStatus;
 import restx.RestxLogLevel;
@@ -25,6 +24,7 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,7 +79,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                             annotation.httpMethod, annotation.path,
                             annotation.methodElem.getSimpleName().toString(),
                             annotation.methodElem.getReturnType().toString(),
-                            successStatus, logLevel, permission);
+                            successStatus, logLevel, permission,
+                            typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString());
 
                     resourceClass.resourceMethods.add(resourceMethod);
                     resourceClass.originatingElements.add(annotation.methodElem);
@@ -299,6 +300,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("securityCheck", "securityManager.check(request, " + resourceMethod.permission + ");")
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
+                    .put("sourceLocation", resourceMethod.sourceLocation)
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
                     .put("inEntity", inEntityClass)
                     .put("inEntityType", getTypeExpressionFor(inEntityClass))
@@ -435,16 +437,18 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final HttpStatus successStatus;
         final RestxLogLevel logLevel;
         final String permission;
+        final String sourceLocation;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
         ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
-                       HttpStatus successStatus, RestxLogLevel logLevel, String permission) {
+                       HttpStatus successStatus, RestxLogLevel logLevel, String permission, String sourceLocation) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
             this.logLevel = logLevel;
             this.permission = permission;
+            this.sourceLocation = sourceLocation;
             Matcher m = optionalPattern.matcher(returnType);
             this.realReturnType = returnType;
             this.returnTypeOptional = m.matches();
