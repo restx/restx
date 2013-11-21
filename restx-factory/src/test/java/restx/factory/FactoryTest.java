@@ -75,7 +75,7 @@ public class FactoryTest {
                 .addMachine(testMachine())
                 .addWarehouseProvider(factory.getWarehouse())
                 .build();
-        assertThat(otherFactory.queryByClass(AutoStartable.class).findAsComponents()).containsOnly(lifecycleComponent);
+        assertThat(otherFactory.getComponents(AutoStartable.class)).containsOnly(lifecycleComponent);
 
         otherFactory.close();
         assertThat(lifecycleComponent.closed).isFalse();
@@ -395,6 +395,13 @@ public class FactoryTest {
         assertThat(Factory.getFactory(factory.getId())).isEqualTo(Optional.of(factory));
         Factory.unregister(factory.getId(), factory);
         assertThat(Factory.getFactory(factory.getId())).isEqualTo(Optional.absent());
+    }
+
+    @Test
+    public void should_get_default_instance() throws Exception {
+        Factory factory = Factory.getInstance();
+
+        assertThat(factory).isNotNull().isSameAs(Factory.getInstance());
     }
 
     private SingleNameFactoryMachine<String> testMachine() {

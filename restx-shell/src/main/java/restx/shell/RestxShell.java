@@ -49,7 +49,7 @@ public class RestxShell implements Appendable {
     private ExecMode execMode = ExecMode.INTERACTIVE;
 
     public RestxShell(ConsoleReader consoleReader) {
-        this(consoleReader, Factory.builder().addFromServiceLoader().build());
+        this(consoleReader, Factory.getInstance());
     }
 
     public RestxShell(ConsoleReader consoleReader, Factory factory) {

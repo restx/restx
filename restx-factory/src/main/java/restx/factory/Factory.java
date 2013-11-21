@@ -58,6 +58,29 @@ public class Factory implements AutoCloseable {
         return factories.remove(key, factory);
     }
 
+    public static Factory newInstance() {
+        return Factory.builder().addFromServiceLoader()
+                .addLocalMachines(LocalMachines.threadLocal())
+                .build();
+    }
+
+    /**
+     * Returns a default Factory instance, getting componenents from ServiceLoader only.
+     *
+     * Make sure you never close that instance except on JVM shutdown, it's probably shared among several usages.
+     *
+     * Prefer using your own Factory with newInstance for instance if you want to have control over its lifecycle.
+     *
+     * @return the default factory instance.
+     */
+    public static Factory getInstance() {
+        Optional<Factory> factory = getFactory("__DEFAULT__");
+        if (factory.isPresent()) {
+            return factory.get();
+        } else {
+            return register("__DEFAULT__", Factory.builder().addFromServiceLoader().build());
+        }
+    }
 
 
     public static class LocalMachines {
@@ -644,7 +667,7 @@ public class Factory implements AutoCloseable {
     }
 
     /**
-     * Gets a component by class.
+     * Builds a component by class.
      *
      * This is a shortcut for queryByClass(cls).mandatory().findOneAsComponent().get()
      *
@@ -659,7 +682,7 @@ public class Factory implements AutoCloseable {
     }
 
     /**
-     * Gets a component by name.
+     * Builds a component by name.
      *
      * This is a shortcut for queryByName(name).mandatory().findOneAsComponent().get()
      *
@@ -671,6 +694,19 @@ public class Factory implements AutoCloseable {
      */
     public <T> T getComponent(Name<T> componentName) {
         return queryByName(componentName).mandatory().findOneAsComponent().get();
+    }
+
+    /**
+     * Builds and return all the component of given class.
+     *
+     * This is a shortcut for queryByClass(componentClass).findAsComponents()
+     *
+     * @param componentClass the class of the components to build and return
+     * @param <T> the type of components
+     * @return the set of components of given class
+     */
+    public <T> Set<T> getComponents(Class<T> componentClass) {
+        return queryByClass(componentClass).findAsComponents();
     }
 
     /**
