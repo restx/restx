@@ -178,6 +178,42 @@ public enum HttpStatus {
 	 * @see <a href="http://tools.ietf.org/html/rfc2616#section-10.4.18">HTTP/1.1</a>
 	 */
 	EXPECTATION_FAILED(417, "Expectation Failed"),
+	/**
+	 * {@code 418 I'm a teapot}.
+     * RFC 2324
+	 * @see <a href="http://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP extended</a>
+	 */
+	I_AM_A_TEAPOT(418, "I'm a teapot"),
+	/**
+	 * {@code 422 Unprocessable Entity}.
+	 * @see <a href="http://en.wikipedia.org/wiki/List_of_HTTP_status_codes">WebDAV; RFC 4918</a>
+	 */
+    UNPROCESSABLE_ENTITY(422, "Unprocessable Entity"),
+	/**
+	 * {@code 423 Locked}.
+	 * @see <a href="http://en.wikipedia.org/wiki/List_of_HTTP_status_codes">WebDAV; RFC 4918</a>
+	 */
+    LOCKED(423, "Locked"),
+	/**
+	 * {@code 424 Failed Dependency}.
+	 * @see <a href="http://en.wikipedia.org/wiki/List_of_HTTP_status_codes">WebDAV; RFC 4918</a>
+	 */
+    FAILED_DEPENDENCY(424, "Failed Dependency"),
+	/**
+	 * {@code 428 Precondition Required}.
+	 * @see <a href="http://tools.ietf.org/html/rfc6585">RFC 6585</a>
+	 */
+    PRECONDITION_REQUIRED(428, "Precondition Required"),
+	/**
+	 * {@code 429 Too Many Requests}.
+	 * @see <a href="http://tools.ietf.org/html/rfc6585">RFC 6585</a>
+	 */
+    TOO_MANY_REQUESTS(429, "Too Many Requests"),
+	/**
+	 * {@code 431 Request Header Fields Too Large}.
+	 * @see <a href="http://tools.ietf.org/html/rfc6585">RFC 6585</a>
+	 */
+    REQUEST_HEADER_FIELDS_TOO_LARGE(431, "Request Header Fields Too Large"),
 
 	/**
 	 * {@code 500 Internal Server Error}.
