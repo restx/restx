@@ -1,22 +1,19 @@
 package restx.core.shell;
 
 import com.github.mustachejava.Mustache;
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.AppSettings;
 import restx.Apps;
+import restx.build.ModuleDescriptor;
 import restx.build.RestxBuild;
+import restx.build.RestxJsonSupport;
 import restx.common.UUIDGenerator;
 import restx.common.Version;
 import restx.factory.Component;
@@ -346,7 +343,7 @@ public class AppShellCommand extends StdShellCommand {
     }
 
     private class RunAppCommandRunner implements ShellCommandRunner {
-        private String appClassName;
+        private Optional<String> appClassNameArg;
         private boolean quiet;
         private boolean daemon;
         private ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.MAIN_CLASS;
@@ -356,6 +353,7 @@ public class AppShellCommand extends StdShellCommand {
             args = new ArrayList<>(args);
             quiet = false;
             daemon = true;
+            appClassNameArg = Optional.absent();
 
             while (args.size() > 2) {
                 String arg = args.get(2);
@@ -371,8 +369,8 @@ public class AppShellCommand extends StdShellCommand {
                     }
                 } else if (arg.startsWith("-D") || arg.startsWith("-X")) {
                     vmOptions.add(arg);
-                } else if (appClassName == null) {
-                    appClassName = arg;
+                } else if (!appClassNameArg.isPresent()) {
+                    appClassNameArg = Optional.of(arg);
                 } else {
                     throw new IllegalArgumentException("app run argument not recognized: " + arg);
                 }
@@ -381,18 +379,13 @@ public class AppShellCommand extends StdShellCommand {
         }
 
         @Override
-        public void run(RestxShell shell) throws Exception {
-            if (appClassName == null) {
-                Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
-                                                .guessAppBasePackage(shell.currentLocation());
-                if (!pack.isPresent()) {
-                    shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
-                            RestxShell.AnsiCodes.ANSI_RED);
-                    shell.println("");
-                    shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
-                    return;
-                }
-                appClassName = pack.get() + ".AppServer";
+        public void run(final RestxShell shell) throws Exception {
+            String appClassName = appClassNameArg
+                    .or(guessAppClassnameFromResxtModule(shell))
+                    .or(guessAppClassnameFromSourcesSupplier(shell));
+
+            if(appClassName == null) {
+                return;
             }
 
             if (!DepsShellCommand.depsUpToDate(shell)) {
@@ -406,6 +399,41 @@ public class AppShellCommand extends StdShellCommand {
                     .getComponent(AppSettings.class);
             new ShellAppRunner(appSettings, appClassName, compileMode, quiet, daemon, vmOptions)
                 .run(shell);
+        }
+
+        private Optional<String> guessAppClassnameFromResxtModule(RestxShell shell) throws IOException {
+
+            RestxJsonSupport restxJsonSupport = new RestxJsonSupport();
+
+            Path restxJsonFile = shell.currentLocation().resolve(restxJsonSupport.getDefaultFileName());
+            if(java.nio.file.Files.notExists(restxJsonFile)){
+                return Optional.absent();
+            }
+
+            ModuleDescriptor moduleDescriptor = restxJsonSupport.parse(restxJsonFile);
+            return Optional.fromNullable(moduleDescriptor.getProperties().get("manifest.main.classname"));
+        }
+
+        private Supplier<String> guessAppClassnameFromSourcesSupplier(final RestxShell shell) {
+            return new Supplier<String>() {
+                @Override
+                public String get() {
+                    Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
+                                                    .guessAppBasePackage(shell.currentLocation());
+                    if (!pack.isPresent()) {
+                        try {
+                            shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
+                                    RestxShell.AnsiCodes.ANSI_RED);
+                            shell.println("");
+                            shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
+                            return null;
+                        } catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+                    return pack.get() + ".AppServer";
+                }
+            };
         }
     }
 }
