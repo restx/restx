@@ -5,6 +5,7 @@ import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
@@ -19,15 +20,25 @@ import restx.common.Version;
 import restx.factory.Component;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
+import restx.plugins.ModulesManager;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
+import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.nio.file.Files.newOutputStream;
+import static restx.common.MorePreconditions.checkPresent;
 
 /**
  * User: xavierhanin
@@ -57,6 +68,8 @@ public class AppShellCommand extends StdShellCommand {
                 return Optional.of(new GenerateStartCommandRunner(args));
             case "run":
                 return Optional.of(new RunAppCommandRunner(args));
+            case "grab":
+                return Optional.of(new GrabAppCommandRunner(args));
         }
 
         return Optional.absent();
@@ -434,6 +447,114 @@ public class AppShellCommand extends StdShellCommand {
                     return pack.get() + ".AppServer";
                 }
             };
+        }
+    }
+
+    private static enum GrabbingStrategy {
+        FROM_URL(){
+            @Override
+            protected boolean accept(String coordinates) {
+                return coordinates.startsWith("file://")
+                        || coordinates.startsWith("http://")
+                        || coordinates.startsWith("https://");
+            }
+            @Override
+            public String extractProjectNameFrom(String coordinates) {
+                String filename = coordinates.substring(coordinates.lastIndexOf("/")+1);
+                return filename.substring(0, filename.lastIndexOf("."));
+            }
+            @Override
+            public void grabCoordinatesTo(String coordinates, Path destinationFile, RestxShell shell) {
+                try {
+                    URL url = new URL(coordinates);
+                    try(InputStream urlStream = url.openStream()) {
+                        ByteStreams.copy(urlStream, newOutputStream(destinationFile));
+                    } catch (IOException e) {
+                        throw Throwables.propagate(e);
+                    }
+                } catch(MalformedURLException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        }, FROM_GAV(){
+            private final Pattern COORDS_PATTERN = Pattern.compile("(.+):(.+)(?::(.+))");
+            @Override
+            protected boolean accept(String coordinates) {
+                return COORDS_PATTERN.matcher(coordinates).matches();
+            }
+            @Override
+            public String extractProjectNameFrom(String coordinates) {
+                Matcher matcher = COORDS_PATTERN.matcher(coordinates);
+                if(matcher.matches()) {
+                    return matcher.group(2);
+                }
+                return null;
+            }
+            @Override
+            public void grabCoordinatesTo(String coordinates, Path destinationFile, RestxShell shell) {
+                restx.plugins.ModuleDescriptor moduleDescriptor = new restx.plugins.ModuleDescriptor(coordinates, "app", "");
+                ModulesManager modulesManager = new ModulesManager(null, ShellIvy.loadIvy(shell));
+
+                try {
+                    List<File> files = modulesManager.download(
+                            ImmutableList.of(moduleDescriptor),
+                            destinationFile.getParent().toFile(),
+                            new ModulesManager.DownloadOptions.Builder().transitive(false).build()
+                    );
+                    if(!files.get(0).equals(destinationFile.toFile())) {
+                        Files.move(files.get(0), destinationFile.toFile());
+                    }
+                } catch(IOException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        } /*, FROM_GIT <- Coming later.. */;
+
+        public static Optional<GrabbingStrategy> fromCoordinates(String coordinates) {
+            for(GrabbingStrategy grabbingStrategy : values()){
+                if(grabbingStrategy.accept(coordinates)) {
+                    return Optional.of(grabbingStrategy);
+                }
+            }
+            return Optional.absent();
+        }
+
+        protected abstract boolean accept(String coordinates);
+        public abstract String extractProjectNameFrom(String coordinates);
+        public abstract void grabCoordinatesTo(String coordinates, Path destinationFile, RestxShell shell);
+    }
+
+    private class GrabAppCommandRunner implements ShellCommandRunner {
+
+        private final String projectName;
+        private final String coordinates;
+        private final GrabbingStrategy grabbingStrategy;
+        private final Path destinationDirectoy;
+
+        public GrabAppCommandRunner(List<String> args) {
+            args = new ArrayList<>(args);
+
+            if(args.size() < 3) {
+                throw new IllegalArgumentException("app grab : missing coordinates argument");
+            }
+
+            this.coordinates = args.get(2);
+            this.grabbingStrategy = checkPresent(GrabbingStrategy.fromCoordinates(this.coordinates),
+                    "app grab : cannot found a grabbing strategy for coordinates: " + this.coordinates);
+
+            this.projectName = this.grabbingStrategy.extractProjectNameFrom(this.coordinates);
+            this.destinationDirectoy = args.size() >= 4 ? Paths.get(args.get(3)) : Paths.get(System.getProperty("restx.shell.home"), "app/"+projectName);
+        }
+
+        @Override
+        public void run(RestxShell shell) throws Exception {
+            Path jarFile = this.destinationDirectoy.resolve(this.projectName+".jar");
+            Files.createParentDirs(jarFile.toFile());
+            this.grabbingStrategy.grabCoordinatesTo(this.coordinates, jarFile, shell);
+
+            new RestxArchiveUnpacker().unpack(jarFile, this.destinationDirectoy);
+
+            shell.cd(destinationDirectoy);
         }
     }
 }
