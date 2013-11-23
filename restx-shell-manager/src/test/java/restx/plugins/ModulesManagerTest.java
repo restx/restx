@@ -70,7 +70,7 @@ public class ModulesManagerTest {
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("com.github.kevinsawicki:http-request:0.1", "shell", "")),
                 toDir,
-                Collections.<String>emptyList());
+                ModulesManager.DownloadOptions.DEFAULT);
 
         assertThat(toDir.list()).containsOnly("http-request.jar");
         delete(toDir);
@@ -83,7 +83,7 @@ public class ModulesManagerTest {
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("commons-httpclient:commons-httpclient:2.0", "shell", "")),
                 toDir,
-                Collections.<String>emptyList());
+                ModulesManager.DownloadOptions.DEFAULT);
 
         assertThat(toDir.list()).containsOnly("commons-httpclient.jar", "commons-lang.jar", "commons-logging.jar");
         delete(toDir);
@@ -96,7 +96,7 @@ public class ModulesManagerTest {
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("commons-httpclient:commons-httpclient:2.0", "shell", "")),
                 toDir,
-                Arrays.asList("commons-logging:commons-logging"));
+                new ModulesManager.DownloadOptions.Builder().exclusions(Arrays.asList("commons-logging:commons-logging")).build());
 
         assertThat(toDir.list()).containsOnly("commons-httpclient.jar", "commons-lang.jar");
         delete(toDir);
