@@ -29,7 +29,7 @@ it.
 Note: You need to be placed in a restx app root directory to run this command.
 
 
-## app run [--quiet] [--fg] [-D<property>=<value>] [--mode=<mode>] [<main.class.Name>]
+## app run [--quiet] [--fg] [-D<property>=<value>] [--mode=<mode>] [<main.class.Name>|<app.name>]
 
 Run a restx application.
 
@@ -40,8 +40,11 @@ It will run `deps install` if needed (if `md.restx.json` file has changed since 
 If you prefer to use another dependency management mechanism, you just need to fill the `target/dependency` directory
 with all your dependencies jars before calling app run.
 
-It will also compile the main class before running the app. It compiles only the main class because restx has auto
-compile feature, except in prod mode where it will compile all classes as with `app compile`.
+Your app will be started in different modes depending on your working directory typology :
+- If sources are not found (in src/main/java), app will be forced in prod mode (no auto/hot compile).
+- If sources are found, main class will be compiled before running the app.
+  It compiles only the main class because restx has auto compile feature, except in prod mode where it will compile all
+  classes as with `app compile`.
 
 ### Options
 
@@ -62,7 +65,12 @@ compile feature, except in prod mode where it will compile all classes as with `
   It has the same effect as running -Drestx.mode=<mode>, except that in prod it also influence the way compilation is
   done (see above).
 
-`<main.class.Name>`
-  the fully qualified name of the main class to run, if not provided restx will try to guess it.
+`<main.class.Name>|<app.name>`
+  Either the fully qualified name of the main class to run,
+  or a restx app directory name (restx app are located into your `${restx.home}/apps/` directory).
+  Main class will be retrieved :
+  - If provided as argument (main.class.Name)
+  - By looking into md.restx.json file ("manifest.main.classname" property)
+  - By guessing it from source files
 
-Note: You need to be placed in a restx app root directory to run this command.
+
