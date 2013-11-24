@@ -30,6 +30,7 @@ import restx.shell.StdShellCommand;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -504,17 +505,21 @@ public class AppShellCommand extends StdShellCommand {
                 return filename.substring(0, filename.lastIndexOf("."));
             }
             @Override
-            public void grabCoordinatesTo(String coordinates, Path destinationFile, RestxShell shell) {
-                try {
-                    URL url = new URL(coordinates);
-                    try(InputStream urlStream = url.openStream()) {
-                        ByteStreams.copy(urlStream, newOutputStream(destinationFile));
-                    } catch (IOException e) {
-                        throw Throwables.propagate(e);
+            public void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException {
+                handleSingleFileGrabbing(coordinates, destinationDir, projectName, shell, new SingleFileGrabber() {
+                    @Override
+                    public void grabSingleFileTo(String coordinates, Path destinationFile, RestxShell shell) throws IOException {
+                        try {
+                            URL url = new URL(coordinates);
+                            try (InputStream urlStream = url.openStream();
+                                 OutputStream destFileOS = newOutputStream(destinationFile)) {
+                                ByteStreams.copy(urlStream, destFileOS);
+                            }
+                        } catch (MalformedURLException e) {
+                            throw Throwables.propagate(e);
+                        }
                     }
-                } catch(MalformedURLException e) {
-                    throw Throwables.propagate(e);
-                }
+                });
             }
         }, FROM_GAV(){
             private final Pattern COORDS_PATTERN = Pattern.compile("(.+):(.+)(?::(.+))");
@@ -531,22 +536,23 @@ public class AppShellCommand extends StdShellCommand {
                 return null;
             }
             @Override
-            public void grabCoordinatesTo(String coordinates, Path destinationFile, RestxShell shell) {
-                restx.plugins.ModuleDescriptor moduleDescriptor = new restx.plugins.ModuleDescriptor(coordinates, "app", "");
-                ModulesManager modulesManager = new ModulesManager(null, ShellIvy.loadIvy(shell));
+            public void unpackCoordinatesTo(String coordinates, final Path destinationDir, String projectName, RestxShell shell) throws IOException {
+                handleSingleFileGrabbing(coordinates, destinationDir, projectName, shell, new SingleFileGrabber() {
+                    @Override
+                    public void grabSingleFileTo(String coordinates, Path destinationFile, RestxShell shell) throws IOException {
+                        restx.plugins.ModuleDescriptor moduleDescriptor = new restx.plugins.ModuleDescriptor(coordinates, "app", "");
+                        ModulesManager modulesManager = new ModulesManager(null, ShellIvy.loadIvy(shell));
 
-                try {
-                    List<File> files = modulesManager.download(
-                            ImmutableList.of(moduleDescriptor),
-                            destinationFile.getParent().toFile(),
-                            new ModulesManager.DownloadOptions.Builder().transitive(false).build()
-                    );
-                    if(!files.get(0).equals(destinationFile.toFile())) {
-                        Files.move(files.get(0), destinationFile.toFile());
+                        List<File> files = modulesManager.download(
+                                ImmutableList.of(moduleDescriptor),
+                                destinationDir.toFile(),
+                                new ModulesManager.DownloadOptions.Builder().transitive(false).build()
+                        );
+                        if(!files.get(0).equals(destinationFile.toFile())) {
+                            Files.move(files.get(0), destinationFile.toFile());
+                        }
                     }
-                } catch(IOException e) {
-                    throw Throwables.propagate(e);
-                }
+                });
             }
         } /*, FROM_GIT <- Coming later.. */;
 
@@ -559,9 +565,24 @@ public class AppShellCommand extends StdShellCommand {
             return Optional.absent();
         }
 
+        private static interface SingleFileGrabber {
+            void grabSingleFileTo(String coordinates, Path destinationFile, RestxShell shell) throws IOException;
+        }
+
+        protected void handleSingleFileGrabbing(String coordinates, Path destinationDir, String projectName, RestxShell shell, SingleFileGrabber singleFileGrabber) throws IOException {
+            Path jarFile = destinationDir.resolve(projectName+".jar");
+            Files.createParentDirs(jarFile.toFile());
+
+            singleFileGrabber.grabSingleFileTo(coordinates, jarFile, shell);
+
+            AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
+            new RestxArchiveUnpacker().unpack(jarFile, destinationDir, appSettings);
+            jarFile.toFile().delete();
+        }
+
         protected abstract boolean accept(String coordinates);
         public abstract String extractProjectNameFrom(String coordinates);
-        public abstract void grabCoordinatesTo(String coordinates, Path destinationFile, RestxShell shell);
+        public abstract void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException;
     }
 
     private class GrabAppCommandRunner implements ShellCommandRunner {
@@ -588,13 +609,7 @@ public class AppShellCommand extends StdShellCommand {
 
         @Override
         public void run(RestxShell shell) throws Exception {
-            Path jarFile = this.destinationDirectoy.resolve(this.projectName+".jar");
-            Files.createParentDirs(jarFile.toFile());
-            this.grabbingStrategy.grabCoordinatesTo(this.coordinates, jarFile, shell);
-
-            AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
-            new RestxArchiveUnpacker().unpack(jarFile, this.destinationDirectoy, appSettings);
-            jarFile.toFile().delete();
+            this.grabbingStrategy.unpackCoordinatesTo(this.coordinates, this.destinationDirectoy, this.projectName, shell);
 
             shell.cd(destinationDirectoy);
         }
