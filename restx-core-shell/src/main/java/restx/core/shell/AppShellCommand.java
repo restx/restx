@@ -12,6 +12,7 @@ import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.AppSettings;
 import restx.Apps;
+import restx.RestxContext;
 import restx.build.ModuleDescriptor;
 import restx.build.RestxBuild;
 import restx.build.RestxJsonSupport;
@@ -73,6 +74,10 @@ public class AppShellCommand extends StdShellCommand {
         }
 
         return Optional.absent();
+    }
+
+    public static Path standardCachedAppPath(String appname) {
+        return Paths.get(System.getProperty("restx.shell.home"), "apps/"+appname);
     }
 
     @Override
@@ -357,9 +362,10 @@ public class AppShellCommand extends StdShellCommand {
 
     private class RunAppCommandRunner implements ShellCommandRunner {
         private Optional<String> appClassNameArg;
+        private Optional<String> appNameArg;
         private boolean quiet;
         private boolean daemon;
-        private ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.MAIN_CLASS;
+        private Optional<String> restxMode;
         private List<String> vmOptions = new ArrayList<>();
 
         public RunAppCommandRunner(List<String> args) {
@@ -367,6 +373,8 @@ public class AppShellCommand extends StdShellCommand {
             quiet = false;
             daemon = true;
             appClassNameArg = Optional.absent();
+            appNameArg = Optional.absent();
+            restxMode = Optional.absent();
 
             while (args.size() > 2) {
                 String arg = args.get(2);
@@ -374,16 +382,20 @@ public class AppShellCommand extends StdShellCommand {
                     quiet = true;
                 } else if (arg.startsWith("--fg")) {
                     daemon = false;
-                } else if (arg.startsWith("--mode=")) {
-                    String mode = arg.substring("--mode=".length());
-                    vmOptions.add("-Drestx.mode=" + mode);
-                    if (mode.equals("prod")) {
-                        compileMode = ShellAppRunner.CompileMode.ALL;
-                    }
+                } else if (arg.startsWith("--mode=") || arg.startsWith("-Drestx.mode=")) {
+                    String mode = arg.startsWith("--mode=")?arg.substring("--mode=".length()):arg.substring("-Drestx.mode=".length());
+                    restxMode = Optional.of(mode);
                 } else if (arg.startsWith("-D") || arg.startsWith("-X")) {
                     vmOptions.add(arg);
-                } else if (!appClassNameArg.isPresent()) {
-                    appClassNameArg = Optional.of(arg);
+                } else if (!appClassNameArg.isPresent() && !appNameArg.isPresent()) {
+                    // If an existing restx app folder stands for given arg, considering it as the appName
+                    // otherwise, arg will stand for a classname to execute
+                    if(java.nio.file.Files.exists(standardCachedAppPath(arg))) {
+                        appNameArg = Optional.of(arg);
+                        restxMode = Optional.of(RestxContext.Modes.PROD);
+                    } else {
+                        appClassNameArg = Optional.of(arg);
+                    }
                 } else {
                     throw new IllegalArgumentException("app run argument not recognized: " + arg);
                 }
@@ -393,17 +405,30 @@ public class AppShellCommand extends StdShellCommand {
 
         @Override
         public void run(final RestxShell shell) throws Exception {
+            if(appNameArg.isPresent()) {
+                shell.cd(standardCachedAppPath(appNameArg.get()));
+            }
+
             String appClassName = appClassNameArg
                     .or(guessAppClassnameFromResxtModule(shell))
                     .or(guessAppClassnameFromSourcesSupplier(shell));
 
-            if(appClassName == null) {
-                return;
-            }
+                if(appClassName == null) {
+                    return;
+                }
 
             if (!DepsShellCommand.depsUpToDate(shell)) {
                 shell.println("restx> deps install");
                 new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+            }
+
+            ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.MAIN_CLASS;
+            List<String> vmOptions = new ArrayList<>(this.vmOptions);
+            if(restxMode.isPresent()) {
+                vmOptions.add("-Drestx.mode="+restxMode.get());
+                if(RestxContext.Modes.PROD.equals(restxMode.get())){
+                    compileMode = ShellAppRunner.CompileMode.ALL;
+            }
             }
 
             String basePack = appClassName.substring(0, appClassName.lastIndexOf('.'));
@@ -543,7 +568,7 @@ public class AppShellCommand extends StdShellCommand {
                     "app grab : cannot found a grabbing strategy for coordinates: " + this.coordinates);
 
             this.projectName = this.grabbingStrategy.extractProjectNameFrom(this.coordinates);
-            this.destinationDirectoy = args.size() >= 4 ? Paths.get(args.get(3)) : Paths.get(System.getProperty("restx.shell.home"), "app/"+projectName);
+            this.destinationDirectoy = args.size() >= 4 ? Paths.get(args.get(3)) : standardCachedAppPath(projectName);
         }
 
         @Override
