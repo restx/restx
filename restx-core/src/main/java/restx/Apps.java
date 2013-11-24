@@ -46,6 +46,15 @@ public class Apps {
                     MoreFiles.strToPath);
     }
 
+    public boolean sourcesAvailableIn(Path basePath) {
+        for(Path sourceRoot : getSourceRoots()){
+            if(Files.notExists(basePath.resolve(sourceRoot))){
+                return false;
+            }
+        }
+        return true;
+    }
+
     public Optional<String> guessAppBasePackage(Path fromDir) {
         for (Path sourceRoot : getSourceRoots()) {
             Path sourceRootDir = fromDir.resolve(sourceRoot);

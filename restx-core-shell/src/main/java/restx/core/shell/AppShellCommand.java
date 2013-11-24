@@ -409,26 +409,49 @@ public class AppShellCommand extends StdShellCommand {
                 shell.cd(standardCachedAppPath(appNameArg.get()));
             }
 
-            String appClassName = appClassNameArg
+            boolean sourcesAvailable = Apps.with(shell.getFactory().getComponent(AppSettings.class)).sourcesAvailableIn(shell.currentLocation());
+
+            String appClassName;
+            ShellAppRunner.CompileMode compileMode;
+            if(sourcesAvailable) {
+                appClassName = appClassNameArg
                     .or(guessAppClassnameFromResxtModule(shell))
                     .or(guessAppClassnameFromSourcesSupplier(shell));
 
+                compileMode = (restxMode.isPresent() && RestxContext.Modes.PROD.equals(restxMode.get()))? ShellAppRunner.CompileMode.ALL: ShellAppRunner.CompileMode.MAIN_CLASS;
+
                 if(appClassName == null) {
+                    shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
+                            RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("");
+                    shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
                     return;
                 }
+            } else {
+                appClassName = appClassNameArg
+                    .or(guessAppClassnameFromResxtModule(shell))
+                    .orNull();
+
+                // Consider we're in prod mode, without any auto compilation feature (since we don't have any source folder)
+                compileMode = ShellAppRunner.CompileMode.NO;
+                restxMode = Optional.of(RestxContext.Modes.PROD);
+
+                if(appClassName == null){
+                    shell.printIn("can't find manifest.main.classname property in md.restx.json", RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("");
+                    shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
+                    return;
+                }
+            }
 
             if (!DepsShellCommand.depsUpToDate(shell)) {
                 shell.println("restx> deps install");
                 new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
             }
 
-            ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.MAIN_CLASS;
             List<String> vmOptions = new ArrayList<>(this.vmOptions);
             if(restxMode.isPresent()) {
                 vmOptions.add("-Drestx.mode="+restxMode.get());
-                if(RestxContext.Modes.PROD.equals(restxMode.get())){
-                    compileMode = ShellAppRunner.CompileMode.ALL;
-            }
             }
 
             String basePack = appClassName.substring(0, appClassName.lastIndexOf('.'));
@@ -459,15 +482,7 @@ public class AppShellCommand extends StdShellCommand {
                     Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
                                                     .guessAppBasePackage(shell.currentLocation());
                     if (!pack.isPresent()) {
-                        try {
-                            shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
-                                    RestxShell.AnsiCodes.ANSI_RED);
-                            shell.println("");
-                            shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
-                            return null;
-                        } catch (IOException e) {
-                            throw Throwables.propagate(e);
-                        }
+                        return null;
                     }
                     return pack.get() + ".AppServer";
                 }
