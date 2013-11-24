@@ -492,7 +492,38 @@ public class AppShellCommand extends StdShellCommand {
     }
 
     private static enum GrabbingStrategy {
-        FROM_URL(){
+        FROM_GIT(){
+            @Override
+            protected boolean accept(String coordinates) {
+                return coordinates.endsWith(".git");
+            }
+
+            @Override
+            public String extractProjectNameFrom(String coordinates) {
+                return extractExtensionlessFilenameFromUrl(coordinates.split("#")[0]);
+            }
+
+            @Override
+            public void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException {
+                String url = coordinates;
+                Optional<String> ref = Optional.absent();
+                if(url.contains("#")) {
+                    url = coordinates.split("#")[0];
+                    ref = Optional.of(coordinates.split("#")[1]);
+                }
+
+                try {
+                    shell.println("Cloning "+url+"...");
+                    Runtime.getRuntime().exec(new String[]{"git", "clone", url, "."}, new String[0], destinationDir.toFile()).waitFor();
+
+                    if(ref.isPresent()) {
+                        Runtime.getRuntime().exec(new String[]{"git", "checkout", ref.get()}, new String[0], destinationDir.toFile()).waitFor();
+                    }
+                } catch(InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        }, FROM_URL(){
             @Override
             protected boolean accept(String coordinates) {
                 return coordinates.startsWith("file://")
@@ -552,37 +583,6 @@ public class AppShellCommand extends StdShellCommand {
                         }
                     }
                 });
-            }
-        }, FROM_GIT(){
-            @Override
-            protected boolean accept(String coordinates) {
-                return coordinates.endsWith(".git");
-            }
-
-            @Override
-            public String extractProjectNameFrom(String coordinates) {
-                return extractExtensionlessFilenameFromUrl(coordinates.split("#")[0]);
-            }
-
-            @Override
-            public void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException {
-                String url = coordinates;
-                Optional<String> ref = Optional.absent();
-                if(url.contains("#")) {
-                    url = coordinates.split("#")[0];
-                    ref = Optional.of(coordinates.split("#")[1]);
-                }
-
-                try {
-                    shell.println("Cloning " + url + "...");
-                    Runtime.getRuntime().exec(new String[]{"git", "clone", url, "."}, new String[0], destinationDir.toFile()).waitFor();
-
-                    if(ref.isPresent()) {
-                        Runtime.getRuntime().exec(new String[]{"git", "checkout", ref.get()}, new String[0], destinationDir.toFile()).waitFor();
-                    }
-                } catch(InterruptedException e) {
-                    throw Throwables.propagate(e);
-                }
             }
         };
 
