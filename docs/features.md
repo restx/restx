@@ -39,7 +39,7 @@ filename: features.md
 
 ## ... but not only
 
-   restx is not specific to MongoDB, you can use it with any datastore with a Java API. There's already a [sample project using couchbase](https://github.com/restx/restx/tree/master/restx-samples/restx-samples-beersample), and you can also use it with a relational database.
+   restx is not specific to MongoDB, you can use it with any datastore with a Java API. There's already a [sample project using couchbase](https://github.com/restx/restx-samples-beersample), and you can also use it with a relational database.
 
 ## easy testing
 
