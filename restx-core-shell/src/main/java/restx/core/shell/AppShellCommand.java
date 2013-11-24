@@ -552,7 +552,9 @@ public class AppShellCommand extends StdShellCommand {
             Files.createParentDirs(jarFile.toFile());
             this.grabbingStrategy.grabCoordinatesTo(this.coordinates, jarFile, shell);
 
-            new RestxArchiveUnpacker().unpack(jarFile, this.destinationDirectoy);
+            AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
+            new RestxArchiveUnpacker().unpack(jarFile, this.destinationDirectoy, appSettings);
+            jarFile.toFile().delete();
 
             shell.cd(destinationDirectoy);
         }
