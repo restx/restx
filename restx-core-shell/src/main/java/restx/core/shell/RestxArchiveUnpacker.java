@@ -24,6 +24,9 @@ public class RestxArchiveUnpacker {
     public void unpack(Path jarFile, Path destinationDirectory, AppSettings appSettings) {
         Path targetClassesDir = destinationDirectory.resolve(appSettings.targetClasses());
         try ( JarFile jar = new JarFile(jarFile.toFile()) ) {
+            if(jar.getJarEntry(CHROOT+"md.restx.json") == null) {
+                throw new IllegalArgumentException("File "+jarFile+" is not a restx archive (no md.restx.json file found) !");
+            }
             for(Enumeration<JarEntry> jarEntries = jar.entries(); jarEntries.hasMoreElements();){
                 JarEntry entry = jarEntries.nextElement();
                 String entryPath = entry.getName();
