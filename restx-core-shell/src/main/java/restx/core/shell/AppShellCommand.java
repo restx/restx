@@ -501,8 +501,7 @@ public class AppShellCommand extends StdShellCommand {
             }
             @Override
             public String extractProjectNameFrom(String coordinates) {
-                String filename = coordinates.substring(coordinates.lastIndexOf("/")+1);
-                return filename.substring(0, filename.lastIndexOf("."));
+                return extractExtensionlessFilenameFromUrl(coordinates);
             }
             @Override
             public void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException {
@@ -554,7 +553,38 @@ public class AppShellCommand extends StdShellCommand {
                     }
                 });
             }
-        } /*, FROM_GIT <- Coming later.. */;
+        }, FROM_GIT(){
+            @Override
+            protected boolean accept(String coordinates) {
+                return coordinates.endsWith(".git");
+            }
+
+            @Override
+            public String extractProjectNameFrom(String coordinates) {
+                return extractExtensionlessFilenameFromUrl(coordinates.split("#")[0]);
+            }
+
+            @Override
+            public void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException {
+                String url = coordinates;
+                Optional<String> ref = Optional.absent();
+                if(url.contains("#")) {
+                    url = coordinates.split("#")[0];
+                    ref = Optional.of(coordinates.split("#")[1]);
+                }
+
+                try {
+                    shell.println("Cloning " + url + "...");
+                    Runtime.getRuntime().exec(new String[]{"git", "clone", url, "."}, new String[0], destinationDir.toFile()).waitFor();
+
+                    if(ref.isPresent()) {
+                        Runtime.getRuntime().exec(new String[]{"git", "checkout", ref.get()}, new String[0], destinationDir.toFile()).waitFor();
+                    }
+                } catch(InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        };
 
         public static Optional<GrabbingStrategy> fromCoordinates(String coordinates) {
             for(GrabbingStrategy grabbingStrategy : values()){
@@ -578,6 +608,11 @@ public class AppShellCommand extends StdShellCommand {
             AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
             new RestxArchiveUnpacker().unpack(jarFile, destinationDir, appSettings);
             jarFile.toFile().delete();
+        }
+
+        protected static String extractExtensionlessFilenameFromUrl(String coordinates) {
+            String filename = coordinates.substring(coordinates.lastIndexOf("/")+1);
+            return filename.substring(0, filename.lastIndexOf("."));
         }
 
         protected abstract boolean accept(String coordinates);
@@ -609,6 +644,8 @@ public class AppShellCommand extends StdShellCommand {
 
         @Override
         public void run(RestxShell shell) throws Exception {
+            Files.createParentDirs(destinationDirectoy.resolve("uselessUnexistingFile").toFile());
+
             this.grabbingStrategy.unpackCoordinatesTo(this.coordinates, this.destinationDirectoy, this.projectName, shell);
 
             shell.cd(destinationDirectoy);
