@@ -607,7 +607,9 @@ public class AppShellCommand extends StdShellCommand {
 
         protected static String extractExtensionlessFilenameFromUrl(String coordinates) {
             String filename = coordinates.substring(coordinates.lastIndexOf("/")+1);
-            return filename.substring(0, filename.lastIndexOf("."));
+            filename = filename.contains("?")?filename.substring(0, filename.indexOf("?")):filename;
+            filename = filename.contains(".")?filename.substring(0, filename.lastIndexOf(".")):filename;
+            return filename;
         }
 
         protected abstract boolean accept(String coordinates);
