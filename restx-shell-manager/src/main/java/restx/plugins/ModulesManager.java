@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import static com.google.common.collect.Iterables.addAll;
 
@@ -40,6 +41,8 @@ import static com.google.common.collect.Iterables.addAll;
  */
 public class ModulesManager {
     private final Logger logger = LoggerFactory.getLogger(ModulesManager.class);
+
+    private static final Pattern MRID_PATTERN = Pattern.compile("(.+):(.+):(.+)");
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final URL url;
@@ -163,6 +166,10 @@ public class ModulesManager {
             throw new IllegalArgumentException("can't parse module id '" + id + "': it must be of the form groupId:artifactId");
         }
         return ModuleId.newInstance(parts[0], parts[1]);
+    }
+
+    public static boolean isMrid(String id) {
+        return MRID_PATTERN.matcher(id).matches();
     }
 
     public static ModuleRevisionId toMrid(String id) {

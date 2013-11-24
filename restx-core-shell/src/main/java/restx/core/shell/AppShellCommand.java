@@ -552,18 +552,13 @@ public class AppShellCommand extends StdShellCommand {
                 });
             }
         }, FROM_GAV(){
-            private final Pattern COORDS_PATTERN = Pattern.compile("(.+):(.+)(?::(.+))");
             @Override
             protected boolean accept(String coordinates) {
-                return COORDS_PATTERN.matcher(coordinates).matches();
+                return ModulesManager.isMrid(coordinates);
             }
             @Override
             public String extractProjectNameFrom(String coordinates) {
-                Matcher matcher = COORDS_PATTERN.matcher(coordinates);
-                if(matcher.matches()) {
-                    return matcher.group(2);
-                }
-                return null;
+                return ModulesManager.toMrid(coordinates).getName();
             }
             @Override
             public void unpackCoordinatesTo(String coordinates, final Path destinationDir, String projectName, RestxShell shell) throws IOException {
