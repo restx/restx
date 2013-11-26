@@ -1,6 +1,15 @@
 package restx;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import restx.entity.MatchedEntityRoute;
+import restx.jackson.JsonEntityRouteBuilder;
+import restx.jackson.StdJsonProducerEntityRoute;
+
+import java.io.IOException;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -10,6 +19,95 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Time: 12:19 AM
  */
 public class RestxRouter {
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String groupName = "default";
+        private String name = "default";
+        private ObjectMapper mapper;
+        private List<RestxRoute> routes = Lists.newArrayList();
+
+        public Builder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder groupName(final String groupName) {
+            this.groupName = groupName;
+            return this;
+        }
+
+        public Builder withMapper(ObjectMapper mapper) {
+            this.mapper = mapper;
+            return this;
+        }
+
+        public Builder addRoute(RestxRoute route) {
+            routes.add(route);
+            return this;
+        }
+
+        public <O> Builder GET(String path, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("GET", path, route);
+        }
+
+        public <O> Builder DELETE(String path, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("DELETE", path, route);
+        }
+
+        public <O> Builder HEAD(String path, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("HEAD", path, route);
+        }
+
+        public <O> Builder OPTIONS(String path, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("OPTIONS", path, route);
+        }
+
+        public <O> Builder addRoute(String method, String path, final MatchedEntityRoute<Void, O> route) {
+            return addRoute(path, new StdRestxRequestMatcher(method, path), route);
+        }
+
+        public <O> Builder addRoute(String name, RestxRequestMatcher matcher, final MatchedEntityRoute<Void, O> route) {
+            routes.add(new StdJsonProducerEntityRoute<O>(name, mapper, matcher) {
+                @Override
+                protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Void i) throws IOException {
+                    return route.route(restxRequest, match, i);
+                }
+            });
+            return this;
+        }
+
+        public <I,O> Builder PUT(String path, Class<I> inputType, MatchedEntityRoute<I, O> route) {
+            return addRoute("PUT", path, inputType, route);
+        }
+
+        public <I,O> Builder POST(String path, Class<I> inputType, MatchedEntityRoute<I, O> route) {
+            return addRoute("POST", path, inputType, route);
+        }
+
+        public <I,O> Builder addRoute(String method, String path, Class<I> inputType, MatchedEntityRoute<I, O> route) {
+            return addRoute(path, new StdRestxRequestMatcher(method, path), inputType, route);
+        }
+
+        public <I, O> Builder addRoute(String name, StdRestxRequestMatcher matcher, Class<I> inputType, MatchedEntityRoute<I, O> route) {
+            routes.add(new JsonEntityRouteBuilder<I, O>()
+                    .withMapper(mapper)
+                    .havingRequestBody(inputType)
+                    .name(name)
+                    .matcher(matcher)
+                    .matchedEntityRoute(route)
+                    .build()
+            );
+            return this;
+        }
+
+        public RestxRouter build() {
+            return new RestxRouter(groupName, name, ImmutableList.copyOf(routes));
+        }
+    }
+
     private final ImmutableList<RestxRoute> routes;
     private final String name;
     private final String groupName;

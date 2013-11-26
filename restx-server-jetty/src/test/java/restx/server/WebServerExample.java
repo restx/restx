@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import restx.*;
+import restx.entity.MatchedEntityOutputRoute;
+import restx.entity.MatchedEntityRoute;
 import restx.servlet.AbstractRestxMainRouterServlet;
 
 import java.io.IOException;
@@ -17,25 +19,27 @@ public class WebServerExample {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final RestxMainRouter ROUTER = StdRestxMainRouter.builder()
-            .withMapper(mapper)
-            .addRoute("GET", "/route1/{id}", new MatchedEntityRoute() {
-                @Override
-                public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
-                    return Optional.of(ImmutableMap.of("id", match.getPathParam("id")));
-                }
-            })
-            .addRoute("GET", "/route2", new MatchedEntityRoute() {
-                @Override
-                public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
-                    return Optional.of(ImmutableMap.of("path", "route2"));
-                }
-            })
-            .addRoute("GET", "/route3", new MatchedEntityRoute() {
-                @Override
-                public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
-                    return Optional.of(ImmutableMap.of("path", "route3"));
-                }
-            })
+            .addRouter(RestxRouter.builder()
+                    .withMapper(mapper)
+                    .GET("/route1/{id}", new MatchedEntityOutputRoute() {
+                        @Override
+                        public Optional route(RestxRequest restxRequest, RestxRequestMatch match) {
+                            return Optional.of(ImmutableMap.of("id", match.getPathParam("id")));
+                        }
+                    })
+                    .GET("/route2", new MatchedEntityOutputRoute() {
+                        @Override
+                        public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
+                            return Optional.of(ImmutableMap.of("path", "route2"));
+                        }
+                    })
+                    .GET("/route3", new MatchedEntityOutputRoute() {
+                        @Override
+                        public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
+                            return Optional.of(ImmutableMap.of("path", "route3"));
+                        }
+                    })
+                    .build())
             .build();
 
 

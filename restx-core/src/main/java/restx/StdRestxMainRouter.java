@@ -12,6 +12,8 @@ import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import restx.entity.MatchedEntityRoute;
+import restx.entity.StdEntityRoute;
 import restx.exceptions.RestxError;
 import restx.http.HttpStatus;
 import restx.jackson.StdJsonProducerEntityRoute;
@@ -36,16 +38,10 @@ public class StdRestxMainRouter implements RestxMainRouter {
     }
 
     public static class Builder {
-        private ObjectMapper mapper;
         private MetricRegistry metrics;
         private String mode = RestxContext.Modes.PROD;
         private List<RestxFilter> filters = Lists.newArrayList();
         private List<RestxRoute> routes = Lists.newArrayList();
-
-        public Builder withMapper(ObjectMapper mapper) {
-            this.mapper = mapper;
-            return this;
-        }
 
         public Builder withMetrics(MetricRegistry metrics) {
             this.metrics = metrics;
@@ -69,16 +65,6 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
         public Builder addRoute(RestxRoute route) {
             routes.add(route);
-            return this;
-        }
-
-        public Builder addRoute(String method, String path, final MatchedEntityRoute route) {
-            routes.add(new StdJsonProducerEntityRoute(path, mapper, new StdRestxRequestMatcher(method, path)) {
-                @Override
-                protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
-                    return route.route(restxRequest, match);
-                }
-            });
             return this;
         }
 
