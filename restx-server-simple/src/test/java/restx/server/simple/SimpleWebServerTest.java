@@ -1,22 +1,27 @@
 package restx.server.simple;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.kevinsawicki.http.HttpRequest;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Test;
 import restx.*;
 import restx.entity.MatchedEntityOutputRoute;
 import restx.entity.MatchedEntityRoute;
+import restx.server.WebServer;
+import restx.server.WebServers;
 import restx.server.simple.simple.SimpleWebServer;
 
 import java.io.IOException;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
- * User: xavierhanin
- * Date: 2/16/13
- * Time: 4:24 PM
+ * Date: 27/11/13
+ * Time: 21:24
  */
-public class WebServerExample {
+public class SimpleWebServerTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private static final RestxMainRouter ROUTER = StdRestxMainRouter.builder()
@@ -50,8 +55,21 @@ public class WebServerExample {
                     .build())
             .build();
 
+    @Test
+    public void should_handle_simple_routes() throws Exception {
+        SimpleWebServer server = SimpleWebServer.builder().setRouter(ROUTER)
+                .setRouterPath("/api").setPort(WebServers.findAvailablePort()).build();
+        server.start();
+        try {
+            HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/route1/xavier");
+            assertThat(httpRequest.code()).isEqualTo(200);
+            assertThat(httpRequest.body().trim()).isEqualTo("{\"id\":\"xavier\"}");
 
-    public static void main(String[] args) throws Exception {
-        SimpleWebServer.builder().setRouter(ROUTER).setRouterPath("/api").setPort(8080).build().startAndAwait();
+            httpRequest = HttpRequest.put(server.baseUrl() + "/api/route4").send("{\"test\":\"val1\"}");
+            assertThat(httpRequest.code()).isEqualTo(200);
+            assertThat(httpRequest.body().trim()).isEqualTo("{\"test\":\"val1\",\"size\":1}");
+        } finally {
+            server.stop();
+        }
     }
 }

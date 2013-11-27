@@ -20,7 +20,9 @@
         <restx.version>0.31-SNAPSHOT</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
+        <http-request.version>5.5</http-request.version>
         <simple.version>5.1.6</simple.version>
+        <assertj-core.version>1.5.0</assertj-core.version>
     </properties>
 
     <dependencies>
@@ -49,6 +51,18 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj-core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kevinsawicki</groupId>
+            <artifactId>http-request</artifactId>
+            <version>${http-request.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
