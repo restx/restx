@@ -393,7 +393,7 @@ public class AppShellCommand extends StdShellCommand {
                     // otherwise, arg will stand for a classname to execute
                     if(java.nio.file.Files.exists(standardCachedAppPath(arg))) {
                         appNameArg = Optional.of(arg);
-                        restxMode = Optional.of(RestxContext.Modes.PROD);
+                        restxMode = Optional.of(restxMode.or(RestxContext.Modes.PROD));
                     } else {
                         appClassNameArg = Optional.of(arg);
                     }
