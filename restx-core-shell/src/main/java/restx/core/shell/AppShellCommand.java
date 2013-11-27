@@ -415,9 +415,16 @@ public class AppShellCommand extends StdShellCommand {
             String appClassName;
             ShellAppRunner.CompileMode compileMode;
             if(sourcesAvailable) {
-                appClassName = appClassNameArg
-                    .or(guessAppClassnameFromResxtModule(shell))
-                    .or(guessAppClassnameFromSourcesSupplier(shell));
+                if(appClassNameArg.isPresent()) {
+                    appClassName = appClassNameArg.get();
+                } else {
+                    Optional<String> appClassNameGuessedFromRestxModule = guessAppClassnameFromResxtModule(shell);
+                    if(appClassNameGuessedFromRestxModule.isPresent()) {
+                        appClassName = appClassNameGuessedFromRestxModule.get();
+                    } else {
+                        appClassName = guessAppClassnameFromSources(shell);
+                    }
+                }
 
                 compileMode = (restxMode.isPresent() && RestxContext.Modes.PROD.equals(restxMode.get()))? ShellAppRunner.CompileMode.ALL: ShellAppRunner.CompileMode.MAIN_CLASS;
 
@@ -476,18 +483,13 @@ public class AppShellCommand extends StdShellCommand {
             return Optional.fromNullable(moduleDescriptor.getProperties().get("manifest.main.classname"));
         }
 
-        private Supplier<String> guessAppClassnameFromSourcesSupplier(final RestxShell shell) {
-            return new Supplier<String>() {
-                @Override
-                public String get() {
-                    Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
-                                                    .guessAppBasePackage(shell.currentLocation());
-                    if (!pack.isPresent()) {
-                        return null;
-                    }
-                    return pack.get() + ".AppServer";
-                }
-            };
+        private String guessAppClassnameFromSources(RestxShell shell) {
+            Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
+                                            .guessAppBasePackage(shell.currentLocation());
+            if (!pack.isPresent()) {
+                return null;
+            }
+            return pack.get() + ".AppServer";
         }
     }
 
