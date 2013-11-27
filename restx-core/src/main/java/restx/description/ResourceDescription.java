@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class ResourceDescription {
     public String path;
+    public String stdPath;
     public String description = "";
 
     public List<OperationDescription> operations = Lists.newArrayList();

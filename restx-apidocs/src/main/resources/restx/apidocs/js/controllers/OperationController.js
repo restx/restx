@@ -124,7 +124,7 @@ adminApp.controller('OperationController', function OperationController(
     function prepareRequest() {
         return {
             httpMethod: $scope.operation.httpMethod,
-            path: bindParams($scope.opApi.path),
+            path: bindParams($scope.opApi.stdPath),
             headers: {},
             body: bodyParamValue(),
             response: { status: '', body: '' }

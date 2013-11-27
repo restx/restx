@@ -44,6 +44,7 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute, RestxHan
             ResourceDescription description = new ResourceDescription();
             StdRestxRequestMatcher stdRouteMatcher = (StdRestxRequestMatcher) matcher;
             description.path = stdRouteMatcher.getPathPattern();
+            description.stdPath = stdRouteMatcher.getStdPathPattern();
             OperationDescription operation = new OperationDescription();
             operation.httpMethod = stdRouteMatcher.getMethod();
             operation.nickname = name.substring(name.lastIndexOf('#') + 1);

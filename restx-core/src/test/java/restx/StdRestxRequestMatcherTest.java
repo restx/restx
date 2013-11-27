@@ -76,4 +76,74 @@ public class StdRestxRequestMatcherTest {
         match = matcher.match("GET", "/user/johndoe/children/");
         assertThat(match.isPresent()).isFalse();
     }
+
+    @Test
+    public void should_matcher_with_several_path_params_and_custom_regex_match_not_match() throws Exception {
+        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user/{name:[A-Z]{1,3}}/children/{child:.+}");
+
+        Optional<? extends RestxRequestMatch> match;
+
+        match = matcher.match("GET", "/user/johndoe/children/bobby");
+        assertThat(match.isPresent()).isFalse();
+
+        match = matcher.match("GET", "/user/JOHNDOE/children/bobby");
+        assertThat(match.isPresent()).isFalse();
+
+        match = matcher.match("GET", "/user/JOH/children/bobby");
+        assertThat(match.isPresent()).isTrue();
+        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "JOH", "child", "bobby"));
+
+        match = matcher.match("GET", "/user/JOH/children/bobby/and/the/rest");
+        assertThat(match.isPresent()).isTrue();
+        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "JOH", "child", "bobby/and/the/rest"));
+
+        match = matcher.match("GET", "/user/johndoe");
+        assertThat(match.isPresent()).isFalse();
+
+        match = matcher.match("GET", "/user");
+        assertThat(match.isPresent()).isFalse();
+
+        match = matcher.match("GET", "/user/johndoe/children/");
+        assertThat(match.isPresent()).isFalse();
+    }
+
+    @Test
+    public void should_empty_custom_regex_fail() throws Exception {
+        try {
+            new StdRestxRequestMatcher("GET", "/user/{name:}");
+            fail("empty custom regex should raise an exception");
+        } catch (IllegalArgumentException e) {
+            assertThat(e).hasMessageContaining("/user/{name:}");
+        }
+    }
+
+    @Test
+    public void should_non_letter_in_group_name_fail() throws Exception {
+        try {
+            new StdRestxRequestMatcher("GET", "/user/{name+}");
+            fail("non letter in custom regex should raise an exception");
+        } catch (IllegalArgumentException e) {
+            assertThat(e).hasMessageContaining("/user/{name+}");
+        }
+    }
+
+    @Test
+    public void should_matcher_with_several_path_params_with_column_notation_match_not_match() throws Exception {
+        StdRestxRequestMatcher matcher;
+        Optional<? extends RestxRequestMatch> match;
+
+        matcher = new StdRestxRequestMatcher("GET", "/user/:name/children/:child");
+        match = matcher.match("GET", "/user/johndoe/children/bobby");
+        assertThat(match.isPresent()).isTrue();
+        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe", "child", "bobby"));
+
+        match = matcher.match("GET", "/user/johndoe");
+        assertThat(match.isPresent()).isFalse();
+
+        match = matcher.match("GET", "/user");
+        assertThat(match.isPresent()).isFalse();
+
+        match = matcher.match("GET", "/user/johndoe/children/");
+        assertThat(match.isPresent()).isFalse();
+    }
 }

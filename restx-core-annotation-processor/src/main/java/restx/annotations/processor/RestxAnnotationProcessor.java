@@ -5,6 +5,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
+import restx.StdRestxRequestMatcher;
 import restx.http.HttpStatus;
 import restx.RestxLogLevel;
 import restx.annotations.*;
@@ -425,7 +426,6 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     }
 
     private static class ResourceMethod {
-        private static final Pattern pathParamNamesPattern = Pattern.compile("\\{([a-zA-Z]+)}");
         final String httpMethod;
         final String path;
         final String name;
@@ -433,7 +433,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final boolean returnTypeOptional;
         final String returnType;
         final String id;
-        final Collection<String> pathParamNames;
+        final ImmutableList<String> pathParamNames;
         final HttpStatus successStatus;
         final RestxLogLevel logLevel;
         final String permission;
@@ -455,11 +455,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             this.returnType = returnTypeOptional ? m.group(1) : returnType;
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             this.successStatus = successStatus;
-            Matcher matcher = pathParamNamesPattern.matcher(path);
-            pathParamNames = Sets.newHashSet();
-            while (matcher.find()) {
-                pathParamNames.add(matcher.group(1));
-            }
+            StdRestxRequestMatcher requestMatcher = new StdRestxRequestMatcher(httpMethod, path);
+            pathParamNames = requestMatcher.getPathParamNames();
         }
     }
 
