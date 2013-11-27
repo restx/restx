@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.*;
  * Date: 1/19/13
  * Time: 9:01 AM
  */
-public class StdRouteMatcherTest {
+public class StdRestxRequestMatcherTest {
     @Test
     public void should_matcher_with_no_path_param_match_not_match() throws Exception {
         StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user");
