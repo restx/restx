@@ -418,7 +418,7 @@ public class AppShellCommand extends StdShellCommand {
                 if(appClassNameArg.isPresent()) {
                     appClassName = appClassNameArg.get();
                 } else {
-                    Optional<String> appClassNameGuessedFromRestxModule = guessAppClassnameFromResxtModule(shell);
+                    Optional<String> appClassNameGuessedFromRestxModule = guessAppClassnameFromRestxModule(shell);
                     if(appClassNameGuessedFromRestxModule.isPresent()) {
                         appClassName = appClassNameGuessedFromRestxModule.get();
                     } else {
@@ -437,7 +437,7 @@ public class AppShellCommand extends StdShellCommand {
                 }
             } else {
                 appClassName = appClassNameArg
-                    .or(guessAppClassnameFromResxtModule(shell))
+                    .or(guessAppClassnameFromRestxModule(shell))
                     .orNull();
 
                 // Consider we're in prod mode, without any auto compilation feature (since we don't have any source folder)
@@ -470,7 +470,7 @@ public class AppShellCommand extends StdShellCommand {
                 .run(shell);
         }
 
-        private Optional<String> guessAppClassnameFromResxtModule(RestxShell shell) throws IOException {
+        private Optional<String> guessAppClassnameFromRestxModule(RestxShell shell) throws IOException {
 
             RestxJsonSupport restxJsonSupport = new RestxJsonSupport();
 
