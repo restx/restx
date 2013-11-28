@@ -15,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * User: xavierhanin
@@ -22,12 +23,19 @@ import java.util.concurrent.ConcurrentMap;
  * Time: 5:47 PM
  */
 public class Warehouse implements AutoCloseable {
+    private static final AtomicLong ID = new AtomicLong();
+
     public Warehouse() {
         this(ImmutableList.<Warehouse>of());
     }
 
     public Warehouse(ImmutableList<Warehouse> providers) {
         this.providers = providers;
+        StringBuilder sb = new StringBuilder();
+        for (Warehouse provider : providers) {
+            sb.append("<<").append(provider.getId());
+        }
+        this.id = String.format("%03d%s", ID.incrementAndGet(), sb.toString());
     }
 
     public ImmutableList<Warehouse> getProviders() {
@@ -69,8 +77,13 @@ public class Warehouse implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(Warehouse.class);
 
+    private final String id;
     private final ConcurrentMap<Name<?>, StoredBox<?>> boxes = new ConcurrentHashMap<>();
     private final ImmutableList<Warehouse> providers;
+
+    public String getId() {
+        return id;
+    }
 
     <T> Optional<StoredBox<T>> getStoredBox(Name<T> name) {
         return Optional.fromNullable((StoredBox<T>) boxes.get(name));

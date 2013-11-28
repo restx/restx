@@ -627,7 +627,7 @@ public class Factory implements AutoCloseable {
                         return Integer.compare(o1.priority(), o2.priority());
                     }
                 }).sortedCopy(machinesByBuilder.values()));
-        this.id = String.format("%03d(%d)", ID.incrementAndGet(), machinesByBuilder.size());
+        this.id = String.format("%03d-%s(%d)", ID.incrementAndGet(), warehouse.getId(), machinesByBuilder.size());
         this.warehouse = checkNotNull(warehouse);
 
         this.metrics = new MetricRegistry(); // give a value so that we can call getComponent which uses metrics to trace
