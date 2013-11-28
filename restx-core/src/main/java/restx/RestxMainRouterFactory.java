@@ -185,6 +185,8 @@ public class RestxMainRouterFactory {
 
             try {
                 newStdRouter(factory).route(restxRequest, restxResponse);
+            } catch (IllegalStateException ex) {
+                logger.info("Exception when using factory to load router: {}\n{}", ex.getMessage(), factory.dumper());
             } finally {
                 factory.close();
             }
