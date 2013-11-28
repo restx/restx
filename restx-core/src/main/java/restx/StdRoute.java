@@ -65,6 +65,10 @@ public abstract class StdRoute implements RestxRoute, DescribableRoute, RestxHan
     protected void describeOperation(OperationDescription operation) {
     }
 
+    public RestxRequestMatcher getMatcher() {
+        return matcher;
+    }
+
     @Override
     public String toString() {
         return matcher.toString() + " => " + name;
