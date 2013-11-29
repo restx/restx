@@ -79,6 +79,11 @@ public class ElementsFromConfigFactoryMachine extends DefaultFactoryMachine {
                     public int priority() {
                         return 0;
                     }
+
+                    @Override
+                    public String toString() {
+                        return "ConfigFactoryMachine";
+                    }
                 };
             }
 

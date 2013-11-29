@@ -12,6 +12,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.common.MoreObjects;
 
 import java.io.IOException;
 import java.util.*;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static restx.common.MoreObjects.toString;
 import static restx.common.MoreStrings.indent;
 
 /**
@@ -238,7 +240,7 @@ public class Factory implements AutoCloseable {
                 Factory factory, ImmutableList<FactoryMachine> factoryMachines,
                 Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> toBuild) {
             List<FactoryMachine> machines = new ArrayList<>();
-            StringBuilder notSatisfied = new StringBuilder();
+            UnsatisfiedDependencies notSatisfied = UnsatisfiedDependencies.of();
             Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> moreToBuild = new LinkedHashMap<>();
             for (FactoryMachine machine : factoryMachines) {
                 Set<Name<FactoryMachine>> names = machine.nameBuildableComponents(FactoryMachine.class);
@@ -246,9 +248,9 @@ public class Factory implements AutoCloseable {
                     MachineEngine<FactoryMachine> engine = machine.getEngine(name);
                     try {
                         machines.add(factory.buildAndStore(name, engine).get().getComponent());
-                    } catch (IllegalStateException e) {
+                    } catch (UnsatisfiedDependenciesException e) {
                         moreToBuild.put(name, engine);
-                        notSatisfied.append(name).append("\n").append(indent("-> " + e.getMessage(), 2)).append("\n");
+                        notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(Query.byName(name)));
                     }
                 }
             }
@@ -257,17 +259,17 @@ public class Factory implements AutoCloseable {
                 try {
                     machines.add(factory.buildAndStore(entry.getKey(), entry.getValue()).get().getComponent());
                     toBuild.remove(entry.getKey());
-                } catch (IllegalStateException e) {
-                    notSatisfied.append(entry.getKey()).append("\n").append(indent("-> " + e.getMessage(), 2)).append("\n");
+                } catch (UnsatisfiedDependenciesException e) {
+                    notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(Query.byName(entry.getKey())));
                 }
             }
 
             toBuild.putAll(moreToBuild);
 
-            if (notSatisfied.length() > 0 // some deps were not satisfied
+            if (!notSatisfied.isEmpty() // some deps were not satisfied
                     && machines.isEmpty() // and we produced no new machines, so there is no chance we satisfy them later
                     ) {
-                throw new IllegalStateException(notSatisfied.toString());
+                throw notSatisfied.raise();
             }
 
             return ImmutableList.copyOf(machines);
@@ -300,6 +302,8 @@ public class Factory implements AutoCloseable {
             this.mandatory = mandatory;
             this.factory = factory;
         }
+
+        public abstract Class<T> getComponentClass();
 
         public abstract Query<T> bind(Factory factory);
 
@@ -358,7 +362,7 @@ public class Factory implements AutoCloseable {
             }
             Set<Name<T>> names = findNames();
             if (names.isEmpty()) {
-                throw new IllegalStateException(String.format("component satisfying %s not found.", this));
+                throw UnsatisfiedDependency.on(this).raise();
             }
             Factory f = factory();
             for (Name<T> name : names) {
@@ -367,7 +371,7 @@ public class Factory implements AutoCloseable {
         }
     }
 
-    static abstract class MultipleQuery<T> extends Query<T> {
+    public static abstract class MultipleQuery<T> extends Query<T> {
         protected MultipleQuery(Factory factory, boolean mandatory) {
             super(factory, mandatory);
         }
@@ -384,16 +388,16 @@ public class Factory implements AutoCloseable {
             } else if (components.size() == 1) {
                 return Optional.of(components.iterator().next());
             } else {
-                throw new IllegalStateException(String.format(
+                throw UnsatisfiedDependency.on(this).causedBy(String.format(
                         "more than one component is available for query %s." +
                                 " Please select which one you want with a more specific query." +
                                 " Available components are: %s",
-                        this, components));
+                        this, components)).raise();
             }
         }
     }
 
-    static abstract class SingleQuery<T> extends Query<T> {
+    public static abstract class SingleQuery<T> extends Query<T> {
         protected SingleQuery(Factory factory, boolean mandatory) {
             super(factory, mandatory);
         }
@@ -408,7 +412,7 @@ public class Factory implements AutoCloseable {
         }
     }
 
-    static class FactoryQuery extends SingleQuery<Factory> {
+    public static class FactoryQuery extends SingleQuery<Factory> {
         FactoryQuery() {
             this(null);
         }
@@ -438,12 +442,17 @@ public class Factory implements AutoCloseable {
         }
 
         @Override
+        public Class<Factory> getComponentClass() {
+            return Factory.class;
+        }
+
+        @Override
         public String toString() {
             return "FactoryQuery";
         }
     }
 
-    static class NameQuery<T> extends SingleQuery<T> {
+    public static class NameQuery<T> extends SingleQuery<T> {
         private final Name<T> name;
 
         NameQuery(Name<T> name) {
@@ -496,6 +505,11 @@ public class Factory implements AutoCloseable {
         }
 
         @Override
+        public Class<T> getComponentClass() {
+            return name.getClazz();
+        }
+
+        @Override
         public String toString() {
             return "QueryByName{" +
                     "name=" + name +
@@ -503,7 +517,7 @@ public class Factory implements AutoCloseable {
         }
     }
 
-    static class ClassQuery<T> extends MultipleQuery<T> {
+    public static class ClassQuery<T> extends MultipleQuery<T> {
         private final Class<T> componentClass;
 
         ClassQuery(Class<T> componentClass) {
@@ -525,6 +539,7 @@ public class Factory implements AutoCloseable {
             return new ClassQuery(mayGetFactory(), mandatory, getComponentClass());
         }
 
+        @Override
         public Class<T> getComponentClass() {
             return componentClass;
         }
@@ -563,7 +578,7 @@ public class Factory implements AutoCloseable {
         @Override
         public String toString() {
             return "QueryByClass{" +
-                    "componentClass=" + componentClass +
+                    "componentClass=" + MoreObjects.toString(componentClass) +
                     '}';
         }
     }
@@ -813,7 +828,7 @@ public class Factory implements AutoCloseable {
                             for (Name<?> name : query.findNames()) {
                                 sb.append("          -> ").append(name).append("\n");
                             }
-                        } catch (IllegalStateException ex) {
+                        } catch (UnsatisfiedDependenciesException ex) {
                             sb.append("          ERROR: CAN'T BE SATISFIED: ").append(ex.getMessage()).append("\n");
                         }
                     }
@@ -951,25 +966,126 @@ public class Factory implements AutoCloseable {
         Optional<FactoryMachine> machineFor = findMachineFor(name);
         if (!machineFor.isPresent()) {
             Set<Name<T>> similarNames = queryByClass(name.getClazz()).findNames();
-            throw new IllegalStateException(name + " can't be satisfied in " + id + ": no machine found to build it." +
-                    (similarNames.isEmpty() ? ""
-                            : " similar components found: " + Joiner.on(", ").join(similarNames)));
+            throw UnsatisfiedDependency.on(Query.byName(name)).causedBy(
+                            name + " can't be satisfied in " + id + ": no machine found to build it." +
+                            (similarNames.isEmpty() ? ""
+                                    : " similar components found: " + Joiner.on(", ").join(similarNames)))
+                    .raise();
         }
 
         BillOfMaterials billOfMaterial = machineFor.get().getEngine(name).getBillOfMaterial();
-        StringBuilder notSatisfied = new StringBuilder();
+        UnsatisfiedDependencies notSatisfied = UnsatisfiedDependencies.of();
         for (Query<?> query : billOfMaterial.getQueries()) {
             try {
                 query.bind(this).checkSatisfy();
-            } catch (IllegalStateException e) {
-                notSatisfied.append(name).append("\n")
-                        .append(indent("-> " + e.getMessage(), 2)).append("\n");
+            } catch (UnsatisfiedDependenciesException e) {
+                notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(Query.byName(name)));
             }
         }
-        if (notSatisfied.length() > 0) {
-            throw new IllegalStateException(notSatisfied.toString());
+        if (!notSatisfied.isEmpty()) {
+            throw notSatisfied.raise();
         }
     }
 
 
+    public static class UnsatisfiedDependency {
+        public static <T> UnsatisfiedDependency on(Query<T> query) {
+            return new UnsatisfiedDependency(ImmutableList.<Query<?>>of(query),
+                    String.format("component satisfying %s not found.", query));
+        }
+
+        private final ImmutableList<Query<?>> path;
+        private final String cause;
+
+        private UnsatisfiedDependency(ImmutableList<Query<?>> path, String cause) {
+            this.path = path;
+            this.cause = cause;
+        }
+
+        public ImmutableList<Query<?>> getPath() {
+            return path;
+        }
+
+        public String getCause() {
+            return cause;
+        }
+
+        @Override
+        public String toString() {
+            return cause;
+        }
+
+        public UnsatisfiedDependency causedBy(String cause) {
+            return new UnsatisfiedDependency(path, cause);
+        }
+
+        public UnsatisfiedDependenciesException raise() {
+            return new UnsatisfiedDependenciesException(UnsatisfiedDependencies.of(this));
+        }
+
+        public <T> UnsatisfiedDependency prepend(Query<T> query) {
+            return new UnsatisfiedDependency(ImmutableList.<Query<?>>builder()
+                    .add(query).addAll(path).build(), query + indent("\n-> " + cause, 2));
+        }
+    }
+
+    public static class UnsatisfiedDependencies {
+        public static UnsatisfiedDependencies of() {
+            return new UnsatisfiedDependencies(ImmutableList.<UnsatisfiedDependency>of());
+        }
+
+        public static UnsatisfiedDependencies of(UnsatisfiedDependency unsatisfiedDependency) {
+            return new UnsatisfiedDependencies(ImmutableList.of(unsatisfiedDependency));
+        }
+
+        private final ImmutableList<UnsatisfiedDependency> unsatisfiedDependencies;
+
+        private UnsatisfiedDependencies(ImmutableList<UnsatisfiedDependency> unsatisfiedDependencies) {
+            this.unsatisfiedDependencies = unsatisfiedDependencies;
+        }
+
+        public ImmutableList<UnsatisfiedDependency> getUnsatisfiedDependencies() {
+            return unsatisfiedDependencies;
+        }
+
+        @Override
+        public String toString() {
+            return Joiner.on("\n").join(unsatisfiedDependencies);
+        }
+
+        public boolean isEmpty() {
+            return unsatisfiedDependencies.isEmpty();
+        }
+
+        public UnsatisfiedDependenciesException raise() {
+            return new UnsatisfiedDependenciesException(this);
+        }
+
+        public <T> UnsatisfiedDependencies prepend(Query<T> query) {
+            List<UnsatisfiedDependency> deps = new ArrayList<>(unsatisfiedDependencies.size());
+            for (UnsatisfiedDependency unsatisfiedDependency : unsatisfiedDependencies) {
+                deps.add(unsatisfiedDependency.prepend(query));
+            }
+
+            return new UnsatisfiedDependencies(ImmutableList.copyOf(deps));
+        }
+
+        public UnsatisfiedDependencies concat(UnsatisfiedDependencies other) {
+            return new UnsatisfiedDependencies(ImmutableList.<UnsatisfiedDependency>builder()
+                    .addAll(unsatisfiedDependencies).addAll(other.unsatisfiedDependencies).build());
+        }
+    }
+
+    public static class UnsatisfiedDependenciesException extends IllegalStateException {
+        private final UnsatisfiedDependencies unsatisfiedDependencies;
+
+        public UnsatisfiedDependenciesException(UnsatisfiedDependencies unsatisfiedDependencies) {
+            super(unsatisfiedDependencies.toString());
+            this.unsatisfiedDependencies = unsatisfiedDependencies;
+        }
+
+        public UnsatisfiedDependencies getUnsatisfiedDependencies() {
+            return unsatisfiedDependencies;
+        }
+    }
 }

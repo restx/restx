@@ -1,5 +1,7 @@
 package restx.factory;
 
+import restx.common.MoreObjects;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -48,7 +50,7 @@ public final class Name<T> {
     public String toString() {
         return "Name{" +
                 "name='" + name + '\'' +
-                ", clazz=" + clazz +
+                ", clazz=" + MoreObjects.toString(clazz) +
                 '}';
     }
 

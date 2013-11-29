@@ -58,6 +58,11 @@ public class WarehouseProvidersMachine implements FactoryMachine {
                         "WarehouseProvidersMachine Engine should never be used to actually build components, " +
                                 "they should be picked up in the warehouse directly.");
             }
+
+            @Override
+            public String toString() {
+                return WarehouseProvidersMachine.this.toString() + "Engine";
+            }
         };
     }
 
