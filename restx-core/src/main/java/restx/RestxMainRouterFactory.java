@@ -23,12 +23,7 @@ import restx.specs.RestxSpecTape;
 import javax.tools.Diagnostic;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static restx.common.MoreStrings.indent;
 
 /**
  * User: xavierhanin
@@ -185,8 +181,15 @@ public class RestxMainRouterFactory {
 
             try {
                 newStdRouter(factory).route(restxRequest, restxResponse);
-            } catch (IllegalStateException ex) {
-                logger.info("Exception when using factory to load router: {}\n{}", ex.getMessage(), factory.dumper());
+            } catch (Factory.UnsatisfiedDependenciesException ex) {
+                if (restxRequest.getHeader("RestxDebug").isPresent()) {
+                    logger.error("Exception when using factory to load router: {}\n{}", ex.getMessage(), factory.dumper());
+                } else {
+                    logger.error("Exception when using factory to load router: {}\n" +
+                            "Pro Tip: Set HTTP Header RestxDebug to have a dump of the factory" +
+                            " in your logs when you get this error.", ex.getMessage());
+                }
+                throw ex;
             } finally {
                 factory.close();
             }
@@ -213,6 +216,8 @@ public class RestxMainRouterFactory {
                 Thread.currentThread().setContextClassLoader(new HotReloadingClassLoader(
                         previousLoader, rootPackage));
                 delegate.route(restxRequest, restxResponse);
+            } catch (Factory.UnsatisfiedDependenciesException ex) {
+                handleUnsatisfiedDependencyOnHotReload(restxResponse, ex, rootPackage);
             } finally {
                 Thread.currentThread().setContextClassLoader(previousLoader);
             }
@@ -222,15 +227,14 @@ public class RestxMainRouterFactory {
     private class CompilationManagerRouter implements RestxMainRouter {
         private final RestxMainRouter delegate;
         private final String rootPackage;
-        private final Path destinationDir;
         private final CompilationManager compilationManager;
         private ClassLoader classLoader;
 
-        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus, CompilationSettings compilationSettings) {
+        public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus,
+                                        CompilationSettings compilationSettings) {
             this.delegate = delegate;
             this.rootPackage = appSettings.appPackage().get();
             compilationManager = Apps.with(appSettings).newAppCompilationManager(eventBus, compilationSettings);
-            destinationDir = compilationManager.getDestination();
             eventBus.register(new Object() {
                 @Subscribe
                 public void onCompilationFinished(
@@ -246,22 +250,7 @@ public class RestxMainRouterFactory {
         }
 
         private void setClassLoader() {
-            try {
-                classLoader = new HotReloadingClassLoader(
-                        new URLClassLoader(
-                                new URL[] {destinationDir.toUri().toURL()},
-                                Thread.currentThread().getContextClassLoader()), rootPackage) {
-                    protected InputStream getInputStream(String path) {
-                        try {
-                            return Files.newInputStream(destinationDir.resolve(path));
-                        } catch (IOException e) {
-                            return null;
-                        }
-                    }
-                };
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
+            classLoader = compilationManager.newHotReloadingClassLoader(rootPackage);
         }
 
         @Override
@@ -289,6 +278,8 @@ public class RestxMainRouterFactory {
 
                 Thread.currentThread().setContextClassLoader(classLoader);
                 delegate.route(restxRequest, restxResponse);
+            } catch (Factory.UnsatisfiedDependenciesException ex) {
+                handleUnsatisfiedDependencyOnHotReload(restxResponse, ex, rootPackage);
             } finally {
                 Thread.currentThread().setContextClassLoader(previousLoader);
             }
@@ -324,14 +315,10 @@ public class RestxMainRouterFactory {
             recorder = Optional.absent();
         }
 
-        // this factory is used to handle autostartable components at least,
-        // then one factory may be created for each request
-        // its warehouse will be shared among all factories created for this router,
-        // making autostartable components live tied to the router
-        Factory factory = loadFactory(newFactoryBuilder(serverId)).start();
-        factory = Factory.register(serverId, factory);
-
         if (getLoadFactoryMode().equals("onstartup")) {
+            Factory factory = loadFactory(newFactoryBuilder(serverId)).start();
+            factory = Factory.register(serverId, factory);
+
             final StdRestxMainRouter mainRouter = newStdRouter(factory);
             logPrompt(baseUri, "READY", mainRouter);
 
@@ -347,13 +334,35 @@ public class RestxMainRouterFactory {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
 
+            // Create a Factory to load autotartable components
+            // then one factory will be created for each request.
+            // The warehouse of this first factory will be shared among all factories created for this router,
+            // making autostartable components live tied to the router itself and not per request
+
+            ClassLoader previous = Thread.currentThread().getContextClassLoader();
+            if (useAutoCompile()) {
+                CompilationManager compilationManager = Apps.with(appSettings).newAppCompilationManager(
+                                                        new EventBus(), CompilationManager.DEFAULT_SETTINGS);
+                compilationManager.incrementalCompile();
+                Thread.currentThread().setContextClassLoader(
+                        compilationManager.newHotReloadingClassLoader(appSettings.appPackage().get()));
+            }
+
+            Factory factory;
+            try {
+                factory = loadFactory(newFactoryBuilder(serverId)).start();
+                factory = Factory.register(serverId, factory);
+            } finally {
+                Thread.currentThread().setContextClassLoader(previous);
+            }
+
             RestxMainRouter router = new PerRequestFactoryLoader(serverId, factory.getWarehouse());
 
 
             // this factory is used to look up settings only
             // we don't use 'factory' instance to avoid having settings built into the
             Factory settingsFactory = loadFactory(newFactoryBuilder(serverId)
-                                            .addWarehouseProvider(factory.getWarehouse()));
+                    .addWarehouseProvider(factory.getWarehouse()));
 
             // wrap in a recording router, as any request may ask for recording with RestxMode header
             router = new RecordingMainRouter(serverId, recorder, router,
@@ -364,7 +373,8 @@ public class RestxMainRouterFactory {
             // for recording
             if (useHotCompile()) {
                 final RestxConfig config = settingsFactory.getComponent(RestxConfig.class);
-                router = new CompilationManagerRouter(router, factory.getComponent(EventBus.class), new CompilationSettings() {
+                router = new CompilationManagerRouter(router, factory.getComponent(EventBus.class),
+                                                            new CompilationSettings() {
                     @Override
                     public int autoCompileCoalescePeriod() {
                         return config.getInt("restx.fs.watch.coalesce.period").get();
@@ -527,4 +537,70 @@ public class RestxMainRouterFactory {
                 && useHotCompile();
     }
 
+    private static void handleUnsatisfiedDependencyOnHotReload(
+            RestxResponse restxResponse, Factory.UnsatisfiedDependenciesException ex, String hotPackage) throws IOException {
+        restxResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        PrintWriter writer = restxResponse.getWriter();
+
+        // let's check one possible cause which is hard to understand: circular dependencies between
+        // hot and cold classes - ie classes part of hot reload and classes outside hot reload
+        boolean hotColdFound = false;
+        for (Factory.UnsatisfiedDependency unsatisfiedDependency :
+                ex.getUnsatisfiedDependencies().getUnsatisfiedDependencies()) {
+            Factory.Query<?> cold = null;
+            for (Factory.Query<?> query : unsatisfiedDependency.getPath()) {
+                if (!query.getComponentClass().getName().startsWith(hotPackage)) {
+                    cold = query;
+                } else {
+                    if (cold != null) {
+                        // we have found a dependency from cold to hot class
+                        String msg = String.format(">>>>>> SOURCE CODE ERROR >>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" +
+                                "You are currently using hot reload feature of RESTX which has some limitations.\n\n" +
+                                "You can't inject a component which is hot reloaded (called a 'Hot' component)\n" +
+                                "  into a component which is not hot reloaded (called a 'Cold' component)\n" +
+                                "\n" +
+                                "Such a dependency from a 'Cold' class to a 'Hot' class has been found in your sources:\n\n" +
+                                "     `%s`\n" +
+                                "          ^------------------------------------- HOT because it is in package `%s`\n\n" +
+                                "                       is injected into\n\n" +
+                                "     `%s`\n" +
+                                "          ^------------------------------------- COLD because it is NOT in package `%s`\n" +
+                                "\n\n" +
+                                "                >>> THIS IS NOT SUPPORTED, IT CAUSES CLASSLOADING ERRORS <<<\n" +
+                                "\n\n" +
+                                "Possible solutions:\n" +
+                                "===================\n\n" +
+                                "1) remove that dependency\n" +
+                                "      Check the source of `%s`\n" +
+                                "      and remove its dependency on `%s`\n\n" +
+                                "2) change which classes are hot reloaded\n" +
+                                "      Classes which are hot reloaded are in package `%s`.\n" +
+                                "      You can change that by setting the `restx.app.package` system property.\n\n" +
+                                "3) don't use hot compile mode\n" +
+                                "      Use production mode\n" +
+                                "      or explicitly disable it by setting `restx.router.hotcompile`\n" +
+                                "                                 and / or `restx.router.hotreload` to false\n\n" +
+                                ">>>>>> SOURCE CODE ERROR >>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n",
+                                query.getComponentClass().getName(), hotPackage,
+                                cold.getComponentClass().getName(), hotPackage,
+                                cold.getComponentClass().getName(), query.getComponentClass().getName(),
+                                hotPackage);
+                        logger.error("\n\n" + msg);
+                        writer.println(msg);
+                        hotColdFound = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!hotColdFound) {
+            String msg =
+                    "Error when loading Factory to process your request.\n" +
+                            "One or more dependency injections can be sastifed.\n\n" +
+                            indent(ex.getMessage(), 2);
+            logger.error(msg);
+            writer.println(msg);
+        }
+    }
 }

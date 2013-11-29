@@ -13,11 +13,15 @@ import restx.common.watch.WatcherSettings;
 
 import javax.tools.*;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.isEmpty;
@@ -408,6 +412,37 @@ public class CompilationManager {
 
     public Collection<Diagnostic<?>> getLastDiagnostics() {
         return unmodifiableCollection(lastDiagnostics);
+    }
+
+    private final static AtomicLong CLASSLOADER_COUNT = new AtomicLong();
+
+    public HotReloadingClassLoader newHotReloadingClassLoader(String rootPackage) {
+        try {
+            CLASSLOADER_COUNT.incrementAndGet();
+            final String name = "HotCompile[" + CLASSLOADER_COUNT + "]";
+            final Path destinationDir = getDestination();
+            return new HotReloadingClassLoader(
+                    new URLClassLoader(
+                            new URL[]{destinationDir.toUri().toURL()},
+                            Thread.currentThread().getContextClassLoader()), rootPackage
+            ) {
+                protected InputStream getInputStream(String path) {
+                    try {
+                        return Files.newInputStream(destinationDir.resolve(path));
+                    } catch (IOException e) {
+                        return null;
+                    }
+                }
+
+                @Override
+                public String toString() {
+                    return name;
+                }
+            };
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private void compile(Collection<Path> sources) {
