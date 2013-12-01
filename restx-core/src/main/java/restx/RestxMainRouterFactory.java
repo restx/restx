@@ -4,6 +4,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.net.MediaType;
@@ -25,10 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -202,9 +200,11 @@ public class RestxMainRouterFactory {
     private class HotReloadRouter implements RestxMainRouter {
         private final RestxMainRouter delegate;
         private final String rootPackage;
+        private final ImmutableSet<Class> coldClasses;
 
-        public HotReloadRouter(RestxMainRouter delegate) {
+        public HotReloadRouter(RestxMainRouter delegate, ImmutableSet<Class> coldClasses) {
             this.delegate = delegate;
+            this.coldClasses = coldClasses;
             this.rootPackage = appSettings.appPackage().get();
         }
 
@@ -214,7 +214,7 @@ public class RestxMainRouterFactory {
                     Thread.currentThread().getContextClassLoader();
             try {
                 Thread.currentThread().setContextClassLoader(new HotReloadingClassLoader(
-                        previousLoader, rootPackage));
+                        previousLoader, rootPackage, coldClasses));
                 delegate.route(restxRequest, restxResponse);
             } catch (Factory.UnsatisfiedDependenciesException ex) {
                 handleUnsatisfiedDependencyOnHotReload(restxResponse, ex, rootPackage);
@@ -228,11 +228,13 @@ public class RestxMainRouterFactory {
         private final RestxMainRouter delegate;
         private final String rootPackage;
         private final CompilationManager compilationManager;
+        private final ImmutableSet<Class> coldClasses;
         private ClassLoader classLoader;
 
         public CompilationManagerRouter(RestxMainRouter delegate, EventBus eventBus,
-                                        CompilationSettings compilationSettings) {
+                                        ImmutableSet<Class> coldClasses, CompilationSettings compilationSettings) {
             this.delegate = delegate;
+            this.coldClasses = coldClasses;
             this.rootPackage = appSettings.appPackage().get();
             compilationManager = Apps.with(appSettings).newAppCompilationManager(eventBus, compilationSettings);
             eventBus.register(new Object() {
@@ -250,7 +252,7 @@ public class RestxMainRouterFactory {
         }
 
         private void setClassLoader() {
-            classLoader = compilationManager.newHotReloadingClassLoader(rootPackage);
+            classLoader = compilationManager.newHotReloadingClassLoader(rootPackage, coldClasses);
         }
 
         @Override
@@ -345,7 +347,8 @@ public class RestxMainRouterFactory {
                                                         new EventBus(), CompilationManager.DEFAULT_SETTINGS);
                 compilationManager.incrementalCompile();
                 Thread.currentThread().setContextClassLoader(
-                        compilationManager.newHotReloadingClassLoader(appSettings.appPackage().get()));
+                        compilationManager.newHotReloadingClassLoader(
+                                appSettings.appPackage().get(), ImmutableSet.<Class>of()));
             }
 
             Factory factory;
@@ -374,7 +377,8 @@ public class RestxMainRouterFactory {
             if (useHotCompile()) {
                 final RestxConfig config = settingsFactory.getComponent(RestxConfig.class);
                 router = new CompilationManagerRouter(router, factory.getComponent(EventBus.class),
-                                                            new CompilationSettings() {
+                        getColdClasses(factory),
+                        new CompilationSettings() {
                     @Override
                     public int autoCompileCoalescePeriod() {
                         return config.getInt("restx.fs.watch.coalesce.period").get();
@@ -386,7 +390,7 @@ public class RestxMainRouterFactory {
                     }
                 });
             } else if (useHotReload()) {
-                router = new HotReloadRouter(router);
+                router = new HotReloadRouter(router, getColdClasses(factory));
             }
 
             return router;
@@ -603,4 +607,14 @@ public class RestxMainRouterFactory {
             writer.println(msg);
         }
     }
+
+    private static ImmutableSet<Class> getColdClasses(Factory factory) {
+        Collection<Class> coldClasses = new HashSet<>();
+        for (Name<?> name : factory.getWarehouse().listNames()) {
+            coldClasses.add(factory.getComponent(name).getClass());
+        }
+
+        return ImmutableSet.copyOf(coldClasses);
+    }
+
 }

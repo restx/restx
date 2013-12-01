@@ -128,6 +128,7 @@
         <module>restx-server-tomcat</module>
         <module>restx-server-simple</module>
         <module>restx-server-testing</module>
+        <module>restx-samplest</module>
         <!--
         Shell modules should be built in the end because
         they will have to generate some restx apps during tests

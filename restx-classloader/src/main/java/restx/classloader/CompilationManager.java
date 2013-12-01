@@ -1,6 +1,7 @@
 package restx.classloader;
 
 import com.google.common.base.*;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.hash.Hashing;
@@ -237,21 +238,27 @@ public class CompilationManager {
         synchronized (this) {
             if (watcherExecutor == null) {
                 watcherExecutor = Executors.newCachedThreadPool();
+                Collection<Path> watched = new ArrayList<>();
                 for (Path sourceRoot : sourceRoots) {
-                    MoreFiles.watch(sourceRoot, eventBus, watcherExecutor, new WatcherSettings() {
-                        @Override
-                        public int coalescePeriod() {
-                            return settings.autoCompileCoalescePeriod();
-                        }
+                    if (sourceRoot.toFile().exists()) {
+                        watched.add(sourceRoot);
+                        MoreFiles.watch(sourceRoot, eventBus, watcherExecutor, new WatcherSettings() {
+                            @Override
+                            public int coalescePeriod() {
+                                return settings.autoCompileCoalescePeriod();
+                            }
 
-                        @Override
-                        public boolean recurse() {
-                            return true;
-                        }
-                    });
+                            @Override
+                            public boolean recurse() {
+                                return true;
+                            }
+                        });
+                    } else {
+                        logger.info("source root {} does not exist - IGNORED", sourceRoot);
+                    }
                 }
                 logger.info("watching for changes in {}; current location is {}",
-                        sourceRoots, new File(".").getAbsoluteFile());
+                        watched, new File(".").getAbsoluteFile());
             }
         }
     }
@@ -416,7 +423,7 @@ public class CompilationManager {
 
     private final static AtomicLong CLASSLOADER_COUNT = new AtomicLong();
 
-    public HotReloadingClassLoader newHotReloadingClassLoader(String rootPackage) {
+    public HotReloadingClassLoader newHotReloadingClassLoader(String rootPackage, ImmutableSet<Class> coldClasses) {
         try {
             CLASSLOADER_COUNT.incrementAndGet();
             final String name = "HotCompile[" + CLASSLOADER_COUNT + "]";
@@ -424,7 +431,8 @@ public class CompilationManager {
             return new HotReloadingClassLoader(
                     new URLClassLoader(
                             new URL[]{destinationDir.toUri().toURL()},
-                            Thread.currentThread().getContextClassLoader()), rootPackage
+                            Thread.currentThread().getContextClassLoader()),
+                    rootPackage, coldClasses
             ) {
                 protected InputStream getInputStream(String path) {
                     try {

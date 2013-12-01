@@ -1,10 +1,14 @@
 package restx.classloader;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collection;
 
 /**
  * The {@link ClassLoader} for hot reloading.
@@ -18,6 +22,7 @@ public class HotReloadingClassLoader extends ClassLoader {
      * The root package name.
      */
     private final String rootPackageName;
+    private final ImmutableMap<String, Class> coldClasses;
 
     /**
      * Constructor
@@ -26,11 +31,12 @@ public class HotReloadingClassLoader extends ClassLoader {
      *            the parent class loader.
      * @param rootPackageName
      *            the root package name
+     * @param coldClasses
      * @throws NullPointerException
      *             if the rootPackageName parameter is null or if the
      *             coolPackageName parameter is null
      */
-    public HotReloadingClassLoader(ClassLoader parentClassLoader, String rootPackageName)
+    public HotReloadingClassLoader(ClassLoader parentClassLoader, String rootPackageName, ImmutableSet<Class> coldClasses)
             throws NullPointerException {
         super(parentClassLoader);
         if (rootPackageName == null) {
@@ -38,6 +44,12 @@ public class HotReloadingClassLoader extends ClassLoader {
                 "The rootPackageName parameter is null.");
         }
         this.rootPackageName = rootPackageName;
+
+        ImmutableMap.Builder<String, Class> builder = ImmutableMap.builder();
+        for (Class coldClass : coldClasses) {
+            builder.put(coldClass.getName(), coldClass);
+        }
+        this.coldClasses = builder.build();
     }
 
     @Override
@@ -48,6 +60,12 @@ public class HotReloadingClassLoader extends ClassLoader {
             if (clazz != null) {
                 return clazz;
             }
+
+            clazz = coldClasses.get(className);
+            if (clazz != null) {
+                return clazz;
+            }
+
             int index = className.lastIndexOf('.');
             if (index >= 0) {
                 String packageName = className.substring(0, index);
