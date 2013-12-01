@@ -46,6 +46,11 @@ public class AppSettingsConfig implements AppSettings {
     }
 
     @Override
+    public String cachedResources() {
+        return config.getString("restx.cache.cachedResources").or("");
+    }
+
+    @Override
     public Optional<Boolean> autoCompile() {
         return config.getBoolean("restx.router.autocompile");
     }

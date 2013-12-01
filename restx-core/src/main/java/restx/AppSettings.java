@@ -35,6 +35,9 @@ public interface AppSettings {
     @SettingsKey(key = "restx.router.hotreload")
     Optional<Boolean> hotReload();
 
+    @SettingsKey(key = "restx.cache.cachedResources")
+    String cachedResources();
+
     @SettingsKey(key = "restx.mode")
     String mode();
 
