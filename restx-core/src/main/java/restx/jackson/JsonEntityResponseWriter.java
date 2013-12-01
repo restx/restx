@@ -31,10 +31,6 @@ public class JsonEntityResponseWriter<T> extends AbstractEntityResponseWriter<T>
 
     @Override
     protected void write(T value, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        Object v = value;
-        if (v instanceof Iterable) {
-            v = Lists.newArrayList((Iterable) value);
-        }
-        writer.writeValue(resp.getWriter(), v);
+        writer.writeValue(resp.getWriter(), value);
     }
 }
