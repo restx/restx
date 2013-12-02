@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.LogOptions;
@@ -26,8 +27,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import static com.google.common.collect.Iterables.addAll;
 
@@ -39,9 +42,52 @@ import static com.google.common.collect.Iterables.addAll;
 public class ModulesManager {
     private final Logger logger = LoggerFactory.getLogger(ModulesManager.class);
 
+    private static final Pattern MRID_PATTERN = Pattern.compile("(.+):(.+):(.+)");
+
     private final ObjectMapper mapper = new ObjectMapper();
     private final URL url;
     private final Ivy ivy;
+
+    public static class DownloadOptions {
+        public static final DownloadOptions DEFAULT = new DownloadOptions(Collections.<String>emptyList(), true, false);
+
+        private final ImmutableList<String> exclusions;
+        private final boolean transitive;
+        private final boolean changing;
+
+        public DownloadOptions(List<String> exclusions, boolean transitive, boolean changing) {
+            this.exclusions = ImmutableList.copyOf(exclusions);
+            this.transitive = transitive;
+            this.changing = changing;
+        }
+
+        public ImmutableList<String> getExclusions() {
+            return exclusions;
+        }
+
+        public boolean isTransitive() {
+            return transitive;
+        }
+
+        public boolean isChanging() {
+            return changing;
+        }
+
+        public static class Builder {
+            private List<String> exclusions;
+            private boolean transitive;
+            private boolean changing;
+            public Builder(){
+                this.exclusions = new ArrayList<>(DEFAULT.exclusions);
+                this.transitive = DEFAULT.transitive;
+                this.changing = DEFAULT.changing;
+            }
+            public Builder transitive(boolean transitive) { this.transitive = transitive; return this; }
+            public Builder changing(boolean changing) { this.changing = changing; return this; }
+            public Builder exclusions(List<String> exclusions) { this.exclusions = exclusions; return this; }
+            public DownloadOptions build(){ return new DownloadOptions(this.exclusions, this.transitive, this.changing); }
+        }
+    }
 
     public ModulesManager(URL url, Ivy ivy) {
         this.url = url;
@@ -64,7 +110,7 @@ public class ModulesManager {
         }
     }
 
-    public List<File> download(List<ModuleDescriptor> modules, File toDir, List<String> excluding) throws IOException {
+    public List<File> download(List<ModuleDescriptor> modules, File toDir, DownloadOptions opts) throws IOException {
         if (!toDir.exists()) {
             if (!toDir.mkdirs()) {
                 throw new IOException("can't create directory " + toDir);
@@ -75,8 +121,8 @@ public class ModulesManager {
             ivy.pushContext(); // DefaultModuleDescriptor access Ivy current context, so we need to push it.
             try {
                 DefaultModuleDescriptor md = DefaultModuleDescriptor.newCallerInstance(
-                        toMrid(module.getId()), new String[]{"master", "runtime"}, true, false);
-                for (String exclude : excluding) {
+                        toMrid(module.getId()), new String[]{"master", "runtime"}, opts.isTransitive(), opts.isChanging());
+                for (String exclude : opts.getExclusions()) {
                     DefaultExcludeRule rule = new DefaultExcludeRule(
                             new ArtifactId(toModuleId(exclude), ".*", ".*", ".*"),
                             new ExactOrRegexpPatternMatcher(),
@@ -120,6 +166,10 @@ public class ModulesManager {
             throw new IllegalArgumentException("can't parse module id '" + id + "': it must be of the form groupId:artifactId");
         }
         return ModuleId.newInstance(parts[0], parts[1]);
+    }
+
+    public static boolean isMrid(String id) {
+        return MRID_PATTERN.matcher(id).matches();
     }
 
     public static ModuleRevisionId toMrid(String id) {

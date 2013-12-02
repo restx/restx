@@ -21,10 +21,7 @@ import restx.shell.StdShellCommand;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * User: xavierhanin
@@ -40,10 +37,12 @@ public class PluginsShellCommand extends StdShellCommand {
      * - we exclude the main modules already part of the shell itself (shell and shell-manager)
      * - we exclude logback-classic, to avoid a SLF4J warning at startup if multiple bindings are present
      */
-    private List<String> defaultExcludes = ImmutableList.of(
+    private static final List<String> defaultExcludes = ImmutableList.of(
             "io.restx:restx-shell",
             "io.restx:restx-shell-manager",
             "ch.qos.logback:logback-classic");
+
+    private static final ModulesManager.DownloadOptions defaultDownloadOptions = new ModulesManager.DownloadOptions.Builder().exclusions(defaultExcludes).build();
 
     public PluginsShellCommand() {
         super(ImmutableList.of("shell"), "manages the shell itself: install / update plugins, upgrade restx shell version");
@@ -243,7 +242,7 @@ public class PluginsShellCommand extends StdShellCommand {
         shell.printIn("installing " + md.getId() + "...", RestxShell.AnsiCodes.ANSI_CYAN);
         shell.println("");
         try {
-            List<File> copied = modulesManager.download(ImmutableList.of(md), pluginsDir, defaultExcludes);
+            List<File> copied = modulesManager.download(ImmutableList.of(md), pluginsDir, defaultDownloadOptions);
             if (!copied.isEmpty()) {
                 shell.printIn("installed " + md.getId(), RestxShell.AnsiCodes.ANSI_GREEN);
                 shell.println("");

@@ -1,36 +1,46 @@
 package restx.core.shell;
 
 import com.github.mustachejava.Mustache;
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.io.CharStreams;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.AppSettings;
 import restx.Apps;
+import restx.RestxContext;
+import restx.build.ModuleDescriptor;
 import restx.build.RestxBuild;
+import restx.build.RestxJsonSupport;
 import restx.common.UUIDGenerator;
 import restx.common.Version;
 import restx.factory.Component;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
+import restx.plugins.ModulesManager;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
+import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.nio.file.Files.newOutputStream;
+import static restx.common.MorePreconditions.checkPresent;
 
 /**
  * User: xavierhanin
@@ -60,9 +70,15 @@ public class AppShellCommand extends StdShellCommand {
                 return Optional.of(new GenerateStartCommandRunner(args));
             case "run":
                 return Optional.of(new RunAppCommandRunner(args));
+            case "grab":
+                return Optional.of(new GrabAppCommandRunner(args));
         }
 
         return Optional.absent();
+    }
+
+    public static Path standardCachedAppPath(String appname) {
+        return Paths.get(System.getProperty("restx.shell.home"), "apps/"+appname);
     }
 
     @Override
@@ -346,16 +362,20 @@ public class AppShellCommand extends StdShellCommand {
     }
 
     private class RunAppCommandRunner implements ShellCommandRunner {
-        private String appClassName;
+        private Optional<String> appClassNameArg;
+        private Optional<String> appNameArg;
         private boolean quiet;
         private boolean daemon;
-        private ShellAppRunner.CompileMode compileMode = ShellAppRunner.CompileMode.MAIN_CLASS;
+        private Optional<String> restxMode;
         private List<String> vmOptions = new ArrayList<>();
 
         public RunAppCommandRunner(List<String> args) {
             args = new ArrayList<>(args);
             quiet = false;
             daemon = true;
+            appClassNameArg = Optional.absent();
+            appNameArg = Optional.absent();
+            restxMode = Optional.absent();
 
             while (args.size() > 2) {
                 String arg = args.get(2);
@@ -363,16 +383,20 @@ public class AppShellCommand extends StdShellCommand {
                     quiet = true;
                 } else if (arg.startsWith("--fg")) {
                     daemon = false;
-                } else if (arg.startsWith("--mode=")) {
-                    String mode = arg.substring("--mode=".length());
-                    vmOptions.add("-Drestx.mode=" + mode);
-                    if (mode.equals("prod")) {
-                        compileMode = ShellAppRunner.CompileMode.ALL;
-                    }
+                } else if (arg.startsWith("--mode=") || arg.startsWith("-Drestx.mode=")) {
+                    String mode = arg.startsWith("--mode=")?arg.substring("--mode=".length()):arg.substring("-Drestx.mode=".length());
+                    restxMode = Optional.of(mode);
                 } else if (arg.startsWith("-D") || arg.startsWith("-X")) {
                     vmOptions.add(arg);
-                } else if (appClassName == null) {
-                    appClassName = arg;
+                } else if (!appClassNameArg.isPresent() && !appNameArg.isPresent()) {
+                    // If an existing restx app folder stands for given arg, considering it as the appName
+                    // otherwise, arg will stand for a classname to execute
+                    if(java.nio.file.Files.exists(standardCachedAppPath(arg))) {
+                        appNameArg = Optional.of(arg);
+                        restxMode = Optional.of(restxMode.or(RestxContext.Modes.PROD));
+                    } else {
+                        appClassNameArg = Optional.of(arg);
+                    }
                 } else {
                     throw new IllegalArgumentException("app run argument not recognized: " + arg);
                 }
@@ -381,23 +405,61 @@ public class AppShellCommand extends StdShellCommand {
         }
 
         @Override
-        public void run(RestxShell shell) throws Exception {
-            if (appClassName == null) {
-                Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
-                                                .guessAppBasePackage(shell.currentLocation());
-                if (!pack.isPresent()) {
+        public void run(final RestxShell shell) throws Exception {
+            if(appNameArg.isPresent()) {
+                shell.cd(standardCachedAppPath(appNameArg.get()));
+            }
+
+            boolean sourcesAvailable = Apps.with(shell.getFactory().getComponent(AppSettings.class)).sourcesAvailableIn(shell.currentLocation());
+
+            String appClassName;
+            ShellAppRunner.CompileMode compileMode;
+            if(sourcesAvailable) {
+                if(appClassNameArg.isPresent()) {
+                    appClassName = appClassNameArg.get();
+                } else {
+                    Optional<String> appClassNameGuessedFromRestxModule = guessAppClassnameFromRestxModule(shell);
+                    if(appClassNameGuessedFromRestxModule.isPresent()) {
+                        appClassName = appClassNameGuessedFromRestxModule.get();
+                    } else {
+                        appClassName = guessAppClassnameFromSources(shell);
+                    }
+                }
+
+                compileMode = (restxMode.isPresent() && RestxContext.Modes.PROD.equals(restxMode.get()))? ShellAppRunner.CompileMode.ALL: ShellAppRunner.CompileMode.MAIN_CLASS;
+
+                if(appClassName == null) {
                     shell.printIn("can't find base app package, src/main/java should contain a AppServer.java source file somewhere",
                             RestxShell.AnsiCodes.ANSI_RED);
                     shell.println("");
                     shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
                     return;
                 }
-                appClassName = pack.get() + ".AppServer";
+            } else {
+                appClassName = appClassNameArg
+                    .or(guessAppClassnameFromRestxModule(shell))
+                    .orNull();
+
+                // Consider we're in prod mode, without any auto compilation feature (since we don't have any source folder)
+                compileMode = ShellAppRunner.CompileMode.NO;
+                restxMode = Optional.of(RestxContext.Modes.PROD);
+
+                if(appClassName == null){
+                    shell.printIn("can't find manifest.main.classname property in md.restx.json", RestxShell.AnsiCodes.ANSI_RED);
+                    shell.println("");
+                    shell.println("alternatively you can provide the class to run with `app run <class.to.Run>`");
+                    return;
+                }
             }
 
             if (!DepsShellCommand.depsUpToDate(shell)) {
                 shell.println("restx> deps install");
                 new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+            }
+
+            List<String> vmOptions = new ArrayList<>(this.vmOptions);
+            if(restxMode.isPresent()) {
+                vmOptions.add("-Drestx.mode="+restxMode.get());
             }
 
             String basePack = appClassName.substring(0, appClassName.lastIndexOf('.'));
@@ -406,6 +468,186 @@ public class AppShellCommand extends StdShellCommand {
                     .getComponent(AppSettings.class);
             new ShellAppRunner(appSettings, appClassName, compileMode, quiet, daemon, vmOptions)
                 .run(shell);
+        }
+
+        private Optional<String> guessAppClassnameFromRestxModule(RestxShell shell) throws IOException {
+
+            RestxJsonSupport restxJsonSupport = new RestxJsonSupport();
+
+            Path restxJsonFile = shell.currentLocation().resolve(restxJsonSupport.getDefaultFileName());
+            if(java.nio.file.Files.notExists(restxJsonFile)){
+                return Optional.absent();
+            }
+
+            ModuleDescriptor moduleDescriptor = restxJsonSupport.parse(restxJsonFile);
+            return Optional.fromNullable(moduleDescriptor.getProperties().get("manifest.main.classname"));
+        }
+
+        private String guessAppClassnameFromSources(RestxShell shell) {
+            Optional<String> pack = Apps.with(shell.getFactory().getComponent(AppSettings.class))
+                                            .guessAppBasePackage(shell.currentLocation());
+            if (!pack.isPresent()) {
+                return null;
+            }
+            return pack.get() + ".AppServer";
+        }
+    }
+
+    private static enum GrabbingStrategy {
+        FROM_GIT(){
+            @Override
+            protected boolean accept(String coordinates) {
+                return coordinates.endsWith(".git");
+            }
+
+            @Override
+            public String extractProjectNameFrom(String coordinates) {
+                return extractExtensionlessFilenameFromUrl(coordinates.split("#")[0]);
+            }
+
+            @Override
+            public void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException {
+                String url = coordinates;
+                Optional<String> ref = Optional.absent();
+                if(url.contains("#")) {
+                    url = coordinates.split("#")[0];
+                    ref = Optional.of(coordinates.split("#")[1]);
+                }
+
+                try {
+                    shell.println("Cloning "+url+"...");
+                    Runtime.getRuntime().exec(new String[]{"git", "clone", url, "."}, new String[0], destinationDir.toFile()).waitFor();
+
+                    if(ref.isPresent()) {
+                        Runtime.getRuntime().exec(new String[]{"git", "checkout", ref.get()}, new String[0], destinationDir.toFile()).waitFor();
+                    }
+                } catch(InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        }, FROM_URL(){
+            @Override
+            protected boolean accept(String coordinates) {
+                return coordinates.startsWith("file://")
+                        || coordinates.startsWith("http://")
+                        || coordinates.startsWith("https://");
+            }
+            @Override
+            public String extractProjectNameFrom(String coordinates) {
+                return extractExtensionlessFilenameFromUrl(coordinates);
+            }
+            @Override
+            public void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException {
+                handleSingleFileGrabbing(coordinates, destinationDir, projectName, shell, new SingleFileGrabber() {
+                    @Override
+                    public void grabSingleFileTo(String coordinates, Path destinationFile, RestxShell shell) throws IOException {
+                        try {
+                            URL url = new URL(coordinates);
+                            try (InputStream urlStream = url.openStream();
+                                 OutputStream destFileOS = newOutputStream(destinationFile)) {
+                                ByteStreams.copy(urlStream, destFileOS);
+                            }
+                        } catch (MalformedURLException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+                });
+            }
+        }, FROM_GAV(){
+            @Override
+            protected boolean accept(String coordinates) {
+                return ModulesManager.isMrid(coordinates);
+            }
+            @Override
+            public String extractProjectNameFrom(String coordinates) {
+                return ModulesManager.toMrid(coordinates).getName();
+            }
+            @Override
+            public void unpackCoordinatesTo(String coordinates, final Path destinationDir, String projectName, RestxShell shell) throws IOException {
+                handleSingleFileGrabbing(coordinates, destinationDir, projectName, shell, new SingleFileGrabber() {
+                    @Override
+                    public void grabSingleFileTo(String coordinates, Path destinationFile, RestxShell shell) throws IOException {
+                        restx.plugins.ModuleDescriptor moduleDescriptor = new restx.plugins.ModuleDescriptor(coordinates, "app", "");
+                        ModulesManager modulesManager = new ModulesManager(null, ShellIvy.loadIvy(shell));
+
+                        List<File> files = modulesManager.download(
+                                ImmutableList.of(moduleDescriptor),
+                                destinationDir.toFile(),
+                                new ModulesManager.DownloadOptions.Builder().transitive(false).build()
+                        );
+                        if(!files.get(0).equals(destinationFile.toFile())) {
+                            Files.move(files.get(0), destinationFile.toFile());
+                        }
+                    }
+                });
+            }
+        };
+
+        public static Optional<GrabbingStrategy> fromCoordinates(String coordinates) {
+            for(GrabbingStrategy grabbingStrategy : values()){
+                if(grabbingStrategy.accept(coordinates)) {
+                    return Optional.of(grabbingStrategy);
+                }
+            }
+            return Optional.absent();
+        }
+
+        private static interface SingleFileGrabber {
+            void grabSingleFileTo(String coordinates, Path destinationFile, RestxShell shell) throws IOException;
+        }
+
+        protected void handleSingleFileGrabbing(String coordinates, Path destinationDir, String projectName, RestxShell shell, SingleFileGrabber singleFileGrabber) throws IOException {
+            Path jarFile = destinationDir.resolve(projectName+".jar");
+            Files.createParentDirs(jarFile.toFile());
+
+            singleFileGrabber.grabSingleFileTo(coordinates, jarFile, shell);
+
+            AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
+            new RestxArchiveUnpacker().unpack(jarFile, destinationDir, appSettings);
+            jarFile.toFile().delete();
+        }
+
+        protected static String extractExtensionlessFilenameFromUrl(String coordinates) {
+            String filename = coordinates.substring(coordinates.lastIndexOf("/")+1);
+            filename = filename.contains("?")?filename.substring(0, filename.indexOf("?")):filename;
+            filename = filename.contains(".")?filename.substring(0, filename.lastIndexOf(".")):filename;
+            return filename;
+        }
+
+        protected abstract boolean accept(String coordinates);
+        public abstract String extractProjectNameFrom(String coordinates);
+        public abstract void unpackCoordinatesTo(String coordinates, Path destinationDir, String projectName, RestxShell shell) throws IOException;
+    }
+
+    private class GrabAppCommandRunner implements ShellCommandRunner {
+
+        private final String projectName;
+        private final String coordinates;
+        private final GrabbingStrategy grabbingStrategy;
+        private final Path destinationDirectoy;
+
+        public GrabAppCommandRunner(List<String> args) {
+            args = new ArrayList<>(args);
+
+            if(args.size() < 3) {
+                throw new IllegalArgumentException("app grab : missing coordinates argument");
+            }
+
+            this.coordinates = args.get(2);
+            this.grabbingStrategy = checkPresent(GrabbingStrategy.fromCoordinates(this.coordinates),
+                    "app grab : cannot found a grabbing strategy for coordinates: " + this.coordinates);
+
+            this.projectName = this.grabbingStrategy.extractProjectNameFrom(this.coordinates);
+            this.destinationDirectoy = args.size() >= 4 ? Paths.get(args.get(3)) : standardCachedAppPath(projectName);
+        }
+
+        @Override
+        public void run(RestxShell shell) throws Exception {
+            Files.createParentDirs(destinationDirectoy.resolve("uselessUnexistingFile").toFile());
+
+            this.grabbingStrategy.unpackCoordinatesTo(this.coordinates, this.destinationDirectoy, this.projectName, shell);
+
+            shell.cd(destinationDirectoy);
         }
     }
 }
