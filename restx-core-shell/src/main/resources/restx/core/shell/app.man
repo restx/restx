@@ -77,7 +77,7 @@ Your app will be started in different modes depending on your working directory 
 ## app grab <coordinates> [<destination>]
 
 Grab and unpack a restx archive/project into a directory, then change restx shell to this directory in order
-to easily pipe this command with `app run` command.
+to easily chain this command with `app run` command.
 
 A restx archive is a standard jar archive, with static ressources located in `META-INF/restx/app/` folder.
 Note that a restx archive MUST contain a `META-INF/restx/app/md.restx.json` file in order to be considered valid.
@@ -85,7 +85,7 @@ Note that a restx archive MUST contain a `META-INF/restx/app/md.restx.json` file
 `<coordinates>`
   different types of coordinates are available :
   - GIT url (pattern : <git.url>[#<ref>], for instance `git@github.com:foo/bar.git#v1.0`)
-    Git repository will be cloned sincide `destination` directory.
+    Git repository will be cloned inside `destination` directory.
     Needs git executable to be available in your PATH.
   - Http/https url of a Restx archive.
     Archive classes will be unpacked into `<destination>/target/restx/classes/` directory,
