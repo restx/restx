@@ -20,25 +20,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutoStartableTest {
     @Test
     public void should_handle_auto_startable_in_dev_mode() throws Exception {
-        System.setProperty("restx.mode", "dev");
+        Factory.LocalMachines.threadLocal().addMachine(
+                new SingletonFactoryMachine<>(-1000, NamedComponent.of(String.class, "restx.mode", "dev")));
 
-        SimpleWebServer server = SimpleWebServer.builder()
-                .setRouterPath("/api").setPort(WebServers.findAvailablePort()).build();
-        server.start();
         try {
-            HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
-            assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo(
-                    "called: 1 - autostartable: called: 1 started: 1 closed: 0 instanciated: 1");
+            SimpleWebServer server = SimpleWebServer.builder()
+                    .setRouterPath("/api").setPort(WebServers.findAvailablePort()).build();
+            server.start();
+            try {
+                HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
+                assertThat(httpRequest.code()).isEqualTo(200);
+                assertThat(httpRequest.body().trim()).isEqualTo(
+                        "called: 1 - autostartable: called: 1 started: 1 closed: 0 instanciated: 1");
 
-            httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
-            assertThat(httpRequest.code()).isEqualTo(200);
-            // called should be only one in test mode, components are dropped at each request
-            // but autostartable should be reused
-            assertThat(httpRequest.body().trim()).isEqualTo(
-                    "called: 1 - autostartable: called: 2 started: 1 closed: 0 instanciated: 1");
+                httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
+                assertThat(httpRequest.code()).isEqualTo(200);
+                // called should be only one in test mode, components are dropped at each request
+                // but autostartable should be reused
+                assertThat(httpRequest.body().trim()).isEqualTo(
+                        "called: 1 - autostartable: called: 2 started: 1 closed: 0 instanciated: 1");
+            } finally {
+                server.stop();
+            }
         } finally {
-            server.stop();
+            Factory.LocalMachines.threadLocal().clear();
         }
     }
 }
