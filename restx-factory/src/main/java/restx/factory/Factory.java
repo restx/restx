@@ -86,10 +86,10 @@ public class Factory implements AutoCloseable {
 
 
     public static class LocalMachines {
-        private static final ThreadLocal<LocalMachines> threadLocals = new ThreadLocal() {
+        private static final ThreadLocal<String> threadLocals = new ThreadLocal() {
             @Override
-            protected LocalMachines initialValue() {
-                return new LocalMachines("");
+            protected String initialValue() {
+                return String.format("TL[%s][%03d]", Thread.currentThread().getName(), IDS.incrementAndGet());
             }
         };
 
@@ -97,16 +97,46 @@ public class Factory implements AutoCloseable {
         private static final AtomicLong IDS = new AtomicLong();
         private final String id;
 
-        public LocalMachines(String ctxName) {
-            id = String.format("CTX[%s][$03d]", ctxName, IDS.incrementAndGet());
+        private LocalMachines(String id) {
+            this.id = id;
         }
 
         public static LocalMachines threadLocal() {
-            return threadLocals.get();
+            String id = threadLocals.get();
+            LocalMachines localMachines = contextLocals.get(id);
+            if (localMachines != null) {
+                return localMachines;
+            }
+            LocalMachines m = contextLocals.putIfAbsent(id, localMachines = new LocalMachines(id));
+            if (m != null) {
+                return m;
+            } else {
+                return localMachines;
+            }
+        }
+
+        /**
+         * Return LocalMachines associated with another thread, by id.
+         *
+         * You must know the id of the threadlocal from the other thread to be able to access it.
+         *
+         * From the other thread do Factory.LocalMachines.threadLocal().getId()
+         *
+         * @param id the other thread threadLocal() LocalMachines id
+         * @return the LocalMachines associated with the other thread, or an empty LocalMachines which is not
+         *         automatically registered if none is found.
+         */
+        public static LocalMachines threadLocalFrom(String id) {
+            LocalMachines localMachines = contextLocals.get(id);
+            if (localMachines != null) {
+                return localMachines;
+            }
+            return new LocalMachines(id);
         }
 
         public static LocalMachines contextLocal(String ctxName) {
-            contextLocals.putIfAbsent(ctxName, new LocalMachines(ctxName));
+            contextLocals.putIfAbsent(ctxName, new LocalMachines(
+                    String.format("CTX[%s][$03d]", ctxName, IDS.incrementAndGet())));
             return contextLocals.get(ctxName);
         }
 
@@ -132,6 +162,33 @@ public class Factory implements AutoCloseable {
 
         public String getId() {
             return id;
+        }
+
+        public LocalMachines set(String name, Object component) {
+            Class aClass = component.getClass();
+            set(NamedComponent.of(aClass, name, component));
+            return this;
+        }
+        public LocalMachines set(int priority, String name, Object component) {
+            Class aClass = component.getClass();
+            set(priority, NamedComponent.of(aClass, name, component));
+            return this;
+        }
+        public <T> LocalMachines set(Class<T> clazz, String name, T component) {
+            set(NamedComponent.of(clazz, name, component));
+            return this;
+        }
+        public <T> LocalMachines set(int priority, Class<T> clazz, String name, T component) {
+            set(priority, NamedComponent.of(clazz, name, component));
+            return this;
+        }
+        public <T> LocalMachines set(NamedComponent<T> namedComponent) {
+            set(-1000, namedComponent);
+            return this;
+        }
+        public <T> LocalMachines set(int priority, NamedComponent<T> namedComponent) {
+            addMachine(new SingletonFactoryMachine<>(priority, namedComponent));
+            return this;
         }
     }
 

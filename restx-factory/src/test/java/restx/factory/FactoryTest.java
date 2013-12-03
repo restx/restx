@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
+import static restx.factory.Factory.LocalMachines.threadLocal;
 
 /**
  * User: xavierhanin
@@ -402,6 +403,17 @@ public class FactoryTest {
         Factory factory = Factory.getInstance();
 
         assertThat(factory).isNotNull().isSameAs(Factory.getInstance());
+    }
+
+    @Test
+    public void should_use_local_machines() throws Exception {
+        threadLocal().set("test", "myvalue");
+        Factory factory = Factory.newInstance();
+
+        assertThat(factory.getComponent(Name.of(String.class, "test"))).isEqualTo("myvalue");
+        threadLocal().clear();
+        factory = Factory.newInstance();
+        assertThat(factory.queryByName(Name.of(String.class, "test")).optional().findOne().isPresent()).isFalse();
     }
 
     private SingleNameFactoryMachine<String> testMachine() {
