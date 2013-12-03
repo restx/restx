@@ -26,12 +26,12 @@ public class AutoStartableTest {
                 .setRouterPath("/api").setPort(WebServers.findAvailablePort()).build();
         server.start();
         try {
-            HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/test");
+            HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
             assertThat(httpRequest.code()).isEqualTo(200);
             assertThat(httpRequest.body().trim()).isEqualTo(
                     "called: 1 - autostartable: called: 1 started: 1 closed: 0 instanciated: 1");
 
-            httpRequest = HttpRequest.get(server.baseUrl() + "/api/test");
+            httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
             assertThat(httpRequest.code()).isEqualTo(200);
             // called should be only one in test mode, components are dropped at each request
             // but autostartable should be reused

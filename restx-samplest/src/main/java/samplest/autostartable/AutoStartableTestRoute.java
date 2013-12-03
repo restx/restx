@@ -19,7 +19,7 @@ public class AutoStartableTestRoute extends StdRoute {
     private int called;
 
     public AutoStartableTestRoute(AutoStartableTestComponent c) {
-        super("AutoStartableTestRoute", new StdRestxRequestMatcher("GET", "/test"));
+        super("AutoStartableTestRoute", new StdRestxRequestMatcher("GET", "/autostartable/test"));
         this.c = c;
     }
 
