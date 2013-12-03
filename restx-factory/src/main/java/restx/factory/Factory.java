@@ -101,6 +101,32 @@ public class Factory implements AutoCloseable {
             this.id = id;
         }
 
+        /**
+         * An alias for threadLocal() which makes the intention of using it to override components clearer.
+         *
+         * It's usually used like this:
+         * <code>
+         *     overrideComponents().set("componentName", "componentValue");
+         * </code>
+         *
+         * Note that it doesn't do anything special to actually override components: they will be used only in Factory
+         * relying on threadLocal() LocalMachines is built after the call.
+         *
+         * @return LocalMachines associated with current thread.
+         */
+        public static LocalMachines overrideComponents() {
+            return threadLocal();
+        }
+
+        /**
+         * Returns a LocalMachines associated with current thread.
+         *
+         * This is often used when building a Factory, the Factory.newInstance() use it for instance.
+         *
+         * Thanks to client affinity, it can also be shared between client and server.
+         *
+         * @return a LocalMachines associated with current thread.
+         */
         public static LocalMachines threadLocal() {
             String id = threadLocals.get();
             LocalMachines localMachines = contextLocals.get(id);
@@ -134,6 +160,12 @@ public class Factory implements AutoCloseable {
             return new LocalMachines(id);
         }
 
+        /**
+         * Returns a LocalMachines associated with given context name.
+         *
+         * @param ctxName the context name
+         * @return a LocalMachines associated with given context name.
+         */
         public static LocalMachines contextLocal(String ctxName) {
             contextLocals.putIfAbsent(ctxName, new LocalMachines(
                     String.format("CTX[%s][$03d]", ctxName, IDS.incrementAndGet())));

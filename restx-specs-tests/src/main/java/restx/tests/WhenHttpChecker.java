@@ -34,7 +34,7 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
         System.out.println(">> REQUEST");
         System.out.println(when.getMethod() + " " + url);
         System.out.println();
-        HttpRequest httpRequest = new HttpRequest(url, when.getMethod());
+        HttpRequest httpRequest = HttpTestClient.http(when.getMethod(), url);
 
         if (!when.getCookies().isEmpty()) {
             StringBuilder sb = new StringBuilder();

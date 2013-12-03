@@ -117,6 +117,7 @@ public class RestxMainRouterFactory {
                                 // when recording a request we don't use the provided router, we
                                 // need to load a new factory, some recorders rely on being available in the factory
                                 Factory factory = loadFactory(newFactoryBuilder(serverId,
+                                                                                restxRequest.getHeader("RestxThreadLocal"),
                                                                                 restxSpecRecorder, getMode(restxRequest)));
                                 try {
                                     newStdRouter(factory).route(tape.getRecordingRequest(), tape.getRecordingResponse());
@@ -173,7 +174,7 @@ public class RestxMainRouterFactory {
 
         @Override
         public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-            Factory factory = loadFactory(newFactoryBuilder(serverId,
+            Factory factory = loadFactory(newFactoryBuilder(serverId, restxRequest.getHeader("RestxThreadLocal"),
                     RestxSpecRecorder.current().orNull(), getMode(restxRequest))
                     .addWarehouseProvider(warehouse));
 
@@ -433,9 +434,12 @@ public class RestxMainRouterFactory {
         return factory;
     }
 
-    private static Factory.Builder newFactoryBuilder(String contextName,
+    private static Factory.Builder newFactoryBuilder(String contextName, Optional<String> threadLocalId,
                                                      RestxSpecRecorder specRecorder, String mode) {
         Factory.Builder builder = newFactoryBuilder(contextName);
+        if (threadLocalId.isPresent()) {
+            builder.addLocalMachines(Factory.LocalMachines.threadLocalFrom(threadLocalId.get()));
+        }
         if (specRecorder != null) {
             builder
                 .addLocalMachines(Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING))
