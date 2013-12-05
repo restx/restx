@@ -252,7 +252,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
                 String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
                 if (!String.class.getName().equals(parameter.type)
-                        && parameter.kind != ResourceMethodParameterKind.BODY) {
+                        && parameter.kind != ResourceMethodParameterKind.BODY
+                        && parameter.kind != ResourceMethodParameterKind.CONTEXT) {
                     getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
                 } else if (parameter.kind == ResourceMethodParameterKind.BODY) {
                     inEntityClass = parameter.type;
@@ -503,14 +504,18 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         },
         CONTEXT {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                Collection<String> contextParamNames = Arrays.asList("baseUri");
+                Collection<String> contextParamNames = Arrays.asList("baseUri", "clientAddress", "request");
                 if (!contextParamNames.contains(parameter.reqParamName)) {
                     throw new IllegalArgumentException("context parameter not known: " + parameter.reqParamName +
                             ". Possible names are: " + Joiner.on(", ").join(contextParamNames));
                 }
                 switch (parameter.reqParamName) {
+                    case "request":
+                        return "request";
                     case "baseUri":
-                        return String.format("request.getBaseUri()", parameter.type);
+                        return "request.getBaseUri()";
+                    case "clientAddress":
+                        return "request.getClientAddress()";
                     default:
                         throw new IllegalStateException(
                                 "invalid context param name not catched by contextParamNames list !! " + parameter.reqParamName);
