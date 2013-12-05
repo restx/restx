@@ -125,7 +125,7 @@ public class FactoryTest {
         } catch (IllegalStateException e) {
             assertThat(e)
                     .hasMessageStartingWith(
-                            "QueryByName{name=Name{name='test', clazz=java.lang.String[]}}  \n" +
+                            "QueryByName{name=Name{name='test', clazz=java.lang.String[]}}\n" +
                                     "  -> Name{name='missing', clazz=java.lang.String[]} can't be satisfied")
             ;
         }
