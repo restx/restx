@@ -8,7 +8,7 @@
     "guava.version": "15.0",
     "joda-time.version": "2.3",
 
-    "jackson.version": "2.1.2",
+    "jackson.version": "2.3.0",
 
     "mustache.version": "0.8.13",
     "http-request.version": "5.5",
@@ -27,8 +27,8 @@
     "jline.version": "2.11",
 
     "mongo-java-driver.version": "2.11.3",
-    "bson4jackson.version": "2.1.1",
-    "jongo.version": "0.4",
+    "bson4jackson.version": "2.3.0",
+    "jongo.version": "1.0",
 
     "ivy.version": "2.3.0",
 
