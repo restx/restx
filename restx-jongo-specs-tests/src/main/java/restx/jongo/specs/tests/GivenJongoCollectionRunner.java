@@ -64,38 +64,44 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
             };
 
             final Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
-            contextLocal(checkNotNull(params.get(CONTEXT_NAME), CONTEXT_NAME + " param is required")).addMachine(
+            final SingleNameFactoryMachine<ComponentCustomizerEngine> customizerMachine =
                     new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
-                            Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplier"),
-                            BoundlessComponentBox.FACTORY) {
-                        @Override
-                        public BillOfMaterials getBillOfMaterial() {
-                            return BillOfMaterials.of(mapperQuery);
-                        }
+                        Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplierOf"
+                                                                            + given.getCollection()),
+                        BoundlessComponentBox.FACTORY) {
+                @Override
+                public BillOfMaterials getBillOfMaterial() {
+                    return BillOfMaterials.of(mapperQuery);
+                }
 
+                @Override
+                protected ComponentCustomizerEngine doNewComponent(final SatisfiedBOM satisfiedBOM) {
+                    return new SingleComponentNameCustomizerEngine<JongoCollection>(
+                                                        0, Name.of(JongoCollection.class, given.getCollection())) {
                         @Override
-                        protected ComponentCustomizerEngine doNewComponent(final SatisfiedBOM satisfiedBOM) {
-                            return new SingleComponentNameCustomizerEngine<JongoCollection>(0, Name.of(JongoCollection.class, given.getCollection())) {
-                                @Override
-                                public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
-                                    if (namedComponent.getName().getName().equals(given.getCollection())) {
-                                        Mapper mapper = satisfiedBOM.getOne(mapperQuery).get().getComponent();
-                                        return new NamedComponent<>(namedComponent.getName(),
-                                                new SequencedJongoCollection(namedComponent.getComponent(), mapper,
-                                                        mapper.getObjectIdUpdater(), iteratingSequence));
-                                    } else {
-                                        return namedComponent;
-                                    }
+                        public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
+                            if (namedComponent.getName().getName().equals(given.getCollection())) {
+                                Mapper mapper = satisfiedBOM.getOne(mapperQuery).get().getComponent();
+                                return new NamedComponent<>(namedComponent.getName(),
+                                        new SequencedJongoCollection(namedComponent.getComponent(), mapper,
+                                                mapper.getObjectIdUpdater(), iteratingSequence));
+                            } else {
+                                return namedComponent;
+                            }
 
-                                }
-                            };
                         }
-                    }));
+                    };
+                }
+            });
+            final Factory.LocalMachines localMachines = contextLocal(
+                    checkNotNull(params.get(CONTEXT_NAME), CONTEXT_NAME + " param is required"));
+            localMachines.addMachine(customizerMachine);
 
             return new GivenCleaner() {
                 @Override
                 public void cleanUp() {
                     try {
+                        localMachines.removeMachine(customizerMachine);
                         MongoClientURI mongoClientURI = new MongoClientURI(
                                 checkNotNull(params.get(DB_URI),
                                         DB_URI + " param is required"));
