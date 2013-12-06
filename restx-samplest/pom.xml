@@ -52,11 +52,6 @@
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-log-admin</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.restx</groupId>
             <artifactId>restx-servlet</artifactId>
             <version>${restx.version}</version>
         </dependency>

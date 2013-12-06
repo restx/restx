@@ -19,7 +19,6 @@
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-factory-admin" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-monitor-admin" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-log-admin" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-servlet" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-server-simple" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-apidocs" rev="latest.integration" conf="default" />
