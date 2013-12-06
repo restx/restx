@@ -314,7 +314,7 @@ public class Factory implements AutoCloseable {
         }
 
         private ImmutableList<ComponentCustomizerEngine> buildCustomizerEngines(Factory factory) {
-            List<ComponentCustomizerEngine> componentCustomizerEngines = new ArrayList<>();
+            Set<ComponentCustomizerEngine> componentCustomizerEngines = new LinkedHashSet<>();
             for (FactoryMachine machine : factory.machines) {
                 Set<Name<ComponentCustomizerEngine>> names = machine.nameBuildableComponents(ComponentCustomizerEngine.class);
                 for (Name<ComponentCustomizerEngine> name : names) {
