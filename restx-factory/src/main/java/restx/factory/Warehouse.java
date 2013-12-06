@@ -75,7 +75,7 @@ public class Warehouse implements AutoCloseable {
         }
     }
 
-    private final Logger logger = LoggerFactory.getLogger(Warehouse.class);
+    private static final Logger logger = LoggerFactory.getLogger(Warehouse.class);
 
     private final String id;
     private final ConcurrentMap<Name<?>, StoredBox<?>> boxes = new ConcurrentHashMap<>();

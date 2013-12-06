@@ -30,7 +30,7 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
 
     private static final String EXPIRES = "_expires";
 
-    private final Logger logger = LoggerFactory.getLogger(RestxSessionFilter.class);
+    private final static Logger logger = LoggerFactory.getLogger(RestxSessionFilter.class);
 
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;

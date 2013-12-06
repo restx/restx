@@ -76,7 +76,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
     }
 
-    private final Logger logger = LoggerFactory.getLogger(StdRestxMainRouter.class);
+    private static final Logger logger = LoggerFactory.getLogger(StdRestxMainRouter.class);
 
     private final RestxRouting routing;
     private final String mode;

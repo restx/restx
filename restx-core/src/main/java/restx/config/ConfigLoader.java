@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Component
 public class ConfigLoader {
-    private final Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
+    private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
 
     private final String env;
 

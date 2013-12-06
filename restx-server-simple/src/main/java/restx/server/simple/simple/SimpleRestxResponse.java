@@ -23,7 +23,7 @@ import java.io.PrintWriter;
  * Time: 1:57 PM
  */
 public class SimpleRestxResponse implements RestxResponse {
-    private final Logger logger = LoggerFactory.getLogger(SimpleRestxResponse.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleRestxResponse.class);
     private final Response response;
     private String charset;
     private PrintWriter writer;

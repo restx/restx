@@ -40,7 +40,7 @@ import static com.google.common.collect.Iterables.addAll;
  * Time: 2:46 PM
  */
 public class ModulesManager {
-    private final Logger logger = LoggerFactory.getLogger(ModulesManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(ModulesManager.class);
 
     private static final Pattern MRID_PATTERN = Pattern.compile("(.+):(.+):(.+)");
 

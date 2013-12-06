@@ -14,7 +14,7 @@ import restx.factory.Component;
  */
 @Component
 public class StdRestxSecurityManager implements RestxSecurityManager {
-    private final Logger logger = LoggerFactory.getLogger(StdRestxSecurityManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(StdRestxSecurityManager.class);
 
     @Override
     public void check(RestxRequest request, Permission permission) {

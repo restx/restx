@@ -100,7 +100,7 @@ public abstract class SimpleWebServer implements WebServer {
         return new SimpleWebServerBuilder();
     }
 
-    private final Logger logger = LoggerFactory.getLogger(SimpleWebServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleWebServer.class);
 
     private final String serverId;
 

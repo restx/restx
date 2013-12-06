@@ -19,7 +19,7 @@ import java.util.Collection;
 public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
     public static final String DEPLOYED_SERVER_ID = "SERVLET-ENGINE-1";
 
-    private final Logger logger = LoggerFactory.getLogger(RestxMainRouterServlet.class);
+    private static final Logger logger = LoggerFactory.getLogger(RestxMainRouterServlet.class);
     private String serverId;
 
     public RestxMainRouterServlet() {

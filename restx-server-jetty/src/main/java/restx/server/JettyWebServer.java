@@ -29,7 +29,7 @@ import static restx.common.MoreIO.checkCanOpenSocket;
 public class JettyWebServer implements WebServer {
     private static final AtomicLong SERVER_ID = new AtomicLong();
 
-    private final Logger logger = LoggerFactory.getLogger(JettyWebServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(JettyWebServer.class);
 
     private Server server;
     private int port;

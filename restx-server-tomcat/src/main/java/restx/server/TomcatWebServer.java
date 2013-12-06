@@ -26,7 +26,7 @@ import static restx.common.MoreIO.checkCanOpenSocket;
 public class TomcatWebServer implements WebServer {
     private static final AtomicLong SERVER_ID = new AtomicLong();
 
-    private final Logger logger = LoggerFactory.getLogger(TomcatWebServer.class);
+    private final static Logger logger = LoggerFactory.getLogger(TomcatWebServer.class);
 
     private final Tomcat tomcat;
     private final String appBase;

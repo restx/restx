@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  */
 @Component
 public class RestxSpecRepository {
-    private final Logger logger = LoggerFactory.getLogger(RestxSpecRepository.class);
+    private static final Logger logger = LoggerFactory.getLogger(RestxSpecRepository.class);
 
     private ImmutableMap<String, RestxSpec> allSpecs;
     private RestxSpecLoader specLoader;
