@@ -21,11 +21,13 @@ public class FrontObjectMapperFactory {
 
     @Provides @Named(MAPPER_NAME)
     public ObjectMapper mapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JodaModule());
-        mapper.registerModule(new GuavaModule());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return mapper;
+        return new ObjectMapper()
+                .registerModule(new JodaModule())
+                .registerModule(new GuavaModule())
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DeserializationFeature.EAGER_DESERIALIZER_FETCH)
+                .disable(SerializationFeature.EAGER_SERIALIZER_FETCH)
+                ;
     }
 }
