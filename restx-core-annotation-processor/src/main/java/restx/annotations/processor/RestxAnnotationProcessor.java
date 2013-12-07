@@ -25,7 +25,6 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,13 +74,20 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
 
                     String permission = buildPermission(annotation, typeElem);
 
+                    Consumes inContentTypeAnn = annotation.methodElem.getAnnotation(Consumes.class);
+                    Optional<String> inContentType = Optional.fromNullable(inContentTypeAnn != null ? inContentTypeAnn.value() : null);
+                    Produces outContentTypeAnn = annotation.methodElem.getAnnotation(Produces.class);
+                    Optional<String> outContentType = Optional.fromNullable(outContentTypeAnn != null ? outContentTypeAnn.value() : null);
+
                     ResourceMethod resourceMethod = new ResourceMethod(
                             resourceClass,
                             annotation.httpMethod, annotation.path,
                             annotation.methodElem.getSimpleName().toString(),
                             annotation.methodElem.getReturnType().toString(),
                             successStatus, logLevel, permission,
-                            typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString());
+                            typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString(),
+                            inContentType, outContentType
+                    );
 
                     resourceClass.resourceMethods.add(resourceMethod);
                     resourceClass.originatingElements.add(annotation.methodElem);
@@ -142,7 +148,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     permission = "isAuthenticated()";
                 }
             }
-        } return permission;
+        }
+        return permission;
     }
 
     private void buildResourceMethodParams(ResourceMethodAnnotation annotation, ResourceMethod resourceMethod) {
@@ -308,6 +315,12 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("inEntityType", getTypeExpressionFor(inEntityClass))
                     .put("outEntity", outEntity)
                     .put("outEntityType", getTypeExpressionFor(resourceMethod.returnType))
+                    .put("inContentType",
+                            resourceMethod.inContentType.isPresent() ?
+                                    String.format("Optional.of(\"%s\")", resourceMethod.inContentType.get()) : "Optional.<String>absent()")
+                    .put("outContentType",
+                            resourceMethod.outContentType.isPresent() ?
+                                    String.format("Optional.of(\"%s\")", resourceMethod.outContentType.get()) : "Optional.<String>absent()")
                     .put("successStatusName", resourceMethod.successStatus.name())
                     .put("logLevelName", resourceMethod.logLevel.name())
                     .build()
@@ -439,17 +452,22 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         final RestxLogLevel logLevel;
         final String permission;
         final String sourceLocation;
+        final Optional<String> inContentType;
+        final Optional<String> outContentType;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
         ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
-                       HttpStatus successStatus, RestxLogLevel logLevel, String permission, String sourceLocation) {
+                       HttpStatus successStatus, RestxLogLevel logLevel, String permission, String sourceLocation,
+                       Optional<String> inContentType, Optional<String> outContentType) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
             this.logLevel = logLevel;
             this.permission = permission;
             this.sourceLocation = sourceLocation;
+            this.inContentType = inContentType;
+            this.outContentType = outContentType;
             Matcher m = optionalPattern.matcher(returnType);
             this.realReturnType = returnType;
             this.returnTypeOptional = m.matches();

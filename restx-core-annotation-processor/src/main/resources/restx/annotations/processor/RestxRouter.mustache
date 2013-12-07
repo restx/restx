@@ -38,8 +38,8 @@ public class {{{router}}} extends RestxRouter {
             "{{{routerGroup}}}", "{{{router}}}", new RestxRoute[] {
 {{#routes}}
         new StdEntityRoute<{{{inEntity}}}, {{{outEntity}}}>("{{{routeId}}}",
-                readerRegistry.<{{{inEntity}}}>build({{inEntityType}}, Optional.<String>absent()),
-                writerRegistry.<{{{outEntity}}}>build({{outEntityType}}, Optional.<String>absent()),
+                readerRegistry.<{{{inEntity}}}>build({{inEntityType}}, {{{inContentType}}}),
+                writerRegistry.<{{{outEntity}}}>build({{outEntityType}}, {{{outContentType}}}),
                 new StdRestxRequestMatcher("{{{method}}}", "{{{path}}}"),
                 HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
             @Override
