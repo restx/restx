@@ -12,7 +12,7 @@ import static restx.factory.Factory.LocalMachines.threadLocal;
 import static restx.tests.HttpTestClient.GET;
 
 /**
- * @see samplest.core.ClientAffinityResource
+ * @see samplest.core.ContextParamsResource
  */
 public class ContextParamsTest {
     @ClassRule
