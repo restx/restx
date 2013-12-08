@@ -20,16 +20,23 @@ import java.util.List;
 @Component
 public class JacksonViewsResource {
 
+    @GET("/jacksonviews/carsDetails")
+    @Produces("application/json;view=samplest.jacksonviews.Views$Details")
+    @PermitAll
+    public List<Car> getCarDetails() {
+        return getAllCars();
+    }
+
     @GET("/jacksonviews/cars")
-    @Produces("application/json;view=samplest.jacksonviews.Views$Frontal$Details")
     @PermitAll
     public List<Car> getCars() {
+        return getAllCars();
+    }
 
+    private List<Car> getAllCars() {
         return Lists.newArrayList(
-                new Car().setBrand("Brand1").setModel("Model1"),
-                new Car().setBrand("Brand1").setModel("Model2"),
-                new Car().setBrand("Brand2").setModel("Model1"),
-                new Car().setBrand("Brand3").setModel("Model1")
+                new Car().setBrand("Brand1").setModel("Model1").setDetails("Detail1"),
+                new Car().setBrand("Brand1").setModel("Model2").setDetails("Detail2").setStatus("status detail 2")
         );
     }
 }

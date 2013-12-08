@@ -1,7 +1,9 @@
 package samplest.domain;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import samplest.jacksonviews.CustomJacksonSerializer;
+import samplest.jacksonviews.Views;
 
 /**
  * User: eoriou
@@ -9,12 +11,15 @@ import samplest.jacksonviews.CustomJacksonSerializer;
  * Time: 11:16
  */
 
-@JsonSerialize(using = CustomJacksonSerializer.class)
 public class Car {
-
     private String brand;
-
     private String model;
+
+    @JsonSerialize(using = CustomJacksonSerializer.class)
+    private String status = "";
+
+    @JsonView(Views.Details.class)
+    private String details;
 
     public Car setBrand(final String brand) {
         this.brand = brand;
@@ -26,6 +31,17 @@ public class Car {
         return this;
     }
 
+    public Car setStatus(final String status) {
+        this.status = status;
+        return this;
+    }
+
+    public Car setDetails(final String details) {
+        this.details = details;
+        return this;
+    }
+
+
     public String getBrand() {
         return brand;
     }
@@ -34,11 +50,21 @@ public class Car {
         return model;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
     @Override
     public String toString() {
         return "Car{" +
                 "brand='" + brand + '\'' +
                 ", model='" + model + '\'' +
+                ", status='" + status + '\'' +
+                ", details='" + details + '\'' +
                 '}';
     }
 }

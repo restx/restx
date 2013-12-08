@@ -6,13 +6,5 @@ package samplest.jacksonviews;
  * Time: 11:47
  */
 public class Views {
-
-    public interface Frontal {
-
-        public interface Details {
-
-        }
-
-    }
-
+    public static interface Details { }
 }
