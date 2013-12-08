@@ -10,7 +10,7 @@
                 <span ng-hide="operation.outEntitySchemaKey">{{operation.responseClass}}</span>
             </p>
             <p><label>Success status:</label> {{operation.successStatus.code}} - {{operation.successStatus.desc}}</p>
-            <div class="relatedOperations"><label>Related operations:</label>
+            <div class="relatedOperations" ng-show="operation.relatedOperations.length > 0"><label>Related operations:</label>
                 <table class="table table-condensed operations">
                     <tr class="operation operation-{{rel.httpMethod}}" ng-repeat="rel in operation.relatedOperations">
                         <td class="http-method">
@@ -79,7 +79,7 @@
                         <div class="response" ng-switch="request.response.bodyType">
                             <ul ng-switch-when="array">
                                 <li ng-repeat="el in request.response.bodyObj">
-                                    <div class="dropdown pull-right">
+                                    <div class="dropdown pull-right" ng-show="operation.relatedOperations.length > 0">
                                         <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Use &gt;&gt;</button>
                                         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                             <li ng-repeat="rel in operation.relatedOperations">
@@ -94,7 +94,7 @@
                                 </li>
                             </ul>
                             <div ng-switch-when="object">
-                                <div class="dropdown pull-right">
+                                <div class="dropdown pull-right" ng-show="operation.relatedOperations.length > 0">
                                     <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Use &gt;&gt;</button>
                                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                         <li ng-repeat="rel in operation.relatedOperations">
