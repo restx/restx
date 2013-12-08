@@ -20,6 +20,7 @@
         <restx.version>0.31-SNAPSHOT</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
+        <jackson.version>2.3.0</jackson.version>
     </properties>
 
     <dependencies>
@@ -42,6 +43,11 @@
             <groupId>io.restx</groupId>
             <artifactId>restx-admin</artifactId>
             <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jsonSchema</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 </project>
