@@ -14,6 +14,7 @@ public class OperationParameterDescription {
     public String name;
     public String description;
     public String dataType;
+    public String schemaKey;
     public boolean required;
     public boolean allowMultiple;
 }

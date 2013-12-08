@@ -5,7 +5,10 @@
             <h2>Description</h2>
             <button ng-click="toggleTry()" class="btn pull-right" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
             <p><label>Nick name:</label> {{operation.nickname}}</p>
-            <p><label>Response class:</label> {{operation.responseClass}}</p>
+            <p><label>Response class:</label>
+                <a ng-show="operation.outEntitySchemaKey" href="#/entity/{{operation.outEntitySchemaKey}}">{{operation.responseClass}}</a>
+                <span ng-hide="operation.outEntitySchemaKey">{{operation.responseClass}}</span>
+            </p>
             <p><label>Success status:</label> {{operation.successStatus.code}} - {{operation.successStatus.desc}}</p>
             <div class="relatedOperations"><label>Related operations:</label>
                 <table class="table table-condensed operations">
@@ -35,7 +38,10 @@
                         <input ng-switch-default type="text" ng-model="param.value">
                     </td>
                     <td class="paramType">{{param.paramType}}</td>
-                    <td class="dataType">{{param.dataType}}</td>
+                    <td class="dataType">
+                        <a ng-show="param.schemaKey" href="#/entity/{{param.schemaKey}}">{{param.dataType}}</a>
+                        <span ng-hide="param.schemaKey">{{param.dataType}}</span>
+                    </td>
                     <td class="required">{{param.required}}</td>
                 </tr>
             </table>

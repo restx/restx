@@ -273,11 +273,13 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                             "                {PARAMETER}.name = \"%s\";\n" +
                             "                {PARAMETER}.paramType = OperationParameterDescription.ParamType.%s;\n" +
                             "                {PARAMETER}.dataType = \"%s\";\n" +
+                            "                {PARAMETER}.schemaKey = \"%s\";\n" +
                             "                {PARAMETER}.required = %s;\n" +
                             "                operation.parameters.add({PARAMETER});\n",
                             parameter.name,
                             parameter.kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
+                            toSchemaKey(parameter.type),
                             String.valueOf(!parameter.optional)
                     ).replaceAll("\\{PARAMETER}", parameter.name));
                 }
@@ -313,8 +315,10 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
                     .put("inEntity", inEntityClass)
                     .put("inEntityType", getTypeExpressionFor(inEntityClass))
+                    .put("inEntitySchemaKey", toSchemaKey(inEntityClass))
                     .put("outEntity", outEntity)
                     .put("outEntityType", getTypeExpressionFor(resourceMethod.returnType))
+                    .put("outEntitySchemaKey", toSchemaKey(resourceMethod.returnType))
                     .put("inContentType",
                             resourceMethod.inContentType.isPresent() ?
                                     String.format("Optional.of(\"%s\")", resourceMethod.inContentType.get()) : "Optional.<String>absent()")
@@ -328,6 +332,22 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         }
     }
 
+
+    private String toSchemaKey(String type) {
+        Pattern p = Pattern.compile("java\\.lang\\.Iterable<(.+)>");
+        Matcher m = p.matcher(type);
+        if (m.matches()) {
+            type =  m.group(1);
+        }
+        if (type.startsWith("java.lang")
+            || type.startsWith("java.util")
+            || type.equalsIgnoreCase("void")
+                ) {
+            return "";
+        } else {
+            return type;
+        }
+    }
 
     private String toTypeDescription(String type) {
         // see https://github.com/wordnik/swagger-core/wiki/datatypes

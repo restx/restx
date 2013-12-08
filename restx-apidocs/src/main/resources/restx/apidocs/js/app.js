@@ -10,11 +10,16 @@ adminApp.config(function($routeProvider) {
       when('/', {
         controller: 'ApisController',
         templateUrl: 'views/apis.html'
-      }).
-      when('/operation/:name/:httpMethod/:path', {
+      })
+      .when('/operation/:name/:httpMethod/:path', {
         controller: 'OperationController',
         templateUrl: 'views/operation.html'
-      });
+      })
+      .when('/entity/:fqcn', {
+        controller: 'EntityController',
+        templateUrl: 'views/entity.html'
+      })
+  ;
 });
 
 adminApp.directive('eatClick', function() {
