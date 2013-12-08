@@ -1,4 +1,4 @@
-package resources;
+package samplest.jacksonviews;
 
 import com.github.kevinsawicki.http.HttpRequest;
 import org.junit.Test;
@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Date: 04/12/2013
  * Time: 15:52
  */
-public class ResourceContentTypeTest {
+public class JacksonViewsTest {
 
     @Test
     public void should_retrieve_well_formed_data() throws Exception {
@@ -22,7 +22,7 @@ public class ResourceContentTypeTest {
         server.start();
         try {
 
-            HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/cars");
+            HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/jacksonviews/cars");
             assertThat(httpRequest.code()).isEqualTo(200);
             assertThat(httpRequest.body().trim()).isEqualTo(
                     "[\"{'status' : 'ok'}\",\"{'status' : 'ok'}\",\"{'status' : 'ok'}\",\"{'status' : 'ok'}\"]");

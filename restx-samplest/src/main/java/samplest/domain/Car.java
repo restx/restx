@@ -1,7 +1,7 @@
 package samplest.domain;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import samplest.serialization.CustomJacksonSerializer;
+import samplest.jacksonviews.CustomJacksonSerializer;
 
 /**
  * User: eoriou

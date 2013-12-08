@@ -1,4 +1,4 @@
-package samplest.serialization;
+package samplest.jacksonviews;
 
 /**
  * User: eoriou

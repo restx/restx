@@ -1,4 +1,4 @@
-package samplest.resources;
+package samplest.jacksonviews;
 
 import com.google.common.collect.Lists;
 import restx.annotations.GET;
@@ -18,10 +18,10 @@ import java.util.List;
 
 @RestxResource
 @Component
-public class CarsResource {
+public class JacksonViewsResource {
 
-    @GET("/cars")
-    @Produces("application/json;view=samplest.serialization.Views$Frontal$Details")
+    @GET("/jacksonviews/cars")
+    @Produces("application/json;view=samplest.jacksonviews.Views$Frontal$Details")
     @PermitAll
     public List<Car> getCars() {
 
