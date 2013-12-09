@@ -28,8 +28,10 @@ public class MorePreconditions {
     }
 
     public static <T> T checkInstanceOf(String name, Object o, Class<T> clazz) {
+        Preconditions.checkNotNull(o, "%s must not be null and be an instance of %s", name, clazz.getName());
         Preconditions.checkArgument(clazz.isInstance(o),
-                "%s %s must be an instanceof of %s", name, o, clazz.getSimpleName());
+                "%s %s must be an instanceof of %s - but it is a %s", name, o, clazz.getSimpleName(),
+                o.getClass().getName());
 
         return (T) o;
     }
