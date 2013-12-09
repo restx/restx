@@ -44,6 +44,7 @@ public class Factory implements AutoCloseable {
     private static final AtomicLong ID = new AtomicLong();
 
     private static final ConcurrentMap<String, Factory> factories = Maps.newConcurrentMap();
+    private static final ThreadLocal<Factory> current = new ThreadLocal<>();
 
     public static Optional<Factory> getFactory(String key) {
         return Optional.fromNullable(factories.get(key));
@@ -65,6 +66,55 @@ public class Factory implements AutoCloseable {
         return Factory.builder().addFromServiceLoader()
                 .addLocalMachines(LocalMachines.threadLocal())
                 .build();
+    }
+
+    /**
+     * Returns Factory associated with current thread, or #getInstance() if no factory
+     * is associated with current thread.
+     *
+     * @return
+     */
+    public static Factory current() {
+        Factory factory = current.get();
+        if (factory != null) {
+            return factory;
+        }
+        return getInstance();
+    }
+
+    /**
+     * Run a runnable with a factory associated with current thread.
+     *
+     * @param factory
+     * @param runnable
+     * @return
+     * @throws Exception
+     */
+    public static void doWithFactory(Factory factory, Runnable runnable) {
+        setCurrent(factory);
+        try {
+            runnable.run();
+        } finally {
+            clearCurrent();
+        }
+    }
+
+    /**
+     * Clears the factory currently associated with current thread.
+     * @see #setCurrent(Factory)
+     */
+    public static void clearCurrent() {
+        current.remove();
+    }
+
+    /**
+     * Sets the factory currently associated with current thread.
+     * Make sure you call #clearCurrent() in a finally block to clear the thread local context.
+     *
+     * @param factory
+     */
+    public static void setCurrent(Factory factory) {
+        current.set(factory);
     }
 
     /**
