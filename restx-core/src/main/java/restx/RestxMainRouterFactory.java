@@ -66,6 +66,26 @@ public class RestxMainRouterFactory {
         }
     }
 
+    private static class WithFactoryMainRouter implements RestxMainRouter {
+        private final Factory factory;
+        private final RestxMainRouter mainRouter;
+
+        public WithFactoryMainRouter(Factory factory, RestxMainRouter mainRouter) {
+            this.factory = factory;
+            this.mainRouter = mainRouter;
+        }
+
+        @Override
+        public void route(final RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
+            Factory.setCurrent(factory);
+            try {
+                mainRouter.route(restxRequest, restxResponse);
+            } finally {
+                Factory.clearCurrent();
+            }
+        }
+    }
+
     /**
      * A main router decorator that may record all or some requests.
      *
@@ -120,7 +140,9 @@ public class RestxMainRouterFactory {
                                                                                 restxRequest.getHeader("RestxThreadLocal"),
                                                                                 restxSpecRecorder, getMode(restxRequest)));
                                 try {
-                                    newStdRouter(factory).route(tape.getRecordingRequest(), tape.getRecordingResponse());
+                                    StdRestxMainRouter mainRouter = newStdRouter(factory);
+                                    new WithFactoryMainRouter(factory, mainRouter)
+                                            .route(tape.getRecordingRequest(), tape.getRecordingResponse());
                                 } finally {
                                     factory.close();
                                 }
@@ -183,7 +205,9 @@ public class RestxMainRouterFactory {
                     .addWarehouseProvider(warehouse));
 
             try {
-                newStdRouter(factory).route(restxRequest, restxResponse);
+                StdRestxMainRouter mainRouter = newStdRouter(factory);
+                new WithFactoryMainRouter(factory, mainRouter)
+                        .route(restxRequest, restxResponse);
             } catch (Factory.UnsatisfiedDependenciesException ex) {
                 if (restxRequest.getHeader("RestxDebug").isPresent()) {
                     logger.error("Exception when using factory to load router: {}\n{}", ex.getMessage(), factory.dumper());
@@ -331,7 +355,7 @@ public class RestxMainRouterFactory {
 
             if (RestxContext.Modes.PROD.equals(getMode())) {
                 // in PROD we definitely return the main router, we will never check anything else
-                return mainRouter;
+                return new WithFactoryMainRouter(factory, mainRouter);
             } else {
                 // in other modes we may record requests one by one or all of them, we use the recording decorator
                 return new RecordingMainRouter(serverId, recorder, mainRouter,
