@@ -6,7 +6,6 @@ import restx.annotations.Produces;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.security.PermitAll;
-import samplest.domain.Car;
 
 import java.util.List;
 

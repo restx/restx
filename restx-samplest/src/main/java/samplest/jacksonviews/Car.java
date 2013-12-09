@@ -1,9 +1,7 @@
-package samplest.domain;
+package samplest.jacksonviews;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import samplest.jacksonviews.CustomJacksonSerializer;
-import samplest.jacksonviews.Views;
 
 /**
  * User: eoriou
