@@ -4,8 +4,6 @@ import restx.common.UUIDGenerator;
 import restx.factory.Component;
 import restx.http.HttpStatus;
 
-import javax.inject.Named;
-
 /**
  * Date: 10/12/13
  * Time: 20:52
@@ -14,8 +12,8 @@ import javax.inject.Named;
 public class RestxErrors {
     private final UUIDGenerator uuidGenerator;
 
-    public RestxErrors() {
-        this.uuidGenerator = ExceptionsFactory.currentUUIDGenerator();
+    public RestxErrors(UUIDGenerator uuidGenerator) {
+        this.uuidGenerator = uuidGenerator;
     }
 
     public <E> RestxError<E> on(Class<E> errorCode) {

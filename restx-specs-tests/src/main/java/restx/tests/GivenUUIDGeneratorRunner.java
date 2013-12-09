@@ -1,11 +1,16 @@
 package restx.tests;
 
 import com.google.common.collect.ImmutableMap;
+import restx.CoreModule;
 import restx.common.UUIDGenerator;
-import restx.common.UUIDGenerators;
 import restx.factory.Component;
 import restx.factory.NamedComponent;
 import restx.specs.GivenUUIDGenerator;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static restx.factory.Factory.LocalMachines.overrideComponents;
 
 /**
  * @author fcamblor
@@ -19,17 +24,19 @@ public class GivenUUIDGeneratorRunner implements GivenRunner<GivenUUIDGenerator>
 
     @Override
     public GivenCleaner run(GivenUUIDGenerator given, ImmutableMap<String, String> params) {
+        final List<String> sequence1 = given.getPlaybackUUIDs();
         NamedComponent<UUIDGenerator> playbackUUIDComponent = NamedComponent.of(
-                UUIDGenerator.class, given.getTargetComponentName(),
-                new UUIDGenerator.PlaybackUUIDGenerator(given.getPlaybackUUIDs()));
+                UUIDGenerator.class, CoreModule.UUID_GENERATOR,
+                new UUIDGenerator() {
+                    private final List<String> sequence = new LinkedList<>(sequence1);
 
-        final UUIDGenerators.OverridenMachineCleaner cleaner = UUIDGenerators.overrideUUIDGenerator(playbackUUIDComponent);
+                    @Override
+                    public synchronized String doGenerate() {
+                        return sequence.remove(0);
+                    }
+                });
+        overrideComponents().set(playbackUUIDComponent);
 
-        return new GivenCleaner() {
-            @Override
-            public void cleanUp() {
-                cleaner.cleanup();
-            }
-        };
+        return NoopGivenCleaner.INSTANCE;
     }
 }

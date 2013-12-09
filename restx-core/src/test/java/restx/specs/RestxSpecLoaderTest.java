@@ -17,8 +17,14 @@ public class RestxSpecLoaderTest {
         RestxSpec spec = new RestxSpecLoader().load("cases/test/test.spec.yaml");
 
         assertThat(spec.getTitle()).isEqualTo("should say hello");
-        assertThat(spec.getGiven()).extracting("time").extracting("millis")
-                .containsExactly(DateTime.parse("2013-03-31T14:33:18.272+02:00").getMillis());
+        assertThat(spec.getGiven()).hasSize(2);
+
+        assertThat(spec.getGiven().get(0)).isInstanceOf(GivenTime.class);
+        assertThat(((GivenTime) spec.getGiven().get(0)).getTime().getMillis())
+                .isEqualTo(DateTime.parse("2013-03-31T14:33:18.272+02:00").getMillis());
+
+        assertThat(spec.getGiven().get(1)).isInstanceOf(GivenUUIDGenerator.class);
+        assertThat(((GivenUUIDGenerator) spec.getGiven().get(1)).getPlaybackUUIDs()).containsExactly("123456");
 
         assertThat(spec.getWhens()).extracting("method", "path").containsExactly(Tuple.tuple("GET", "message/xavier"));
         assertThat(spec.getWhens()).extracting("then").extracting("expectedCode", "expected")

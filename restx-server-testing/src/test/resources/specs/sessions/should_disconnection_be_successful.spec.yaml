@@ -1,8 +1,7 @@
 title: should authentication then disconnection change current authenticated user
 given:
   - time: 2013-09-15T18:29:41.234+02:00
-  - uuidsFor: SessionUUIDGenerator
-    data: [ "e71a0f9f-9082-4626-bc34-3893c540566d" ]
+  - uuids: [ "e71a0f9f-9082-4626-bc34-3893c540566d" ]
 
 wts:
   - when: |

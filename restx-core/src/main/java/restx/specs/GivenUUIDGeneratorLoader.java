@@ -1,6 +1,7 @@
 package restx.specs;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import restx.factory.Component;
 
@@ -15,14 +16,12 @@ import static restx.common.MorePreconditions.checkInstanceOf;
 /**
  * @author fcamblor
  */
-@Named("uuidsFor") @Component
+@Named("uuids") @Component
 public class GivenUUIDGeneratorLoader implements RestxSpecLoader.GivenLoader {
     @Override
     public Given load(Map given) {
-        String targetComponentName = checkInstanceOf("uuidsFor", given.get("uuidsFor"), String.class);
-
         List<String> uuids = newArrayList();
-        Object data = checkContainsKey("given", given, "data");
+        Object data = checkContainsKey("given", given, "uuids");
         if (data instanceof String) {
             String s = (String) data;
             Iterables.addAll(uuids, Splitter.on(",").omitEmptyStrings().trimResults().split(s));
@@ -34,6 +33,6 @@ public class GivenUUIDGeneratorLoader implements RestxSpecLoader.GivenLoader {
                     " must be either String or Iterable.");
         }
 
-        return new GivenUUIDGenerator(targetComponentName, uuids);
+        return new GivenUUIDGenerator(ImmutableList.copyOf(uuids));
     }
 }
