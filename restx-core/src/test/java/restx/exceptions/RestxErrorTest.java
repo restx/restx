@@ -3,7 +3,9 @@ package restx.exceptions;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.junit.Test;
+import restx.CoreModule;
 import restx.common.UUIDGenerator;
+import restx.factory.Factory;
 
 import java.util.Arrays;
 
@@ -22,7 +24,7 @@ public class RestxErrorTest {
 
     @Test
     public void should_provide_error_message() throws Exception {
-        ExceptionsFactory.playbackUUIDs(Arrays.asList("123456"), new Runnable() {
+        CoreModule.playbackUUIDs(Arrays.asList("123456"), new Runnable() {
             @Override
             public void run() {
                 DateTimeUtils.setCurrentMillisFixed(DateTime.parse("2013-03-19T12:00:00Z").getMillis());

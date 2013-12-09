@@ -49,8 +49,11 @@ import static restx.common.MorePreconditions.checkPresent;
  */
 @Component
 public class AppShellCommand extends StdShellCommand {
-    public AppShellCommand() {
+    private final UUIDGenerator uuidGenerator;
+
+    public AppShellCommand(UUIDGenerator uuidGenerator) {
         super(ImmutableList.of("app"), "app related commands: creates a new app, run your app, ...");
+        this.uuidGenerator = uuidGenerator;
     }
 
     @Override
@@ -188,7 +191,7 @@ public class AppShellCommand extends StdShellCommand {
 
             descriptor.restxVersion = shell.ask("restx version [%s]? ", Version.getVersion("io.restx", "restx-core"));
 
-            List<String> list = Lists.newArrayList(UUIDGenerator.DEFAULT.doGenerate(),
+            List<String> list = Lists.newArrayList(uuidGenerator.doGenerate(),
                     String.valueOf(new Random().nextLong()), descriptor.appName, descriptor.artifactId);
             Collections.shuffle(list);
             descriptor.signatureKey = shell.ask("signature key (to sign cookies) [%s]? ",

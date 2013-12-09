@@ -16,6 +16,7 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
 import static restx.factory.Factory.LocalMachines;
 import static restx.factory.Factory.LocalMachines.contextLocal;
+import static restx.factory.Factory.LocalMachines.overrideComponents;
 
 /**
  * User: xavierhanin
@@ -119,6 +120,7 @@ public class RestxSpecRunner {
             for (GivenCleaner givenCleaner : givenCleaners) {
                 givenCleaner.cleanUp();
             }
+            overrideComponents().clear();
         }
 
     }

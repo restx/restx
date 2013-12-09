@@ -89,12 +89,14 @@ public class RestxSpecTestServer {
         private final Path storeLocation;
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
+        private final UUIDGenerator uuidGenerator;
 
         public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository,
-                             RunningServerSettings settings) {
+                             UUIDGenerator uuidGenerator, RunningServerSettings settings) {
             this.server = server;
             this.runner = runner;
             this.repository = repository;
+            this.uuidGenerator = uuidGenerator;
 
             storeLocation = Paths.get(settings.targetTestsRoot());
 
@@ -116,7 +118,7 @@ public class RestxSpecTestServer {
 
         public TestRequest submitTestRequest(TestRequest testRequest) {
             if (testRequest.getTest().startsWith("specs")) {
-                final String requestKey = UUIDGenerator.DEFAULT.doGenerate();
+                final String requestKey = uuidGenerator.doGenerate();
                 logger.info("queuing test request {}", testRequest);
                 testRequest.setKey(requestKey);
                 testRequest.setRequestTime(DateTime.now());
@@ -197,7 +199,7 @@ public class RestxSpecTestServer {
 
                 TestResult result = new TestResult()
                         .setSummary(new TestResultSummary()
-                                .setKey(UUIDGenerator.DEFAULT.doGenerate())
+                                .setKey(uuidGenerator.doGenerate())
                                 .setName(spec)
                                 .setStatus(status)
                                 .setTestDuration(System.currentTimeMillis() - start)
@@ -358,8 +360,10 @@ public class RestxSpecTestServer {
         RestxSpecRunner runner = new RestxSpecRunner(specLoader, routerPath, server.getServerId(), server.baseUrl(), factory);
         RestxSpecRepository repository = new HotReloadRestxSpecRepository(specLoader);
 
-        final RunningServer runningServer = new RunningServer(server, runner, repository,
-                factory.queryByClass(RunningServerSettings.class).mandatory().findOneAsComponent().get());
+        final RunningServer runningServer = new RunningServer(
+                server, runner, repository,
+                factory.getComponent(UUIDGenerator.class),
+                factory.getComponent(RunningServerSettings.class));
 
         Factory.getFactory(server.getServerId()).get().getComponent(EventBus.class).register(new Object() {
             @Subscribe

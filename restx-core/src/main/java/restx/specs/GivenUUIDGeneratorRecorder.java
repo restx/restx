@@ -1,7 +1,9 @@
 package restx.specs;
 
+import com.google.common.collect.ImmutableList;
+import restx.CoreModule;
+import restx.RestxContext;
 import restx.common.UUIDGenerator;
-import restx.common.UUIDGenerators;
 import restx.factory.*;
 
 import java.util.*;
@@ -11,59 +13,55 @@ import java.util.*;
  */
 @Component
 public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecorder {
-    Map<String, UUIDGenerators.OverridenMachineCleaner> namedUUIDGeneratorsCleaners = new HashMap<>();
-
     @Override
     public void installRecording() {
-        Set<NamedComponent<UUIDGenerator>> namedGenerators = UUIDGenerators.currentUUIDGenerators();
-        for(NamedComponent<UUIDGenerator> namedGenerator : namedGenerators){
-            namedUUIDGeneratorsCleaners.put(namedGenerator.getName().getName(), UUIDGenerators.overrideUUIDGenerator(
-                    NamedComponent.of(UUIDGenerator.class, namedGenerator.getName().getName(), new UUIDGenerator.RecordingUUIDGenerator())
-            ));
-        }
+        Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING).addMachine(
+                new SingleNameFactoryMachine<>(0, new NoDepsMachineEngine<ComponentCustomizerEngine>(
+                Name.of(ComponentCustomizerEngine.class, "UUIDGeneratorSequenceSupplier"),
+                BoundlessComponentBox.FACTORY) {
+                    @Override
+                    protected ComponentCustomizerEngine doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        return new SingleComponentClassCustomizerEngine(0, UUIDGenerator.class) {
+                            @Override
+                            public NamedComponent customize(final NamedComponent namedComponent) {
+                                return new NamedComponent(namedComponent.getName(), new UUIDGenerator() {
+                                    @Override
+                                    public String doGenerate() {
+                                        String uuid = ((UUIDGenerator) namedComponent.getComponent()).doGenerate();
+                                        Tape.TAPE.get().recordGeneratedId(uuid);
+                                        return uuid;
+                                    }
+                                });
+                            }
+                        };
+                    }
+                }));
     }
 
     @Override
     public AutoCloseable recordIn(final Map<String, Given> givens) {
-        final Set<NamedComponent<UUIDGenerator.RecordingUUIDGenerator>> recordingUUIDGenerators = recordingUUIDGenerators();
-        final Map<String, UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver> observersByName = new HashMap<>();
-
-        for(final NamedComponent<UUIDGenerator.RecordingUUIDGenerator> namedRecordingUUIDGenerator : recordingUUIDGenerators){
-            UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver observer = new UUIDGenerator.RecordingUUIDGenerator.UUIDGeneratedObserver() {
-                public void uuidGenerated(String uuid) {
-                    String key = GivenUUIDGenerator.class.getSimpleName() + "/uuidsFor" + namedRecordingUUIDGenerator.getName().getName();
-                    if (!givens.containsKey(key)) {
-                        givens.put(key, new GivenUUIDGenerator(namedRecordingUUIDGenerator.getName().getName(), Collections.<String>emptyList()));
-                    }
-                    givens.put(key, ((GivenUUIDGenerator) givens.get(key)).concat(uuid));
-                }
-            };
-            namedRecordingUUIDGenerator.getComponent().attachObserver(observer);
-            observersByName.put(namedRecordingUUIDGenerator.getName().getName(), observer);
-        }
-
-        return new AutoCloseable() {
-            @Override
-            public void close() throws Exception {
-                for(NamedComponent<UUIDGenerator.RecordingUUIDGenerator> namedRecordingUUIDGenerator : recordingUUIDGenerators){
-                    // Removing attached observers
-                    namedRecordingUUIDGenerator.getComponent().detachObserver(observersByName.get(namedRecordingUUIDGenerator.getName().getName()));
-
-                    // No need to clean uuid generators machine because installRecording() will not be called
-                    // again before the next recordIn() call..
-                }
-            }
-        };
+        return new Tape(givens);
     }
 
-    private Set<NamedComponent<UUIDGenerator.RecordingUUIDGenerator>> recordingUUIDGenerators(){
-        Set<NamedComponent<UUIDGenerator.RecordingUUIDGenerator>> recordingUUIDGenerators = new HashSet<>();
-        for(Map.Entry<String,UUIDGenerators.OverridenMachineCleaner> namedUUIDGeneratorCleanerByName : namedUUIDGeneratorsCleaners.entrySet()){
-            UUIDGenerator currentGenerator = UUIDGenerators.currentGeneratorFor(namedUUIDGeneratorCleanerByName.getKey());
-            if(currentGenerator instanceof UUIDGenerator.RecordingUUIDGenerator){
-                recordingUUIDGenerators.add(NamedComponent.of(UUIDGenerator.RecordingUUIDGenerator.class, namedUUIDGeneratorCleanerByName.getKey(), (UUIDGenerator.RecordingUUIDGenerator) currentGenerator));
-            }
+    private static class Tape implements AutoCloseable {
+        private static final ThreadLocal<Tape> TAPE = new ThreadLocal<>();
+        private final Map<String, Given> givens;
+        private GivenUUIDGenerator givenUUIDGenerator;
+
+        private Tape(Map<String, Given> givens) {
+            this.givens = givens;
+            givenUUIDGenerator = new GivenUUIDGenerator(ImmutableList.<String>of());
+            TAPE.set(this);
         }
-        return recordingUUIDGenerators;
+
+        @Override
+        public void close() throws Exception {
+            TAPE.remove();
+            givens.put("uuids", givenUUIDGenerator);
+        }
+
+        private void recordGeneratedId(String uuid) {
+            givenUUIDGenerator = givenUUIDGenerator.concat(uuid);
+        }
     }
 }
