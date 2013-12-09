@@ -87,17 +87,20 @@ public class RestxSpecTestServer {
         private final RestxSpecRunner runner;
         private final RestxSpecRepository repository;
         private final RestxErrors errors;
+        private final UUIDGenerator uuidGenerator;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
         private final Path storeLocation;
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
 
         public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository,
+                             UUIDGenerator uuidGenerator, 
                              RestxErrors errors,
                              RunningServerSettings settings) {
             this.server = server;
             this.runner = runner;
             this.repository = repository;
+            this.uuidGenerator = uuidGenerator;
             this.errors = errors;
 
             storeLocation = Paths.get(settings.targetTestsRoot());
@@ -120,7 +123,7 @@ public class RestxSpecTestServer {
 
         public TestRequest submitTestRequest(TestRequest testRequest) {
             if (testRequest.getTest().startsWith("specs")) {
-                final String requestKey = UUIDGenerator.DEFAULT.doGenerate();
+                final String requestKey = uuidGenerator.doGenerate();
                 logger.info("queuing test request {}", testRequest);
                 testRequest.setKey(requestKey);
                 testRequest.setRequestTime(DateTime.now());
@@ -201,7 +204,7 @@ public class RestxSpecTestServer {
 
                 TestResult result = new TestResult()
                         .setSummary(new TestResultSummary()
-                                .setKey(UUIDGenerator.DEFAULT.doGenerate())
+                                .setKey(uuidGenerator.doGenerate())
                                 .setName(spec)
                                 .setStatus(status)
                                 .setTestDuration(System.currentTimeMillis() - start)
@@ -362,9 +365,11 @@ public class RestxSpecTestServer {
         RestxSpecRunner runner = new RestxSpecRunner(specLoader, routerPath, server.getServerId(), server.baseUrl(), factory);
         RestxSpecRepository repository = new HotReloadRestxSpecRepository(specLoader);
 
-        final RunningServer runningServer = new RunningServer(server, runner, repository,
+        final RunningServer runningServer = new RunningServer(
+                server, runner, repository,
+                factory.getComponent(UUIDGenerator.class),
                 factory.getComponent(RestxErrors.class),
-                factory.queryByClass(RunningServerSettings.class).mandatory().findOneAsComponent().get());
+                factory.getComponent(RunningServerSettings.class));
 
         Factory.getFactory(server.getServerId()).get().getComponent(EventBus.class).register(new Object() {
             @Subscribe

@@ -2,6 +2,7 @@ package restx.security;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import restx.common.UUIDGenerator;
 import restx.http.HttpStatus;
 import restx.Status;
 import restx.WebException;
@@ -17,9 +18,11 @@ import java.util.Map;
 public class SessionResource {
 
     private final BasicPrincipalAuthenticator authenticator;
+    private final UUIDGenerator uuidGenerator;
 
-    public SessionResource(BasicPrincipalAuthenticator authenticator) {
+    public SessionResource(BasicPrincipalAuthenticator authenticator, UUIDGenerator uuidGenerator) {
         this.authenticator = authenticator;
+        this.uuidGenerator = uuidGenerator;
     }
 
 
@@ -41,7 +44,7 @@ public class SessionResource {
                 name, passwordHash, ImmutableMap.copyOf(principal));
 
         if (principalOptional.isPresent()) {
-            String sessionKey = BasicSecurityModule.currentUUIDGenerator().doGenerate();
+            String sessionKey = uuidGenerator.doGenerate();
             RestxSession.current().authenticateAs(principalOptional.get());
             RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, sessionKey);
             return new Session(sessionKey, principalOptional.get());

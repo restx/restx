@@ -1,8 +1,7 @@
 title: should authentication be successful with existing user
 given:
   - time: 2013-08-16T16:38:36.549+02:00
-  - uuidsFor: SessionUUIDGenerator
-    data: [ "e71a0f9f-9082-4626-bc34-3893c540566d" ]
+  - uuids: [ "e71a0f9f-9082-4626-bc34-3893c540566d" ]
 
 wts:
   - when: |

@@ -7,6 +7,7 @@ import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import restx.CoreModule;
 import restx.build.RestxJsonSupport;
 import restx.factory.Factory;
 import restx.shell.RestxShell;
@@ -63,7 +64,8 @@ public class NewAppTest {
     public void should_app_generated_executes_maven_well() throws IOException, VerificationException {
         RestxShell shell = prepareRestxShell();
 
-        AppShellCommand.NewAppCommandRunner appCommandRunner = new AppShellCommand().new NewAppCommandRunner();
+        AppShellCommand.NewAppCommandRunner appCommandRunner =
+                new AppShellCommand(new CoreModule().uuidGenerator()).new NewAppCommandRunner();
         Path appPath = appCommandRunner.generateApp(descriptor, shell);
 
         Verifier mavenVerifier = new Verifier(appPath.toString());
