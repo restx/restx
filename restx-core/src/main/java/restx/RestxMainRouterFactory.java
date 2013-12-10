@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.net.MediaType;
@@ -30,6 +31,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.getLast;
 import static restx.common.MoreStrings.indent;
 
 /**
@@ -559,50 +561,49 @@ public class RestxMainRouterFactory {
         boolean hotColdFound = false;
         for (Factory.UnsatisfiedDependency unsatisfiedDependency :
                 ex.getUnsatisfiedDependencies().getUnsatisfiedDependencies()) {
-            Factory.Query<?> cold = null;
-            for (Factory.Query<?> query : unsatisfiedDependency.getPath()) {
-                if (!query.getComponentClass().getName().startsWith(hotPackage)) {
-                    cold = query;
-                } else {
-                    if (cold != null) {
-                        // we have found a dependency from cold to hot class
-                        String msg = String.format(">>>>>> SOURCE CODE ERROR >>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" +
-                                "You are currently using hot reload feature of RESTX which has some limitations.\n\n" +
-                                "You can't inject a component which is hot reloaded (called a 'Hot' component)\n" +
-                                "  into a component which is not hot reloaded (called a 'Cold' component)\n" +
-                                "\n" +
-                                "Such a dependency from a 'Cold' class to a 'Hot' class has been found in your sources:\n\n" +
-                                "     `%s`\n" +
-                                "          ^------------------------------------- HOT because it is in package `%s`\n\n" +
-                                "                       is injected into\n\n" +
-                                "     `%s`\n" +
-                                "          ^------------------------------------- COLD because it is NOT in package `%s`\n" +
-                                "\n\n" +
-                                "                >>> THIS IS NOT SUPPORTED, IT CAUSES CLASSLOADING ERRORS <<<\n" +
-                                "\n\n" +
-                                "Possible solutions:\n" +
-                                "===================\n\n" +
-                                "1) remove that dependency\n" +
-                                "      Check the source of `%s`\n" +
-                                "      and remove its dependency on `%s`\n\n" +
-                                "2) change which classes are hot reloaded\n" +
-                                "      Classes which are hot reloaded are in package `%s`.\n" +
-                                "      You can change that by setting the `restx.app.package` system property.\n\n" +
-                                "3) don't use hot compile mode\n" +
-                                "      Use production mode\n" +
-                                "      or explicitly disable it by setting `restx.router.hotcompile`\n" +
-                                "                                 and / or `restx.router.hotreload` to false\n\n" +
-                                ">>>>>> SOURCE CODE ERROR >>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n",
-                                query.getComponentClass().getName(), hotPackage,
-                                cold.getComponentClass().getName(), hotPackage,
-                                cold.getComponentClass().getName(), query.getComponentClass().getName(),
-                                hotPackage);
-                        logger.error("\n\n" + msg);
-                        writer.println(msg);
-                        hotColdFound = true;
-                        break;
-                    }
-                }
+            if (unsatisfiedDependency.getPath().isEmpty()) {
+                continue;
+            }
+            Class<?> dependerClass = getLast(unsatisfiedDependency.getPath()).getName().getClazz();
+            Class<?> dependeeClass = unsatisfiedDependency.getUnsatisfied().getComponentClass();
+            if (!dependerClass.getName().startsWith(hotPackage)
+                    && dependeeClass.getName().startsWith(hotPackage)) {
+                // we have found a dependency from cold to hot class
+                String msg = String.format(">>>>>> SOURCE CODE ERROR >>>>>>>>>>>>>>>>>>>>>>>>>>>>\n" +
+                        "You are currently using hot reload feature of RESTX which has some limitations.\n\n" +
+                        "You can't inject a component which is hot reloaded (called a 'Hot' component)\n" +
+                        "  into a component which is not hot reloaded (called a 'Cold' component)\n" +
+                        "\n" +
+                        "Such a dependency from a 'Cold' class to a 'Hot' class has been found in your sources:\n\n" +
+                        "     `%s`\n" +
+                        "          ^------------------------------------- HOT because it is in package `%s`\n\n" +
+                        "                       is injected into\n\n" +
+                        "     `%s`\n" +
+                        "          ^------------------------------------- COLD because it is NOT in package `%s`\n" +
+                        "\n\n" +
+                        "                >>> THIS IS NOT SUPPORTED, IT CAUSES CLASSLOADING ERRORS <<<\n" +
+                        "\n\n" +
+                        "Possible solutions:\n" +
+                        "===================\n\n" +
+                        "1) remove that dependency\n" +
+                        "      Check the source of `%s`\n" +
+                        "      and remove its dependency on `%s`\n\n" +
+                        "2) change which classes are hot reloaded\n" +
+                        "      Classes which are hot reloaded are in package `%s`.\n" +
+                        "      You can change that by setting the `restx.app.package` system property.\n\n" +
+                        "3) don't use hot compile mode\n" +
+                        "      Use production mode\n" +
+                        "      or explicitly disable it by setting `restx.router.hotcompile`\n" +
+                        "                                 and / or `restx.router.hotreload` to false\n\n" +
+                        ">>>>>> SOURCE CODE ERROR >>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n",
+                        dependeeClass.getName(), hotPackage,
+                        dependerClass.getName(), hotPackage,
+                        dependerClass.getName(), dependeeClass.getName(),
+                        hotPackage);
+                logger.error("\n\n" + msg);
+                writer.println(msg);
+                hotColdFound = true;
+                break;
             }
         }
 

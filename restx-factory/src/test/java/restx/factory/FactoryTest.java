@@ -124,9 +124,14 @@ public class FactoryTest {
             fail("should raise exception when asking for a component with missing dependency");
         } catch (IllegalStateException e) {
             assertThat(e)
-                    .hasMessageStartingWith(
-                            "QueryByName{name=Name{name='test', clazz=java.lang.String[]}}\n" +
-                                    "  -> Name{name='missing', clazz=java.lang.String[]} can't be satisfied")
+                .hasMessageStartingWith(
+                    "\n" +
+                            "  QueryByName{name=Name{name='test', clazz=java.lang.String[]}}\n" +
+                            "    |       \\__=> Name{name='test', clazz=java.lang.String[]}\n" +
+                            "    |\n" +
+                            "    +-> QueryByName{name=Name{name='missing', clazz=java.lang.String[]}}\n" +
+                            "          |\n" +
+                            "          +--: Name{name='missing', clazz=java.lang.String[]} can't be satisfied")
             ;
         }
     }

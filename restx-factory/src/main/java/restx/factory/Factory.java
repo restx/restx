@@ -340,7 +340,8 @@ public class Factory implements AutoCloseable {
                         machines.add(factory.buildAndStore(Query.byName(name), engine).get().getComponent());
                     } catch (UnsatisfiedDependenciesException e) {
                         moreToBuild.put(name, engine);
-                        notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(Query.byName(name)));
+                        notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(
+                                SatisfiedQuery.of(Query.byName(name), name)));
                     }
                 }
             }
@@ -350,7 +351,8 @@ public class Factory implements AutoCloseable {
                     machines.add(factory.buildAndStore(Query.byName(entry.getKey()), entry.getValue()).get().getComponent());
                     toBuild.remove(entry.getKey());
                 } catch (UnsatisfiedDependenciesException e) {
-                    notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(Query.byName(entry.getKey())));
+                    notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(
+                            SatisfiedQuery.of(Query.byName(entry.getKey()), entry.getKey())));
                 }
             }
 
@@ -989,7 +991,8 @@ public class Factory implements AutoCloseable {
     private <T> Optional<NamedComponent<T>> buildAndStore(Query<T> query, MachineEngine<T> engine) {
         Name<T> name = engine.getName();
 
-        BuildingBox<T> buildingBox = new BuildingBox<>(ImmutableList.<Query>of(query), engine);
+        BuildingBox<T> buildingBox = new BuildingBox<>(
+                ImmutableList.<SatisfiedQuery>of(SatisfiedQuery.of(query, name)), engine);
         Deque<BuildingBox> dependencies = buildBuildingBoxesClosure(buildingBox);
 
         logger.info("{} - dependencies closure for {} is: {}", id, name, dependencies);
@@ -1009,11 +1012,9 @@ public class Factory implements AutoCloseable {
 
             ImmutableSet<Query<?>> queries = buildingBox1.engine.getBillOfMaterial().getQueries();
             for (Query query : queries) {
-                ImmutableList<Query<?>> hierarchy = ImmutableList.<Query<?>>builder()
-                        .addAll(buildingBox1.hierarchy).add(query).build();
                 Set<Name> names = query.bind(this).findNames();
                 if (names.isEmpty() && query.isMandatory()) {
-                    throw Factory.UnsatisfiedDependency.on(hierarchy).raise();
+                    throw Factory.UnsatisfiedDependency.on(buildingBox1.hierarchy, query).raise();
                 }
                 for (Name n : names) {
                     BuildingBox buildingBox2 = dependenciesByName.get(n);
@@ -1024,11 +1025,14 @@ public class Factory implements AutoCloseable {
                         Optional<FactoryMachine> machineFor = findMachineFor(n);
                         if (!machineFor.isPresent()) {
                             if (query.isMandatory() && names.size() == 1) {
-                                throw UnsatisfiedDependency.on(hierarchy, machineNotFoundMessage(n))
-                                        .raise();
+                                throw UnsatisfiedDependency.on(
+                                        buildingBox1.hierarchy, query, machineNotFoundMessage(n)).raise();
                             }
                         } else {
-                            buildingBox2 = new BuildingBox(hierarchy, machineFor.get().getEngine(n));
+                            buildingBox2 = new BuildingBox(
+                                    ImmutableList.builder().addAll(buildingBox1.hierarchy)
+                                            .add(SatisfiedQuery.of(query, n)).build(),
+                                    machineFor.get().getEngine(n));
                             dependenciesToSatisfy.add(buildingBox2);
                             buildingBox1.addName(query, n, buildingBox2);
                             dependenciesByName.put(n, buildingBox2);
@@ -1161,7 +1165,7 @@ public class Factory implements AutoCloseable {
             try {
                 query.bind(this).checkSatisfy();
             } catch (UnsatisfiedDependenciesException e) {
-                notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(Query.byName(name)));
+                notSatisfied = notSatisfied.concat(e.getUnsatisfiedDependencies().prepend(SatisfiedQuery.of(Query.byName(name), name)));
             }
         }
         if (!notSatisfied.isEmpty()) {
@@ -1191,36 +1195,49 @@ public class Factory implements AutoCloseable {
 
 
     public static class UnsatisfiedDependency {
-        public static <T> UnsatisfiedDependency on(Query<T> query) {
-            return new UnsatisfiedDependency(ImmutableList.<Query<?>>of(query),
-                    String.format("component satisfying %s not found.", query));
+        public static <T> UnsatisfiedDependency on(Query<T> unsatisfied) {
+            return new UnsatisfiedDependency(ImmutableList.<SatisfiedQuery<?>>of(),
+                    unsatisfied, String.format("component satisfying %s not found.", unsatisfied));
         }
-        public static UnsatisfiedDependency on(ImmutableList<Query<?>> path) {
-            return on(path, String.format("component satisfying %s not found.", path.get(path.size() - 1)));
+        public static UnsatisfiedDependency on(ImmutableList<SatisfiedQuery<?>> path, Query<?> unsatisfied) {
+            return on(path, unsatisfied, String.format("component satisfying %s not found.", unsatisfied));
         }
 
-        public static UnsatisfiedDependency on(ImmutableList<Query<?>> path, String rootCause) {
-            StringBuilder sb = new StringBuilder();
-            String indent = "  ";
-            for (Query<?> query : path.subList(0, path.size() - 1)) {
-                sb.append(query).append("\n").append(indent).append("-> ");
+        public static UnsatisfiedDependency on(ImmutableList<SatisfiedQuery<?>> path, Query<?> unsatisfied, String rootCause) {
+            StringBuilder sb = new StringBuilder("\n  ");
+            String indent = "    ";
+            for (SatisfiedQuery<?> query : path) {
+                sb.append(query.getQuery()).append("\n")
+                        .append(indent).append("|       \\__=> ").append(query.getName()).append("\n")
+                        .append(indent).append("|\n")
+                        .append(indent).append("+-> ")
+                ;
                 indent += "  ";
             }
-            sb.append(rootCause);
+            sb.append(unsatisfied).append("\n")
+                    .append(indent).append("    |\n")
+                    .append(indent).append("    +--: ");
+            sb.append(rootCause).append("\n");
 
-            return new UnsatisfiedDependency(path, sb.toString());
+            return new UnsatisfiedDependency(path, unsatisfied, sb.toString());
         }
 
-        private final ImmutableList<Query<?>> path;
+        private final ImmutableList<SatisfiedQuery<?>> path;
+        private final Query<?> unsatisfied;
         private final String cause;
 
-        private UnsatisfiedDependency(ImmutableList<Query<?>> path, String cause) {
+        private UnsatisfiedDependency(ImmutableList<SatisfiedQuery<?>> path, Query<?> unsatisfied, String cause) {
             this.path = path;
+            this.unsatisfied = unsatisfied;
             this.cause = cause;
         }
 
-        public ImmutableList<Query<?>> getPath() {
+        public ImmutableList<SatisfiedQuery<?>> getPath() {
             return path;
+        }
+
+        public Query<?> getUnsatisfied() {
+            return unsatisfied;
         }
 
         public String getCause() {
@@ -1233,16 +1250,16 @@ public class Factory implements AutoCloseable {
         }
 
         public UnsatisfiedDependency causedBy(String cause) {
-            return new UnsatisfiedDependency(path, cause);
+            return new UnsatisfiedDependency(path, unsatisfied, cause);
         }
 
         public UnsatisfiedDependenciesException raise() {
             return new UnsatisfiedDependenciesException(UnsatisfiedDependencies.of(this));
         }
 
-        public <T> UnsatisfiedDependency prepend(Query<T> query) {
-            return new UnsatisfiedDependency(ImmutableList.<Query<?>>builder()
-                    .add(query).addAll(path).build(), query + indent("\n-> " + cause, 2));
+        public <T> UnsatisfiedDependency prepend(SatisfiedQuery<T> query) {
+            return new UnsatisfiedDependency(ImmutableList.<SatisfiedQuery<?>>builder()
+                    .add(query).addAll(path).build(), unsatisfied, query + indent("\n-> " + cause, 2));
         }
     }
 
@@ -1278,7 +1295,7 @@ public class Factory implements AutoCloseable {
             return new UnsatisfiedDependenciesException(this);
         }
 
-        public <T> UnsatisfiedDependencies prepend(Query<T> query) {
+        public <T> UnsatisfiedDependencies prepend(SatisfiedQuery<T> query) {
             List<UnsatisfiedDependency> deps = new ArrayList<>(unsatisfiedDependencies.size());
             for (UnsatisfiedDependency unsatisfiedDependency : unsatisfiedDependencies) {
                 deps.add(unsatisfiedDependency.prepend(query));
@@ -1306,9 +1323,36 @@ public class Factory implements AutoCloseable {
         }
     }
 
+    public static class SatisfiedQuery<T> {
+        public static <T> SatisfiedQuery<T> of(Query<T> query, Name<T> name) {
+            return new SatisfiedQuery<T>(query, name);
+        }
+
+        private final Query<T> query;
+        private final Name<T> name;
+
+        private SatisfiedQuery(Query<T> query, Name<T> name) {
+            this.query = query;
+            this.name = name;
+        }
+
+        public Query<T> getQuery() {
+            return query;
+        }
+
+        public Name<T> getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return query + " (= " + name + ")";
+        }
+    }
+
     private static class BuildingBox<T> {
         final MachineEngine<T> engine;
-        final ImmutableList<Query> hierarchy;
+        final ImmutableList<SatisfiedQuery> hierarchy;
         final Multimap<Query, Name> names = ArrayListMultimap.create();
         final Map<Name<?>, BuildingBox<?>> deps = new LinkedHashMap<>();
 
@@ -1320,7 +1364,7 @@ public class Factory implements AutoCloseable {
         SatisfiedBOM satisfiedBOM;
         NamedComponent<T> component;
 
-        BuildingBox(ImmutableList<Query> hierarchy, MachineEngine<T> engine) {
+        BuildingBox(ImmutableList<SatisfiedQuery> hierarchy, MachineEngine<T> engine) {
             this.hierarchy = hierarchy;
             this.engine = engine;
         }
