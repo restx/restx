@@ -128,9 +128,13 @@ public class RestxMainRouterFactory {
                                 RestxSpecRecorder.RecordedSpec recordedSpec = restxSpecRecorder.stop(tape);
 
                                 if (recordPath.isPresent()) {
-                                    // save directly the recorded spec
-                                    File recordFile = storage.store(recordedSpec.getSpec());
-                                    logger.info("saved recorded spec in {}", recordFile);
+                                    if (recordedSpec.getSpec() == null) {
+                                        logger.warn("can't save spec, not properly recorded for {}", restxRequest);
+                                    } else {
+                                        // save directly the recorded spec
+                                        File recordFile = storage.store(recordedSpec.getSpec());
+                                        logger.info("saved recorded spec in {}", recordFile);
+                                    }
                                 }
                             }
                             return null;
