@@ -1,10 +1,8 @@
 package restx.common;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.UUID;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -16,4 +14,35 @@ import static com.google.common.collect.Lists.newArrayList;
  */
 public interface UUIDGenerator {
     String doGenerate();
+
+    public static class DefaultUUIDGenerator implements UUIDGenerator {
+        @Override
+        public String doGenerate() {
+            return UUID.randomUUID().toString();
+        }
+    }
+
+    public static class PlaybackUUIDGenerator implements UUIDGenerator {
+        public static UUIDGenerator playbackUUIDs(String... uuids) {
+            return new PlaybackUUIDGenerator(newArrayList(uuids).iterator());
+        }
+        public static UUIDGenerator playbackUUIDs(Iterable<String> uuids) {
+            return new PlaybackUUIDGenerator(uuids.iterator());
+        }
+
+        private final Iterator<String> sequence;
+
+        private PlaybackUUIDGenerator(Iterator<String> sequence) {
+            this.sequence = sequence;
+        }
+
+        @Override
+        public String doGenerate() {
+            if (sequence.hasNext()) {
+                return sequence.next();
+            } else {
+                throw new IllegalStateException("no more uuids in sequence");
+            }
+        }
+    }
 }

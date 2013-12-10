@@ -50,11 +50,6 @@ public class CoreModule {
 
     @Provides @Named(UUID_GENERATOR)
     public UUIDGenerator uuidGenerator() {
-        return new UUIDGenerator() {
-            @Override
-            public String doGenerate() {
-                return UUID.randomUUID().toString();
-            }
-        };
+        return new UUIDGenerator.DefaultUUIDGenerator();
     }
 }
