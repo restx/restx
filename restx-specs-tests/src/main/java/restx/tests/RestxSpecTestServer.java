@@ -22,6 +22,7 @@ import restx.common.UUIDGenerator;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
 import restx.exceptions.RestxError;
+import restx.exceptions.RestxErrors;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
@@ -85,16 +86,19 @@ public class RestxSpecTestServer {
         private final WebServer server;
         private final RestxSpecRunner runner;
         private final RestxSpecRepository repository;
+        private final RestxErrors errors;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
         private final Path storeLocation;
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
 
         public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository,
+                             RestxErrors errors,
                              RunningServerSettings settings) {
             this.server = server;
             this.runner = runner;
             this.repository = repository;
+            this.errors = errors;
 
             storeLocation = Paths.get(settings.targetTestsRoot());
 
@@ -166,7 +170,7 @@ public class RestxSpecTestServer {
 
                 return testRequest;
             } else {
-                throw RestxError.on(Rules.InvalidTest.class)
+                throw errors.on(Rules.InvalidTest.class)
                         .set(Rules.InvalidTest.TEST, testRequest.getTest())
                         .set(Rules.InvalidTest.DESCRIPTION, "can only run spec test, test field must start with 'specs'")
                         .raise();
@@ -359,6 +363,7 @@ public class RestxSpecTestServer {
         RestxSpecRepository repository = new HotReloadRestxSpecRepository(specLoader);
 
         final RunningServer runningServer = new RunningServer(server, runner, repository,
+                factory.getComponent(RestxErrors.class),
                 factory.queryByClass(RunningServerSettings.class).mandatory().findOneAsComponent().get());
 
         Factory.getFactory(server.getServerId()).get().getComponent(EventBus.class).register(new Object() {

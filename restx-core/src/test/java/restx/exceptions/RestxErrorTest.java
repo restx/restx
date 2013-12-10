@@ -27,7 +27,7 @@ public class RestxErrorTest {
             public void run() {
                 DateTimeUtils.setCurrentMillisFixed(DateTime.parse("2013-03-19T12:00:00Z").getMillis());
                 try {
-                    RestxError.RestxException restxException = RestxError.on(MyError.class).set(MyError.MY_FIELD, "my value").raise();
+                    RestxError.RestxException restxException = new RestxErrors().on(MyError.class).set(MyError.MY_FIELD, "my value").raise();
                     assertThat(restxException).isNotNull();
                     assertThat(restxException.getMessage()).isNotNull().isEqualTo(
                             "[2013-03-19T12:00:00.000Z] [123456] [400~999] My error occurs only during tests - {MY_FIELD=my value}");

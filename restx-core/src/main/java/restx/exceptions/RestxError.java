@@ -14,21 +14,14 @@ import java.util.Map;
  * Time: 12:10 PM
  */
 public class RestxError<T> {
-
-    public static <E> RestxError<E> on(Class<E> errorCode) {
-        ErrorCode code = errorCode.getAnnotation(ErrorCode.class);
-        HttpStatus errorStatus = code != null ? code.status() : HttpStatus.BAD_REQUEST;
-        String error = code != null ? code.code() : errorCode.getSimpleName();
-        String description = code != null ? code.description() : errorCode.getName();
-        return new RestxError<>(errorStatus, error, description);
-    }
-
+    private final String id;
     private final HttpStatus errorStatus;
     private final String error;
     private final String description;
     private final Map<String, String> data = Maps.newLinkedHashMap();
 
-    private RestxError(HttpStatus errorStatus, String error, String description) {
+    RestxError(String id, HttpStatus errorStatus, String error, String description) {
+        this.id = id;
         this.errorStatus = errorStatus;
         this.error = error;
         this.description = description;
@@ -43,7 +36,7 @@ public class RestxError<T> {
 
     public RestxException raise() {
         return new RestxException(
-                ExceptionsFactory.currentUUIDGenerator().doGenerate(),
+                id,
                 DateTime.now().toDateTime(DateTimeZone.UTC),
                 errorStatus, error,
                 description,
