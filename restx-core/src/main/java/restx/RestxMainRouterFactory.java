@@ -116,16 +116,7 @@ public class RestxMainRouterFactory {
                             RestxSpecTape tape = restxSpecRecorder.record(restxRequest, restxResponse,
                                     recordPath, restxRequest.getHeader("RestxRecordTitle"));
                             try {
-                                // when recording a request we don't use the provided router, we
-                                // need to load a new factory, some recorders rely on being available in the factory
-                                Factory factory = loadFactory(newFactoryBuilder(serverId,
-                                                                                restxRequest.getHeader("RestxThreadLocal"),
-                                                                                restxSpecRecorder, getMode(restxRequest)));
-                                try {
-                                    newStdRouter(factory).route(tape.getRecordingRequest(), tape.getRecordingResponse());
-                                } finally {
-                                    factory.close();
-                                }
+                                router.route(tape.getRecordingRequest(), tape.getRecordingResponse());
                             } finally {
                                 RestxSpecRecorder.RecordedSpec recordedSpec = restxSpecRecorder.stop(tape);
 
@@ -316,29 +307,18 @@ public class RestxMainRouterFactory {
             }
         }
 
-        Optional<RestxSpecRecorder> recorder;
-        if (RestxContext.Modes.RECORDING.equals(getMode())) {
-            recorder = Optional.of(new RestxSpecRecorder());
-            recorder.get().install();
-        } else {
-            recorder = Optional.absent();
-        }
-
         if (getLoadFactoryMode().equals("onstartup")) {
+            if (RestxContext.Modes.RECORDING.equals(getMode())) {
+                throw new IllegalStateException("can't use RECORDING mode without per request factory loading");
+            }
+
             Factory factory = loadFactory(newFactoryBuilder(serverId)).start();
             factory = Factory.register(serverId, factory);
 
             final StdRestxMainRouter mainRouter = newStdRouter(factory);
             logPrompt(baseUri, "READY", mainRouter);
 
-            if (RestxContext.Modes.PROD.equals(getMode())) {
-                // in PROD we definitely return the main router, we will never check anything else
-                return mainRouter;
-            } else {
-                // in other modes we may record requests one by one or all of them, we use the recording decorator
-                return new RecordingMainRouter(serverId, recorder, mainRouter,
-                        factory.getComponent(RestxSpec.StorageSettings.class));
-            }
+            return mainRouter;
         } else if (getLoadFactoryMode().equals("onrequest")) {
             logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
 
@@ -374,6 +354,13 @@ public class RestxMainRouterFactory {
             Factory settingsFactory = loadFactory(newFactoryBuilder(serverId)
                     .addWarehouseProvider(factory.getWarehouse()));
 
+            Optional<RestxSpecRecorder> recorder;
+            if (RestxContext.Modes.RECORDING.equals(getMode())) {
+                recorder = Optional.of(new RestxSpecRecorder());
+                recorder.get().install();
+            } else {
+                recorder = Optional.absent();
+            }
             // wrap in a recording router, as any request may ask for recording with RestxMode header
             router = new RecordingMainRouter(serverId, recorder, router,
                     settingsFactory.getComponent(RestxSpec.StorageSettings.class));
