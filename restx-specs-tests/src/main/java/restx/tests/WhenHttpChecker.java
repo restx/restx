@@ -28,17 +28,24 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
     @Override
     public void check(WhenHttpRequest when, ImmutableMap<String, String> params) {
         Stopwatch stopwatch = new Stopwatch().start();
-        String url = checkNotNull(params.get(BASE_URL),
-                BASE_URL + " param is required") + "/" + when.getPath();
+        String baseUrl = checkNotNull(params.get(BASE_URL),
+                BASE_URL + " param is required");
+        String url = baseUrl + "/" + when.getPath();
         System.out.println("---------------------------------------------------------------------------------");
         System.out.println(">> REQUEST");
         System.out.println(when.getMethod() + " " + url);
         System.out.println();
-        HttpRequest httpRequest = HttpTestClient.http(when.getMethod(), url);
+        HttpTestClient httpTestClient = HttpTestClient.withBaseUrl(baseUrl);
+        for (Map.Entry<String, String> cookie : when.getCookies().entrySet()) {
+            httpTestClient = httpTestClient.withCookie(cookie.getKey(), cookie.getValue());
+        }
 
-        if (!when.getCookies().isEmpty()) {
+        HttpRequest httpRequest = httpTestClient.http(when.getMethod(), when.getPath());
+
+        ImmutableMap<String, String> cookies = when.getCookies();
+        if (!cookies.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            for (Map.Entry<String, String> entry : when.getCookies().entrySet()) {
+            for (Map.Entry<String, String> entry : cookies.entrySet()) {
                 sb.append(entry.getKey()).append("=\"").append(entry.getValue().replace("\"", "\\\"")).append("\"; ");
             }
             sb.setLength(sb.length() - 2);

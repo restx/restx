@@ -3,12 +3,9 @@ package samplest.jacksonviews;
 import com.github.kevinsawicki.http.HttpRequest;
 import org.junit.ClassRule;
 import org.junit.Test;
-import restx.server.WebServers;
-import restx.server.simple.simple.SimpleWebServer;
 import restx.tests.RestxServerRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static restx.tests.HttpTestClient.GET;
 
 /**
  * User: eoriou
@@ -21,7 +18,7 @@ public class JacksonViewsTest {
 
     @Test
     public void should_retrieve_details_view() throws Exception {
-        HttpRequest httpRequest = GET(server.getServer().baseUrl() + "/api/jacksonviews/carsDetails");
+        HttpRequest httpRequest = server.client().GET("/api/jacksonviews/carsDetails");
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo(
                 "[" +
@@ -35,7 +32,7 @@ public class JacksonViewsTest {
     }
     @Test
     public void should_retrieve_default_view() throws Exception {
-        HttpRequest httpRequest = GET(server.getServer().baseUrl() + "/api/jacksonviews/cars");
+        HttpRequest httpRequest = server.client().GET("/api/jacksonviews/cars");
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo(
                 "[" +

@@ -40,6 +40,10 @@ public class RestxServerRule implements TestRule {
         return contextLocal(checkNotNull(server, "server has not been created yet").getServerId());
     }
 
+    public HttpTestClient client() {
+        return HttpTestClient.withBaseUrl(server.baseUrl());
+    }
+
     public String getFactoryLoadMode() {
         return factoryLoadMode;
     }

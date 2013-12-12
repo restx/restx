@@ -4,14 +4,11 @@ import com.github.kevinsawicki.http.HttpRequest;
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
-import restx.factory.Factory;
-import restx.factory.NamedComponent;
 import restx.tests.RestxServerRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static restx.factory.Factory.LocalMachines.overrideComponents;
 import static restx.factory.Factory.LocalMachines.threadLocal;
-import static restx.tests.HttpTestClient.GET;
 
 /**
  * @see ClientAffinityResource
@@ -28,13 +25,13 @@ public class ClientAffinityTest {
     @Test
     public void should_share_threadlocal_components_with_server() throws Exception {
         // first we try the default implementation of the ClientAffinityResource
-        HttpRequest httpRequest = GET(server.getServer().baseUrl() + "/api/clientAffinity");
+        HttpRequest httpRequest = server.client().GET("/api/clientAffinity");
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo("NONE");
 
         // now we provide a component in thread local, which should be used on the server for this test
         overrideComponents().set(ClientAffinityResource.COMPONENT_NAME, "myvalue");
-        httpRequest = GET(server.getServer().baseUrl() + "/api/clientAffinity");
+        httpRequest = server.client().GET("/api/clientAffinity");
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo("myvalue");
     }

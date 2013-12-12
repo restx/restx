@@ -1014,7 +1014,13 @@ public class Factory implements AutoCloseable {
             for (Query query : queries) {
                 Set<Name> names = query.bind(this).findNames();
                 if (names.isEmpty() && query.isMandatory()) {
-                    throw Factory.UnsatisfiedDependency.on(buildingBox1.hierarchy, query).raise();
+                    Set<Name> similarNames = findSimilarNamesByNamedType(query.getComponentClass());
+                    if (similarNames.isEmpty()) {
+                        throw Factory.UnsatisfiedDependency.on(buildingBox1.hierarchy, query).raise();
+                    } else {
+                        throw Factory.UnsatisfiedDependency.on(
+                                buildingBox1.hierarchy, query, machineNotFoundMessage(query, similarNames)).raise();
+                    }
                 }
                 for (Name n : names) {
                     BuildingBox buildingBox2 = dependenciesByName.get(n);
@@ -1062,6 +1068,16 @@ public class Factory implements AutoCloseable {
         }
 
         return dependencies;
+    }
+
+    private Set<Name> findSimilarNamesByNamedType(Class componentClass) {
+        Set<Name> names = new LinkedHashSet<>();
+        for (Name<?> name : warehouse.listNames()) {
+            if (name.getName().equals(componentClass.getName())) {
+                names.add(name);
+            }
+        }
+        return names;
     }
 
     private void satisfyBoms(Deque<BuildingBox> dependencies) {
@@ -1188,7 +1204,11 @@ public class Factory implements AutoCloseable {
 
     private <T> String machineNotFoundMessage(Name<T> name) {
         Set<Name<T>> similarNames = queryByClass(name.getClazz()).findNames();
-        return name + " can't be satisfied in " + id + ": no machine found to build it." +
+        return machineNotFoundMessage(name, similarNames);
+    }
+
+    private String machineNotFoundMessage(Object what, Set similarNames) {
+        return what + " can't be satisfied in " + id + ": no machine found to build it." +
                 (similarNames.isEmpty() ? ""
                         : " similar components found: " + Joiner.on(", ").join(similarNames));
     }
