@@ -25,9 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CompilationManagerTest {
     FileSystem fileSystem = FileSystems.getDefault();
     Path testSourceRoot = fileSystem.getPath("src/test/test-classes-sources");
-    Path sourceRoot = fileSystem.getPath("tmp/src");
+    Path sourceRoot = fileSystem.getPath("target/tmp/src");
     List<Path> sourceRoots = asList(sourceRoot);
-    Path destination = fileSystem.getPath("tmp/classes");
+    Path destination = fileSystem.getPath("target/tmp/classes");
     EventBus eventBus = new EventBus();
     List<Object> events = new ArrayList<>();
 

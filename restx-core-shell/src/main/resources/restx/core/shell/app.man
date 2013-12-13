@@ -88,10 +88,10 @@ Note that a restx archive MUST contain a `META-INF/restx/app/md.restx.json` file
     Git repository will be cloned sincide `destination` directory.
     Needs git executable to be available in your PATH.
   - Http/https url of a Restx archive.
-    Archive classes will be unpacked into `<destination>/tmp/classes/` directory,
+    Archive classes will be unpacked into `<destination>/target/restx/classes/` directory,
     and `META-INF/restx/app/*` (including md.restx.json file) will be chrooted into `destination` directory.
   - GAV coordinates (pattern : <groupId>:<artifactId>:<version>)
-    Archive classes will be unpacked into `<destination>/tmp/classes/` directory,
+    Archive classes will be unpacked into `<destination>/target/restx/classes/` directory,
     and `META-INF/restx/app/*` (including md.restx.json file) will be chrooted into `destination` directory.
 
 `<destination>`

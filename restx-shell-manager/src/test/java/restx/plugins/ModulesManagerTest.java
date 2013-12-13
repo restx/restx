@@ -65,7 +65,7 @@ public class ModulesManagerTest {
 
     @Test
     public void should_download_module() throws Exception {
-        File toDir = new File("target/tmp");
+        File toDir = new File("target/restx/tmp");
         delete(toDir);
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("com.github.kevinsawicki:http-request:0.1", "shell", "")),
@@ -78,7 +78,7 @@ public class ModulesManagerTest {
 
     @Test
     public void should_download_module_and_dependencies() throws Exception {
-        File toDir = new File("target/tmp");
+        File toDir = new File("target/restx/tmp");
         delete(toDir);
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("commons-httpclient:commons-httpclient:2.0", "shell", "")),
@@ -91,7 +91,7 @@ public class ModulesManagerTest {
 
     @Test
     public void should_download_module_excluding_some_dependencies() throws Exception {
-        File toDir = new File("target/tmp");
+        File toDir = new File("target/restx/tmp");
         delete(toDir);
         manager.download(
                 ImmutableList.<ModuleDescriptor>of(new ModuleDescriptor("commons-httpclient:commons-httpclient:2.0", "shell", "")),

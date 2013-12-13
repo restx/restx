@@ -76,7 +76,7 @@ public class RestxSpecTestServer {
 
     @Settings
     public static interface RunningServerSettings {
-        @SettingsKey(key = "restx.targetTestsRoot", defaultValue = "tmp/tests")
+        @SettingsKey(key = "restx.targetTestsRoot", defaultValue = "target/restx/tests")
         String targetTestsRoot();
     }
 
