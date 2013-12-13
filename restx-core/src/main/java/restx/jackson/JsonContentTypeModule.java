@@ -1,6 +1,7 @@
 package restx.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.base.Optional;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import restx.factory.Module;
 import restx.factory.Provides;
 
 import javax.inject.Named;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Locale;
 
@@ -63,11 +65,17 @@ public class JsonContentTypeModule {
                     return Optional.absent();
                 }
                 Class<?> clazz = getCTJacksonViewClass(valueType, contentType, Views.Transient.class);
-                return Optional.of(
-                        new JsonEntityResponseWriter<T>(
-                                mapper.writerWithView(clazz)
-                                        .withType(TypeFactory.defaultInstance().constructType(valueType))))
-                        ;
+                ObjectWriter writer = mapper.writerWithView(clazz);
+                if (valueType instanceof ParameterizedType) {
+                    /* we set the type on writer only for parameterized types:
+                     * if we set it for regular types, jackson will build the serializer based on this type, and not the
+                     * instance type, making polymorphic returns broken.
+                     * For parameterized types it helps Jackson which otherwise tries to guess the serializer based on
+                     * value.getClass() which doesn't return type parameters information due to Java erasure.
+                     */
+                    writer = writer.withType(TypeFactory.defaultInstance().constructType(valueType));
+                }
+                return Optional.of(new JsonEntityResponseWriter<T>(writer));
             }
         };
     }
