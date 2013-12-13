@@ -32,6 +32,9 @@ public class AutoStartableTestRoute extends StdRoute {
                     +" started: " + AutoStartableTestComponent.getStarted()
                     + " closed: " + AutoStartableTestComponent.getClosed()
                     + " instanciated: " + AutoStartableTestComponent.getInstanciated()
+                    + " serverId: " + c.getServerId()
+                    + " baseUrl: " + c.getBaseUrl()
+                    + " routerPresent: " + c.getRouter().isPresent()
             );
         } catch (Throwable t) {
             logger.error(t.getMessage(), t);

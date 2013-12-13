@@ -31,14 +31,16 @@ public class AutoStartableTest {
                 HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
                 assertThat(httpRequest.code()).isEqualTo(200);
                 assertThat(httpRequest.body().trim()).isEqualTo(
-                        "called: 1 - autostartable: called: 1 started: 1 closed: 0 instanciated: 1");
+                        "called: 1 - autostartable: called: 1 started: 1 closed: 0 instanciated: 1" +
+                                " serverId: "+server.getServerId()+" baseUrl: "+server.baseUrl()+" routerPresent: true");
 
                 httpRequest = HttpRequest.get(server.baseUrl() + "/api/autostartable/test");
                 assertThat(httpRequest.code()).isEqualTo(200);
                 // called should be only one in test mode, components are dropped at each request
                 // but autostartable should be reused
                 assertThat(httpRequest.body().trim()).isEqualTo(
-                        "called: 1 - autostartable: called: 2 started: 1 closed: 0 instanciated: 1");
+                        "called: 1 - autostartable: called: 2 started: 1 closed: 0 instanciated: 1" +
+                                " serverId: "+server.getServerId()+" baseUrl: "+server.baseUrl()+" routerPresent: true");
             } finally {
                 server.stop();
             }
