@@ -79,7 +79,7 @@ public class StdRestxRequestMatcherTest {
 
     @Test
     public void should_matcher_with_several_path_params_and_custom_regex_match_not_match() throws Exception {
-        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user/{name:[A-Z]{1,3}}/children/{child:.+}");
+        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user/{name:[A-Z]{1,3}\\d}/children/{child:.+}");
 
         Optional<? extends RestxRequestMatch> match;
 
@@ -89,13 +89,13 @@ public class StdRestxRequestMatcherTest {
         match = matcher.match("GET", "/user/JOHNDOE/children/bobby");
         assertThat(match.isPresent()).isFalse();
 
-        match = matcher.match("GET", "/user/JOH/children/bobby");
+        match = matcher.match("GET", "/user/JOH1/children/bobby");
         assertThat(match.isPresent()).isTrue();
-        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "JOH", "child", "bobby"));
+        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "JOH1", "child", "bobby"));
 
-        match = matcher.match("GET", "/user/JOH/children/bobby/and/the/rest");
+        match = matcher.match("GET", "/user/JOH2/children/bobby/and/the/rest");
         assertThat(match.isPresent()).isTrue();
-        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "JOH", "child", "bobby/and/the/rest"));
+        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "JOH2", "child", "bobby/and/the/rest"));
 
         match = matcher.match("GET", "/user/johndoe");
         assertThat(match.isPresent()).isFalse();

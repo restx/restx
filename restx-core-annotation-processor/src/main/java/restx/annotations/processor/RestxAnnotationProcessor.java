@@ -306,7 +306,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
                     .put("method", resourceMethod.httpMethod)
-                    .put("path", resourceMethod.path)
+                    .put("path", resourceMethod.path.replace("\\", "\\\\"))
                     .put("resource", resourceClass.name)
                     .put("securityCheck", "securityManager.check(request, " + resourceMethod.permission + ");")
                     .put("call", call)
