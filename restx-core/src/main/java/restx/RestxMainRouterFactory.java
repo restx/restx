@@ -1,12 +1,8 @@
 package restx;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.net.MediaType;
@@ -19,6 +15,7 @@ import restx.classloader.HotReloadingClassLoader;
 import restx.common.RestxConfig;
 import restx.factory.*;
 import restx.http.HttpStatus;
+import restx.security.RestxSessionFilter;
 import restx.server.WebServer;
 import restx.server.WebServers;
 import restx.specs.RestxSpec;
@@ -31,7 +28,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getLast;
@@ -80,81 +76,59 @@ public class RestxMainRouterFactory {
      * Therefore this class is not intended to be exposed outside the main router factory class.
      */
     private class RecordingMainRouter implements RestxMainRouter {
-        private final Optional<RestxSpecRecorder> restxSpecRecorder;
         private final RestxMainRouter router;
         private final String serverId;
         private final RestxSpec.Storage storage;
-        private final Supplier<RestxSpecRecorder> recorderSupplier = new Supplier<RestxSpecRecorder>() {
-            @Override
-            public RestxSpecRecorder get() {
-                RestxSpecRecorder recorder = new RestxSpecRecorder();
-                recorder.install();
-                return recorder;
-            }
-        };
+        private final RestxSpec.StorageSettings storageSettings;
+        private final RestxSpecRecorder.Repository repository;
 
-        public RecordingMainRouter(String serverId, Optional<RestxSpecRecorder> restxSpecRecorder,
-                                   RestxMainRouter router, RestxSpec.StorageSettings storageSettings) {
+        public RecordingMainRouter(String serverId,
+                                   RestxMainRouter router,
+                                   RestxSpec.StorageSettings storageSettings) {
             this.serverId = serverId;
-            this.restxSpecRecorder = restxSpecRecorder;
             this.router = router;
+            this.storageSettings = storageSettings;
             this.storage = RestxSpec.Storage.with(storageSettings);
+            this.repository = new RestxSpecRecorder.Repository();
         }
 
 
         @Override
         public void route(final RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
+            Factory.LocalMachines.threadLocal().set("RecordedSpecsRepository", repository);
+
             if (!restxRequest.getRestxPath().startsWith("/@/")
-                    && (restxSpecRecorder.isPresent()
-                    || RestxContext.Modes.RECORDING.equals(getMode(restxRequest)))) {
+                    && RestxContext.Modes.RECORDING.equals(getMode(restxRequest))) {
                 logger.debug("RECORDING {}", restxRequest);
 
-                final RestxSpecRecorder restxSpecRecorder = this.restxSpecRecorder.or(recorderSupplier);
+                Factory factory = Factory.newInstance();
+                Set<RestxSpecRecorder.GivenRecorder> recorders = factory.getComponents(RestxSpecRecorder.GivenRecorder.class);
+                RestxSessionFilter sessionFilter = factory.getComponent(RestxSessionFilter.class);
+                final RestxSpecRecorder restxSpecRecorder = new RestxSpecRecorder(
+                                                                recorders, sessionFilter, storageSettings, repository);
                 try {
-                    RestxSpecRecorder.doWithRecorder(restxSpecRecorder, new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            Optional<String> recordPath = restxRequest.getHeader("RestxRecordPath");
-                            RestxSpecTape tape = restxSpecRecorder.record(restxRequest, restxResponse,
-                                    recordPath, restxRequest.getHeader("RestxRecordTitle"));
-                            try {
-                                router.route(tape.getRecordingRequest(), tape.getRecordingResponse());
-                            } finally {
-                                RestxSpecRecorder.RecordedSpec recordedSpec = restxSpecRecorder.stop(tape);
+                    Optional<String> recordPath = restxRequest.getHeader("RestxRecordPath");
+                    RestxSpecTape tape = restxSpecRecorder.record(restxRequest, restxResponse,
+                            recordPath, restxRequest.getHeader("RestxRecordTitle"));
+                    try {
+                        router.route(tape.getRecordingRequest(), tape.getRecordingResponse());
+                    } finally {
+                        RestxSpecRecorder.RecordedSpec recordedSpec = restxSpecRecorder.stop(tape);
 
-                                if (recordPath.isPresent()) {
-                                    if (recordedSpec.getSpec() == null) {
-                                        logger.warn("can't save spec, not properly recorded for {}", restxRequest);
-                                    } else {
-                                        // save directly the recorded spec
-                                        File recordFile = storage.store(recordedSpec.getSpec());
-                                        logger.info("saved recorded spec in {}", recordFile);
-                                    }
-                                }
+                        if (recordPath.isPresent()) {
+                            if (recordedSpec.getSpec() == null) {
+                                logger.warn("can't save spec, not properly recorded for {}", restxRequest);
+                            } else {
+                                // save directly the recorded spec
+                                File recordFile = storage.store(recordedSpec.getSpec());
+                                logger.info("saved recorded spec in {}", recordFile);
                             }
-                            return null;
                         }
-                    });
+                    }
                 } catch (IOException e) {
                     throw e;
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            } else if (restxRequest.getRestxPath().startsWith("/@/") && restxSpecRecorder.isPresent()) {
-                // set current recorder for admin routes, some may be using it
-                // to provide information on the recorder itself
-                try {
-                    RestxSpecRecorder.doWithRecorder(restxSpecRecorder.get(), new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            router.route(restxRequest, restxResponse);
-                            return null;
-                        }
-                    });
-                } catch (IOException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    Throwables.propagate(e);
                 }
             } else {
                 router.route(restxRequest, restxResponse);
@@ -173,8 +147,8 @@ public class RestxMainRouterFactory {
 
         @Override
         public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
-            Factory factory = loadFactory(newFactoryBuilder(serverId, restxRequest.getHeader("RestxThreadLocal"),
-                    RestxSpecRecorder.current().orNull(), getMode(restxRequest))
+            Factory factory = loadFactory(newFactoryBuilder(
+                                        serverId, restxRequest.getHeader("RestxThreadLocal"), getMode(restxRequest))
                     .addWarehouseProvider(warehouse));
 
             try {
@@ -366,15 +340,8 @@ public class RestxMainRouterFactory {
             Factory settingsFactory = loadFactory(newFactoryBuilder(serverId)
                     .addWarehouseProvider(factory.getWarehouse()));
 
-            Optional<RestxSpecRecorder> recorder;
-            if (RestxContext.Modes.RECORDING.equals(getMode())) {
-                recorder = Optional.of(new RestxSpecRecorder());
-                recorder.get().install();
-            } else {
-                recorder = Optional.absent();
-            }
             // wrap in a recording router, as any request may ask for recording with RestxMode header
-            router = new RecordingMainRouter(serverId, recorder, router,
+            router = new RecordingMainRouter(serverId, router,
                     settingsFactory.getComponent(RestxSpec.StorageSettings.class));
 
             // wrap in hot reloading or hoy compile router if needed.
@@ -442,21 +409,16 @@ public class RestxMainRouterFactory {
         return factory;
     }
 
-    private static Factory.Builder newFactoryBuilder(String contextName, Optional<String> threadLocalId,
-                                                     RestxSpecRecorder specRecorder, String mode) {
+    private static Factory.Builder newFactoryBuilder(String contextName,
+                                                     Optional<String> threadLocalId,
+                                                     String mode) {
         Factory.Builder builder = newFactoryBuilder(contextName);
         if (threadLocalId.isPresent()) {
             builder.addLocalMachines(Factory.LocalMachines.threadLocalFrom(threadLocalId.get()));
         }
-        if (specRecorder != null) {
-            builder
-                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING))
-                    .addMachine(new SingletonFactoryMachine<>(
-                            0, NamedComponent.of(RestxSpecRecorder.class, "specRecorder", specRecorder)))
-                    .addMachine(new SingletonFactoryMachine<>(
-                            -100000, NamedComponent.of(String.class, "restx.mode", mode)))
-            ;
-        }
+        builder.addMachine(new SingletonFactoryMachine<>(
+                -100000, NamedComponent.of(String.class, "restx.mode", mode)));
+
         return builder;
     }
 

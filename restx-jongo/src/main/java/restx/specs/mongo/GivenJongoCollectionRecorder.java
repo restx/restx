@@ -29,12 +29,13 @@ import java.util.Map;
 @Component
 public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenRecorder {
     @Override
-    public void installRecording() {
+    public AutoCloseable recordIn(Map<String, Given> givens) {
+        final Tape tape = new Tape(givens);
         final Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
-        Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING).addMachine(
+        Factory.LocalMachines.threadLocal().addMachine(
                 new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
-                                    Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplier"),
-                                    BoundlessComponentBox.FACTORY) {
+                        Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplier"),
+                        BoundlessComponentBox.FACTORY) {
                     @Override
                     protected ComponentCustomizerEngine doNewComponent(SatisfiedBOM satisfiedBOM) {
                         final Mapper mapper = satisfiedBOM.getOne(mapperQuery).get().getComponent();
@@ -44,7 +45,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
                             public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
                                 final JongoCollection collection = namedComponent.getComponent();
                                 return new NamedComponent<>(namedComponent.getName(),
-                                        new SequencingJongoCollection(collection, mapper, objectIdUpdater));
+                                        new SequencingJongoCollection(tape, collection, mapper, objectIdUpdater));
                             }
                         };
                     }
@@ -54,26 +55,18 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
                         return BillOfMaterials.of(mapperQuery);
                     }
                 }));
-    }
-
-    @Override
-    public AutoCloseable recordIn(Map<String, Given> givens) {
-        return new Tape(givens);
+        return tape;
     }
 
     private static class Tape implements AutoCloseable {
-        private static final ThreadLocal<Tape> TAPE = new ThreadLocal<>();
-
         private final Map<String, Given> givens;
 
         private Tape(Map<String, Given> givens) {
             this.givens = givens;
-            TAPE.set(this);
         }
 
         @Override
         public void close() throws Exception {
-            TAPE.remove();
         }
 
         public void recordCollection(MongoCollection mongoCollection) {
@@ -110,11 +103,13 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
     }
 
     private static class SequencingJongoCollection implements JongoCollection {
+        private final Tape tape;
         private final JongoCollection collection;
         private final Mapper mapper;
         private final ObjectIdUpdater objectIdUpdater;
 
-        public SequencingJongoCollection(JongoCollection collection, Mapper mapper, ObjectIdUpdater objectIdUpdater) {
+        public SequencingJongoCollection(Tape tape, JongoCollection collection, Mapper mapper, ObjectIdUpdater objectIdUpdater) {
+            this.tape = tape;
             this.collection = collection;
             this.mapper = mapper;
             this.objectIdUpdater = objectIdUpdater;
@@ -128,8 +123,8 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
         @Override
         public MongoCollection get() {
             MongoCollection mongoCollection = collection.get();
-            if (Tape.TAPE.get() != null) {
-                Tape.TAPE.get().recordCollection(mongoCollection);
+            if (tape != null) {
+                tape.recordCollection(mongoCollection);
                 mongoCollection = new MongoCollection(
                         mongoCollection.getDBCollection(),
                         new Mapper() {
@@ -158,7 +153,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
 
                                     @Override
                                     public void setObjectId(Object target, ObjectId id) {
-                                        Tape.TAPE.get().recordGeneratedId(collection.getName(), id);
+                                        tape.recordGeneratedId(collection.getName(), id);
                                         objectIdUpdater.setObjectId(target, id);
                                     }
                                 };

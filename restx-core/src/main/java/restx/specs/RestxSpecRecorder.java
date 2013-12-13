@@ -5,14 +5,12 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import restx.RestxRequest;
 import restx.RestxResponse;
-import restx.factory.Factory;
 import restx.security.RestxSessionFilter;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -21,54 +19,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Time: 5:05 PM
  */
 public class RestxSpecRecorder {
-    private static final ThreadLocal<RestxSpecRecorder> current = new ThreadLocal<>();
-
-    public static <T> T doWithRecorder(RestxSpecRecorder recorder, Callable<T> runnable) throws Exception {
-        current.set(recorder);
-        try {
-            return runnable.call();
-        } finally {
-            current.remove();
-        }
-    }
-
-    public static Optional<RestxSpecRecorder> current() {
-        return Optional.fromNullable(current.get());
-    }
-
-    private final List<RecordedSpec> recordedSpecs = new CopyOnWriteArrayList<>();
 
     private final Set<GivenRecorder> recorders;
     private final RestxSessionFilter sessionFilter;
     private final RestxSpec.StorageSettings storageSettings;
+    private final Repository repository;
 
-    public RestxSpecRecorder() {
-        this(Factory.builder()
-                .addLocalMachines(Factory.LocalMachines.threadLocal())
-                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpec.class.getSimpleName()))
-                .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpecRecorder.class.getSimpleName()))
-                .addFromServiceLoader()
-                .build());
-    }
-
-    public RestxSpecRecorder(Factory factory) {
-        this(factory.queryByClass(GivenRecorder.class).findAsComponents(),
-                factory.queryByClass(RestxSessionFilter.class).mandatory().findOne().get().getComponent(),
-                factory.getComponent(RestxSpec.StorageSettings.class));
-    }
-
-    public RestxSpecRecorder(Set<GivenRecorder> recorders, RestxSessionFilter sessionFilter, RestxSpec.StorageSettings storageSettings) {
+    public RestxSpecRecorder(Set<GivenRecorder> recorders, RestxSessionFilter sessionFilter,
+                             RestxSpec.StorageSettings storageSettings, Repository repository) {
         this.recorders = recorders;
         this.sessionFilter = sessionFilter;
         this.storageSettings = storageSettings;
+        this.repository = repository;
     }
-
-    public void install() {
-        for (GivenRecorder recorder : recorders) {
-            recorder.installRecording();
-        }
-    }
-
 
     /**
      * Start recording a request and response.
@@ -80,8 +43,6 @@ public class RestxSpecRecorder {
      *
      * @param restxRequest  the request to record
      * @param restxResponse the response to record
-     * @param restxRecordPath
-     *@param restxRecordTitle @return a recorder tape
      * @throws IOException
      */
     public RestxSpecTape record(RestxRequest restxRequest, RestxResponse restxResponse, Optional<String> recordPath, Optional<String> recordTitle) throws IOException {
@@ -91,19 +52,26 @@ public class RestxSpecRecorder {
 
     public RecordedSpec stop(RestxSpecTape tape) {
         RecordedSpec recordedSpec = tape.close();
-        recordedSpecs.add(recordedSpec);
+        repository.add(recordedSpec);
         return recordedSpec;
     }
 
-    public List<RecordedSpec> getRecordedSpecs() {
-        return recordedSpecs;
-    }
 
     public static interface GivenRecorder {
-        void installRecording();
         AutoCloseable recordIn(Map<String, Given> givens);
     }
 
+    public static class Repository {
+        private final List<RestxSpecRecorder.RecordedSpec> recordedSpecs = new CopyOnWriteArrayList<>();
+
+        public List<RestxSpecRecorder.RecordedSpec> getRecordedSpecs() {
+            return recordedSpecs;
+        }
+
+        public void add(RestxSpecRecorder.RecordedSpec recordedSpec) {
+            recordedSpecs.add(recordedSpec);
+        }
+    }
 
     public static class RecordedSpec {
         private RestxSpec spec;

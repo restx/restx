@@ -16,7 +16,8 @@ import java.util.List;
  * Time: 9:37 PM
  */
 public class SpecRecorderRoute extends RestxRouter {
-    public SpecRecorderRoute(final RestxSpecRecorder specRecorder, final RestxSpec.StorageSettings storageSettings) {
+    public SpecRecorderRoute(final RestxSpecRecorder.Repository recordedSpecsRepository,
+                             final RestxSpec.StorageSettings storageSettings) {
         super("SpecRecorderRouter",
                 new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs.recorder", ImmutableMap.of("", "index.html")),
                 new StdRoute("RecorderRoute", new StdRestxRequestMatcher("GET", "/@/recorders")) {
@@ -24,7 +25,7 @@ public class SpecRecorderRoute extends RestxRouter {
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         resp.setContentType("application/json");
                         List<String> data = Lists.newArrayList();
-                        for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
+                        for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             data.add(String.format("{ \"id\": \"%03d\", \"method\": \"%s\", \"path\": \"%s\", \"recordTime\": \"%s\", \"duration\": %d, " +
                                     "\"capturedItems\": %d, \"capturedRequestSize\": %d, \"capturedResponseSize\": %d }",
                                     spec.getId(), spec.getMethod(), spec.getPath(), spec.getRecordTime(), spec.getDuration().getMillis(),
@@ -40,7 +41,7 @@ public class SpecRecorderRoute extends RestxRouter {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         int id = Integer.parseInt(match.getPathParam("id"));
-                        for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
+                        for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {
                                 resp.setContentType("text/yaml");
                                 resp.getWriter().println(spec.getSpec().toString());
@@ -56,7 +57,7 @@ public class SpecRecorderRoute extends RestxRouter {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         int id = Integer.parseInt(match.getPathParam("id"));
-                        for (RestxSpecRecorder.RecordedSpec spec : specRecorder.getRecordedSpecs()) {
+                        for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {
                                 Optional<String> path = req.getQueryParam("path");
                                 Optional<String> title = req.getQueryParam("title");

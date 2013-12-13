@@ -14,11 +14,12 @@ import java.util.*;
 @Component
 public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecorder {
     @Override
-    public void installRecording() {
-        Factory.LocalMachines.contextLocal(RestxContext.Modes.RECORDING).addMachine(
+    public AutoCloseable recordIn(final Map<String, Given> givens) {
+        final Tape tape = new Tape(givens);
+        Factory.LocalMachines.threadLocal().addMachine(
                 new SingleNameFactoryMachine<>(0, new NoDepsMachineEngine<ComponentCustomizerEngine>(
-                Name.of(ComponentCustomizerEngine.class, "UUIDGeneratorSequenceSupplier"),
-                BoundlessComponentBox.FACTORY) {
+                        Name.of(ComponentCustomizerEngine.class, "UUIDGeneratorSequenceSupplier"),
+                        BoundlessComponentBox.FACTORY) {
                     @Override
                     protected ComponentCustomizerEngine doNewComponent(SatisfiedBOM satisfiedBOM) {
                         return new SingleComponentClassCustomizerEngine(0, UUIDGenerator.class) {
@@ -28,7 +29,7 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
                                     @Override
                                     public String doGenerate() {
                                         String uuid = ((UUIDGenerator) namedComponent.getComponent()).doGenerate();
-                                        Tape.TAPE.get().recordGeneratedId(uuid);
+                                        tape.recordGeneratedId(uuid);
                                         return uuid;
                                     }
                                 });
@@ -36,27 +37,20 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
                         };
                     }
                 }));
-    }
-
-    @Override
-    public AutoCloseable recordIn(final Map<String, Given> givens) {
-        return new Tape(givens);
+        return tape;
     }
 
     private static class Tape implements AutoCloseable {
-        private static final ThreadLocal<Tape> TAPE = new ThreadLocal<>();
         private final Map<String, Given> givens;
         private GivenUUIDGenerator givenUUIDGenerator;
 
         private Tape(Map<String, Given> givens) {
             this.givens = givens;
             givenUUIDGenerator = new GivenUUIDGenerator(ImmutableList.<String>of());
-            TAPE.set(this);
         }
 
         @Override
         public void close() throws Exception {
-            TAPE.remove();
             givens.put("uuids", givenUUIDGenerator);
         }
 
