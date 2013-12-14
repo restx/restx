@@ -58,7 +58,8 @@ public class Permissions {
 
             @Override
             public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request) {
-                return principal.getPrincipalRoles().contains(role) ? Optional.of(this) : Optional.<Permission>absent();
+                return principal.getPrincipalRoles().contains(role) || principal.getPrincipalRoles().contains("*")
+                        ? Optional.of(this) : Optional.<Permission>absent();
             }
 
             @Override
