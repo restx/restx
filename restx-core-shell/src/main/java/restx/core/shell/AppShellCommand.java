@@ -120,14 +120,17 @@ public class AppShellCommand extends StdShellCommand {
         private ImmutableMap<Template, String> mainTemplates = buildTemplates(
                 "templates/main/", ImmutableSet.of(
                 "_md.restx.json",
+                "data/users.json",
+                "data/credentials.json",
                 "src/main/java/$packagePath$/_AppModule.java",
                 "src/main/java/$packagePath$/_AppServer.java",
-                "src/main/java/$packagePath$/persistence/_UserRepository.java",
                 "src/main/webapp/WEB-INF/_web.xml",
                 "src/main/resources/_logback.xml"
         ));
         private ImmutableMap<Template, String> helloResourceTemplates = buildTemplates(
                 "templates/helloResource/", ImmutableSet.of(
+                "data/users.json",
+                "src/main/java/$packagePath$/_Roles.java",
                 "src/main/java/$packagePath$/domain/_Message.java",
                 "src/main/java/$packagePath$/rest/_HelloResource.java",
                 "src/test/java/$packagePath$/rest/_HelloResourceSpecTest.java",
