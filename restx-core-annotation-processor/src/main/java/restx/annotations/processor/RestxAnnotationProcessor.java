@@ -1,10 +1,10 @@
 package restx.annotations.processor;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
+import com.samskivert.mustache.Template;
 import restx.StdRestxRequestMatcher;
 import restx.http.HttpStatus;
 import restx.RestxLogLevel;
@@ -40,7 +40,7 @@ import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class RestxAnnotationProcessor extends AbstractProcessor {
-    final Mustache routerTpl;
+    final Template routerTpl;
 
     public RestxAnnotationProcessor() {
         routerTpl = Mustaches.compile(RestxAnnotationProcessor.class, "RestxRouter.mustache");
@@ -240,12 +240,12 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private void generateJavaClass(String className, Mustache mustache, ImmutableMap<String, ? extends Object> ctx,
+    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, ? extends Object> ctx,
             Set<Element> originatingElements) throws IOException {
         JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className,
                 Iterables.toArray(originatingElements, Element.class));
         try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(writer, ctx);
+            mustache.execute(ctx, writer);
         }
     }
 

@@ -1,9 +1,9 @@
 package restx.config.processor;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.base.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.samskivert.mustache.Template;
 import restx.common.Mustaches;
 import restx.config.Settings;
 import restx.config.SettingsKey;
@@ -34,8 +34,8 @@ import java.util.Set;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class SettingsAnnotationProcessor extends AbstractProcessor {
-    final Mustache settingsProviderTpl;
-    final Mustache settingsConfigTpl;
+    final Template settingsProviderTpl;
+    final Template settingsConfigTpl;
 
     public SettingsAnnotationProcessor() {
         settingsProviderTpl = Mustaches.compile(SettingsAnnotationProcessor.class, "SettingsProvider.mustache");
@@ -162,11 +162,11 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
         throw new IllegalStateException("no package for " + typeElement);
     }
 
-    private void generateJavaClass(String className, Mustache mustache, ImmutableMap<String, Object> ctx,
+    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, Object> ctx,
             Element originatingElements) throws IOException {
         JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className, originatingElements);
         try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(writer, ctx);
+            mustache.execute(ctx, writer);
         }
     }
 

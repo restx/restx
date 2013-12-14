@@ -1,7 +1,7 @@
 package restx.common;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.collect.ImmutableMap;
+import com.samskivert.mustache.Template;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.*;
@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.*;
 public class MustachesTest {
     @Test
     public void should_compile_and_execute() throws Exception {
-        Mustache mustache = Mustaches.compile(MustachesTest.class, "MustachesTestFixture1.mustache");
+        Template mustache = Mustaches.compile(MustachesTest.class, "MustachesTestFixture1.mustache");
         assertThat(Mustaches.execute(mustache, ImmutableMap.of("name", "world"))).isEqualTo("Hello world");
     }
 }

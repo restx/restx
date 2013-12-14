@@ -1,20 +1,20 @@
-package {{{package}}};
+package {{package}};
 
 import restx.common.RestxConfig;
 import restx.factory.Component;
 
 @Component
-public class {{{settingsSimpleType}}}Config implements {{{settingsType}}} {
+public class {{settingsSimpleType}}Config implements {{settingsType}} {
     private final RestxConfig config;
 
-    public {{{settingsSimpleType}}}Config(RestxConfig config) {
+    public {{settingsSimpleType}}Config(RestxConfig config) {
         this.config = config;
     }
 {{#keys}}
 
     @Override
-    public {{{accessorReturnType}}} {{{accessorName}}}() {
-        return config.{{{configAccessor}}}("{{{key}}}"){{{get}}};
+    public {{accessorReturnType}} {{accessorName}}() {
+        return config.{{configAccessor}}("{{key}}"){{get}};
     }
 {{/keys}}
 }

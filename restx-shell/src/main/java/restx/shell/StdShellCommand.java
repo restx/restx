@@ -1,7 +1,5 @@
 package restx.shell;
 
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.Mustache;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -10,6 +8,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
+import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Template;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.common.Mustaches;
@@ -99,8 +99,8 @@ public abstract class StdShellCommand implements ShellCommand {
         return shortDescription;
     }
 
-    protected <T> ImmutableMap<Mustache, String> buildTemplates(String basePath, ImmutableSet<String> tpls) {
-        ImmutableMap.Builder<Mustache, String> builder = ImmutableMap.builder();
+    protected <T> ImmutableMap<Template, String> buildTemplates(String basePath, ImmutableSet<String> tpls) {
+        ImmutableMap.Builder<Template, String> builder = ImmutableMap.builder();
 
         for (String tpl : tpls) {
             builder.put(Mustaches.compile(basePath + tpl),
@@ -113,8 +113,8 @@ public abstract class StdShellCommand implements ShellCommand {
         return builder.build();
     }
 
-    protected void generate(ImmutableMap<Mustache, String> templates, Path path, Object scope) throws IOException {
-        for (Map.Entry<Mustache, String> entry : templates.entrySet()) {
+    protected void generate(ImmutableMap<Template, String> templates, Path path, Object scope) throws IOException {
+        for (Map.Entry<Template, String> entry : templates.entrySet()) {
             Mustaches.execute(entry.getKey(), scope, resolvePath(path, entry.getValue(), scope));
         }
 
@@ -122,7 +122,7 @@ public abstract class StdShellCommand implements ShellCommand {
 
     private Path resolvePath(Path path, String relative, Object scope) {
         return path.resolve(Mustaches.execute(
-                new DefaultMustacheFactory().compile(new StringReader(relative), relative), scope));
+                Mustache.compiler().escapeHTML(false).compile(relative), scope));
     }
 
     protected List<String> splitArgs(String line) {

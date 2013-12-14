@@ -21,7 +21,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <guava.version>15.0</guava.version>
         <joda-time.version>2.3</joda-time.version>
-        <mustache.version>0.8.13</mustache.version>
+        <mustache.version>1.8</mustache.version>
         <reflections.version>0.9.9-RC1</reflections.version>
         <junit.version>4.11</junit.version>
         <assertj-core.version>1.5.0</assertj-core.version>
@@ -44,8 +44,8 @@
             <version>${reflections.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.spullara.mustache.java</groupId>
-            <artifactId>compiler</artifactId>
+            <groupId>com.samskivert</groupId>
+            <artifactId>jmustache</artifactId>
             <version>${mustache.version}</version>
         </dependency>
         <dependency>

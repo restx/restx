@@ -1,6 +1,5 @@
 package restx.core.shell;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -8,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import com.samskivert.mustache.Template;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
@@ -117,7 +117,7 @@ public class AppShellCommand extends StdShellCommand {
 
     class NewAppCommandRunner implements ShellCommandRunner {
 
-        private ImmutableMap<Mustache, String> mainTemplates = buildTemplates(
+        private ImmutableMap<Template, String> mainTemplates = buildTemplates(
                 "templates/main/", ImmutableSet.of(
                 "_md.restx.json",
                 "src/main/java/$packagePath$/_AppModule.java",
@@ -126,7 +126,7 @@ public class AppShellCommand extends StdShellCommand {
                 "src/main/webapp/WEB-INF/_web.xml",
                 "src/main/resources/_logback.xml"
         ));
-        private ImmutableMap<Mustache, String> helloResourceTemplates = buildTemplates(
+        private ImmutableMap<Template, String> helloResourceTemplates = buildTemplates(
                 "templates/helloResource/", ImmutableSet.of(
                 "src/main/java/$packagePath$/domain/_Message.java",
                 "src/main/java/$packagePath$/rest/_HelloResource.java",

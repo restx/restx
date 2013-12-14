@@ -1,10 +1,10 @@
 package restx.factory.processor;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
+import com.samskivert.mustache.Template;
 import restx.factory.*;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -45,10 +45,10 @@ import static restx.common.Mustaches.compile;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class FactoryAnnotationProcessor extends AbstractProcessor {
-    final Mustache componentMachineTpl;
-    final Mustache alternativeMachineTpl;
-    final Mustache conditionalMachineTpl;
-    final Mustache moduleMachineTpl;
+    final Template componentMachineTpl;
+    final Template alternativeMachineTpl;
+    final Template conditionalMachineTpl;
+    final Template moduleMachineTpl;
     private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
@@ -317,7 +317,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                     .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
                     .put("queries", Joiner.on(",\n").join(buildQueriesNames(method.parameters)))
                     .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(method.parameters)))
-                    .put("exceptions", Joiner.on("\n").join(method.exceptions))
+                    .put("exceptions", method.exceptions.isEmpty() ? false : Joiner.on("\n").join(method.exceptions))
                     .build());
         }
 
@@ -420,12 +420,12 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         return parametersCode;
     }
 
-    private void generateJavaClass(String className, Mustache mustache, ImmutableMap<String, ? extends Object> ctx,
+    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, ? extends Object> ctx,
             Set<Element> originatingElements) throws IOException {
         JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className,
                 Iterables.toArray(originatingElements, Element.class));
         try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(writer, ctx);
+            mustache.execute(ctx, writer);
         }
     }
 

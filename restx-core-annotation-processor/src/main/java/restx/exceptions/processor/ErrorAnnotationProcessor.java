@@ -1,10 +1,10 @@
 package restx.exceptions.processor;
 
-import com.github.mustachejava.Mustache;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.samskivert.mustache.Template;
 import restx.common.Mustaches;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
@@ -35,7 +35,7 @@ import java.util.Set;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ErrorAnnotationProcessor extends AbstractProcessor {
-    final Mustache errorDescriptorTpl;
+    final Template errorDescriptorTpl;
 
     public ErrorAnnotationProcessor() {
         errorDescriptorTpl = Mustaches.compile(ErrorAnnotationProcessor.class, "ErrorDescriptor.mustache");
@@ -86,11 +86,11 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void generateJavaClass(String className, Mustache mustache, ImmutableMap<String, Object> ctx,
+    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, Object> ctx,
             Element originatingElements) throws IOException {
         JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className, originatingElements);
         try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(writer, ctx);
+            mustache.execute(ctx, writer);
         }
     }
 

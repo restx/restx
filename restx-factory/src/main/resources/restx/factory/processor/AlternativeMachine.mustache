@@ -20,19 +20,19 @@ public class {{machine}} extends SingleNameFactoryMachine<FactoryMachine> {
                             && satisfiedBOM.getOne(query).get().getComponent().equals("{{whenValue}}")) {
                         return new SingleNameFactoryMachine<{{alternativeToComponentType}}>({{priority}},
                                         new StdMachineEngine<{{alternativeToComponentType}}>(NAME, BoundlessComponentBox.FACTORY) {
-{{{queriesDeclarations}}}
+{{queriesDeclarations}}
 
                                             @Override
                                             public BillOfMaterials getBillOfMaterial() {
                                                 return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(
-{{{queries}}}
+{{queries}}
                                                 ));
                                             }
 
                                             @Override
                                             protected {{alternativeToComponentType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
                                                 return new {{componentType}}(
-{{{parameters}}}
+{{parameters}}
                                                 );
                                             }
                                         });

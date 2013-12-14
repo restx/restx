@@ -10,19 +10,19 @@ public class {{machine}} extends SingleNameFactoryMachine<{{componentType}}> {
 
     public {{machine}}() {
         super({{priority}}, new StdMachineEngine<{{componentType}}>(NAME, BoundlessComponentBox.FACTORY) {
-{{{queriesDeclarations}}}
+{{queriesDeclarations}}
 
             @Override
             public BillOfMaterials getBillOfMaterial() {
                 return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(
-{{{queries}}}
+{{queries}}
                 ));
             }
 
             @Override
             protected {{componentType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
                 return new {{componentType}}(
-{{{parameters}}}
+{{parameters}}
                 );
             }
         });

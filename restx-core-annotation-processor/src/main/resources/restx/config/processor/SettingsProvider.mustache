@@ -1,4 +1,4 @@
-package {{{package}}};
+package {{package}};
 
 import restx.common.ConfigElement;
 import restx.config.ConfigSupplier;
@@ -9,12 +9,12 @@ import restx.factory.Component;
 import static java.util.Arrays.asList;
 
 @Component(priority = 1000)
-public class {{{settingsSimpleType}}}Provider implements ConfigSupplier {
+public class {{settingsSimpleType}}Provider implements ConfigSupplier {
     @Override
     public RestxConfig get() {
         return StdRestxConfig.of(asList(new ConfigElement[] {
 {{#keys}}
-                ConfigElement.of("{{{settingsType}}}", "{{{doc}}}", "{{{key}}}", "{{{defaultValue}}}"),
+                ConfigElement.of("{{settingsType}}", "{{doc}}", "{{key}}", "{{defaultValue}}"),
 {{/keys}}
         }
         ));

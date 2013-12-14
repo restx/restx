@@ -10,7 +10,7 @@
 
     "jackson.version": "2.3.0",
 
-    "mustache.version": "0.8.13",
+    "mustache.version": "1.8",
     "http-request.version": "5.5",
 
     "snakeyaml.version": "1.13",

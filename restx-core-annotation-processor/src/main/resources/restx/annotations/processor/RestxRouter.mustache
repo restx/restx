@@ -1,4 +1,4 @@
-package {{{package}}};
+package {{package}};
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,39 +24,39 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 @Component(priority = {{priority}})
-{{{condition}}}
-public class {{{router}}} extends RestxRouter {
+{{condition}}
+public class {{router}} extends RestxRouter {
 
-    public {{{router}}}(
-                    final {{{resource}}} resource,
+    public {{router}}(
+                    final {{resource}} resource,
                     final EntityRequestBodyReaderRegistry readerRegistry,
                     final EntityResponseWriterRegistry writerRegistry,
                     final MainStringConverter converter,
                     final Validator validator,
                     final RestxSecurityManager securityManager) {
         super(
-            "{{{routerGroup}}}", "{{{router}}}", new RestxRoute[] {
+            "{{routerGroup}}", "{{router}}", new RestxRoute[] {
 {{#routes}}
-        new StdEntityRoute<{{{inEntity}}}, {{{outEntity}}}>("{{{routeId}}}",
-                readerRegistry.<{{{inEntity}}}>build({{inEntityType}}, {{{inContentType}}}),
-                writerRegistry.<{{{outEntity}}}>build({{outEntityType}}, {{{outContentType}}}),
-                new StdRestxRequestMatcher("{{{method}}}", "{{{path}}}"),
-                HttpStatus.{{{successStatusName}}}, RestxLogLevel.{{{logLevelName}}}) {
+        new StdEntityRoute<{{inEntity}}, {{outEntity}}>("{{routeId}}",
+                readerRegistry.<{{inEntity}}>build({{inEntityType}}, {{inContentType}}),
+                writerRegistry.<{{outEntity}}>build({{outEntityType}}, {{outContentType}}),
+                new StdRestxRequestMatcher("{{method}}", "{{path}}"),
+                HttpStatus.{{successStatusName}}, RestxLogLevel.{{logLevelName}}) {
             @Override
-            protected Optional<{{{outEntity}}}> doRoute(RestxRequest request, RestxRequestMatch match, {{{inEntity}}} body) throws IOException {
-                {{{securityCheck}}}
-                {{{call}}}
+            protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {
+                {{securityCheck}}
+                {{call}}
             }
 
             @Override
             protected void describeOperation(OperationDescription operation) {
                 super.describeOperation(operation);
-                {{{parametersDescription}}}
+                {{parametersDescription}}
 
-                operation.responseClass = "{{{responseClass}}}";
-                operation.inEntitySchemaKey = "{{{inEntitySchemaKey}}}";
-                operation.outEntitySchemaKey = "{{{outEntitySchemaKey}}}";
-                operation.sourceLocation = "{{{sourceLocation}}}";
+                operation.responseClass = "{{responseClass}}";
+                operation.inEntitySchemaKey = "{{inEntitySchemaKey}}";
+                operation.outEntitySchemaKey = "{{outEntitySchemaKey}}";
+                operation.sourceLocation = "{{sourceLocation}}";
             }
         },
 {{/routes}}

@@ -1,37 +1,37 @@
-package {{{package}}};
+package {{package}};
 
 import com.google.common.collect.ImmutableSet;
 import restx.factory.*;
-import {{{moduleFqcn}}};
+import {{moduleFqcn}};
 
 
 @Machine
-public class {{{machine}}} extends DefaultFactoryMachine {
-    private static final {{{moduleType}}} module = new {{{moduleType}}}();
+public class {{machine}} extends DefaultFactoryMachine {
+    private static final {{moduleType}} module = new {{moduleType}}();
 
-    public {{{machine}}}() {
+    public {{machine}}() {
         super({{priority}}, new MachineEngine[] {
 {{#engines}}
-            new StdMachineEngine<{{{type}}}>(Name.of({{{type}}}.class, "{{{injectionName}}}"), BoundlessComponentBox.FACTORY) {
-        {{{queriesDeclarations}}}
+            new StdMachineEngine<{{type}}>(Name.of({{type}}.class, "{{injectionName}}"), BoundlessComponentBox.FACTORY) {
+        {{queriesDeclarations}}
                 @Override
                 public BillOfMaterials getBillOfMaterial() {
                     return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(
-        {{{queries}}}
+        {{queries}}
                     ));
                 }
 
                 @Override
-                public {{{type}}} doNewComponent(SatisfiedBOM satisfiedBOM) {
+                public {{type}} doNewComponent(SatisfiedBOM satisfiedBOM) {
 	                {{#exceptions}}
                 	try {
 	                {{/exceptions}}
-	                    return module.{{{name}}}(
-	        {{{parameters}}}
+	                    return module.{{name}}(
+	        {{parameters}}
 	                    );
 	                {{#exceptions}}
-                    } catch ({{{exceptions}}} e) {
-                    	throw new ProvisionException("Could not create component {{{name}}}", e);
+                    } catch ({{exceptions}} e) {
+                    	throw new ProvisionException("Could not create component {{name}}", e);
                     }
 	                {{/exceptions}}
                 }

@@ -17,7 +17,7 @@
         <dependency org="com.google.guava" name="guava" rev="15.0" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.3" conf="default" />
         <dependency org="org.reflections" name="reflections" rev="0.9.9-RC1" conf="default" />
-        <dependency org="com.github.spullara.mustache.java" name="compiler" rev="0.8.13" conf="default" />
+        <dependency org="com.samskivert" name="jmustache" rev="1.8" conf="default" />
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
         <dependency org="org.assertj" name="assertj-core" rev="1.5.0" conf="test->default" />
     </dependencies>
