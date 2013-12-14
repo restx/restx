@@ -120,6 +120,10 @@ public class RestxSession {
 
         try {
             return Optional.fromNullable(definition.getCache(clazz, key).get(valueid));
+        } catch (CacheLoader.InvalidCacheLoadException e) {
+            // this exception is raised when cache loader returns null, which may happen if the object behind the key
+            // is deleted. Therefore we just return an absent value
+            return Optional.absent();
         } catch (ExecutionException e) {
             throw new RuntimeException(
                     "impossible to load object from cache using valueid " + valueid + " for " + key + ": " + e.getMessage(), e);
