@@ -4,6 +4,7 @@ import com.github.mustachejava.Mustache;
 import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
@@ -117,25 +118,23 @@ public class AppShellCommand extends StdShellCommand {
     class NewAppCommandRunner implements ShellCommandRunner {
 
         private ImmutableMap<Mustache, String> mainTemplates = buildTemplates(
-                AppShellCommand.class, ImmutableMap.<String, String>builder()
-                .put("md.restx.json.mustache", "md.restx.json")
-                .put("AppModule.java.mustache", "src/main/java/{{packagePath}}/AppModule.java")
-                .put("AppServer.java.mustache", "src/main/java/{{packagePath}}/AppServer.java")
-                .put("UserRepository.java.mustache", "src/main/java/{{packagePath}}/persistence/UserRepository.java")
-                .put("web.xml.mustache", "src/main/webapp/WEB-INF/web.xml")
-                .put("logback.xml.mustache", "src/main/resources/logback.xml")
-                .build()
-        );
+                "templates/main/", ImmutableSet.of(
+                "_md.restx.json",
+                "src/main/java/$packagePath$/_AppModule.java",
+                "src/main/java/$packagePath$/_AppServer.java",
+                "src/main/java/$packagePath$/persistence/_UserRepository.java",
+                "src/main/webapp/WEB-INF/_web.xml",
+                "src/main/resources/_logback.xml"
+        ));
         private ImmutableMap<Mustache, String> helloResourceTemplates = buildTemplates(
-                AppShellCommand.class, ImmutableMap.<String, String>builder()
-                .put("Message.java.mustache", "src/main/java/{{packagePath}}/domain/Message.java")
-                .put("HelloResource.java.mustache", "src/main/java/{{packagePath}}/rest/HelloResource.java")
-                .put("HelloResourceSpecTest.java.mustache", "src/test/java/{{packagePath}}/rest/HelloResourceSpecTest.java")
-                .put("should_admin_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_admin_not_say_hello.spec.yaml")
-                .put("should_user1_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user1_say_hello.spec.yaml")
-                .put("should_user2_not_say_hello.spec.yaml.mustache", "src/test/resources/specs/hello/should_user2_not_say_hello.spec.yaml")
-                .build()
-        );
+                "templates/helloResource/", ImmutableSet.of(
+                "src/main/java/$packagePath$/domain/_Message.java",
+                "src/main/java/$packagePath$/rest/_HelloResource.java",
+                "src/test/java/$packagePath$/rest/_HelloResourceSpecTest.java",
+                "src/test/resources/specs/hello/_should_admin_say_hello.spec.yaml",
+                "src/test/resources/specs/hello/_should_user1_say_hello.spec.yaml",
+                "src/test/resources/specs/hello/_should_user2_not_say_hello.spec.yaml"
+        ));
 
         @Override
         public void run(RestxShell shell) throws Exception {

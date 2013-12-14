@@ -18,7 +18,14 @@ import static com.google.common.io.Resources.newReaderSupplier;
  */
 public class Mustaches {
     public static Mustache compile(Class relativeTo, String name) {
-        InputSupplier<InputStreamReader> supplier = newReaderSupplier(getResource(relativeTo, name), Charsets.UTF_8);
+        return compile(name, newReaderSupplier(getResource(relativeTo, name), Charsets.UTF_8));
+    }
+
+    public static Mustache compile(String name) {
+        return compile(name, newReaderSupplier(getResource(name), Charsets.UTF_8));
+    }
+
+    private static Mustache compile(String name, InputSupplier<InputStreamReader> supplier) {
         try (InputStreamReader reader = supplier.getInput()) {
             return new DefaultMustacheFactory().compile(reader, name);
         } catch (IOException e) {

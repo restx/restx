@@ -8,6 +8,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
@@ -98,11 +99,15 @@ public abstract class StdShellCommand implements ShellCommand {
         return shortDescription;
     }
 
-    protected <T> ImmutableMap<Mustache, String> buildTemplates(Class<T> clazz, ImmutableMap<String, String> tpls) {
+    protected <T> ImmutableMap<Mustache, String> buildTemplates(String basePath, ImmutableSet<String> tpls) {
         ImmutableMap.Builder<Mustache, String> builder = ImmutableMap.builder();
 
-        for (Map.Entry<String, String> entry : tpls.entrySet()) {
-            builder.put(Mustaches.compile(clazz, entry.getKey()), entry.getValue());
+        for (String tpl : tpls) {
+            builder.put(Mustaches.compile(basePath + tpl),
+                    tpl
+                            .replaceAll("^_([^/]+$)", "$1")
+                            .replaceAll("/_([^/]+$)", "/$1")
+                            .replaceAll("\\$([^_]+)\\$", "\\{\\{$1\\}\\}"));
         }
 
         return builder.build();
