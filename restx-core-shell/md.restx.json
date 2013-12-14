@@ -13,7 +13,8 @@
             "io.restx:restx-shell:${restx.version}",
             "io.restx:restx-shell-manager:${restx.version}",
             "io.restx:restx-build:${restx.version}",
-            "org.apache.ivy:ivy:${ivy.version}"
+            "org.apache.ivy:ivy:${ivy.version}",
+            "org.mindrot:jbcrypt:0.3m"
         ],
         "test": [
             "junit:junit:${junit.version}",

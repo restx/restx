@@ -7,8 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 import restx.factory.Module;
 import restx.factory.Provides;
-import restx.security.BasicPrincipalAuthenticator;
-import restx.security.RestxPrincipal;
+import restx.security.*;
 
 import javax.inject.Named;
 
@@ -16,17 +15,7 @@ import javax.inject.Named;
 public class AdminModule {
     public static final String RESTX_ADMIN_ROLE = "restx-admin";
 
-    public static final RestxPrincipal RESTX_ADMIN_PRINCIPAL = new RestxPrincipal() {
-        @Override
-        public ImmutableSet<String> getPrincipalRoles() {
-            return ImmutableSet.of(RESTX_ADMIN_ROLE);
-        }
-
-        @Override
-        public String getName() {
-            return "admin";
-        }
-    };
+    public static final RestxAdminPrincipal RESTX_ADMIN_PRINCIPAL = new RestxAdminPrincipal();
 
     @Provides
     @Named("restx.admin.password")
@@ -42,19 +31,30 @@ public class AdminModule {
 
     @Provides
     public BasicPrincipalAuthenticator basicPrincipalAuthenticator(
-            @Named("restx.admin.passwordHash") final String adminPasswordHash) {
-        return new BasicPrincipalAuthenticator() {
+            @Named("restx.admin.passwordHash") final String adminPasswordHash, SecuritySettings securitySettings) {
+        return new StdBasicPrincipalAuthenticator(new UserService<RestxAdminPrincipal>() {
             @Override
-            public Optional<? extends RestxPrincipal> findByName(String name) {
-                return "admin".equals(name) ? Optional.of(RESTX_ADMIN_PRINCIPAL) : Optional.<RestxPrincipal>absent();
+            public Optional<RestxAdminPrincipal> findUserByName(String name) {
+                return "admin".equals(name) ? Optional.of(RESTX_ADMIN_PRINCIPAL) : Optional.<RestxAdminPrincipal>absent();
             }
 
             @Override
-            public Optional<? extends RestxPrincipal> authenticate(
-                    String name, String passwordHash, ImmutableMap<String, ?> principalData) {
+            public Optional<RestxAdminPrincipal> findAndCheckCredentials(String name, String passwordHash) {
                 return "admin".equals(name) && adminPasswordHash.equals(passwordHash) ?
-                        Optional.of(RESTX_ADMIN_PRINCIPAL) : Optional.<RestxPrincipal>absent();
+                        Optional.of(RESTX_ADMIN_PRINCIPAL) : Optional.<RestxAdminPrincipal>absent();
             }
-        };
+        }, securitySettings);
+    }
+
+    public static class RestxAdminPrincipal implements RestxPrincipal {
+        @Override
+        public ImmutableSet<String> getPrincipalRoles() {
+            return ImmutableSet.of(RESTX_ADMIN_ROLE);
+        }
+
+        @Override
+        public String getName() {
+            return "admin";
+        }
     }
 }

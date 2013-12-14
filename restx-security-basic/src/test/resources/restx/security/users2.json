@@ -1,0 +1,4 @@
+{
+    "john": {"name":"john","roles":["role2"]},
+    "jane": {"name":"jane","roles":["role1", "role2"]}
+}
