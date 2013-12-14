@@ -1,0 +1,19 @@
+## hash md5 <plaintext>
+
+Computes the md5 of given plain text string
+
+## hash sha1 <plaintext>
+
+Computes the sha1 of given plain text string
+
+## hash bcrypt <plaintext>
+
+bcrypt given plain text string
+
+## hash md5+bcrypt <plaintext>
+
+Hash with md5, and then bcrypt the given plain text password
+
+## hash sha1+bcrypt <plaintext>
+
+Hash with sha1, and then bcrypt the given plain text password
