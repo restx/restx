@@ -317,7 +317,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                     .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
                     .put("queries", Joiner.on(",\n").join(buildQueriesNames(method.parameters)))
                     .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(method.parameters)))
-                    .put("exceptions", method.exceptions.isEmpty() ? false : Joiner.on(",\n").join(method.exceptions))
+                    .put("exceptions", method.exceptions.isEmpty() ? false : Joiner.on("|").join(method.exceptions))
                     .build());
         }
 
