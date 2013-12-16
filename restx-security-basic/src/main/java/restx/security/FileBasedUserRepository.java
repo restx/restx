@@ -8,9 +8,11 @@ import org.slf4j.LoggerFactory;
 import restx.common.Types;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
+import java.lang.reflect.ParameterizedType;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,12 +23,12 @@ import java.util.Map;
  *
  *     Example:
  *     <pre>
- *         {
- *             "admin": {
+ *         [
+ *             {
  *                 "name": "admin",
  *                 "principalRoles": ["restx-admin"]
  *             }
- *         }
+ *         ]
  *     </pre>
  * </p>
  * <p>
@@ -55,9 +57,19 @@ public class FileBasedUserRepository<U extends RestxPrincipal> implements UserRe
         this.userClass = userClass;
         this.defaultAdmin = defaultAdmin;
         this.credentials = new CachedData<>(credentialsPath, "credentials",
-                mapper, String.class, reloadOnChange);
-        this.users = new CachedData<>(usersPath, "users",
-                mapper, userClass, reloadOnChange);
+                mapper, Types.newParameterizedType(Map.class, String.class, String.class), reloadOnChange);
+        this.users = new CachedData<U>(usersPath, "users",
+                mapper, Types.newParameterizedType(List.class, userClass), reloadOnChange) {
+            @Override
+            protected Map<String, U> toMap(Object o) {
+                List<U> users = (List<U>) o;
+                Map<String, U> usersMap = new LinkedHashMap();
+                for (U user : users) {
+                    usersMap.put(user.getName(), user);
+                }
+                return usersMap;
+            }
+        };
     }
 
     @Override
@@ -93,10 +105,10 @@ public class FileBasedUserRepository<U extends RestxPrincipal> implements UserRe
         private long dataFileTimestamp;
         private Map<String, T> data;
 
-        public CachedData(Path path, String name, ObjectMapper mapper, Type valueClass, boolean reloadOnChange) {
+        public CachedData(Path path, String name, ObjectMapper mapper, ParameterizedType valueType, boolean reloadOnChange) {
             this.dataPath = path;
             this.name = name;
-            this.reader = mapper.reader().withType(Types.newParameterizedType(Map.class, String.class, valueClass));
+            this.reader = mapper.reader().withType(valueType);
             this.reloadOnChange = reloadOnChange;
         }
 
@@ -118,7 +130,7 @@ public class FileBasedUserRepository<U extends RestxPrincipal> implements UserRe
                         logger.debug("loading " + name + " from " + dataPath.toAbsolutePath());
                         try {
                             long lastModified = dataPath.toFile().lastModified();
-                            data = reader.readValue(dataPath.toFile());
+                            data = toMap(reader.readValue(dataPath.toFile()));
                             dataFileTimestamp = lastModified;
                         } catch (IOException e) {
                             logger.warn("error while loading " + name + " file " + dataPath + ": " + e.getMessage(), e);
@@ -128,6 +140,10 @@ public class FileBasedUserRepository<U extends RestxPrincipal> implements UserRe
                 }
             }
             return data;
+        }
+
+        protected Map<String, T> toMap(Object o) {
+            return (Map<String, T>) o;
         }
 
     }

@@ -1,4 +1,4 @@
-{
-    "user1": {"name":"user1", "roles": []},
-    "user2": {"name":"user2", "roles": []}
-}
+[
+    {"name":"user1", "roles": []},
+    {"name":"user2", "roles": []}
+]
