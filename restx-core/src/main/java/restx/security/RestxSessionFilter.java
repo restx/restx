@@ -35,16 +35,14 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
     private final SignatureKey signatureKey;
-    private final Sessions sessions;
     private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
     private final RestxSession emptySession;
 
     RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, SignatureKey signatureKey,
-                       Sessions sessions, RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
+                       RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
         this.sessionDefinition = sessionDefinition;
         this.mapper = mapper;
         this.signatureKey = signatureKey;
-        this.sessions = sessions;
         this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
         this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(),
                 Optional.<RestxPrincipal>absent(), Duration.ZERO);
@@ -68,14 +66,6 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
             session.cleanUpCaches();
         }
         RestxSession.setCurrent(session);
-        ImmutableMap<String, String> metadata = prepareSessionStatsMetadata(req, session);
-        if (session.getPrincipal().isPresent()) {
-            String name = session.getPrincipal().get().getName();
-            sessions.touch(name, metadata);
-            MDC.put("principal", name);
-        } else {
-            sessions.touch("anonymous@" + req.getClientAddress(), metadata);
-        }
         try {
             RouteLifecycleListener lifecycleListener = new AbstractRouteLifecycleListener() {
                 @Override
@@ -91,22 +81,6 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
             RestxSession.setCurrent(null);
             // we don't remove the MDC principal here, we want to keep it until the end of the request
         }
-    }
-
-    /**
-     * Prepares the metadata to be used for session stats monitoring.
-     *
-     * If you override this method, make sure to include the map built by the default implementation if you want
-     * the monitor admin session view to work properly, unless you override it too.
-     *
-     * @param req the request for which metadata should be prepared
-     * @param session the session for which metadata should be prepared
-     * @return the prepared metadata
-     */
-    protected ImmutableMap<String, String> prepareSessionStatsMetadata(RestxRequest req, RestxSession session) {
-        return ImmutableMap.of(
-                    "clientAddress", req.getClientAddress(),
-                    "userAgent", req.getHeader("User-Agent").or("Unknown"));
     }
 
     public RestxSession buildContextFromRequest(RestxRequest req) throws IOException {

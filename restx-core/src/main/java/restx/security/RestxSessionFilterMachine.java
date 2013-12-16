@@ -13,10 +13,9 @@ import restx.jackson.FrontObjectMapperFactory;
 public class RestxSessionFilterMachine extends SingleNameFactoryMachine<RestxSessionFilter> {
 
     public RestxSessionFilterMachine() {
-        super(-10, new StdMachineEngine<RestxSessionFilter>(RestxSessionFilter.NAME, BoundlessComponentBox.FACTORY) {
+        super(-200, new StdMachineEngine<RestxSessionFilter>(RestxSessionFilter.NAME, BoundlessComponentBox.FACTORY) {
             private final Factory.Query<RestxSession.Definition.Entry> entries = Factory.Query.byClass(RestxSession.Definition.Entry.class);
             private final Factory.Query<ObjectMapper> mapper = Factory.Query.byName(FrontObjectMapperFactory.NAME);
-            private final Factory.Query<Sessions> sessions = Factory.Query.byName(Name.of(Sessions.class, "Sessions"));
             private final Factory.Query<SignatureKey> signatureKeyQuery = Factory.Query.byClass(SignatureKey.class);
             private final Factory.Query<RestxSessionCookieDescriptor> restxSessionCookieDescriptorQuery = Factory.Query.byClass(RestxSessionCookieDescriptor.class);
             @Override
@@ -29,13 +28,12 @@ public class RestxSessionFilterMachine extends SingleNameFactoryMachine<RestxSes
                                         Name.of(SignatureKey.class, "DefaultSignature"),
                                         SignatureKey.DEFAULT))
                                 .getComponent(),
-                        satisfiedBOM.getOne(sessions).get().getComponent(),
                         satisfiedBOM.getOne(restxSessionCookieDescriptorQuery).get().getComponent());
             }
 
             @Override
             public BillOfMaterials getBillOfMaterial() {
-                return BillOfMaterials.of(entries, mapper, signatureKeyQuery, sessions, restxSessionCookieDescriptorQuery);
+                return BillOfMaterials.of(entries, mapper, signatureKeyQuery, restxSessionCookieDescriptorQuery);
             }
         });
     }
