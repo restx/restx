@@ -2,6 +2,7 @@ package restx.factory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import org.junit.After;
 import org.junit.Test;
 
 import java.util.Set;
@@ -421,6 +422,37 @@ public class FactoryTest {
         assertThat(factory.queryByName(Name.of(String.class, "test")).optional().findOne().isPresent()).isFalse();
     }
 
+    @Test
+    public void should_deactivate_component() throws Exception {
+        threadLocal().set("name1", new A("a1"));
+        threadLocal().set("name2", new A("a2"));
+        Factory factory = Factory.newInstance();
+        assertThat(factory.getComponents(A.class)).extracting("a").containsExactly("a1", "a2");
+        assertThat(factory.queryByName(Name.of(A.class, "name2")).findOne().isPresent()).isTrue();
+
+        threadLocal().set(Factory.activationKey(A.class, "name2"), "false");
+        factory = Factory.newInstance();
+        assertThat(factory.getComponents(A.class)).extracting("a").containsExactly("a1");
+        assertThat(factory.queryByName(Name.of(A.class, "name2")).findOne().isPresent()).isFalse();
+    }
+
+    @Test
+    public void should_deactivate_component2() throws Exception {
+        threadLocal().set("name1", new A("a1"));
+        threadLocal().set("name2", new A("a2"));
+        Factory factory = Factory.newInstance();
+        assertThat(factory.queryByName(Name.of(Object.class, "name2")).findOne().isPresent()).isTrue();
+
+        threadLocal().set(Factory.activationKey(A.class, "name2"), "false");
+        factory = Factory.newInstance();
+        assertThat(factory.queryByName(Name.of(Object.class, "name2")).findOne().isPresent()).isFalse();
+    }
+
+    @After
+    public void teardown() {
+        threadLocal().clear();
+    }
+
     private SingleNameFactoryMachine<String> testMachine() {
         return testMachine("test");
     }
@@ -472,6 +504,18 @@ public class FactoryTest {
         @Override
         public void start() {
             started = true;
+        }
+    }
+
+    private static class A {
+        String a;
+
+        private A(String a) {
+            this.a = a;
+        }
+
+        public String getA() {
+            return a;
         }
     }
 }

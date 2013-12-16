@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -316,7 +317,8 @@ public class Factory implements AutoCloseable {
         private ImmutableList<ComponentCustomizerEngine> buildCustomizerEngines(Factory factory) {
             Set<ComponentCustomizerEngine> componentCustomizerEngines = new LinkedHashSet<>();
             for (FactoryMachine machine : factory.machines) {
-                Set<Name<ComponentCustomizerEngine>> names = machine.nameBuildableComponents(ComponentCustomizerEngine.class);
+                Set<Name<ComponentCustomizerEngine>> names =
+                        factory.nameBuildableComponents(machine, ComponentCustomizerEngine.class);
                 for (Name<ComponentCustomizerEngine> name : names) {
                     Optional<NamedComponent<ComponentCustomizerEngine>> customizer =
                             factory.buildAndStore(Query.byName(name), machine.getEngine(name));
@@ -333,7 +335,7 @@ public class Factory implements AutoCloseable {
             UnsatisfiedDependencies notSatisfied = UnsatisfiedDependencies.of();
             Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> moreToBuild = new LinkedHashMap<>();
             for (FactoryMachine machine : factoryMachines) {
-                Set<Name<FactoryMachine>> names = machine.nameBuildableComponents(FactoryMachine.class);
+                Set<Name<FactoryMachine>> names = factory.nameBuildableComponents(machine, FactoryMachine.class);
                 for (Name<FactoryMachine> name : names) {
                     MachineEngine<FactoryMachine> engine = machine.getEngine(name);
                     try {
@@ -581,7 +583,7 @@ public class Factory implements AutoCloseable {
             }
 
             for (FactoryMachine machine : factory().machines) {
-                if (machine.canBuild(name)) {
+                if (factory().canBuild(machine, name)) {
                     Optional<NamedComponent<T>> namedComponent = factory().buildAndStore(this, machine.getEngine(name));
                     if (namedComponent.isPresent()) {
                         return namedComponent;
@@ -593,7 +595,7 @@ public class Factory implements AutoCloseable {
 
         @Override
         public Set<Name<T>> findNames() {
-            return Collections.singleton(name);
+            return factory().checkActive(name) ? Collections.singleton(name) : Collections.<Name<T>>emptySet();
         }
 
         @Override
@@ -640,16 +642,17 @@ public class Factory implements AutoCloseable {
         protected Set<NamedComponent<T>> doFind() {
             Set<NamedComponent<T>> components = Sets.newLinkedHashSet();
             Set<Name<T>> builtNames = Sets.newHashSet();
-            for (FactoryMachine machine : factory().machines) {
-                Set<Name<T>> names = machine.nameBuildableComponents(componentClass);
+            Factory factory = factory();
+            for (FactoryMachine machine : factory.machines) {
+                Set<Name<T>> names = factory.nameBuildableComponents(machine, componentClass);
                 for (Name<T> name : names) {
                     if (!builtNames.contains(name)) {
-                        Optional<NamedComponent<T>> component = factory().warehouse.checkOut(name);
+                        Optional<NamedComponent<T>> component = factory.warehouse.checkOut(name);
                         if (component.isPresent()) {
                             components.add(component.get());
                             builtNames.add(name);
                         } else {
-                            Optional<NamedComponent<T>> namedComponent = factory().buildAndStore(this, machine.getEngine(name));
+                            Optional<NamedComponent<T>> namedComponent = factory.buildAndStore(this, machine.getEngine(name));
                             if (namedComponent.isPresent()) {
                                 components.add(namedComponent.get());
                                 builtNames.add(name);
@@ -675,7 +678,11 @@ public class Factory implements AutoCloseable {
         }
     }
 
-    private static final class CanBuildPredicate implements Predicate<FactoryMachine> {
+    public static <T> String activationKey(Class<T> aClass, String name) {
+        return "restx.activation::" + aClass.getName() + "::" + name;
+    }
+
+    private final class CanBuildPredicate implements Predicate<FactoryMachine> {
         private final Name<?> name;
 
         private CanBuildPredicate(Name<?> name) {
@@ -684,7 +691,7 @@ public class Factory implements AutoCloseable {
 
         @Override
         public boolean apply(FactoryMachine input) {
-            return input != null && input.canBuild(name);
+            return input != null && canBuild(input, name);
         }
     }
 
@@ -695,6 +702,8 @@ public class Factory implements AutoCloseable {
     private final ImmutableList<ComponentCustomizerEngine> customizerEngines;
     private final String id;
     private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
+
+    private final Set<Name> deactivatedComponents = new CopyOnWriteArraySet<>();
 
     private MetricRegistry metrics;
 
@@ -867,6 +876,7 @@ public class Factory implements AutoCloseable {
         sb.append("--\n");
 
         dumpBuidableComponents(sb);
+        dumpDeactivatedComponents(sb);
 
         Set<String> undeclaredMachines = findUndeclaredMachines();
         if (!undeclaredMachines.isEmpty()) {
@@ -886,6 +896,11 @@ public class Factory implements AutoCloseable {
 
         sb.append("---------------------------------------------");
         return sb.toString();
+    }
+
+    private void dumpDeactivatedComponents(StringBuilder sb) {
+        sb.append("--> Deactivated Components\n");
+        Joiner.on("\n\t").appendTo(sb, deactivatedComponents);
     }
 
     private void dumpBuidableComponents(StringBuilder sb) {
@@ -965,7 +980,7 @@ public class Factory implements AutoCloseable {
     private List<FactoryMachine> findAllMachinesListing(Name<?> name) {
         List<FactoryMachine> machinesFor = Lists.newArrayList();
         for (FactoryMachine machine : machines) {
-            if (machine.nameBuildableComponents(Object.class).contains(name)) {
+            if (nameBuildableComponents(machine, Object.class).contains(name)) {
                 machinesFor.add(machine);
             }
         }
@@ -983,13 +998,16 @@ public class Factory implements AutoCloseable {
     private <T> Set<Name<T>> collectAllBuildableNames(Class<T> componentClass) {
         Set<Name<T>> buildableNames = Sets.newLinkedHashSet();
         for (FactoryMachine machine : machines) {
-            buildableNames.addAll(machine.nameBuildableComponents(componentClass));
+            buildableNames.addAll(nameBuildableComponents(machine, componentClass));
         }
         return buildableNames;
     }
 
     private <T> Optional<NamedComponent<T>> buildAndStore(Query<T> query, MachineEngine<T> engine) {
         Name<T> name = engine.getName();
+        if (!checkActive(name)) {
+            return Optional.absent();
+        }
 
         BuildingBox<T> buildingBox = new BuildingBox<>(
                 ImmutableList.<SatisfiedQuery>of(SatisfiedQuery.of(query, name)), engine);
@@ -1200,6 +1218,41 @@ public class Factory implements AutoCloseable {
         }
 
         return machineFor.get().getEngine(name);
+    }
+
+    private <T> Set<Name<T>> nameBuildableComponents(FactoryMachine machine, Class<T> componentClass) {
+        Set<Name<T>> buildableComponents = new LinkedHashSet<>();
+        for (Name<T> tName : machine.nameBuildableComponents(componentClass)) {
+            if (checkActive(tName)) {
+                buildableComponents.add(tName);
+            }
+        }
+        return buildableComponents;
+    }
+
+    private <T> boolean canBuild(FactoryMachine machine, Name<T> name) {
+        return checkActive(name) && machine.canBuild(name);
+    }
+
+    private <T> boolean checkActive(Name<T> name) {
+        if (name.getClazz() == String.class && name.getName().startsWith("restx.activation::")) {
+            // can't deactivate activation keys themselves
+            return true;
+        }
+        if (deactivatedComponents.contains(name)) {
+            return false;
+        }
+
+        Class<?> aClass = name.getClazz();
+        while (aClass != null) {
+            if ("false".equals(queryByName(Name.of(String.class, activationKey(aClass, name.getName())))
+                    .findOneAsComponent().or("true"))) {
+                deactivatedComponents.add(name);
+                return false;
+            }
+            aClass = aClass.getSuperclass();
+        }
+        return true;
     }
 
     private <T> String machineNotFoundMessage(Name<T> name) {
