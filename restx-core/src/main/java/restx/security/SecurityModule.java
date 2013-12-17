@@ -15,7 +15,7 @@ import javax.inject.Named;
  * Date: 17/11/13
  * Time: 17:55
  */
-@Module
+@Module(priority = 100)
 public class SecurityModule {
     private static final Logger logger = LoggerFactory.getLogger(SecurityModule.class);
 
@@ -25,6 +25,12 @@ public class SecurityModule {
                 doc = "The maximum number of sessions data to keep in memory for statistics in the monitor view")
         int sessionsLimit();
 
+    }
+
+    @Provides
+    @Named("restx.activation::restx.security.RestxSessionBareFilter::RestxSessionBareFilter")
+    public String disableBareFilter() {
+        return "false";
     }
 
     // @Settings is not processed as long as this is part of core itself
