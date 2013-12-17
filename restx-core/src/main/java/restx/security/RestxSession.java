@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.joda.time.Duration;
+import restx.factory.Component;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -47,6 +48,7 @@ import java.util.concurrent.ExecutionException;
  * this valueId, and in case of cache miss will use the provided cache loader which will load the user from db.
  */
 public class RestxSession {
+    @Component
     public static class Definition {
         public static class Entry<T> {
             private final Class<T> clazz;

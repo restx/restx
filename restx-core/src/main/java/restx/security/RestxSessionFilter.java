@@ -13,9 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import restx.*;
 import restx.common.Crypto;
+import restx.factory.Component;
 import restx.factory.Name;
 import restx.http.HttpStatus;
+import restx.jackson.FrontObjectMapperFactory;
 
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +28,7 @@ import java.util.Map;
  * Date: 2/8/13
  * Time: 8:59 PM
  */
+@Component(priority = -200)
 public class RestxSessionFilter implements RestxFilter, RestxHandler {
     public static final Name<RestxSessionFilter> NAME = Name.of(RestxSessionFilter.class, "RestxSessionFilter");
 
@@ -38,11 +42,14 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
     private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
     private final RestxSession emptySession;
 
-    RestxSessionFilter(RestxSession.Definition sessionDefinition, ObjectMapper mapper, SignatureKey signatureKey,
-                       RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
+    public RestxSessionFilter(
+                        RestxSession.Definition sessionDefinition,
+                        @Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
+                        Optional<SignatureKey> signatureKey,
+                        RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
         this.sessionDefinition = sessionDefinition;
         this.mapper = mapper;
-        this.signatureKey = signatureKey;
+        this.signatureKey = signatureKey.or(SignatureKey.DEFAULT);
         this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
         this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(),
                 Optional.<RestxPrincipal>absent(), Duration.ZERO);
