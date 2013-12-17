@@ -1,0 +1,66 @@
+package restx.servlet;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import restx.*;
+import restx.factory.Component;
+import restx.security.RestxPrincipal;
+import restx.security.RestxSession;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.security.Principal;
+
+/**
+ * Date: 17/12/13
+ * Time: 23:01
+ */
+@Component(priority = -180)
+public class ServletSecurityFilter implements RestxFilter, RestxHandler {
+    private static final Logger logger = LoggerFactory.getLogger(ServletSecurityFilter.class);
+
+    @Override
+    public Optional<RestxHandlerMatch> match(RestxRequest req) {
+        try {
+            HttpServletRequest httpServletRequest = req.unwrap(HttpServletRequest.class);
+            if (httpServletRequest.getUserPrincipal() != null) {
+                return Optional.of(new RestxHandlerMatch(
+                        new StdRestxRequestMatch("*", req.getRestxPath()),
+                        this));
+            } else {
+                return Optional.absent();
+            }
+        } catch (IllegalArgumentException ex) {
+            return Optional.absent();
+        }
+    }
+
+    @Override
+    public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+        HttpServletRequest httpServletRequest = req.unwrap(HttpServletRequest.class);
+        final Principal userPrincipal = httpServletRequest.getUserPrincipal();
+        if (userPrincipal != null) {
+            logger.debug("setting restx principal from http servlet request {}", userPrincipal);
+            if (userPrincipal instanceof RestxPrincipal) {
+                RestxSession.current().authenticateAs((RestxPrincipal) userPrincipal);
+            } else {
+                RestxSession.current().authenticateAs(new RestxPrincipal() {
+                    @Override
+                    public ImmutableSet<String> getPrincipalRoles() {
+                        return ImmutableSet.of();
+                    }
+
+                    @Override
+                    public String getName() {
+                        return userPrincipal.getName();
+                    }
+                });
+            }
+        }
+
+        ctx.nextHandlerMatch().handle(req, resp, ctx);
+    }
+}
