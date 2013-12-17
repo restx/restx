@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
 import org.simpleframework.http.Cookie;
+import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,4 +133,14 @@ public class SimpleRestxResponse implements RestxResponse {
         this.logLevel = logLevel;
         return this;
     }
+
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        if (clazz == Response.class) {
+            return (T) response;
+        }
+        throw new IllegalArgumentException("underlying implementation is " + Response.class.getName()
+                + ", not " + clazz.getName());
+    }
+
 }

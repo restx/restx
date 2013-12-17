@@ -35,4 +35,17 @@ public interface RestxResponse extends AutoCloseable {
      */
     RestxResponse setLogLevel(RestxLogLevel level);
     RestxLogLevel getLogLevel();
+
+    /**
+     * Unwraps the underlying native implementation of given class.
+     *
+     * Examnple: This is a HttpServletRequest in a servlet container.
+     *
+     * @param clazz the class of the underlying implementation
+     * @param <T>
+     * @return the unwrapped implementation.
+     * @throws java.lang.IllegalArgumentException if the underlying implementation is not of given type.
+     */
+    <T> T unwrap(Class<T> clazz);
+
 }

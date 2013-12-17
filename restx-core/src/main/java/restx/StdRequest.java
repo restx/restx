@@ -160,6 +160,11 @@ public class StdRequest extends AbstractRequest {
         inputStream.close();
     }
 
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        throw new IllegalArgumentException("no underlying implementation");
+    }
+
     public static class StdRequestBuilder {
         private String baseUri;
         private String restxPath;

@@ -75,4 +75,9 @@ public class RestxResponseWrapper implements RestxResponse {
     public RestxLogLevel getLogLevel() {
         return restxResponse.getLogLevel();
     }
+
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        return restxResponse.unwrap(clazz);
+    }
 }

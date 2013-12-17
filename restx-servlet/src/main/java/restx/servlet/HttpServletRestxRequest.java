@@ -9,8 +9,11 @@ import com.google.common.collect.Maps;
 import restx.AbstractRequest;
 import restx.RestxRequest;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -176,4 +179,13 @@ public class HttpServletRestxRequest extends AbstractRequest {
     public String getContentType() {
         return request.getContentType();
     }
+
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        if (clazz == HttpServletRequest.class || clazz == ServletRequest.class) {
+            return (T) request;
+        }
+        throw new IllegalArgumentException("underlying implementation is HttpServletRequest, not " + clazz.getName());
+    }
+
 }

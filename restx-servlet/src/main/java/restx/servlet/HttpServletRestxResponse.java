@@ -7,6 +7,7 @@ import restx.RestxLogLevel;
 import restx.RestxResponse;
 import restx.http.HTTP;
 
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -136,5 +137,13 @@ public class HttpServletRestxResponse implements RestxResponse {
     public RestxResponse setLogLevel(RestxLogLevel logLevel) {
         this.logLevel = logLevel;
         return this;
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        if (clazz == HttpServletResponse.class || clazz == ServletResponse.class) {
+            return (T) resp;
+        }
+        throw new IllegalArgumentException("underlying implementation is HttpServletResponse, not " + clazz.getName());
     }
 }

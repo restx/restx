@@ -109,4 +109,9 @@ public class RestxRequestWrapper implements RestxRequest {
     public String toString() {
         return original.toString();
     }
+
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        return original.unwrap(clazz);
+    }
 }

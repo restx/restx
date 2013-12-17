@@ -155,4 +155,14 @@ public class SimpleRestxRequest  extends AbstractRequest {
     public void closeContentStream() throws IOException {
         bufferedInputStream.close();
     }
+
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        if (clazz == Request.class) {
+            return (T) request;
+        }
+        throw new IllegalArgumentException("underlying implementation is " + Request.class.getName()
+                + ", not " + clazz.getName());
+    }
+
 }
