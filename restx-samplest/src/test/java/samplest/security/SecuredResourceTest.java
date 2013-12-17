@@ -7,8 +7,6 @@ import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 import restx.security.HttpAuthenticationFilter;
-import restx.security.RestxSessionBareFilter;
-import restx.security.RestxSessionFilter;
 import restx.tests.HttpTestClient;
 import restx.tests.RestxServerRule;
 

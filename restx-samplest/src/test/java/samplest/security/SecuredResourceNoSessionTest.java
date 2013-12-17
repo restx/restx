@@ -6,9 +6,8 @@ import com.google.common.hash.Hashing;
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
-import restx.security.HttpAuthenticationFilter;
 import restx.security.RestxSessionBareFilter;
-import restx.security.RestxSessionFilter;
+import restx.security.RestxSessionCookieFilter;
 import restx.tests.HttpTestClient;
 import restx.tests.RestxServerRule;
 
@@ -27,7 +26,7 @@ public class SecuredResourceNoSessionTest {
         @Override
         protected void afterServerCreated() {
             contextLocal(getServer().getServerId())
-                    .set(activationKey(RestxSessionFilter.class, "RestxSessionFilter"), "false")
+                    .set(activationKey(RestxSessionCookieFilter.class, "RestxSessionCookieFilter"), "false")
                     // activating a component which is deactivated by default can be done in thread local ATM
                     .set(activationKey(RestxSessionBareFilter.class, "RestxSessionBareFilter"), "true");
         }

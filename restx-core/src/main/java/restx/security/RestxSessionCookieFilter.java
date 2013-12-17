@@ -10,7 +10,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import restx.*;
 import restx.common.Crypto;
 import restx.factory.Component;
@@ -29,12 +28,12 @@ import java.util.Map;
  * Time: 8:59 PM
  */
 @Component(priority = -200)
-public class RestxSessionFilter implements RestxFilter, RestxHandler {
-    public static final Name<RestxSessionFilter> NAME = Name.of(RestxSessionFilter.class, "RestxSessionFilter");
+public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
+    public static final Name<RestxSessionCookieFilter> NAME = Name.of(RestxSessionCookieFilter.class, "RestxSessionCookieFilter");
 
     private static final String EXPIRES = "_expires";
 
-    private final static Logger logger = LoggerFactory.getLogger(RestxSessionFilter.class);
+    private final static Logger logger = LoggerFactory.getLogger(RestxSessionCookieFilter.class);
 
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
@@ -42,11 +41,11 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
     private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
     private final RestxSession emptySession;
 
-    public RestxSessionFilter(
-                        RestxSession.Definition sessionDefinition,
-                        @Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
-                        Optional<SignatureKey> signatureKey,
-                        RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
+    public RestxSessionCookieFilter(
+            RestxSession.Definition sessionDefinition,
+            @Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
+            Optional<SignatureKey> signatureKey,
+            RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
         this.sessionDefinition = sessionDefinition;
         this.mapper = mapper;
         this.signatureKey = signatureKey.or(SignatureKey.DEFAULT);
@@ -162,6 +161,6 @@ public class RestxSessionFilter implements RestxFilter, RestxHandler {
     }
 
     public String toString() {
-        return "RestxSessionFilter";
+        return "RestxSessionCookieFilter";
     }
 }

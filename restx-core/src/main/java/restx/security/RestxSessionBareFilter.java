@@ -10,7 +10,7 @@ import java.io.IOException;
 
 /**
  * Sets an empty RestxSession in current thread if none has been assigned yet.
- * Used only when RestxSessionFilter is deactivated.
+ * Used only when RestxSessionCookieFilter is deactivated.
  */
 @Component(priority = -199)
 public class RestxSessionBareFilter implements RestxFilter, RestxHandler {

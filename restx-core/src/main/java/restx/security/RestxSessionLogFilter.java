@@ -13,7 +13,7 @@ import java.io.IOException;
  * - setting authenticated principal name in MDC.
  * - touching sessions, used in sessions admin console to get some details on client sessions.
  *
- * It is set at priority -110, authentication filters should be set between priority -200 (RestxSessionFilter)
+ * It is set at priority -110, authentication filters should be set between priority -200 (RestxSessionCookieFilter)
  * and -110 to be logged.
  */
 @Component(priority = -110)

@@ -14,7 +14,7 @@ import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import restx.*;
 import restx.http.HttpStatus;
-import restx.security.RestxSessionFilter;
+import restx.security.RestxSessionCookieFilter;
 
 import java.io.*;
 import java.util.Map;
@@ -42,7 +42,7 @@ public class RestxSpecTape {
     private final Map<String, Given> givens = Maps.newLinkedHashMap();
     private final Set<RestxSpecRecorder.GivenRecorder> recorders;
     private final Set<AutoCloseable> givenTapes = Sets.newLinkedHashSet();
-    private final RestxSessionFilter sessionFilter;
+    private final RestxSessionCookieFilter sessionFilter;
     private final RestxSpec.Storage storage;
 
     private RestxRequest recordingRequest;
@@ -50,7 +50,7 @@ public class RestxSpecTape {
     private int id;
 
     RestxSpecTape(RestxRequest restxRequest, RestxResponse restxResponse,
-                  Set<RestxSpecRecorder.GivenRecorder> recorders, RestxSessionFilter sessionFilter,
+                  Set<RestxSpecRecorder.GivenRecorder> recorders, RestxSessionCookieFilter sessionFilter,
                   RestxSpec.StorageSettings storageSettings) {
         this.storage = RestxSpec.Storage.with(storageSettings);
         try {

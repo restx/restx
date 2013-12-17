@@ -5,7 +5,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import restx.RestxRequest;
 import restx.RestxResponse;
-import restx.security.RestxSessionFilter;
+import restx.security.RestxSessionCookieFilter;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,11 +21,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class RestxSpecRecorder {
 
     private final Set<GivenRecorder> recorders;
-    private final RestxSessionFilter sessionFilter;
+    private final RestxSessionCookieFilter sessionFilter;
     private final RestxSpec.StorageSettings storageSettings;
     private final Repository repository;
 
-    public RestxSpecRecorder(Set<GivenRecorder> recorders, RestxSessionFilter sessionFilter,
+    public RestxSpecRecorder(Set<GivenRecorder> recorders, RestxSessionCookieFilter sessionFilter,
                              RestxSpec.StorageSettings storageSettings, Repository repository) {
         this.recorders = recorders;
         this.sessionFilter = sessionFilter;

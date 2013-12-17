@@ -15,7 +15,7 @@ import restx.classloader.HotReloadingClassLoader;
 import restx.common.RestxConfig;
 import restx.factory.*;
 import restx.http.HttpStatus;
-import restx.security.RestxSessionFilter;
+import restx.security.RestxSessionCookieFilter;
 import restx.server.WebServer;
 import restx.server.WebServers;
 import restx.specs.RestxSpec;
@@ -103,7 +103,7 @@ public class RestxMainRouterFactory {
 
                 Factory factory = Factory.newInstance();
                 Set<RestxSpecRecorder.GivenRecorder> recorders = factory.getComponents(RestxSpecRecorder.GivenRecorder.class);
-                RestxSessionFilter sessionFilter = factory.getComponent(RestxSessionFilter.class);
+                RestxSessionCookieFilter sessionFilter = factory.getComponent(RestxSessionCookieFilter.class);
                 final RestxSpecRecorder restxSpecRecorder = new RestxSpecRecorder(
                                                                 recorders, sessionFilter, storageSettings, repository);
                 try {
