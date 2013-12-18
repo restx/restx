@@ -85,7 +85,7 @@ public class JsonContentTypeModule {
         if (parameterIndex != -1) {
             String className = contentType.substring(parameterIndex + JACKSON_VIEW_PARAMETER.length());
             try {
-                return Class.forName(className);
+                return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
             } catch (ClassNotFoundException e) {
                 logger.error("The Jackson view class '{}' was not found while marshalling type '{}' " +
                         "(content-type : '{}')", className, valueType, contentType);
