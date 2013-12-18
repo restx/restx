@@ -455,6 +455,7 @@ public class RestxMainRouterFactory {
     private String getLoadFactoryMode() {
         return appSettings.factoryLoadMode().or(
                 RestxContext.Modes.TEST.equals(getMode())
+                    || RestxContext.Modes.INFINIREST.equals(getMode())
                     || RestxContext.Modes.RECORDING.equals(getMode())
                     || useHotCompile()
                     || useHotReload()

@@ -69,7 +69,9 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
         try {
             URL resource = MoreResources.getResource(
                     baseResourcePath + relativePath, RestxContext.Modes.DEV.equals(ctx.getMode())
-                                                    || RestxContext.Modes.TEST.equals(ctx.getMode()));
+                                                    || RestxContext.Modes.TEST.equals(ctx.getMode())
+                                                    || RestxContext.Modes.INFINIREST.equals(ctx.getMode())
+            );
             resp.setLogLevel(RestxLogLevel.QUIET);
             resp.setStatus(HttpStatus.OK);
             resp.setContentType(HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream"));

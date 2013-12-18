@@ -25,4 +25,9 @@ public class HotReloadRestxSpecRepository extends RestxSpecRepository {
     @restx.factory.When(name="restx.mode", value="test")
     public static class TestRestxSpecRepository extends HotReloadRestxSpecRepository {
     }
+
+    @Alternative(to = RestxSpecRepository.class)
+    @restx.factory.When(name="restx.mode", value="infinirest")
+    public static class InfinirestRestxSpecRepository extends HotReloadRestxSpecRepository {
+    }
 }

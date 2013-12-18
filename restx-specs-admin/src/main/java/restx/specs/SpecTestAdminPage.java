@@ -10,7 +10,7 @@ import restx.factory.When;
  * Time: 3:20 PM
  */
 @Component
-@When(name="restx.mode", value="test")
+@When(name="restx.mode", value="infinirest")
 public class SpecTestAdminPage extends AdminPage {
     public SpecTestAdminPage() {
         super("/@/ui/tests/", "Spec Tests");

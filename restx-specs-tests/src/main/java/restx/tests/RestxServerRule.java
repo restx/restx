@@ -23,7 +23,7 @@ public class RestxServerRule implements TestRule {
 
     protected final WebServerSupplier webServerSupplier;
     protected WebServer server;
-    private String factoryLoadMode = "onrequest";
+    private String mode = "test";
 
     /**
      * Default behaviour will look into the @Provided WebServerSupplier class
@@ -44,12 +44,12 @@ public class RestxServerRule implements TestRule {
         return HttpTestClient.withBaseUrl(server.baseUrl());
     }
 
-    public String getFactoryLoadMode() {
-        return factoryLoadMode;
+    public String getMode() {
+        return mode;
     }
 
-    public RestxServerRule setFactoryLoadMode(String factoryLoadMode) {
-        this.factoryLoadMode = factoryLoadMode;
+    public RestxServerRule setMode(final String mode) {
+        this.mode = mode;
         return this;
     }
 
@@ -59,8 +59,8 @@ public class RestxServerRule implements TestRule {
                     @Override
                     public void evaluate() throws Throwable {
                         System.out.println("starting server");
-                        System.setProperty("restx.factory.load", factoryLoadMode);
                         server = webServerSupplier.newWebServer(WebServers.findAvailablePort());
+                        contextLocal(server.getServerId()).set("restx.mode", getMode());
                         afterServerCreated();
                         server.start();
                         afterServerStarted();

@@ -13,6 +13,7 @@ public class RestxContext {
         public static final String PROD = "prod";
         public static final String DEV = "dev";
         public static final String TEST = "test";
+        public static final String INFINIREST = "infinirest";
         public static final String RECORDING = "recording";
     }
 

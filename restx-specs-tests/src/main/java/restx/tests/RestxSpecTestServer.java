@@ -358,7 +358,7 @@ public class RestxSpecTestServer {
     }
 
     public RunningServer start() throws Exception {
-        System.setProperty("restx.mode", RestxContext.Modes.TEST);
+        System.setProperty("restx.mode", RestxContext.Modes.INFINIREST);
         WebServer server = webServerSupplier.newWebServer(port);
         server.start();
         RestxSpecLoader specLoader = new RestxSpecLoader(factory);
