@@ -7,6 +7,8 @@ import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
 import restx.security.HttpAuthenticationFilter;
+import restx.security.RestxSessionBareFilter;
+import restx.security.RestxSessionCookieFilter;
 import restx.tests.HttpTestClient;
 import restx.tests.RestxServerRule;
 
@@ -49,6 +51,22 @@ public class SecuredResourceTest {
         threadLocal().set(activationKey(HttpAuthenticationFilter.class, "HttpAuthenticationFilter"), "false");
         HttpRequest httpRequest = server.client().GET("/api/security/user")
                 .basic("admin", Hashing.md5().hashString("juma", Charsets.UTF_8).toString());
+        assertThat(httpRequest.code()).isEqualTo(401);
+    }
+
+    @Test
+    public void should_access_secured_resource_with_http_basic_no_session() throws Exception {
+        threadLocal()
+                .set(activationKey(RestxSessionCookieFilter.class, "RestxSessionCookieFilter"), "false")
+                .set(activationKey(RestxSessionBareFilter.class, "RestxSessionBareFilter"), "true");
+        HttpTestClient client = server.client();
+        HttpRequest httpRequest = client.GET("/api/security/user")
+                .basic("admin", Hashing.md5().hashString("juma", Charsets.UTF_8).toString());
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.header("Set-Cookie")).isNull();
+        assertThat(httpRequest.body().trim()).isEqualTo("admin");
+
+        httpRequest = client.GET("/api/security/user");
         assertThat(httpRequest.code()).isEqualTo(401);
     }
 }

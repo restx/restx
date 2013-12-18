@@ -151,6 +151,16 @@ public class RestxMainRouterFactory {
                                         serverId, restxRequest.getHeader("RestxThreadLocal"), getMode(restxRequest))
                     .addWarehouseProvider(warehouse));
 
+            if ("cleanrequest".equals(getLoadFactoryMode())) {
+                // in clean request mode auto startable components are started and cleaned per request
+                try {
+                    factory.start();
+                } catch (Exception ex) {
+                    logger.error("Exception when using factory to start components on clean request: " + ex.getMessage(), ex);
+                    Throwables.propagate(ex);
+                }
+            }
+
             try {
                 newStdRouter(factory).route(restxRequest, restxResponse);
             } catch (Factory.UnsatisfiedDependenciesException ex) {
@@ -305,14 +315,11 @@ public class RestxMainRouterFactory {
             logPrompt(baseUri, "READY", mainRouter);
 
             return mainRouter;
-        } else if (getLoadFactoryMode().equals("onrequest")) {
-            logPrompt(baseUri, ">> LOAD ON REQUEST <<", null);
+        } else if (getLoadFactoryMode().equals("onrequest")
+                || getLoadFactoryMode().equals("cleanrequest")) {
+            logPrompt(baseUri, ">> LOAD ON REQUEST <<"
+                    + (getLoadFactoryMode().equals("cleanrequest") ? " >> CLEAN <<" : ""), null);
 
-
-            // Create a Factory to load autotartable components
-            // then one factory will be created for each request.
-            // The warehouse of this first factory will be shared among all factories created for this router,
-            // making autostartable components live tied to the router itself and not per request
 
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
             if (useAutoCompile()) {
@@ -324,6 +331,13 @@ public class RestxMainRouterFactory {
                                 appSettings.appPackage().get(), ImmutableSet.<Class>of()));
             }
 
+            // Create a Factory to load autotartable components
+            // then one factory will be created for each request.
+            // The warehouse of this first factory will be shared among all factories created for this router,
+            // making autostartable components live tied to the router itself and not per request
+
+            // in 'cleanrequest' mode, this factory is not actually used, autostartable components
+            // are started per request
             Factory factory;
             try {
                 factory = loadFactory(newFactoryBuilder(serverId));
@@ -332,13 +346,14 @@ public class RestxMainRouterFactory {
                 Thread.currentThread().setContextClassLoader(previous);
             }
 
-            RestxMainRouter router = new PerRequestFactoryLoader(serverId, factory.getWarehouse());
+            Warehouse warehouse = getLoadFactoryMode().equals("cleanrequest") ? new Warehouse() : factory.getWarehouse();
+
+            RestxMainRouter router = new PerRequestFactoryLoader(serverId, warehouse);
 
 
             // this factory is used to look up settings only
-            // we don't use 'factory' instance to avoid having settings built into the
-            Factory settingsFactory = loadFactory(newFactoryBuilder(serverId)
-                    .addWarehouseProvider(factory.getWarehouse()));
+            // we don't use 'factory' instance to avoid having settings built into the autostartable factory
+            Factory settingsFactory = loadFactory(newFactoryBuilder(serverId));
 
             // wrap in a recording router, as any request may ask for recording with RestxMode header
             router = new RecordingMainRouter(serverId, router,
@@ -367,12 +382,14 @@ public class RestxMainRouterFactory {
             }
 
             routers.put(serverId, router);
-            factory.start();
+            if (getLoadFactoryMode().equals("onrequest")) {
+                factory.start();
+            }
 
             return router;
         } else {
             throw new IllegalStateException("illegal load factory mode: '" + getLoadFactoryMode() + "'. " +
-                    "It must be either 'onstartup' or 'onrequest'.");
+                    "It must be either 'onstartup', 'onrequest' or 'cleanrequest'.");
         }
     }
 
@@ -453,13 +470,20 @@ public class RestxMainRouterFactory {
     }
 
     private String getLoadFactoryMode() {
-        return appSettings.factoryLoadMode().or(
-                RestxContext.Modes.TEST.equals(getMode())
-                    || RestxContext.Modes.INFINIREST.equals(getMode())
-                    || RestxContext.Modes.RECORDING.equals(getMode())
-                    || useHotCompile()
-                    || useHotReload()
-                ? "onrequest" : "onstartup");
+        if (appSettings.factoryLoadMode().isPresent()) {
+            return appSettings.factoryLoadMode().get();
+        }
+
+        if (RestxContext.Modes.TEST.equals(getMode())
+                || RestxContext.Modes.INFINIREST.equals(getMode())) {
+            return "cleanrequest";
+        } else if (RestxContext.Modes.RECORDING.equals(getMode())
+                || useHotCompile()
+                || useHotReload()) {
+            return "onrequest";
+        } else {
+            return "onstartup";
+        }
     }
 
     private boolean useHotReload() {
