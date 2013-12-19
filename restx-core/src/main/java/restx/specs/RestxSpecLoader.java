@@ -10,11 +10,13 @@ import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+import restx.factory.Component;
 import restx.http.HttpStatus;
 import restx.common.MoreResources;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -30,6 +32,7 @@ import static restx.common.MorePreconditions.checkInstanceOf;
  * Date: 3/30/13
  * Time: 6:19 PM
  */
+@Component
 public class RestxSpecLoader {
     private static final Logger logger = LoggerFactory.getLogger(RestxSpecLoader.class);
 
@@ -37,24 +40,13 @@ public class RestxSpecLoader {
     private final Set<NamedComponent<WhenHeaderLoader>> whenHeaderLoaders;
     private final String names;
 
-    private static Factory defaultFactory(){
-        return Factory.builder()
-                    .addLocalMachines(Factory.LocalMachines.threadLocal())
-                    .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpec.class.getSimpleName()))
-                    .addLocalMachines(Factory.LocalMachines.contextLocal(RestxSpecLoader.class.getSimpleName()))
-                    .addFromServiceLoader()
-                    .build();
-    }
-
-    public RestxSpecLoader() {
-        this(defaultFactory());
-    }
-
+    @Inject
     public RestxSpecLoader(Factory factory) {
         this(factory.queryByClass(GivenLoader.class).find(), factory.queryByClass(WhenHeaderLoader.class).find());
     }
 
-    public RestxSpecLoader(Set<NamedComponent<GivenLoader>> givenLoaders, Set<NamedComponent<WhenHeaderLoader>> whenHeaderLoaders) {
+    public RestxSpecLoader(Set<NamedComponent<GivenLoader>> givenLoaders,
+                           Set<NamedComponent<WhenHeaderLoader>> whenHeaderLoaders) {
         this.givenLoaders = givenLoaders;
         this.whenHeaderLoaders = whenHeaderLoaders;
         List<String> names = Lists.newArrayList();

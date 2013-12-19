@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import org.assertj.core.data.MapEntry;
 import org.junit.Test;
+import restx.factory.Factory;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
 import restx.specs.WhenHttpRequest;
@@ -17,7 +18,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class GivenJongoCollectionTest {
 
-    private RestxSpecLoader restxSpecLoader = new RestxSpecLoader();
+    private RestxSpecLoader restxSpecLoader = new RestxSpecLoader(Factory.getInstance());
 
     @Test
     public void should_load_from_yaml() throws Exception {

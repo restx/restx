@@ -28,14 +28,6 @@ public class RestxSpecRunner {
     private final String serverId;
     private final String baseUrl;
 
-    public static Factory defaultFactory() {
-        return Factory.builder()
-                .addLocalMachines(LocalMachines.threadLocal())
-                .addLocalMachines(contextLocal(RestxSpecRunner.class.getSimpleName()))
-                .addFromServiceLoader()
-                .build();
-    }
-
     private final String routerPath;
     private final RestxSpecLoader specLoader;
 
@@ -43,17 +35,6 @@ public class RestxSpecRunner {
     private final Iterable<GivenRunner> givenRunners;
     private final Iterable<WhenChecker> whenCheckers;
 
-
-    /**
-     * Constructs a new RestxSpecRunner.
-     *
-     * @param routerPath the path at which restx router is mounted. eg '/api'
-     * @param factory the restx Factory to use to find GivenSpecRuleSupplier s when executing the spec.
-     *                This is not used for the server itself.
-     */
-    public RestxSpecRunner(String routerPath, String serverId, String baseUrl, Factory factory) {
-        this(new RestxSpecLoader(), routerPath, serverId, baseUrl, factory);
-    }
 
     public RestxSpecRunner(RestxSpecLoader specLoader, String routerPath, String serverId, String baseUrl, Factory factory) {
         this.specLoader = checkNotNull(specLoader);

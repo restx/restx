@@ -7,6 +7,7 @@ import org.reflections.scanners.ResourcesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
+import restx.factory.Factory;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
 
@@ -30,7 +31,7 @@ public class RestxSpecTests {
     }
 
     public static List<RestxSpec> findSpecsIn(String location) throws IOException {
-        RestxSpecLoader loader = new RestxSpecLoader();
+        RestxSpecLoader loader = new RestxSpecLoader(Factory.getInstance());
 
         Set<String> specResources = new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(location))

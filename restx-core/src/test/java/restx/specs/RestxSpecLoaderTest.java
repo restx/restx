@@ -3,6 +3,7 @@ package restx.specs;
 import org.assertj.core.groups.Tuple;
 import org.joda.time.DateTime;
 import org.junit.Test;
+import restx.factory.Factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RestxSpecLoaderTest {
     @Test
     public void should_load_spec() throws Exception {
-        RestxSpec spec = new RestxSpecLoader().load("cases/test/test.spec.yaml");
+        RestxSpec spec = new RestxSpecLoader(Factory.getInstance()).load("cases/test/test.spec.yaml");
 
         assertThat(spec.getTitle()).isEqualTo("should say hello");
         assertThat(spec.getGiven()).hasSize(2);

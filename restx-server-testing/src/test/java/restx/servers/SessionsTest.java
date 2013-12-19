@@ -4,6 +4,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.server.WebServerSupplier;
 import restx.specs.RestxSpec;
@@ -30,7 +31,7 @@ public class SessionsTest {
 
     @Parameterized.Parameters(name="{0}")
     public static Iterable<Object[]> data() throws IOException {
-        Set<NamedComponent<WebServerSupplier>> webServerSuppliers = RestxSpecRunner.defaultFactory().queryByClass(WebServerSupplier.class).find();
+        Set<NamedComponent<WebServerSupplier>> webServerSuppliers = Factory.getInstance().queryByClass(WebServerSupplier.class).find();
         List<RestxSpec> specs = RestxSpecTests.findSpecsIn("specs/sessions");
 
         List<Object[]> data = newArrayList();

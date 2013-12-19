@@ -3,6 +3,7 @@ package restx.tests;
 import restx.factory.Factory;
 import restx.server.WebServerSupplier;
 import restx.specs.RestxSpec;
+import restx.specs.RestxSpecLoader;
 
 import java.io.IOException;
 
@@ -14,28 +15,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Time: 1:58 PM
  */
 public class RestxSpecRule extends RestxServerRule {
-    public static Factory defaultFactory() {
-        return RestxSpecRunner.defaultFactory();
-    }
-
     private final String routerPath;
     private final Factory factory;
 
     private RestxSpecRunner runner;
 
-
     /**
-     * A shortcut for new RestxSpecRule("/api", queryByClass(WebServerSupplier.class), defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", queryByClass(WebServerSupplier.class), Factory.getInstance())
      */
     public RestxSpecRule() {
-        this(defaultFactory().queryByClass(WebServerSupplier.class).findOne().get().getComponent());
+        this(Factory.getInstance().queryByClass(WebServerSupplier.class).findOne().get().getComponent());
     }
 
     /**
-     * A shortcut for new RestxSpecRule("/api", webServerSupplier, defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", webServerSupplier, Factory.getInstance())
      */
     public RestxSpecRule(WebServerSupplier webServerSupplier) {
-        this("/api", webServerSupplier, defaultFactory());
+        this("/api", webServerSupplier, Factory.getInstance());
     }
 
     /**
@@ -70,7 +66,8 @@ public class RestxSpecRule extends RestxServerRule {
 
     @Override
     protected void afterServerCreated() {
-        runner = new RestxSpecRunner(routerPath, server.getServerId(), server.baseUrl(), factory);
+        runner = new RestxSpecRunner(
+                new RestxSpecLoader(factory), routerPath, server.getServerId(), server.baseUrl(), factory);
     }
 
     @Override

@@ -17,10 +17,6 @@ import static restx.factory.Factory.LocalMachines.contextLocal;
  * Time: 5:22 PM
  */
 public class RestxServerRule implements TestRule {
-    public static Factory defaultFactory() {
-        return RestxSpecRunner.defaultFactory();
-    }
-
     protected final WebServerSupplier webServerSupplier;
     protected WebServer server;
     private String mode = "test";
@@ -28,8 +24,8 @@ public class RestxServerRule implements TestRule {
     /**
      * Default behaviour will look into the @Provided WebServerSupplier class
      */
-    public RestxServerRule(){
-        this(defaultFactory().queryByClass(WebServerSupplier.class).findOne().get().getComponent());
+    public RestxServerRule() {
+        this(Factory.getInstance().getComponent(WebServerSupplier.class));
     }
 
     public RestxServerRule(WebServerSupplier webServerSupplier) {

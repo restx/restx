@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import restx.StdRequest;
+import restx.factory.Factory;
 
 import java.util.Collections;
 
@@ -17,9 +18,9 @@ import static org.assertj.core.api.Assertions.*;
 public class RestxSpecRepositoryTest {
     @Test
     public void should_find_specs_in_classpath() throws Exception {
-        RestxSpecRepository resource = new RestxSpecRepository();
+        RestxSpecRepository resource = getRestxSpecRepository();
 
-        ImmutableMap<String,RestxSpec> allSpecs = resource.findAllSpecs();
+        ImmutableMap<String, RestxSpec> allSpecs = resource.findAllSpecs();
 
         assertThat(allSpecs).isNotEmpty().containsKey("cases/test/test.spec.yaml");
         assertThat(allSpecs.get("cases/test/test.spec.yaml").getTitle()).isEqualTo("should say hello");
@@ -27,7 +28,7 @@ public class RestxSpecRepositoryTest {
 
     @Test
     public void should_find_specs_for_operation() throws Exception {
-        RestxSpecRepository resource = new RestxSpecRepository();
+        RestxSpecRepository resource = getRestxSpecRepository();
 
         ImmutableMap<String, RestxSpec> allSpecs = ImmutableMap.of(
                 "cases/test/test.spec.yaml", spec("should say hello on path", when("GET", "/messages/xavier")),
@@ -41,7 +42,7 @@ public class RestxSpecRepositoryTest {
 
     @Test
     public void should_find_specs_for_request() throws Exception {
-        RestxSpecRepository resource = new RestxSpecRepository();
+        RestxSpecRepository resource = getRestxSpecRepository();
 
         WhenHttpRequest when1;
         WhenHttpRequest when2;
@@ -76,6 +77,10 @@ public class RestxSpecRepositoryTest {
     private WhenHttpRequest when(String method, String path) {
         return new WhenHttpRequest(method, path, Collections.<String, String>emptyMap(), "",
                 new ThenHttpResponse(200, ""));
+    }
+
+    protected RestxSpecRepository getRestxSpecRepository() {
+        return new RestxSpecRepository(new RestxSpecLoader(Factory.getInstance()));
     }
 
 }

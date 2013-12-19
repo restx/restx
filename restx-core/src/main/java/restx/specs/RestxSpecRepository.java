@@ -29,10 +29,6 @@ public class RestxSpecRepository {
     private ImmutableMap<String, RestxSpec> allSpecs;
     private RestxSpecLoader specLoader;
 
-    public RestxSpecRepository() {
-        this(new RestxSpecLoader());
-    }
-
     public RestxSpecRepository(RestxSpecLoader specLoader) {
         this.specLoader = specLoader;
     }

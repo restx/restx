@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Stopwatch;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
@@ -49,24 +50,19 @@ import java.util.concurrent.Executors;
  */
 public class RestxSpecTestServer {
 
-    public static Factory defaultFactory() {
-        return RestxSpecRunner.defaultFactory();
-    }
-
     /**
-     * A shortcut for new RestxSpecRule("/api", 8076, queryByClass(WebServerSupplier.class), defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", 8076, queryByClass(WebServerSupplier.class), Factory.getInstance())
      */
     public static RestxSpecTestServer newInstance() {
-        Factory f = defaultFactory();
-        return new RestxSpecTestServer("/api", 8076,
-                f.queryByClass(WebServerSupplier.class).mandatory().findOne().get().getComponent(), f);
+        Factory f = Factory.getInstance();
+        return new RestxSpecTestServer("/api", 8076, f.getComponent(WebServerSupplier.class), f);
     }
 
     /**
-     * A shortcut for new RestxSpecRule("/api", 8076, webServerSupplier, defaultFactory())
+     * A shortcut for new RestxSpecRule("/api", 8076, webServerSupplier, Factory.getInstance())
      */
     public static RestxSpecTestServer newInstance(WebServerSupplier webServerSupplier) {
-        return new RestxSpecTestServer("/api", 8076, webServerSupplier, defaultFactory());
+        return new RestxSpecTestServer("/api", 8076, webServerSupplier, Factory.getInstance());
     }
 
     private final String routerPath;
@@ -113,6 +109,10 @@ public class RestxSpecTestServer {
 
             Factory.LocalMachines.contextLocal(server.getServerId()).addMachine(
                     new SingletonFactoryMachine<>(0, NamedComponent.of(RunningServer.class, "RunningServer", this)));
+        }
+
+        public WebServer getServer() {
+            return server;
         }
 
         public void stop() throws Exception {
@@ -181,7 +181,8 @@ public class RestxSpecTestServer {
         }
 
         private void runSpecTest(String spec, List<String> resultKeys) {
-            logger.info("running spec test {}", spec);
+            logger.info("spec test {} >> STARTING", spec);
+            Stopwatch stopWatch = Stopwatch.createStarted();
             PrintStream out = System.out;
             PrintStream err = System.err;
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -215,6 +216,7 @@ public class RestxSpecTestServer {
                         ;
                 store(result);
                 resultKeys.add(result.getSummary().getKey());
+                logger.info("spec test {} >> END {}", spec, stopWatch);
             }
         }
 
