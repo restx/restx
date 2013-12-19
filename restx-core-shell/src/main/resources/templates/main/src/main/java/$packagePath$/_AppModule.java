@@ -30,8 +30,14 @@ public class AppModule {
     }
 
     @Provides
+    public CredentialsStrategy credentialsStrategy() {
+        return new BCryptCredentialsStrategy();
+    }
+
+    @Provides
     public BasicPrincipalAuthenticator basicPrincipalAuthenticator(
-            @Named("restx.admin.passwordHash") String defaultAdminPasswordHash, SecuritySettings securitySettings, ObjectMapper mapper) {
+            SecuritySettings securitySettings, CredentialsStrategy credentialsStrategy,
+            @Named("restx.admin.passwordHash") String defaultAdminPasswordHash, ObjectMapper mapper) {
         return new StdBasicPrincipalAuthenticator(new StdUserService(
                 // use file based users repository.
                 // Developer's note: prefer another storage mechanism for your users if you need real user management
@@ -58,7 +64,7 @@ public class AppModule {
                         // this has a performance impact, if you know your users / credentials never change without a
                         // restart you can disable this to get better perfs
                         true),
-                new BCryptCredentialsStrategy(), defaultAdminPasswordHash),
+                credentialsStrategy, defaultAdminPasswordHash),
                 securitySettings);
     }
 }
