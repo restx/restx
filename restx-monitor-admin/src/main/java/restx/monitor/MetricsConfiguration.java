@@ -9,6 +9,8 @@ import com.codahale.metrics.health.jvm.ThreadDeadlockHealthCheck;
 import com.codahale.metrics.jvm.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.AppSettings;
+import restx.RestxContext;
 import restx.factory.AutoStartable;
 import restx.factory.Component;
 
@@ -27,27 +29,37 @@ public class MetricsConfiguration implements AutoStartable {
     private final MetricRegistry metrics;
     private final HealthCheckRegistry healthChecks;
     private final GraphiteSettings graphiteSettings;
+    private final AppSettings appSettings;
 
-    public MetricsConfiguration(MetricRegistry metrics, HealthCheckRegistry healthChecks, GraphiteSettings graphiteSettings) {
+    public MetricsConfiguration(MetricRegistry metrics, HealthCheckRegistry healthChecks,
+                                GraphiteSettings graphiteSettings, AppSettings appSettings) {
         this.metrics = metrics;
         this.healthChecks = healthChecks;
         this.graphiteSettings = graphiteSettings;
+        this.appSettings = appSettings;
     }
 
     @Override
     public void start() {
-        metrics.register("jvm.memory", new MemoryUsageGaugeSet());
-        metrics.register("jvm.garbage", new GarbageCollectorMetricSet());
-        metrics.register("jvm.threads", new ThreadStatesGaugeSet());
-        metrics.register("jvm.files", new FileDescriptorRatioGauge());
-        metrics.register("jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
+        if (RestxContext.Modes.PROD.equals(appSettings.mode())
+                || RestxContext.Modes.DEV.equals(appSettings.mode())) {
+            logger.info("registering Metrics JVM metrics");
+            metrics.register("jvm.memory", new MemoryUsageGaugeSet());
+            metrics.register("jvm.garbage", new GarbageCollectorMetricSet());
+            metrics.register("jvm.threads", new ThreadStatesGaugeSet());
+            metrics.register("jvm.files", new FileDescriptorRatioGauge());
+            metrics.register("jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
 
-        healthChecks.register("threadLocks", new ThreadDeadlockHealthCheck());
+            healthChecks.register("threadLocks", new ThreadDeadlockHealthCheck());
+        }
 
-        setupReporters();
+        if (RestxContext.Modes.PROD.equals(appSettings.mode())) {
+            setupReporters();
+        }
     }
 
     protected void setupReporters() {
+        logger.info("Initializing Metrics JMX Reporter");
         final JmxReporter jmxReporter = JmxReporter.forRegistry(metrics).build();
         jmxReporter.start();
 
