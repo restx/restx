@@ -21,11 +21,23 @@
     <div class="row">
         <div class="span12">
             <h2>Details</h2>
-            <div class="test" ng-repeat="testResultSummary in testResultSummaries">
-                <a href="#/testResult/{{testResultSummary.key}}">
-                    <span class="label" ng-class="testResultSummary.status | toClassStatus">
-                        {{ testResultSummary.status }}</span> {{ testResultSummary.name }}
-                </a>
+            <div class="test">
+                <table class="table">
+                    <tr>
+                        <th>Status</th>
+                        <th>Spec</th>
+                        <th>Execution time</th>
+                        <th>Duration</th>
+                        <th>Actions</th>
+                    </tr>
+                    <tr ng-repeat="testResultSummary in testResultSummaries">
+                        <td><span class="label" ng-class="testResultSummary.status | toClassStatus">{{ testResultSummary.status }}</span></td>
+                        <td><a href="#/testResult/{{testResultSummary.key}}">{{ testResultSummary.name }}</a></td>
+                        <td>{{ testResultSummary.testTime | date:'yyyyMMdd HH:mm' }}</td>
+                        <td>{{ testResultSummary.testDuration }} ms</td>
+                        <td><a ng-click="launchTest(testResultSummary)" class="btn"><i class="icon-play"></i></a></td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>

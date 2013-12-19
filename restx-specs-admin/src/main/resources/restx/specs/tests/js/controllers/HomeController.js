@@ -9,7 +9,11 @@ adminApp.controller('HomeController', function($rootScope, $scope, TestResultSum
 
     $scope.launchAll = function() {
         new TestRequest({test: "specs/*"}).$save();
-    }
+    };
+    $scope.launchTest = function(test) {
+        new TestRequest({test: test.name}).$save();
+    };
+
 
     var intervalId = setInterval(function() {
         // NOTE: this is not executed in angular apply, but this is fine, we want to update only when we get the data from http request
