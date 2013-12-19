@@ -582,12 +582,10 @@ public class Factory implements AutoCloseable {
                 return component;
             }
 
-            for (FactoryMachine machine : factory().machines) {
-                if (factory().canBuild(machine, name)) {
-                    Optional<NamedComponent<T>> namedComponent = factory().buildAndStore(this, machine.getEngine(name));
-                    if (namedComponent.isPresent()) {
-                        return namedComponent;
-                    }
+            for (FactoryMachine machine : factory().findAllMachinesFor(name)) {
+                Optional<NamedComponent<T>> namedComponent = factory().buildAndStore(this, machine.getEngine(name));
+                if (namedComponent.isPresent()) {
+                    return namedComponent;
                 }
             }
             return Optional.absent();
@@ -691,7 +689,7 @@ public class Factory implements AutoCloseable {
 
         @Override
         public boolean apply(FactoryMachine input) {
-            return input != null && canBuild(input, name);
+            return input != null && input.canBuild(name);
         }
     }
 
@@ -704,6 +702,7 @@ public class Factory implements AutoCloseable {
     private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
 
     private final Set<Name> deactivatedComponents = new CopyOnWriteArraySet<>();
+    private final Set<Name> activatedComponents = new CopyOnWriteArraySet<>();
 
     private MetricRegistry metrics;
 
@@ -908,7 +907,7 @@ public class Factory implements AutoCloseable {
         Iterable<Name<Object>> buildableNames = collectAllBuildableNames(Object.class);
         for (Name<?> buildableName : buildableNames) {
             sb.append("   ").append(buildableName).append("\n");
-            List<FactoryMachine> allMachinesFor = findAllMachinesFor(buildableName);
+            List<FactoryMachine> allMachinesFor = Lists.newArrayList(findAllMachinesFor(buildableName));
             if (allMachinesFor.isEmpty()) {
                 sb.append("      ERROR: machine ").append(findAllMachinesListing(buildableName))
                         .append("\n       lists this name in nameBuildableComponents() ")
@@ -987,11 +986,17 @@ public class Factory implements AutoCloseable {
         return machinesFor;
     }
 
-    private List<FactoryMachine> findAllMachinesFor(Name<?> name) {
-        return Lists.newArrayList(Iterables.filter(machines, new CanBuildPredicate(name)));
+    private Iterable<FactoryMachine> findAllMachinesFor(Name<?> name) {
+        if (!checkActive(name)) {
+            return Collections.emptyList();
+        }
+        return Iterables.filter(machines, new CanBuildPredicate(name));
     }
 
     private Optional<FactoryMachine> findMachineFor(Name<?> name) {
+        if (!checkActive(name)) {
+            return Optional.absent();
+        }
         return Optional.fromNullable(Iterables.find(machines, new CanBuildPredicate(name), null));
     }
 
@@ -1239,10 +1244,16 @@ public class Factory implements AutoCloseable {
             // can't deactivate activation keys themselves
             return true;
         }
+
+        // check 'cache' for perf reasons - core Factory being immutable the 'cache' never needs to be invalidated
         if (deactivatedComponents.contains(name)) {
             return false;
         }
+        if (activatedComponents.contains(name)) {
+            return true;
+        }
 
+        // actual check
         Class<?> aClass = name.getClazz();
         while (aClass != null) {
             if ("false".equals(queryByName(Name.of(String.class, activationKey(aClass, name.getName())))
@@ -1252,6 +1263,7 @@ public class Factory implements AutoCloseable {
             }
             aClass = aClass.getSuperclass();
         }
+        activatedComponents.add(name);
         return true;
     }
 
