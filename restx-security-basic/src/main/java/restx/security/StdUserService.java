@@ -1,7 +1,6 @@
 package restx.security;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -11,11 +10,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class StdUserService<U extends RestxPrincipal> implements UserService<U> {
     private final UserRepository<U> repository;
-    private final CredentialsChecker checker;
+    private final CredentialsStrategy checker;
     private final String defaultAdminPasswordHash;
 
     public StdUserService(UserRepository<U> repository,
-                          CredentialsChecker checker,
+                          CredentialsStrategy checker,
                           String defaultAdminPasswordHash) {
         this.repository = checkNotNull(repository);
         this.checker = checkNotNull(checker);
