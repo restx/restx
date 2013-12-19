@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getLast;
@@ -147,6 +148,7 @@ public class RestxMainRouterFactory {
 
         @Override
         public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
+            Stopwatch stopwatch = Stopwatch.createStarted();
             Factory factory = loadFactory(newFactoryBuilder(
                                         serverId, restxRequest.getHeader("RestxThreadLocal"), getMode(restxRequest))
                     .addWarehouseProvider(warehouse));
@@ -162,14 +164,21 @@ public class RestxMainRouterFactory {
             }
 
             try {
-                newStdRouter(factory).route(restxRequest, restxResponse);
+                StdRestxMainRouter stdRestxMainRouter = newStdRouter(factory);
+                if (stopwatch.elapsed(TimeUnit.MILLISECONDS) > 200) {
+                    logger.info("{} - per request factory created in {}", restxRequest, stopwatch);
+                } else {
+                    logger.debug("{} - per request factory created in {}", restxRequest, stopwatch);
+                }
+                stdRestxMainRouter.route(restxRequest, restxResponse);
             } catch (Factory.UnsatisfiedDependenciesException ex) {
                 if (restxRequest.getHeader("RestxDebug").isPresent()) {
-                    logger.error("Exception when using factory to load router: {}\n{}", ex.getMessage(), factory.dumper());
+                    logger.error("{} - Exception when using factory to load router: {}\n{}",
+                            restxRequest, ex.getMessage(), factory.dumper());
                 } else {
-                    logger.error("Exception when using factory to load router: {}\n" +
+                    logger.error("{} - Exception when using factory to load router: {}\n" +
                             "Pro Tip: Set HTTP Header RestxDebug to have a dump of the factory" +
-                            " in your logs when you get this error.", ex.getMessage());
+                            " in your logs when you get this error.", restxRequest, ex.getMessage());
                 }
                 throw ex;
             } finally {
