@@ -47,6 +47,11 @@
             <version>${restx.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-security-basic</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
