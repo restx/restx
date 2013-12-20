@@ -38,11 +38,11 @@ public class AppModule {
     public BasicPrincipalAuthenticator basicPrincipalAuthenticator(
             SecuritySettings securitySettings, CredentialsStrategy credentialsStrategy,
             @Named("restx.admin.passwordHash") String defaultAdminPasswordHash, ObjectMapper mapper) {
-        return new StdBasicPrincipalAuthenticator(new StdUserService(
+        return new StdBasicPrincipalAuthenticator(new StdUserService<>(
                 // use file based users repository.
                 // Developer's note: prefer another storage mechanism for your users if you need real user management
                 // and better perf
-                new FileBasedUserRepository(
+                new FileBasedUserRepository<>(
                         StdUser.class, // this is the class for the User objects, that you can get in your app code
                         // with RestxSession.current().getPrincipal().get()
                         // it can be a custom user class, it just need to be json deserializable
