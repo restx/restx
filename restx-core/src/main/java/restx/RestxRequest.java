@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -15,6 +14,8 @@ import java.util.Map;
  * Time: 2:49 PM
  */
 public interface RestxRequest {
+    public static ThreadLocal<RestxRequest> current = new ThreadLocal<>();
+
     /**
      * Returns the base URI of this request.
      * Eg http://mydomain.com/api or http://mydomain.com:8080
