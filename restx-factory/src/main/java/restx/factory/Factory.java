@@ -2,10 +2,7 @@ package restx.factory;
 
 import com.codahale.metrics.*;
 import com.codahale.metrics.Timer;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
+import com.google.common.base.*;
 import com.google.common.collect.*;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
@@ -230,35 +227,13 @@ public class Factory implements AutoCloseable {
         private boolean usedServiceLoader;
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
         private List<Warehouse> providers = new ArrayList<>();
-
         public Builder addFromServiceLoader() {
-            try {
-                usedServiceLoader = true; // we have to store separately, in case the list is empty multimap
-                // doesn't keep the key
-                machines.putAll(SERVICE_LOADER, ServiceLoader.load(FactoryMachine.class));
-                return this;
-            } catch (ServiceConfigurationError e) {
-                if (e.getMessage().endsWith("not found")
-                        || e.getMessage().indexOf("java.lang.NoClassDefFoundError") != -1) {
-                    String resources = "";
-                    try {
-                        resources =
-                                "\n\n\t\t>> If the problem persists, check these resources:" +
-                                "\n\t\t\t- " + Joiner.on("\n\t\t\t- ").join(
-                                Iterators.forEnumeration(Thread.currentThread().getContextClassLoader()
-                                        .getResources("META-INF/services/restx.factory.FactoryMachine")));
-                    } catch (IOException e1) {
-                        // ignore
-                    }
-                    throw new RuntimeException(e.getMessage() + "." +
-                            "\n\t\t>> This may be because you renamed or removed it." +
-                            "\n\t\t>> Try to clean and rebuild your application and reload/relaunch." +
-                            resources +
-                            "\n", e);
-                } else {
-                    throw e;
-                }
-            }
+            machines.putAll(SERVICE_LOADER, FactoryMachinesServiceLoader.getMachines());
+
+            // we have to store separately, in case the list is empty; multimap doesn't keep the key
+            usedServiceLoader = true;
+
+            return this;
         }
 
         public Builder addLocalMachines(LocalMachines localMachines) {
@@ -1466,6 +1441,52 @@ public class Factory implements AutoCloseable {
             deps.put(name, buildingBox);
             depsToSort.add(buildingBox);
             buildingBox.predecessorsToSort.add(this);
+        }
+    }
+
+    /**
+     * Used to load FactoryMachines from ServiceLoader.
+     *
+     * This class is used to cache FactoryMachines loaded from ServiceLoader, to call it only once per Classloader.
+     */
+    private static class FactoryMachinesServiceLoader {
+        private static Map<ClassLoader, Iterable<? extends FactoryMachine>> serviceLoaderMachines = new WeakHashMap<>();
+
+        static synchronized Iterable<? extends FactoryMachine> getMachines() {
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            if (classLoader == null) {
+                classLoader = FactoryMachinesServiceLoader.class.getClassLoader();
+            }
+
+            Iterable<? extends FactoryMachine> factoryMachines = serviceLoaderMachines.get(classLoader);
+            if (factoryMachines == null) {
+                try {
+                    factoryMachines = ImmutableList.copyOf(ServiceLoader.load(FactoryMachine.class));
+                    serviceLoaderMachines.put(classLoader, factoryMachines);
+                } catch (ServiceConfigurationError e) {
+                    if (e.getMessage().endsWith("not found")
+                            || e.getMessage().indexOf("java.lang.NoClassDefFoundError") != -1) {
+                        String resources = "";
+                        try {
+                            resources =
+                                    "\n\n\t\t>> If the problem persists, check these resources:" +
+                                            "\n\t\t\t- " + Joiner.on("\n\t\t\t- ").join(
+                                            Iterators.forEnumeration(classLoader
+                                                    .getResources("META-INF/services/restx.factory.FactoryMachine")));
+                        } catch (IOException e1) {
+                            // ignore
+                        }
+                        throw new RuntimeException(e.getMessage() + "." +
+                                "\n\t\t>> This may be because you renamed or removed it." +
+                                "\n\t\t>> Try to clean and rebuild your application and reload/relaunch." +
+                                resources +
+                                "\n", e);
+                    } else {
+                        throw e;
+                    }
+                }
+            }
+            return factoryMachines;
         }
     }
 }
