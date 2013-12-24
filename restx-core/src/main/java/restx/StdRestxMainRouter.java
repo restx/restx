@@ -4,19 +4,18 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.*;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Optional;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import restx.entity.MatchedEntityRoute;
-import restx.entity.StdEntityRoute;
 import restx.exceptions.RestxError;
 import restx.http.HttpStatus;
-import restx.jackson.StdJsonProducerEntityRoute;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -126,6 +125,8 @@ public class StdRestxMainRouter implements RestxMainRouter {
                 PrintWriter out = restxResponse.getWriter();
                 out.print(sb.toString());
             } else {
+                RestxRequest.current.set(restxRequest);
+
                 RestxContext context = new RestxContext(getMode(), new AbstractRouteLifecycleListener() {},
                         ImmutableList.copyOf(m.get().getMatches()));
                 RestxHandlerMatch match = context.nextHandlerMatch();
@@ -207,6 +208,10 @@ public class StdRestxMainRouter implements RestxMainRouter {
             out.println("UNEXPECTED SERVER ERROR:");
             out.print(ex.getMessage());
         } finally {
+            if (RestxRequest.current != null) {
+                RestxRequest.current.remove();
+            }
+
             try { restxRequest.closeContentStream(); } catch (Exception ex) { }
             try { restxResponse.close(); } catch (Exception ex) { }
             monitor.stop();
