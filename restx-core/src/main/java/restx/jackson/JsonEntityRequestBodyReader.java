@@ -15,13 +15,13 @@ import java.io.IOException;
  * Time: 09:07
  */
 public class JsonEntityRequestBodyReader<T> implements EntityRequestBodyReader<T> {
-    public static <T> JsonEntityRequestBodyReader<T> using(ObjectMapper mapper) {
-        return new JsonEntityRequestBodyReader(mapper.reader().withView(Views.Transient.class));
+    public static <T> JsonEntityRequestBodyReader<T> using(ObjectReader reader) {
+        return new JsonEntityRequestBodyReader(reader);
     }
 
     protected final ObjectReader reader;
 
-    public JsonEntityRequestBodyReader(ObjectReader reader) {
+    private JsonEntityRequestBodyReader(ObjectReader reader) {
         this.reader = reader;
     }
 

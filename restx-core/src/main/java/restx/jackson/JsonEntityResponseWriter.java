@@ -18,13 +18,13 @@ import java.io.PrintWriter;
  * Time: 09:07
  */
 public class JsonEntityResponseWriter<T> extends AbstractEntityResponseWriter<T> {
-    public static <T> JsonEntityResponseWriter<T> using(ObjectMapper mapper) {
-        return new JsonEntityResponseWriter(mapper.writer().withView(Views.Transient.class));
+    public static <T> JsonEntityResponseWriter<T> using(ObjectWriter writer) {
+        return new JsonEntityResponseWriter(writer);
     }
 
     protected final ObjectWriter writer;
 
-    public JsonEntityResponseWriter(ObjectWriter writer) {
+    private JsonEntityResponseWriter(ObjectWriter writer) {
         super("application/json");
         this.writer = writer;
     }

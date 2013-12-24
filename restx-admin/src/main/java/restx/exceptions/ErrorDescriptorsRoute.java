@@ -1,6 +1,7 @@
 package restx.exceptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -24,8 +25,8 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
     private final ImmutableMap<String, ErrorDescriptor> errorDescriptors;
 
     public ErrorDescriptorsRoute(Iterable<ErrorDescriptor> errorDescriptors,
-                                 @Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper) {
-        super("ErrorDescriptorsRoute", mapper, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"));
+                                 @Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter objectWriter) {
+        super("ErrorDescriptorsRoute", objectWriter, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"));
         Map<String, ErrorDescriptor> map = Maps.newLinkedHashMap();
         for (ErrorDescriptor errorDescriptor : errorDescriptors) {
             if (map.containsKey(errorDescriptor.getErrorCode())) {

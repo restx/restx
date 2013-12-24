@@ -29,37 +29,37 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         protected RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
         protected MatchedEntityRoute<I,O> matchedEntityRoute;
 
-        public Builder entityRequestBodyReader(final EntityRequestBodyReader<I> entityRequestBodyReader) {
+        public Builder<I,O> entityRequestBodyReader(final EntityRequestBodyReader<I> entityRequestBodyReader) {
             this.entityRequestBodyReader = entityRequestBodyReader;
             return this;
         }
 
-        public Builder entityResponseWriter(final EntityResponseWriter<O> entityResponseWriter) {
+        public Builder<I,O> entityResponseWriter(final EntityResponseWriter<O> entityResponseWriter) {
             this.entityResponseWriter = entityResponseWriter;
             return this;
         }
 
-        public Builder name(final String name) {
+        public Builder<I,O> name(final String name) {
             this.name = name;
             return this;
         }
 
-        public Builder matcher(final RestxRequestMatcher matcher) {
+        public Builder<I,O> matcher(final RestxRequestMatcher matcher) {
             this.matcher = matcher;
             return this;
         }
 
-        public Builder successStatus(final HttpStatus successStatus) {
+        public Builder<I,O> successStatus(final HttpStatus successStatus) {
             this.successStatus = successStatus;
             return this;
         }
 
-        public Builder logLevel(final RestxLogLevel logLevel) {
+        public Builder<I,O> logLevel(final RestxLogLevel logLevel) {
             this.logLevel = logLevel;
             return this;
         }
 
-        public Builder matchedEntityRoute(final MatchedEntityRoute<I, O> matchedEntityRoute) {
+        public Builder<I,O> matchedEntityRoute(final MatchedEntityRoute<I, O> matchedEntityRoute) {
             this.matchedEntityRoute = matchedEntityRoute;
             return this;
         }

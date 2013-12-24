@@ -1,6 +1,7 @@
 package restx.apidocs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -44,9 +45,9 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
 
     @Inject
-    public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
+    public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
                                Factory factory) {
-        super("ApiDeclarationRoute", mapper, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"));
+        super("ApiDeclarationRoute", writer, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"));
         this.factory = factory;
     }
 

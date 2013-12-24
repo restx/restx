@@ -1,11 +1,14 @@
 package restx.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.AppSettings;
+import restx.RestxContext;
 import restx.entity.*;
 import restx.factory.Module;
 import restx.factory.Provides;
@@ -38,7 +41,7 @@ public class JsonContentTypeModule {
 
     @Provides
     public EntityRequestBodyReaderFactory jsonEntityRequestBodyReaderFactory(
-            @Named(FrontObjectMapperFactory.MAPPER_NAME) final ObjectMapper mapper) {
+            @Named(FrontObjectMapperFactory.READER_NAME) final ObjectReader reader) {
         return new EntityRequestBodyReaderFactory() {
             @Override
             public <T> Optional<? extends EntityRequestBodyReader<T>> mayBuildFor(Type valueType, String contentType) {
@@ -47,8 +50,8 @@ public class JsonContentTypeModule {
                 }
                 Class<?> clazz = getCTJacksonViewClass(valueType, contentType, Views.Transient.class);
                 return Optional.of(
-                        new JsonEntityRequestBodyReader<T>(
-                                mapper.readerWithView(clazz)
+                        JsonEntityRequestBodyReader.<T>using(
+                                reader.withView(clazz)
                                         .withType(TypeFactory.defaultInstance().constructType(valueType))))
                         ;
             }
@@ -57,7 +60,7 @@ public class JsonContentTypeModule {
 
     @Provides
     public EntityResponseWriterFactory jsonEntityResponseWriterFactory(
-            @Named(FrontObjectMapperFactory.MAPPER_NAME) final ObjectMapper mapper) {
+            @Named(FrontObjectMapperFactory.WRITER_NAME) final ObjectWriter objectWriter) {
         return new EntityResponseWriterFactory() {
             @Override
             public <T> Optional<? extends EntityResponseWriter<T>> mayBuildFor(Type valueType, String contentType) {
@@ -65,7 +68,7 @@ public class JsonContentTypeModule {
                     return Optional.absent();
                 }
                 Class<?> clazz = getCTJacksonViewClass(valueType, contentType, Views.Transient.class);
-                ObjectWriter writer = mapper.writerWithView(clazz);
+                ObjectWriter writer = objectWriter.withView(clazz);
                 if (valueType instanceof ParameterizedType) {
                     /* we set the type on writer only for parameterized types:
                      * if we set it for regular types, jackson will build the serializer based on this type, and not the
@@ -75,7 +78,7 @@ public class JsonContentTypeModule {
                      */
                     writer = writer.withType(TypeFactory.defaultInstance().constructType(valueType));
                 }
-                return Optional.of(new JsonEntityResponseWriter<T>(writer));
+                return Optional.of(JsonEntityResponseWriter.<T>using(writer));
             }
         };
     }

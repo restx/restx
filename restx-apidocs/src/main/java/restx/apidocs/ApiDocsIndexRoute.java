@@ -1,6 +1,7 @@
 package restx.apidocs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -41,8 +42,8 @@ public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
 
     @Inject
-    public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper, Factory factory) {
-        super("ApiDocsIndexRoute", mapper, new StdRestxRequestMatcher("GET", "/@/api-docs"));
+    public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer, Factory factory) {
+        super("ApiDocsIndexRoute", writer, new StdRestxRequestMatcher("GET", "/@/api-docs"));
         this.factory = factory;
     }
 

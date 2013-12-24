@@ -1,6 +1,8 @@
 package restx;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -26,7 +28,8 @@ public class RestxRouter {
     public static class Builder {
         private String groupName = "default";
         private String name = "default";
-        private ObjectMapper mapper;
+        private ObjectWriter writer;
+        private ObjectReader reader;
         private List<RestxRoute> routes = Lists.newArrayList();
 
         public Builder name(final String name) {
@@ -40,7 +43,22 @@ public class RestxRouter {
         }
 
         public Builder withMapper(ObjectMapper mapper) {
-            this.mapper = mapper;
+            if (writer == null) {
+                writer = mapper.writer();
+            }
+            if (reader == null) {
+                reader = mapper.reader();
+            }
+            return this;
+        }
+
+        public Builder withObjectWriter(ObjectWriter writer) {
+            this.writer = writer;
+            return this;
+        }
+
+        public Builder withObjectReader(ObjectReader reader) {
+            this.reader = reader;
             return this;
         }
 
@@ -70,7 +88,7 @@ public class RestxRouter {
         }
 
         public <O> Builder addRoute(String name, RestxRequestMatcher matcher, final MatchedEntityRoute<Void, O> route) {
-            routes.add(new StdJsonProducerEntityRoute<O>(name, mapper, matcher) {
+            routes.add(new StdJsonProducerEntityRoute<O>(name, writer, matcher) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Void i) throws IOException {
                     return route.route(restxRequest, match, i);
@@ -93,8 +111,8 @@ public class RestxRouter {
 
         public <I, O> Builder addRoute(String name, StdRestxRequestMatcher matcher, Class<I> inputType, MatchedEntityRoute<I, O> route) {
             routes.add(new JsonEntityRouteBuilder<I, O>()
-                    .withMapper(mapper)
-                    .havingRequestBody(inputType)
+                    .withObjectWriter(writer)
+                    .withObjectReader(reader.withType(inputType))
                     .name(name)
                     .matcher(matcher)
                     .matchedEntityRoute(route)
