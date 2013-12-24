@@ -1,24 +1,20 @@
 package restx.servlet;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import restx.AbstractRequest;
-import restx.RestxRequest;
 
 import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -186,6 +182,11 @@ public class HttpServletRestxRequest extends AbstractRequest {
             return (T) request;
         }
         throw new IllegalArgumentException("underlying implementation is HttpServletRequest, not " + clazz.getName());
+    }
+
+    @Override
+    public Locale getLocale() {
+        return request.getLocale();
     }
 
 }

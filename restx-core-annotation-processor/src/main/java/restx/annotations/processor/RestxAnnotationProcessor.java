@@ -542,7 +542,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         },
         CONTEXT {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                Collection<String> contextParamNames = Arrays.asList("baseUri", "clientAddress", "request");
+                Collection<String> contextParamNames = Arrays.asList("baseUri", "clientAddress", "request", "locale");
                 if (!contextParamNames.contains(parameter.reqParamName)) {
                     throw new IllegalArgumentException("context parameter not known: " + parameter.reqParamName +
                             ". Possible names are: " + Joiner.on(", ").join(contextParamNames));
@@ -554,6 +554,8 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                         return "request.getBaseUri()";
                     case "clientAddress":
                         return "request.getClientAddress()";
+                    case "locale":
+                        return "request.getLocale()";
                     default:
                         throw new IllegalStateException(
                                 "invalid context param name not catched by contextParamNames list !! " + parameter.reqParamName);

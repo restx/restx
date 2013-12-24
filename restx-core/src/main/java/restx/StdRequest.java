@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -163,6 +165,33 @@ public class StdRequest extends AbstractRequest {
     @Override
     public <T> T unwrap(Class<T> clazz) {
         throw new IllegalArgumentException("no underlying implementation");
+    }
+
+    @Override
+    public Locale getLocale() {
+        final String acceptLanguage = headers.get("Accept-Language");
+
+        final ArrayList<String> languagesList = new ArrayList<>();
+
+        if (acceptLanguage != null && !acceptLanguage.isEmpty()) {
+            final String[] split = acceptLanguage.replace(" ", "").replace(";", ",").split(",");
+
+            for (String s1 : split) {
+                if (!s1.startsWith("q=")) {
+                    languagesList.add(s1);
+                }
+            }
+        }
+
+        Locale locale;
+
+        if (languagesList.isEmpty()) {
+            locale = Locale.getDefault();
+        } else {
+            locale = Locale.forLanguageTag(languagesList.get(0));
+        }
+
+        return locale;
     }
 
     public static class StdRequestBuilder {
