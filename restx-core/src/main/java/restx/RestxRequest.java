@@ -15,8 +15,6 @@ import java.util.Locale;
  * Time: 2:49 PM
  */
 public interface RestxRequest {
-    public static ThreadLocal<RestxRequest> current = new ThreadLocal<>();
-
     /**
      * Returns the base URI of this request.
      * Eg http://mydomain.com/api or http://mydomain.com:8080
