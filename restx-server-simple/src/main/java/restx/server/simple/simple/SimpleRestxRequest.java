@@ -1,6 +1,5 @@
 package restx.server.simple.simple;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -10,12 +9,12 @@ import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Query;
 import org.simpleframework.http.Request;
 import restx.AbstractRequest;
-import restx.RestxRequest;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -163,6 +162,15 @@ public class SimpleRestxRequest  extends AbstractRequest {
         }
         throw new IllegalArgumentException("underlying implementation is " + Request.class.getName()
                 + ", not " + clazz.getName());
+    }
+
+    @Override
+    public Locale getLocale() {
+        if (request.getLocales() != null && !request.getLocales().isEmpty()) {
+            return request.getLocales().get(0);
+        }
+
+        return Locale.getDefault();
     }
 
 }
