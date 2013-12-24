@@ -60,8 +60,12 @@ public class RestxSpec {
         }
 
         public File getStoreFile(String path) {
-            String basePath = settings.recorderBasePath();
-            return new File(basePath + "/" + path);
+            if (path.startsWith("/")) {
+                return new File(path);
+            } else {
+                String basePath = settings.recorderBasePath();
+                return new File(basePath + "/" + path);
+            }
         }
 
         public File store(RestxSpec spec) throws IOException {

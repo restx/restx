@@ -72,7 +72,7 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
             MatcherAssert.assertThat(body,
                 SameJSONAs.sameJSONAs(when.getThen().getExpected()).allowingExtraUnexpectedFields());
         } else if (!when.getThen().getExpected().trim().isEmpty()) {
-            MatcherAssert.assertThat(body, equalTo(when.getThen().getExpected()));
+            MatcherAssert.assertThat(body.trim(), equalTo(when.getThen().getExpected().trim()));
         }
         System.out.printf("checked %s /%s -- %s%n", when.getMethod(), when.getPath(), stopwatch.stop().toString());
     }

@@ -17,6 +17,7 @@ import restx.http.HttpStatus;
 import restx.security.RestxSessionCookieFilter;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +72,10 @@ public class RestxSpecTape {
             specTape.remove();
         }
 
+        // most of the time givenTapes should be empty by now, they are supposed to be closed when closing the response
+        // but they may still be opened if:
+        // - they failed to close when closing response
+        // - response was not closed for some reason
         for (AutoCloseable givenTape : givenTapes) {
             try {
                 givenTape.close();
@@ -165,6 +170,10 @@ public class RestxSpecTape {
 
             @Override
             public void close() throws Exception {
+                if (writer != null) {
+                    writer.flush();
+                }
+
                 System.out.println(" >> recorded response (" + baos.size() + " bytes) -- " + stopwatch.stop());
                 if (realWriter != null) {
                     CharStreams.copy(CharStreams.asCharSource(baos.toString(Charsets.UTF_8.name())).openStream(), realWriter);
@@ -172,6 +181,18 @@ public class RestxSpecTape {
                     ByteStreams.copy(ByteStreams.asByteSource(baos.toByteArray()).openStream(), realOS);
                 }
                 super.close();
+
+                Iterator<AutoCloseable> iterator = givenTapes.iterator();
+                while (iterator.hasNext()) {
+                    AutoCloseable givenTape = iterator.next();
+                    try {
+                        givenTape.close();
+                        iterator.remove();
+                    } catch (Exception e) {
+                        // will try again when closing the whole tape
+                    }
+                }
+                DateTimeUtils.setCurrentMillisSystem();
 
                 RestxSpec restxSpec = new RestxSpec(
                         specPath, title,
@@ -183,8 +204,7 @@ public class RestxSpecTape {
                         + "------------------------------------------------"
                 );
                 recordedSpec.setId(id).setSpec(restxSpec).setMethod(method).setPath(path)
-                        .setDuration(new Duration(recordedSpec.getRecordTime(),
-                                new DateTime(System.currentTimeMillis()))) // we don't use DateTime.now for that, time is still frozen
+                        .setDuration(new Duration(recordedSpec.getRecordTime(), DateTime.now()))
                         .setCapturedResponseSize(baos.size());
             }
         };
