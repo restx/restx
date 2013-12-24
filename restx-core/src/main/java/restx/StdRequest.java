@@ -2,6 +2,7 @@ package restx;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -171,10 +172,11 @@ public class StdRequest extends AbstractRequest {
     public Locale getLocale() {
         final String acceptLanguage = headers.get("Accept-Language");
 
-        final ArrayList<String> languagesList = new ArrayList<>();
+        List<String> languagesList = new ArrayList<>();
 
-        if (acceptLanguage != null && !acceptLanguage.isEmpty()) {
-            final String[] split = acceptLanguage.replace(" ", "").replace(";", ",").split(",");
+        if (!Strings.isNullOrEmpty(acceptLanguage)) {
+            final Iterable<String> split =
+                    Splitter.on(",").split(acceptLanguage.replace(" ", "").replace(";", ","));
 
             for (String s1 : split) {
                 if (!s1.startsWith("q=")) {
