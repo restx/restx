@@ -9,7 +9,8 @@ adminApp.config(function($routeProvider) {
   $routeProvider.
       when('/', {
         controller: 'ApisController',
-        templateUrl: 'views/apis.html'
+        templateUrl: 'views/apis.html',
+        reloadOnSearch: false
       })
       .when('/operation/:name/:httpMethod/:path', {
         controller: 'OperationController',
