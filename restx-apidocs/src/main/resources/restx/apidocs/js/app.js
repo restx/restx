@@ -24,9 +24,27 @@ adminApp.config(function($routeProvider) {
 });
 
 adminApp.directive('eatClick', function() {
-    return function(scope, element, attrs) {
-        $(element).click(function(event) {
-            event.preventDefault();
-        });
-    }
-});
+        return function(scope, element, attrs) {
+            $(element).click(function(event) {
+                event.preventDefault();
+            });
+        }
+    }).filter('simpleName', function() {
+        return function(input) {
+            return input && input
+                .replace(/#.+/, '')
+                .replace(/\$.+/, '')
+                .replace(/.+\./, '')
+        };
+    })
+    .filter('sourceLink', function() {
+        return function(input) {
+            return input && ('../sources/#/main/'
+                + input
+                .replace(/#.+/, '')
+                .replace(/\$.+/, '') // inner class, remove everything after the dollar
+                .replace(/\./g, '/')
+                + '.java');
+        };
+    })
+;

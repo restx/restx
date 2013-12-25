@@ -221,12 +221,17 @@ h1 .http-method {
 
     div.relatedOperations {
         float: right;
-        margin-right: 120px;
-        margin-top: -110px;
+        margin-right: 20px;
+        margin-top: -155px;
     }
 
     .relatedOperations table {
         width: 460px;
+    }
+
+    .try-btn {
+        margin-top: -47px;
+        margin-right: 10px;
     }
 }
 

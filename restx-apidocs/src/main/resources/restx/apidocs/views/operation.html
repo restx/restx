@@ -3,13 +3,16 @@
     <section>
         <div class="clearfix">
             <h2>Description</h2>
-            <button ng-click="toggleTry()" class="btn pull-right" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
+            <button ng-click="toggleTry()" class="btn pull-right try-btn" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
             <p><label>Nick name:</label> {{operation.nickname}}</p>
             <p><label>Response class:</label>
                 <a ng-show="operation.outEntitySchemaKey" href="#/entity/{{operation.outEntitySchemaKey}}">{{operation.responseClass}}</a>
                 <span ng-hide="operation.outEntitySchemaKey">{{operation.responseClass}}</span>
             </p>
             <p><label>Success status:</label> {{operation.successStatus.code}} - {{operation.successStatus.desc}}</p>
+            <p class="link2source"><label>Source:</label>
+                <a href="{{operation.sourceLocation | sourceLink }}">{{operation.sourceLocation | simpleName }}</a>
+            </p>
             <div class="relatedOperations" ng-show="operation.relatedOperations.length > 0"><label>Related operations:</label>
                 <table class="table table-condensed operations">
                     <tr class="operation operation-{{rel.httpMethod}}" ng-repeat="rel in operation.relatedOperations">
