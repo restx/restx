@@ -32,10 +32,6 @@ public class RestxServerRule implements TestRule {
         this.webServerSupplier = webServerSupplier;
     }
 
-    protected Factory.LocalMachines localMachines() {
-        return contextLocal(checkNotNull(server, "server has not been created yet").getServerId());
-    }
-
     public HttpTestClient client() {
         return HttpTestClient.withBaseUrl(server.baseUrl());
     }

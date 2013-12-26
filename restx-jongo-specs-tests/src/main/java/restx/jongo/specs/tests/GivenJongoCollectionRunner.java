@@ -25,6 +25,7 @@ import java.net.UnknownHostException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.factory.Factory.LocalMachines.contextLocal;
+import static restx.factory.Factory.LocalMachines.threadLocal;
 import static restx.specs.WhenHttpRequest.CONTEXT_NAME;
 import static restx.specs.mongo.GivenJongoCollection.DB_URI;
 
@@ -93,8 +94,7 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                     };
                 }
             });
-            final Factory.LocalMachines localMachines = contextLocal(
-                    checkNotNull(params.get(CONTEXT_NAME), CONTEXT_NAME + " param is required"));
+            final Factory.LocalMachines localMachines = threadLocal();
             localMachines.addMachine(customizerMachine);
 
             return new GivenCleaner() {

@@ -3,6 +3,7 @@ package restx.tests;
 import com.github.kevinsawicki.http.HttpRequest;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
+import restx.RestxMainRouterFactory;
 import restx.common.Crypto;
 import restx.common.UUIDGenerator;
 import restx.factory.Factory;
@@ -10,6 +11,8 @@ import restx.security.RestxSessionCookieDescriptor;
 import restx.security.SignatureKey;
 
 import java.util.Map;
+
+import static restx.RestxMainRouterFactory.Blade;
 
 /**
  * HttpTestClient is a helper to create com.github.kevinsawicki.http.HttpRequest
@@ -55,7 +58,9 @@ public class HttpTestClient {
 
     public HttpRequest http(String method, String url) {
         HttpRequest httpRequest = new HttpRequest(baseUrl + root(url), method)
-                .header("RestxThreadLocal", Factory.LocalMachines.threadLocal().getId());
+                .header("RestxThreadLocal", Factory.LocalMachines.threadLocal().getId())
+                .header("RestxBlade", Blade.current())
+                ;
 
         if (!cookies.isEmpty()) {
             StringBuilder sb = new StringBuilder();

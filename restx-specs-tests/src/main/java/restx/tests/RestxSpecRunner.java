@@ -4,17 +4,18 @@ import com.google.common.base.Optional;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import restx.RestxMainRouterFactory;
 import restx.factory.Factory;
 import restx.specs.*;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
-import static restx.factory.Factory.LocalMachines;
+import static restx.RestxMainRouterFactory.Blade;
 import static restx.factory.Factory.LocalMachines.contextLocal;
 import static restx.factory.Factory.LocalMachines.overrideComponents;
 
@@ -24,16 +25,17 @@ import static restx.factory.Factory.LocalMachines.overrideComponents;
  * Time: 1:58 PM
  */
 public class RestxSpecRunner {
-
     private final String serverId;
     private final String baseUrl;
 
     private final String routerPath;
     private final RestxSpecLoader specLoader;
 
-    private final Iterable<GivenSpecRule> givenSpecRules;
+    private final Iterable<GivenSpecRuleSupplier> givenSpecRuleSuppliers;
     private final Iterable<GivenRunner> givenRunners;
     private final Iterable<WhenChecker> whenCheckers;
+
+    private final Map<String, Iterable<GivenSpecRule>> givenRulesPerBlade = new LinkedHashMap<>();
 
 
     public RestxSpecRunner(RestxSpecLoader specLoader, String routerPath, String serverId, String baseUrl, Factory factory) {
@@ -41,14 +43,10 @@ public class RestxSpecRunner {
         this.routerPath = checkNotNull(routerPath);
         this.serverId = checkNotNull(serverId);
         this.baseUrl = checkNotNull(baseUrl);
-        givenSpecRules = newArrayList(transform(factory.queryByClass(GivenSpecRuleSupplier.class).findAsComponents(),
-                Suppliers.<GivenSpecRule>supplierFunction()));
+        givenSpecRuleSuppliers = factory.queryByClass(GivenSpecRuleSupplier.class).findAsComponents();
         givenRunners = factory.queryByClass(GivenRunner.class).findAsComponents();
         whenCheckers = factory.queryByClass(WhenChecker.class).findAsComponents();
 
-        for (GivenSpecRule givenSpecRule : givenSpecRules) {
-            givenSpecRule.onSetup(localMachines());
-        }
     }
 
     public void runTest(String spec) throws IOException {
@@ -61,7 +59,7 @@ public class RestxSpecRunner {
 
     public void runTest(RestxSpec restxSpec) {
         Map<String, String> params = Maps.newLinkedHashMap();
-        for (GivenSpecRule givenSpecRule : givenSpecRules) {
+        for (GivenSpecRule givenSpecRule : getSpecRulesForCurrentBlade()) {
             params.putAll(givenSpecRule.getRunParams());
         }
         params.put(WhenHttpRequest.CONTEXT_NAME, serverId);
@@ -70,12 +68,28 @@ public class RestxSpecRunner {
         runSpec(restxSpec, ImmutableMap.copyOf(params));
     }
 
-    public void dispose() {
-        for (GivenSpecRule givenSpecRule : givenSpecRules) {
-            givenSpecRule.onTearDown(localMachines());
+    private synchronized Iterable<GivenSpecRule> getSpecRulesForCurrentBlade() {
+        String currentBlade = Blade.current();
+        Iterable<GivenSpecRule> givenSpecRules = givenRulesPerBlade.get(currentBlade);
+        if (givenSpecRules == null) {
+            givenSpecRules = newArrayList(transform(givenSpecRuleSuppliers,
+                    Suppliers.<GivenSpecRule>supplierFunction()));
+            for (GivenSpecRule givenSpecRule : givenSpecRules) {
+                givenSpecRule.onSetup(contextLocal(bladeContextId(currentBlade)));
+            }
+
+            givenRulesPerBlade.put(currentBlade, givenSpecRules);
         }
+        return givenSpecRules;
     }
 
+    public synchronized void dispose() {
+        for (Map.Entry<String, Iterable<GivenSpecRule>> blade : givenRulesPerBlade.entrySet()) {
+            for (GivenSpecRule givenSpecRule : blade.getValue()) {
+                givenSpecRule.onTearDown(contextLocal(bladeContextId(blade.getKey())));
+            }
+        }
+    }
 
     private void runSpec(RestxSpec restxSpec, ImmutableMap<String, String> params) {
         List<GivenCleaner> givenCleaners = newArrayList();
@@ -103,7 +117,6 @@ public class RestxSpecRunner {
             }
             overrideComponents().clear();
         }
-
     }
 
     private Optional<WhenChecker> findCheckerFor(When when) {
@@ -132,9 +145,15 @@ public class RestxSpecRunner {
         return Optional.absent();
     }
 
-
-    protected Factory.LocalMachines localMachines() {
-        return contextLocal(serverId);
+    protected Factory.LocalMachines bladeLocalMachines() {
+        return Blade.bladeLocalMachines(serverId);
     }
 
+    private String bladeContextId() {
+        return bladeContextId(Blade.current());
+    }
+
+    private String bladeContextId(String bladeId) {
+        return Blade.contextId(serverId, bladeId);
+    }
 }

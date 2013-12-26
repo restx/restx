@@ -29,6 +29,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getLast;
@@ -64,6 +65,38 @@ public class RestxMainRouterFactory {
         Optional<Factory> factory = Factory.getFactory(serverId);
         if (factory.isPresent()) {
             Factory.unregister(serverId, factory.get());
+        }
+    }
+
+    /**
+     * A blade is a context of test execution, it can be reused between tests, but can't be used concurrently.
+     *
+     * This allow to have a test client used to run tests concurrently, each thread executing tests being
+     * considered as a test blade. It allows to have some heavy components (like a database) initialized
+     * only once per blade.
+     *
+     * This works only when using a per request factory loading.
+     */
+    public static final class Blade {
+        private static final AtomicLong BLADE_COUNTER = new AtomicLong();
+
+        private static final ThreadLocal<String> BLADE = new ThreadLocal<String>() {
+            @Override
+            protected String initialValue() {
+                return "BLADE-" + BLADE_COUNTER.incrementAndGet();
+            }
+        };
+
+        public static String current() {
+            return BLADE.get();
+        }
+
+        public static String contextId(String serverId, String bladeId) {
+            return serverId + "-" + bladeId;
+        }
+
+        public static Factory.LocalMachines bladeLocalMachines(String serverId) {
+            return Factory.LocalMachines.contextLocal(contextId(serverId, current()));
         }
     }
 
@@ -150,7 +183,10 @@ public class RestxMainRouterFactory {
         public void route(RestxRequest restxRequest, RestxResponse restxResponse) throws IOException {
             Stopwatch stopwatch = Stopwatch.createStarted();
             Factory factory = loadFactory(newFactoryBuilder(
-                                        serverId, restxRequest.getHeader("RestxThreadLocal"), getMode(restxRequest))
+                                        serverId,
+                                        restxRequest.getHeader("RestxBlade"),
+                                        restxRequest.getHeader("RestxThreadLocal"),
+                                        getMode(restxRequest))
                     .addWarehouseProvider(warehouse));
 
             if ("cleanrequest".equals(getLoadFactoryMode())) {
@@ -435,12 +471,16 @@ public class RestxMainRouterFactory {
         return factory;
     }
 
-    private static Factory.Builder newFactoryBuilder(String contextName,
+    private static Factory.Builder newFactoryBuilder(String serverId,
+                                                     Optional<String> bladeId,
                                                      Optional<String> threadLocalId,
                                                      String mode) {
-        Factory.Builder builder = newFactoryBuilder(contextName);
+        Factory.Builder builder = newFactoryBuilder(serverId);
         if (threadLocalId.isPresent()) {
             builder.addLocalMachines(Factory.LocalMachines.threadLocalFrom(threadLocalId.get()));
+        }
+        if (bladeId.isPresent()) {
+            builder.addLocalMachines(Factory.LocalMachines.contextLocal(Blade.contextId(serverId, bladeId.get())));
         }
         builder.addMachine(new SingletonFactoryMachine<>(
                 -100000, NamedComponent.of(String.class, "restx.mode", mode)));

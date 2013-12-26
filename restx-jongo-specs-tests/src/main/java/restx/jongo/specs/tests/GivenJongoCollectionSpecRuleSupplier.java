@@ -14,6 +14,7 @@ import restx.tests.GivenSpecRuleSupplier;
 import javax.inject.Inject;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * User: xavierhanin
@@ -35,10 +36,11 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
     }
 
     public static class GivenJongoCollectionSpecRule implements GivenSpecRule {
+        private static final AtomicLong counter = new AtomicLong();
         private final String db;
 
         public GivenJongoCollectionSpecRule(String db) {
-            this.db = db + "-test-" + DateTime.now().getMillis();
+            this.db = db + "-test-" + DateTime.now().getMillis() + "-" + counter.incrementAndGet();
         }
 
         @Override
