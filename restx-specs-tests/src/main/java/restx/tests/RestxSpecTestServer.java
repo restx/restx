@@ -11,6 +11,9 @@ import com.google.common.base.Stopwatch;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +25,8 @@ import restx.classloader.CompilationFinishedEvent;
 import restx.common.UUIDGenerator;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
-import restx.exceptions.RestxError;
 import restx.exceptions.RestxErrors;
+import restx.factory.AutoStartable;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
@@ -40,8 +43,12 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 /**
  * User: xavierhanin
@@ -84,10 +91,15 @@ public class RestxSpecTestServer {
         private final RestxSpecRepository repository;
         private final RestxErrors errors;
         private final UUIDGenerator uuidGenerator;
-        private final ExecutorService executor = Executors.newSingleThreadExecutor();
+        private final ExecutorService testRequestExecutor = newSingleThreadExecutor();
+        private final ListeningExecutorService testExecutor = listeningDecorator(newFixedThreadPool(4));
         private final Path storeLocation;
         private final ObjectMapper objectMapper;
         private final Map<String, TestResultSummary> lastResults;
+        private final PrintStream sysout = System.out;
+        private final PrintStream syserr = System.err;
+        private final ThreadLocalPrintStream out = new ThreadLocalPrintStream(sysout);
+        private final ThreadLocalPrintStream err = new ThreadLocalPrintStream(syserr);
 
         public RunningServer(WebServer server, RestxSpecRunner runner, RestxSpecRepository repository,
                              UUIDGenerator uuidGenerator, 
@@ -107,6 +119,10 @@ public class RestxSpecTestServer {
 
             lastResults = loadLastResults();
 
+            System.setOut(out);
+            System.setErr(err);
+
+
             Factory.LocalMachines.contextLocal(server.getServerId()).addMachine(
                     new SingletonFactoryMachine<>(0, NamedComponent.of(RunningServer.class, "RunningServer", this)));
         }
@@ -118,8 +134,9 @@ public class RestxSpecTestServer {
         public void stop() throws Exception {
             runner.dispose();
             server.stop();
+            System.setOut(sysout);
+            System.setErr(syserr);
         }
-
 
         public TestRequest submitTestRequest(TestRequest testRequest) {
             if (testRequest.getTest().startsWith("specs")) {
@@ -129,7 +146,7 @@ public class RestxSpecTestServer {
                 testRequest.setRequestTime(DateTime.now());
                 testRequest.setStatus(TestRequest.Status.QUEUED);
                 store(testRequest);
-                executor.submit(new Runnable() {
+                testRequestExecutor.submit(new Runnable() {
                     @Override
                     public void run() {
                         Optional<TestRequest> requestOptional = getRequestByKey(requestKey);
@@ -137,37 +154,38 @@ public class RestxSpecTestServer {
                             logger.warn("test request not found when trying to execute it: {}", requestKey);
                             return;
                         }
+                        Stopwatch stopwatch = Stopwatch.createStarted();
                         TestRequest testRequest = requestOptional.get();
                         logger.info("running test request {}", testRequest);
                         testRequest.setStatus(TestRequest.Status.RUNNING);
                         store(testRequest);
 
-                        List<String> resultKeys = new ArrayList<>();
-                        try {
-                            String spec = testRequest.getTest();
-                            if (spec.endsWith("*")) {
-                                // clear last results when we run all tests
-                                // this is currently the only way to cleanup last results
-                                if (spec.equals("specs/*")) {
-                                    synchronized (lastResults) {
-                                        lastResults.clear();
-                                    }
+                        List<ListenableFuture<String>> futureResultKeys = new ArrayList<>();
+                        String spec = testRequest.getTest();
+                        if (spec.endsWith("*")) {
+                            // clear last results when we run all tests
+                            // this is currently the only way to cleanup last results
+                            if (spec.equals("specs/*")) {
+                                synchronized (lastResults) {
+                                    lastResults.clear();
                                 }
-
-                                String prefix = spec.substring(0, spec.length() - 1);
-                                for (String s : repository.findAll()) {
-                                    if (s.startsWith(prefix)) {
-                                        runSpecTest(s, resultKeys);
-                                    }
-                                }
-                            } else {
-                                runSpecTest(spec, resultKeys);
                             }
-                        } finally {
-                            testRequest.setStatus(TestRequest.Status.DONE);
-                            testRequest.setTestResultKey(Joiner.on(",").join(resultKeys));
-                            store(testRequest);
+
+                            String prefix = spec.substring(0, spec.length() - 1);
+                            for (String s : repository.findAll()) {
+                                if (s.startsWith(prefix)) {
+                                    futureResultKeys.add(testExecutor.submit(runSpecTest(s)));
+                                }
+                            }
+                        } else {
+                            futureResultKeys.add(testExecutor.submit(runSpecTest(spec)));
                         }
+
+                        List<String> resultKeys = Futures.getUnchecked(Futures.allAsList(futureResultKeys));
+                        testRequest.setStatus(TestRequest.Status.DONE);
+                        testRequest.setTestResultKey(Joiner.on(",").join(resultKeys));
+                        store(testRequest);
+                        logger.info("completed test request {} in {}: {}", testRequest.getKey(), stopwatch.stop(), testRequest);
                     }
                 });
 
@@ -180,44 +198,56 @@ public class RestxSpecTestServer {
             }
         }
 
-        private void runSpecTest(String spec, List<String> resultKeys) {
-            logger.info("spec test {} >> STARTING", spec);
-            Stopwatch stopWatch = Stopwatch.createStarted();
-            PrintStream out = System.out;
-            PrintStream err = System.err;
-            ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            System.setOut(new PrintStream(outStream));
-            ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-            System.setErr(new PrintStream(errStream));
-            TestResultSummary.Status status = TestResultSummary.Status.ERROR;
-            long start = System.currentTimeMillis();
-            try {
-                runner.runTest(repository.findSpecById(spec).get());
-                status = TestResultSummary.Status.SUCCESS;
-            } catch (AssertionError e) {
-                status = TestResultSummary.Status.FAILURE;
-                System.err.println(e.getMessage());
-            } catch (Throwable e) {
-                e.printStackTrace(System.err);
-            } finally {
-                System.setOut(out);
-                System.setErr(err);
+        private Callable<String> runSpecTest(final String spec) {
+            return new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    logger.info("spec test {} >> STARTING", spec);
+                    Stopwatch stopWatch = Stopwatch.createStarted();
+                    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+                    final PrintStream outPrintStream = new PrintStream(outStream);
+                    out.setCurrent(outPrintStream);
+                    ByteArrayOutputStream errStream = new ByteArrayOutputStream();
+                    final PrintStream errPrintStream = new PrintStream(errStream);
+                    err.setCurrent(errPrintStream);
 
-                TestResult result = new TestResult()
-                        .setSummary(new TestResultSummary()
-                                .setKey(uuidGenerator.doGenerate())
-                                .setName(spec)
-                                .setStatus(status)
-                                .setTestDuration(System.currentTimeMillis() - start)
-                                .setTestTime(new DateTime(start))
-                        )
-                        .setStdOut(new String(outStream.toByteArray()))
-                        .setStdErr(new String(errStream.toByteArray()))
-                        ;
-                store(result);
-                resultKeys.add(result.getSummary().getKey());
-                logger.info("spec test {} >> END {}", spec, stopWatch);
-            }
+                    // propagate streams on server
+                    Factory.LocalMachines.threadLocal()
+                            .set("OutPrintStreamComponent", new LocalStreamComponent(out, outPrintStream))
+                            .set("ErrPrintStreamComponent", new LocalStreamComponent(err, errPrintStream))
+                    ;
+
+                    TestResultSummary.Status status = TestResultSummary.Status.ERROR;
+                    long start = System.currentTimeMillis();
+                    try {
+                        runner.runTest(repository.findSpecById(spec).get());
+                        status = TestResultSummary.Status.SUCCESS;
+                    } catch (AssertionError e) {
+                        status = TestResultSummary.Status.FAILURE;
+                        System.err.println(e.getMessage());
+                    } catch (Throwable e) {
+                        e.printStackTrace(System.err);
+                    } finally {
+                        out.clearCurrent();
+                        err.clearCurrent();
+                    }
+
+                    TestResult result = new TestResult()
+                            .setSummary(new TestResultSummary()
+                                    .setKey(uuidGenerator.doGenerate())
+                                    .setName(spec)
+                                    .setStatus(status)
+                                    .setTestDuration(System.currentTimeMillis() - start)
+                                    .setTestTime(new DateTime(start))
+                            )
+                            .setStdOut(new String(outStream.toByteArray()))
+                            .setStdErr(new String(errStream.toByteArray()))
+                            ;
+                    store(result);
+                    logger.info("spec test {} >> END {}", spec, stopWatch);
+                    return result.getSummary().getKey();
+                }
+            };
         }
 
         private void store(TestRequest testRequest) {
@@ -284,8 +314,17 @@ public class RestxSpecTestServer {
 
                 synchronized (lastResults) {
                     lastResults.put(result.getSummary().getName(), result.getSummary());
+                    testRequestExecutor.submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                objectMapper.writeValue(lastResultSummariesFile(), lastResults.values());
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    });
                 }
-                objectMapper.writeValue(lastResultSummariesFile(), lastResults.values());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -340,6 +379,26 @@ public class RestxSpecTestServer {
             public static enum InvalidTest {
                 @ErrorField("requested test") TEST,
                 @ErrorField("description why the test is invalid") DESCRIPTION
+            }
+        }
+
+        private static class LocalStreamComponent implements AutoStartable, AutoCloseable {
+            private final ThreadLocalPrintStream localPrintStream;
+            private final PrintStream stream;
+
+            private LocalStreamComponent(ThreadLocalPrintStream localPrintStream, PrintStream stream) {
+                this.localPrintStream = localPrintStream;
+                this.stream = stream;
+            }
+
+            @Override
+            public void start() {
+                localPrintStream.setCurrent(stream);
+            }
+
+            @Override
+            public void close() throws Exception {
+                localPrintStream.clearCurrent();
             }
         }
     }
