@@ -13,6 +13,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import restx.*;
+import restx.common.ThreadLocalMillisProvider;
 import restx.http.HttpStatus;
 import restx.security.RestxSessionCookieFilter;
 
@@ -84,7 +85,7 @@ public class RestxSpecTape {
             }
         }
 
-        DateTimeUtils.setCurrentMillisSystem();
+        ThreadLocalMillisProvider.setCurrentMillisSystem();
         lock.unlock();
 
         return recordedSpec;
@@ -100,7 +101,7 @@ public class RestxSpecTape {
 
         DateTime now = DateTime.now();
         givens.put(GivenTime.class.getSimpleName() + "/now", new GivenTime(now));
-        DateTimeUtils.setCurrentMillisFixed(now.getMillis());
+        ThreadLocalMillisProvider.setCurrentMillisFixed(now.getMillis());
         recordedSpec.setRecordTime(now);
         Stopwatch stopwatch = new Stopwatch().start();
         System.out.print("RECORDING REQUEST...");
@@ -192,7 +193,7 @@ public class RestxSpecTape {
                         // will try again when closing the whole tape
                     }
                 }
-                DateTimeUtils.setCurrentMillisSystem();
+                ThreadLocalMillisProvider.setCurrentMillisSystem();
 
                 RestxSpec restxSpec = new RestxSpec(
                         specPath, title,
