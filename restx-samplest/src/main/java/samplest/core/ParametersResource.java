@@ -9,8 +9,8 @@ import restx.factory.Component;
  * Time: 23:56
  */
 @RestxResource @Component
-public class PathParametersResource {
-    @GET("/pathparams/{a}/:b/{c:\\d+}:d")
+public class ParametersResource {
+    @GET("/params/path/{a}/:b/{c:\\d+}:d")
     public String pathparams(String a, String b, String c, String d) {
         return "a=" + a + " b=" + b + " c=" + c + " d=" + d;
     }
