@@ -1,4 +1,4 @@
-app.log
+*.log
 *.iml
 .idea
 .DS_Store
