@@ -875,6 +875,7 @@ public class Factory implements AutoCloseable {
     private void dumpDeactivatedComponents(StringBuilder sb) {
         sb.append("--> Deactivated Components\n");
         Joiner.on("\n\t").appendTo(sb, deactivatedComponents);
+        sb.append("--\n");
     }
 
     private void dumpBuidableComponents(StringBuilder sb) {
