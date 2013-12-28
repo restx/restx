@@ -3,7 +3,11 @@ package restx.security;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import restx.*;
+import restx.factory.Component;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
 
@@ -12,7 +16,10 @@ import java.io.IOException;
  * Date: 2/7/13
  * Time: 9:33 AM
  */
-public class CORSRoute implements RestxFilter, RestxHandler {
+@Component
+public class CORSRoute extends CORSHandler implements RestxRoute, RestxHandler {
+    private static final Logger logger = LoggerFactory.getLogger(CORSRoute.class);
+
     private final Iterable<CORSAuthorizer> authorizers;
 
     public CORSRoute(Iterable<CORSAuthorizer> authorizers) {
@@ -22,13 +29,16 @@ public class CORSRoute implements RestxFilter, RestxHandler {
     @Override
     public Optional<RestxHandlerMatch> match(RestxRequest req) {
         Optional<String> acrMethod = req.getHeader("Access-Control-Request-Method");
-        Optional<String> origin = req.getHeader("Origin");
         if ("OPTIONS".equals(req.getHttpMethod())
                 && acrMethod.isPresent()) {
+            Optional<String> origin = req.getHeader("Origin");
             CORS cors = CORS.check(authorizers, req, origin.get(), acrMethod.get(), req.getRestxPath());
             if (cors.isAccepted()) {
                 return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("*", req.getRestxPath(),
                         ImmutableMap.<String, String>of(), ImmutableMap.of("cors", cors)), this));
+            } else {
+                logger.info("Unauthorized pre-flight CORS request; Origin={}; Method={}", origin.get(), acrMethod.get());
+                return unauthorized(req);
             }
         }
         return Optional.absent();

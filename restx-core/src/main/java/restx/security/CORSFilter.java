@@ -2,10 +2,16 @@ package restx.security;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import restx.*;
 import restx.factory.Component;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
+import java.util.Collection;
+
+import static java.util.Arrays.asList;
 
 /**
  * User: xavierhanin
@@ -13,8 +19,12 @@ import java.io.IOException;
  * Time: 9:33 AM
  */
 @Component
-public class CORSFilter implements RestxFilter, RestxHandler {
+public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler {
+    private static final Logger logger = LoggerFactory.getLogger(CORSFilter.class);
+    private static final Collection<String> SIMPLE_METHODS = asList("GET", "HEAD", "POST");
+
     private final Iterable<CORSAuthorizer> authorizers;
+
 
     public CORSFilter(Iterable<CORSAuthorizer> authorizers) {
         this.authorizers = authorizers;
@@ -23,15 +33,21 @@ public class CORSFilter implements RestxFilter, RestxHandler {
     @Override
     public Optional<RestxHandlerMatch> match(RestxRequest req) {
         Optional<String> origin = req.getHeader("Origin");
-        if ("GET".equals(req.getHttpMethod())
-                        && origin.isPresent()) {
-            CORS cors = CORS.check(authorizers, req, origin.get(), "GET", req.getRestxPath());
+        if (origin.isPresent() && isSimpleCORSRequest(req)) {
+            CORS cors = CORS.check(authorizers, req, origin.get(), req.getHttpMethod(), req.getRestxPath());
             if (cors.isAccepted()) {
                 return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("*", req.getRestxPath(),
                         ImmutableMap.<String, String>of(), ImmutableMap.of("cors", cors)), this));
+            } else {
+                logger.info("Unauthorized CORS request; Origin={}; Method={}", origin.get(), req.getHttpMethod());
+                return unauthorized(req);
             }
         }
         return Optional.absent();
+    }
+
+    protected boolean isSimpleCORSRequest(RestxRequest req) {
+        return SIMPLE_METHODS.contains(req.getHttpMethod());
     }
 
     @Override

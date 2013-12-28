@@ -33,4 +33,13 @@ public class StdCORSAuthorizer implements CORSAuthorizer {
         }
         return Optional.absent();
     }
+
+    @Override
+    public String toString() {
+        return "StdCORSAuthorizer{" +
+                "originMatcher=" + originMatcher +
+                ", pathMatcher=" + pathMatcher +
+                ", allowedMethods=" + allowedMethods +
+                '}';
+    }
 }

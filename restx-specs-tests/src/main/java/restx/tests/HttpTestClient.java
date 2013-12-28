@@ -20,6 +20,11 @@ import static restx.RestxMainRouterFactory.Blade;
  * (when used with a per request factory loading).
  */
 public class HttpTestClient {
+    static {
+        // don't restrict headers when testing (include Origin header, allow to test CORS headers)
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+    }
+
     public static HttpTestClient withBaseUrl(String baseUrl) {
         return new HttpTestClient(baseUrl, null, ImmutableMap.<String,String>of());
     }
