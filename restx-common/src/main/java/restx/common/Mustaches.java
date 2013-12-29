@@ -25,7 +25,7 @@ public class Mustaches {
         return compile(name, newReaderSupplier(getResource(name), Charsets.UTF_8));
     }
 
-    private static Template compile(String name, InputSupplier<InputStreamReader> supplier) {
+    public static Template compile(String name, InputSupplier<InputStreamReader> supplier) {
         try (InputStreamReader reader = supplier.getInput()) {
             return Mustache.compiler().escapeHTML(false).compile(reader);
         } catch (IOException e) {

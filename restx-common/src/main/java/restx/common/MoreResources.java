@@ -68,7 +68,7 @@ public class MoreResources {
             Set<Path> sourceRoots = findSourceRoots();
             for (final Path sourceRoot : sourceRoots) {
                 try {
-                    Files.walkFileTree(sourceRoot, new SimpleFileVisitor<Path>() {
+                    Files.walkFileTree(sourceRoot.resolve(packageName.replace('.', '/')), new SimpleFileVisitor<Path>() {
                         @Override
                         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                             if (p.matcher(file.getFileName().toString()).matches()) {
@@ -96,7 +96,7 @@ public class MoreResources {
                         .setScanners(new ResourcesScanner())
                         .build()
                         .getResources(p)) {
-            if (!resourcesUrls.containsKey(r)) {
+            if (!resourcesUrls.containsKey(r) && r.startsWith(packageName.replace('.', '/'))) {
                 resourcesUrls.put(r, Resources.getResource(r));
             }
         }

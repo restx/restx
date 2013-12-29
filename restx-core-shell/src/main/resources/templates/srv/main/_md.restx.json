@@ -4,9 +4,16 @@
 
     "properties": {
         "java.version": "1.7",
-        "restx.version": "{{restxVersion}}"
+        "restx.version": "{{restxVersion}}"{{#useSrvuiLayout}},
+        "project.war.resources.directory": "../ui/dist"{{/useSrvuiLayout}}
     },
-
+{{#useSrvuiLayout}}
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/custom-war-resources.xml"
+        ]
+    },
+{{/useSrvuiLayout}}
     "dependencies": {
         "compile": [
             "io.restx:restx-core:${restx.version}",

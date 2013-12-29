@@ -3,11 +3,9 @@ package restx.core.shell;
 import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import com.samskivert.mustache.Template;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
@@ -17,6 +15,7 @@ import restx.RestxContext;
 import restx.build.ModuleDescriptor;
 import restx.build.RestxBuild;
 import restx.build.RestxJsonSupport;
+import restx.common.Archetype;
 import restx.common.UUIDGenerator;
 import restx.common.Version;
 import restx.factory.Component;
@@ -28,10 +27,7 @@ import restx.shell.ShellCommandRunner;
 import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -39,6 +35,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static java.nio.file.Files.newOutputStream;
+import static restx.common.MoreFiles.extractZip;
 import static restx.common.MorePreconditions.checkPresent;
 
 /**
@@ -112,31 +109,24 @@ public class AppShellCommand extends StdShellCommand {
         String baseAPIPath;
         String restxVersion;
         boolean generateHelloResource;
+        boolean useSrvuiLayout;
+        String boostrapUIOption;
+        String boostrapUITemplate;
     }
 
     class NewAppCommandRunner implements ShellCommandRunner {
 
-        private ImmutableMap<Template, String> mainTemplates = buildTemplates(
-                "templates/main/", ImmutableSet.of(
-                "_md.restx.json",
-                "data/users.json",
-                "data/credentials.json",
-                "src/main/java/$packagePath$/_AppModule.java",
-                "src/main/java/$packagePath$/_AppServer.java",
-                "src/main/webapp/WEB-INF/_web.xml",
-                "src/main/resources/_logback.xml"
-        ));
-        private ImmutableMap<Template, String> helloResourceTemplates = buildTemplates(
-                "templates/helloResource/", ImmutableSet.of(
-                "data/users.json",
-                "src/main/java/$packagePath$/_Roles.java",
-                "src/main/java/$packagePath$/domain/_Message.java",
-                "src/main/java/$packagePath$/rest/_HelloResource.java",
-                "src/test/java/$packagePath$/rest/_HelloResourceSpecTest.java",
-                "src/test/resources/specs/hello/_should_admin_say_hello.spec.yaml",
-                "src/test/resources/specs/hello/_should_user1_say_hello.spec.yaml",
-                "src/test/resources/specs/hello/_should_user2_not_say_hello.spec.yaml"
-        ));
+        private Archetype srvMainTemplates = Archetype.buildArchetype("templates.srv.main");
+        private Archetype srvHelloResourceTemplates = Archetype.buildArchetype("templates.srv.helloResource");
+        private Archetype rootMainTemplates = Archetype.buildArchetype("templates.root.main");
+        private Archetype rootNoNodeTemplates = Archetype.buildArchetype("templates.root.no-node");
+        private Archetype rootGruntBowerTemplates = Archetype.buildArchetype("templates.root.grunt-bower");
+
+        private final ImmutableMap<String, String> uiTemplatesPackageLocations = ImmutableMap.of(
+                "html5", "https://github.com/restx/html5/archive/restx.zip",
+                "angular-bootstrap", "https://github.com/restx/angular-bootstrap/archive/restx.zip",
+                "angular-bootstrap-grunt-bower", "https://github.com/restx/angular-bootstrap-grunt-bower/archive/restx.zip"
+        );
 
         @Override
         public void run(RestxShell shell) throws Exception {
@@ -233,15 +223,67 @@ public class AppShellCommand extends StdShellCommand {
                             "this example resource.\n" +
                             "If you already know RESTX by heart you shouldn't be reading this message anyway :)");
 
+            descriptor.useSrvuiLayout = shell.askBoolean("do you want to use srv/ui layout [y/N]?", "n",
+                    "This will organize your app in 2 modules:\n" +
+                            "  - `srv`: for the server part, using RESTX to serve the REST API.\n" +
+                            "  - `ui`:  for the front part, using your front end framework of choice (Angular, Ember, ...)\n" +
+                            "If you prefer a different code organization between your front end and back end,\n" +
+                            "like putting your front end resources in `src/main/webapp` as is usual for Java Web Development,\n" +
+                            "don't use this option and organize your frontent as you like.");
+
+            if (descriptor.useSrvuiLayout) {
+                descriptor.boostrapUIOption = shell.ask("How do you want to bootstrap your UI (yo/restx/none) [restx]?", "restx",
+                        "Select how to boostrap your UI:\n" +
+                                "  - `yo`: use yeoman (you need to have yeoman installed).\n" +
+                                "  - `restx`: RESTX has basic UI generation support.\n" +
+                                "             select this option if you don't have yeoman installed but still want to have\n" +
+                                "             basic UI boostrapped.\n" +
+                                "  - `none`: don't bootstrap the UI, leave it empty." +
+                                "            you can use this option if you want to bootstrap it yourself.\n");
+                if ("yo".equalsIgnoreCase(descriptor.boostrapUIOption)) {
+                    while (Strings.isNullOrEmpty(descriptor.boostrapUITemplate)) {
+                        descriptor.boostrapUITemplate = shell.ask("Which generator do you want to use?:",
+                            "",
+                            "Select the yeoman generator you want to use.\n" +
+                                    "Check http://yeoman.io/community-generators.html to get the list of generators.\n" +
+                                    "Examples: angular, ember, mobile, ...");
+                    }
+                } else if ("restx".equalsIgnoreCase(descriptor.boostrapUIOption)) {
+                    while (descriptor.boostrapUITemplate == null) {
+                        String option = shell.ask("Select the template you want to use:\n" +
+                                " [ 1] HTML5 Boilerplate\n" +
+                                "      Use this if you want a very basic HTML5 bootstrap, with no additional tool required.\n" +
+                                " [ 2] Angular, Twitter Bootstrap\n" +
+                                "      Use this if you want a more convenient bootstrap, with no additional tool required.\n" +
+                                " [ 3] Angular, Twitter Bootstrap. Use grunt for building and bower to manage dependencies.\n" +
+                                "      Use this if you want a convenient bootstrap using the very popular frontend tools.\n" +
+                                "      You will need:\n" +
+                                "         - nodejs: http://nodejs.org/download/\n" +
+                                "         - grunt:  http://gruntjs.com/getting-started\n" +
+                                "         - bower:  http://bower.io/\n" +
+                                "\n" +
+                                " Which template do you want [1]? ",
+                                "1",
+                                "Select the template to use depending on your preferences and tools installed.\n" +
+                                        "If you want more choices, you can either contribute to RESTX or use yeoman");
+                        switch (option.trim()) {
+                            case "1": descriptor.boostrapUITemplate = "html5"; break;
+                            case "2": descriptor.boostrapUITemplate = "angular-bootstrap"; break;
+                            case "3": descriptor.boostrapUITemplate = "angular-bootstrap-grunt-bower"; break;
+                            default:  descriptor.boostrapUITemplate = null;
+                        }
+                    }
+                }
+            }
+
             Path appPath = generateApp(descriptor, shell);
 
             shell.cd(appPath);
 
-            if (shell.askBoolean("Do you want to install its deps and run it now? [Y/n]", "Y",
+            if (shell.askBoolean("Do you want to install its deps and run it now? [y/N]", "n",
                     "By answering yes restx will resolve and install the dependencies of the app and run it.\n" +
                             "You can always install the deps later by using the `deps install` command\n" +
                             "and run the app with the `app run` command")) {
-
                 shell.println("restx> deps install");
                 new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
                 shell.println("restx> app run");
@@ -250,8 +292,6 @@ public class AppShellCommand extends StdShellCommand {
         }
 
         public Path generateApp(NewAppDescriptor descriptor, RestxShell shell) throws IOException {
-            boolean generateIvy = "ivy".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
-            boolean generatePom = "pom".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
 
             ImmutableMap scope = ImmutableMap.builder()
                     .put("appName", descriptor.appName)
@@ -265,31 +305,137 @@ public class AppShellCommand extends StdShellCommand {
                     .put("defaultPort", descriptor.defaultPort)
                     .put("baseAPIPath", descriptor.baseAPIPath)
                     .put("restxVersion", descriptor.restxVersion)
+                    .put("useSrvuiLayout", descriptor.useSrvuiLayout)
                     .build();
 
             Path appPath = shell.currentLocation().resolve(descriptor.targetPath);
-
             shell.println("scaffolding app to `" + appPath.toAbsolutePath() + "` ...");
-            generate(mainTemplates, appPath, scope);
 
+
+            boolean useGruntBower = false;
+            Path srvModulePath;
+            if (descriptor.useSrvuiLayout) {
+                Path uiModulePath = appPath.resolve("ui");
+                rootMainTemplates.generate(appPath, scope);
+
+                if ("yo".equalsIgnoreCase(descriptor.boostrapUIOption)) {
+                    shell.println("you can scaffold ui with yeoman in `" + uiModulePath
+                            + "` using `yo " + descriptor.boostrapUITemplate + "`");
+                    // calling yo directly would be better, but yo is interactive, so we need to use INHERIT redirect
+                    // input which closes stdin at the end of the process :(
+
+                    useGruntBower = true; // assume users with yo will use grunt and bower
+                } else if ("restx".equalsIgnoreCase(descriptor.boostrapUIOption)) {
+                    shell.println("scaffolding ui with restx in `" + uiModulePath + "` ...");
+
+                    Path uitplsPath = shell.installLocation().resolve("plugins/templates/ui");
+                    File tplDir = uitplsPath.resolve(descriptor.boostrapUITemplate).toFile();
+                    if (!tplDir.exists()) {
+                        URL tplZipURL = new URL(uiTemplatesPackageLocations.get(descriptor.boostrapUITemplate));
+                        uitplsPath.toFile().mkdirs();
+                        shell.println("downloading UI template");
+                        File zipFile = uitplsPath.resolve(descriptor.boostrapUITemplate + ".zip").toFile();
+                        shell.download(tplZipURL, zipFile);
+
+                        extractZip(zipFile, tplDir);
+                        if (tplDir.list().length == 1 && tplDir.listFiles()[0].isDirectory()) {
+                            // zip has a single root directory, we remove it
+                            File dir = tplDir.listFiles()[0];
+                            File[] files = dir.listFiles();
+                            for (int i = 0; i < files.length; i++) {
+                                File file = files[i];
+                                Files.move(file, new File(tplDir, file.getName()));
+                            }
+                            dir.delete();
+                        }
+                    }
+
+                    Archetype.buildArchetype(tplDir.toPath()).generate(uiModulePath, scope);
+                    useGruntBower = uiModulePath.resolve("bower.json").toFile().exists();
+                }
+
+                if (useGruntBower) {
+                    rootGruntBowerTemplates.generate(appPath, scope);
+                } else {
+                    rootNoNodeTemplates.generate(appPath, scope);
+                }
+
+                srvModulePath = appPath.resolve("srv");
+                shell.println("scaffolding srv with restx in `" + srvModulePath + "` ...");
+            } else {
+                srvModulePath = appPath;
+            }
+
+            srvMainTemplates.generate(srvModulePath, scope);
+            boolean generateIvy = "ivy".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
+            boolean generatePom = "pom".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
             if (generateIvy) {
                 shell.println("generating module.ivy ...");
-                RestxBuild.convert(appPath.toAbsolutePath() + "/md.restx.json", appPath.toAbsolutePath() + "/module.ivy");
+                RestxBuild.convert(srvModulePath.toAbsolutePath() + "/md.restx.json", srvModulePath.toAbsolutePath() + "/module.ivy");
             }
             if (generatePom) {
                 shell.println("generating pom.xml ...");
-                RestxBuild.convert(appPath.toAbsolutePath() + "/md.restx.json", appPath.toAbsolutePath() + "/pom.xml");
+                RestxBuild.convert(srvModulePath.toAbsolutePath() + "/md.restx.json", srvModulePath.toAbsolutePath() + "/pom.xml");
             }
 
             if (descriptor.generateHelloResource) {
                 shell.println("generating hello resource ...");
-                generate(helloResourceTemplates, appPath, scope);
+                srvHelloResourceTemplates.generate(srvModulePath, scope);
             }
+
             shell.printIn("Congratulations! - Your app is now ready in " + appPath.toAbsolutePath(), RestxShell.AnsiCodes.ANSI_GREEN);
             shell.println("");
             shell.println("");
 
-            return appPath;
+            if (descriptor.useSrvuiLayout) {
+                shell.println("Your app has 2 modules: ui and srv\n" +
+                        "In srv, you can:\n" +
+                        "  - open the module in your IDE by importing the Maven pom, and run the \n" +
+                        "       `" + descriptor.mainPackage + ".AppServer` class to launch\n" +
+                        "  - run it from restx shell, using:\n" +
+                        "      deps install\n" +
+                        "              to install its dependencies\n" +
+                        "      app run\n" +
+                        "              to run it\n");
+                if (useGruntBower) {
+                    shell.println(
+                            "In ui you can:\n" +
+                                    "  - open and edit your front end source files with your favorite editor\n" +
+                                    "  - install local grunt with\n" +
+                                    "      npm install\n" +
+                                    "  - install app frontend dependencies listed in bower.json with\n" +
+                                    "      bower install\n" +
+                                    "  - run development server with:\n" +
+                                    "      grunt server\n"
+                    );
+                } else {
+                    shell.println(
+                            "In ui you can:\n" +
+                                    "  - open and edit your front end source files with your favorite editor\n" +
+                                    "  - copy files to `dist` directory to make them available to RESTX web server\n" +
+                                    "    hint: you can use the build.sh for that\n");
+                }
+                shell.println(
+                        "At root level you can:\n" +
+                        "  - build a production ready war using Maven (Linux/MacOS only):\n" +
+                        "      mvn package");
+            } else {
+                shell.println("You can now:\n" +
+                        "  - open the app in your IDE by importing the Maven pom, and run the \n" +
+                        "       `" + descriptor.mainPackage + ".AppServer` class to launch\n" +
+                        "  - run it from restx shell, using:\n" +
+                        "      deps install\n" +
+                        "              to install its dependencies\n" +
+                        "      app run\n" +
+                        "              to run it\n" +
+                        "  - build a war using the selected build tool, eg\n" +
+                        "      mvn package");
+            }
+
+            shell.printIn("Enjoy!", RestxShell.AnsiCodes.ANSI_GREEN);
+            shell.println("");
+
+            return srvModulePath;
         }
     }
 
