@@ -2,6 +2,7 @@ package restx;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -12,7 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -163,6 +166,34 @@ public class StdRequest extends AbstractRequest {
     @Override
     public <T> T unwrap(Class<T> clazz) {
         throw new IllegalArgumentException("no underlying implementation");
+    }
+
+    @Override
+    public Locale getLocale() {
+        final String acceptLanguage = headers.get("Accept-Language");
+
+        List<String> languagesList = new ArrayList<>();
+
+        if (!Strings.isNullOrEmpty(acceptLanguage)) {
+            final Iterable<String> split =
+                    Splitter.on(",").split(acceptLanguage.replace(" ", "").replace(";", ","));
+
+            for (String s1 : split) {
+                if (!s1.startsWith("q=")) {
+                    languagesList.add(s1);
+                }
+            }
+        }
+
+        Locale locale;
+
+        if (languagesList.isEmpty()) {
+            locale = Locale.getDefault();
+        } else {
+            locale = Locale.forLanguageTag(languagesList.get(0));
+        }
+
+        return locale;
     }
 
     public static class StdRequestBuilder {

@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * User: xavierhanin
@@ -113,5 +114,10 @@ public class RestxRequestWrapper implements RestxRequest {
     @Override
     public <T> T unwrap(Class<T> clazz) {
         return original.unwrap(clazz);
+    }
+
+    @Override
+    public Locale getLocale() {
+        return original.getLocale();
     }
 }

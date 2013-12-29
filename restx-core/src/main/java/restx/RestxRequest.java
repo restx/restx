@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 
 /**
  * User: xavierhanin
@@ -113,4 +113,5 @@ public interface RestxRequest {
      */
     <T> T unwrap(Class<T> clazz);
 
+    Locale getLocale();
 }

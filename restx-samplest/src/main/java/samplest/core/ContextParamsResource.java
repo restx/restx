@@ -7,6 +7,8 @@ import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.security.PermitAll;
 
+import java.util.Locale;
+
 /**
  * Date: 5/12/13
  * Time: 07:09
@@ -27,5 +29,10 @@ public class ContextParamsResource {
     @GET("/contextParams/request")
     public String getRequest(@Param(kind = Param.Kind.CONTEXT, value = "request") RestxRequest request) {
         return request.toString();
+    }
+    @PermitAll
+    @GET("/contextParams/locale")
+    public String getLocale(@Param(kind = Param.Kind.CONTEXT, value = "locale") Locale locale) {
+        return locale.toLanguageTag();
     }
 }

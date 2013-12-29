@@ -37,5 +37,4 @@ public abstract class AbstractRequest implements RestxRequest {
         }
         sb.setLength(sb.length() - 1);
     }
-
 }
