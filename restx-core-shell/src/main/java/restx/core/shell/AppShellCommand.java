@@ -100,6 +100,7 @@ public class AppShellCommand extends StdShellCommand {
 
     static class NewAppDescriptor {
         String appName;
+        String targetPath;
         String groupId;
         String artifactId;
         String mainPackage;
@@ -154,6 +155,11 @@ public class AppShellCommand extends StdShellCommand {
                                 "Examples: Todo, Foo Bar, ...");
             }
 
+            descriptor.targetPath = shell.ask("target directory [%s]? ",
+                    descriptor.appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH),
+                    "This is the location where the app will be generated.\n" +
+                            "You can use . if you want to generate in current directory.\n" +
+                            "Note that restx will create the directory if it doesn't exist.");
             descriptor.groupId = shell.ask("group id [%s]? ",
                     descriptor.appName.replaceAll("\\s+", "-").toLowerCase(Locale.ENGLISH),
                     "This is the identifier of the group or organization producing the application.\n" +
@@ -261,7 +267,7 @@ public class AppShellCommand extends StdShellCommand {
                     .put("restxVersion", descriptor.restxVersion)
                     .build();
 
-            Path appPath = shell.currentLocation().resolve(descriptor.artifactId);
+            Path appPath = shell.currentLocation().resolve(descriptor.targetPath);
 
             shell.println("scaffolding app to `" + appPath.toAbsolutePath() + "` ...");
             generate(mainTemplates, appPath, scope);

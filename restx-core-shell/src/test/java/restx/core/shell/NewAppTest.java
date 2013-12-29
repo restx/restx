@@ -86,6 +86,7 @@ public class NewAppTest {
         desc.appName = name+"App";
         desc.groupId = "com.foo";
         desc.artifactId = name;
+        desc.targetPath = name;
         desc.mainPackage = "com.foo";
         desc.version = "0.1-SNAPSHOT";
         desc.buildFile = "all";
