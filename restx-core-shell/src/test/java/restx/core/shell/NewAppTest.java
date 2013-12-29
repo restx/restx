@@ -92,7 +92,7 @@ public class NewAppTest {
         desc.signatureKey = "blah blah blah";
         desc.adminPassword = "pwd";
         desc.defaultPort = "8080";
-        desc.basePath = "/api";
+        desc.baseAPIPath = "/api";
         desc.restxVersion = resolveCurrentModuleVersion();
         desc.generateHelloResource = generateHelloResource;
         return desc;

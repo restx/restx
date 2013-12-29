@@ -37,8 +37,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.nio.file.Files.newOutputStream;
 import static restx.common.MorePreconditions.checkPresent;
@@ -110,7 +108,7 @@ public class AppShellCommand extends StdShellCommand {
         String signatureKey;
         String adminPassword;
         String defaultPort;
-        String basePath;
+        String baseAPIPath;
         String restxVersion;
         boolean generateHelloResource;
     }
@@ -213,7 +211,7 @@ public class AppShellCommand extends StdShellCommand {
                             "You can also use port 80 if you want to serve your API directly with the embedded server\n" +
                             "and no reverse proxy in front of it. But beware that you may need admin privileges for that.\n" +
                             "Examples: 8080, 8086, 8000, 80");
-            descriptor.basePath = shell.ask("base path [%s]? ", "/api",
+            descriptor.baseAPIPath = shell.ask("base API path [%s]? ", "/api",
                     "This is the base API path on which RESTX will handle requests.\n" +
                             "Being focused on REST API only, RESTX is usually shared with either static or dynamic \n" +
                             "resources serving (HTML, CSS, JS, images, ...) and therefore is used to handle requests on\n" +
@@ -259,7 +257,7 @@ public class AppShellCommand extends StdShellCommand {
                     .put("signatureKey", descriptor.signatureKey)
                     .put("adminPassword", descriptor.adminPassword)
                     .put("defaultPort", descriptor.defaultPort)
-                    .put("basePath", descriptor.basePath)
+                    .put("baseAPIPath", descriptor.baseAPIPath)
                     .put("restxVersion", descriptor.restxVersion)
                     .build();
 

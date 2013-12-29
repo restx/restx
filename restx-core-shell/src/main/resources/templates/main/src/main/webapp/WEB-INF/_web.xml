@@ -10,6 +10,6 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>restx</servlet-name>
-        <url-pattern>{{basePath}}/*</url-pattern>
+        <url-pattern>{{baseAPIPath}}/*</url-pattern>
     </servlet-mapping>
 </web-app>
