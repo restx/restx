@@ -18,7 +18,7 @@ public class RestxSpecTest {
     public void should_set_title() throws Exception {
         RestxSpec spec = newRestxSpec("title 1",
                 ImmutableList.<Given>of(),
-                ImmutableList.<When>of());
+                ImmutableList.<When<?>>of());
 
         assertThat(spec.getTitle()).isEqualTo("title 1");
         assertThat(spec.withTitle("title 2").getTitle()).isEqualTo("title 2");
@@ -29,7 +29,7 @@ public class RestxSpecTest {
     public void should_get_store_file() throws Exception {
         RestxSpec spec = newRestxSpec("title 1",
                 ImmutableList.<Given>of(),
-                ImmutableList.<When>of());
+                ImmutableList.<When<?>>of());
 
         RestxSpec.Storage storage = RestxSpec.Storage.with(new RestxSpec.StorageSettings() {
             @Override
@@ -49,7 +49,7 @@ public class RestxSpecTest {
                 .isEqualTo(new File("src/main/resources/specs/test1/title_1.spec.yaml"));
     }
 
-    private RestxSpec newRestxSpec(String title, ImmutableList<Given> givens, ImmutableList<When> whens) {
+    private RestxSpec newRestxSpec(String title, ImmutableList<Given> givens, ImmutableList<When<?>> whens) {
         return new RestxSpec(title, title, givens, whens);
     }
 }

@@ -1,15 +1,15 @@
 package restx.common.watch;
 
-import com.barbarysoftware.watchservice.StandardWatchEventKind;
+import com.barbarysoftware.watchservice.*;
 import com.barbarysoftware.watchservice.WatchKey;
 import com.barbarysoftware.watchservice.WatchService;
-import com.barbarysoftware.watchservice.WatchableFile;
 import com.google.common.eventbus.EventBus;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.WatchEvent;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
@@ -131,7 +131,7 @@ public class BarbaryWatchService implements WatcherService {
                     com.barbarysoftware.watchservice.WatchEvent.Kind<?> kind = event.kind();
 
                     // Context for directory entry event is the file name of entry
-                    com.barbarysoftware.watchservice.WatchEvent<File> ev = (com.barbarysoftware.watchservice.WatchEvent<File>) event;
+                    com.barbarysoftware.watchservice.WatchEvent<File> ev = asWatchEventOfFile(event);
 
                     WatchEvent.Kind<?> nkind = null;
                     if (ev.kind().equals(StandardWatchEventKind.ENTRY_CREATE)) {
@@ -178,6 +178,12 @@ public class BarbaryWatchService implements WatcherService {
                     }
                 }
             }
+        }
+
+        @SuppressWarnings("unchecked")
+        private com.barbarysoftware.watchservice.WatchEvent<File> asWatchEventOfFile(
+                com.barbarysoftware.watchservice.WatchEvent<?> event) {
+            return (com.barbarysoftware.watchservice.WatchEvent<File>) event;
         }
 
         @Override

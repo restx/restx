@@ -30,16 +30,18 @@ public class DefaultFactoryMachine implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> MachineEngine<T> getEngine(Name<T> name) {
         return (MachineEngine<T>) engines.get(name);
     }
 
     @Override
-    public Set nameBuildableComponents(Class componentClass) {
-        Set names = Sets.newHashSet();
-        for (Name name : engines.keySet()) {
+    @SuppressWarnings("unchecked")
+    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
+        Set<Name<T>> names = Sets.newHashSet();
+        for (Name<?> name : engines.keySet()) {
             if (componentClass.isAssignableFrom(name.getClazz())) {
-                names.add(name);
+                names.add((Name<T>) name);
             }
         }
         return names;

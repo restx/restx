@@ -77,7 +77,7 @@ public class ConfigMachineTest {
         Optional<ConfigElement> s = factory.queryByName(Name.of(ConfigElement.class, "key1")).findOneAsComponent();
 
         assertThat(s.isPresent()).isTrue();
-        assertThat(s.get()).isEqualsToByComparingFields(ConfigElement.of("o1", "d1", "key1", "val1"));
+        assertThat(s.get()).isEqualToComparingFieldByField(ConfigElement.of("o1", "d1", "key1", "val1"));
     }
 
     @Test
@@ -108,7 +108,7 @@ public class ConfigMachineTest {
         assertThat(configOptional.isPresent()).isTrue();
         assertThat(configOptional.get().getString("key1")).isEqualTo(Optional.of("val2"));
         assertThat(configOptional.get().getElement("key1").get())
-                .isEqualsToByComparingFields(ConfigElement.of("factory", "doc1", "key1", "val2"));
+                .isEqualToComparingFieldByField(ConfigElement.of("factory", "doc1", "key1", "val2"));
     }
 
     @Test
@@ -122,7 +122,7 @@ public class ConfigMachineTest {
         assertThat(configOptional.isPresent()).isTrue();
         assertThat(configOptional.get().getString("key1")).isEqualTo(Optional.of("val1"));
         assertThat(configOptional.get().getElement("key1").get())
-                .isEqualsToByComparingFields(ConfigElement.of(
+                .isEqualToComparingFieldByField(ConfigElement.of(
                         "classpath:restx/common/config.properties", "Doc 1", "key1", "val1"));
     }
 

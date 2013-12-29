@@ -147,14 +147,15 @@ public class RestxSpecLoader {
         return Optional.absent();
     }
 
+    @SuppressWarnings("unchecked")
     private List<Given> loadGivens(Map testCase) throws IOException {
         List<Given> givens = Lists.newArrayList();
         Iterable given = checkInstanceOf("given", testCase.get("given"), Iterable.class);
         for (Object g : given) {
-            Map given1 = checkInstanceOf("given", g, Map.class);
+            Map<String, ?> given1 = (Map<String, ?>) checkInstanceOf("given", g, Map.class);
             if (given1.isEmpty()) {
                 throw new IllegalArgumentException(
-                        String.format("can't load {}: a given has no properties at all", testCase));
+                        String.format("can't load %s: a given has no properties at all", testCase));
             }
             String firstKey = checkInstanceOf("key", given1.keySet().iterator().next(), String.class);
             givens.add(findLoader(given1, firstKey).load(given1));
@@ -173,7 +174,7 @@ public class RestxSpecLoader {
     }
 
     public static interface GivenLoader {
-        Given load(Map m);
+        Given load(Map<String, ?> m);
     }
 
     public static interface WhenHeaderLoader {

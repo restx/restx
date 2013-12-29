@@ -156,6 +156,7 @@ public class SimpleRestxRequest  extends AbstractRequest {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> clazz) {
         if (clazz == Request.class) {
             return (T) request;

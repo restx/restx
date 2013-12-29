@@ -20,8 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public abstract class StdEntityRoute<I,O> extends StdRoute {
     public static class Builder<I,O> {
-        protected EntityRequestBodyReader entityRequestBodyReader
-                = VoidContentTypeModule.VoidEntityRequestBodyReader.INSTANCE;
+        protected EntityRequestBodyReader<I> entityRequestBodyReader;
         protected EntityResponseWriter<O> entityResponseWriter;
         protected String name;
         protected RestxRequestMatcher matcher;
@@ -67,13 +66,24 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         public StdEntityRoute<I,O> build() {
             checkNotNull(matchedEntityRoute, "you must provide a matchedEntityRoute");
             return new StdEntityRoute<I, O>(
-                    name, entityRequestBodyReader, entityResponseWriter,
+                    name, entityRequestBodyReader == null ? voidBodyReader() : entityRequestBodyReader,
+                    entityResponseWriter,
                     matcher, successStatus, logLevel) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException {
                     return matchedEntityRoute.route(restxRequest, match, i);
                 }
             };
+        }
+
+        /*
+           We want to give a default value to entityRequestBodyReader to void.
+           It would be better to do that only if I is Void, but generics aren't reified so we can't check that.
+           So we need to cast it to I, without really knowing if I is Void.
+         */
+        @SuppressWarnings("unchecked")
+        private EntityRequestBodyReader<I> voidBodyReader() {
+            return (EntityRequestBodyReader<I>) VoidContentTypeModule.VoidEntityRequestBodyReader.INSTANCE;
         }
     }
 

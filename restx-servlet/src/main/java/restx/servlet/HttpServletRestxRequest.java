@@ -79,7 +79,7 @@ public class HttpServletRestxRequest extends AbstractRequest {
     @Override
     public ImmutableMap<String, ImmutableList<String>> getQueryParams() {
         if (queryParams == null) {
-            Map<String, String[]> parameterMap = request.getParameterMap();
+            Map<String, String[]> parameterMap = getParameterMap();
             ImmutableMap.Builder<String, ImmutableList<String>> paramsBuilder = ImmutableMap.builder();
             for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
                 paramsBuilder.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
@@ -87,6 +87,11 @@ public class HttpServletRestxRequest extends AbstractRequest {
             queryParams = paramsBuilder.build();
         }
         return queryParams;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Map<String, String[]> getParameterMap() {
+        return request.getParameterMap();
     }
 
     @Override
@@ -177,6 +182,7 @@ public class HttpServletRestxRequest extends AbstractRequest {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> clazz) {
         if (clazz == HttpServletRequest.class || clazz == ServletRequest.class) {
             return (T) request;

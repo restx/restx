@@ -19,7 +19,7 @@ import java.io.PrintWriter;
  */
 public class JsonEntityResponseWriter<T> extends AbstractEntityResponseWriter<T> {
     public static <T> JsonEntityResponseWriter<T> using(ObjectWriter writer) {
-        return new JsonEntityResponseWriter(writer);
+        return new JsonEntityResponseWriter<>(writer);
     }
 
     protected final ObjectWriter writer;

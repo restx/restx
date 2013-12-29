@@ -95,7 +95,7 @@ public class RestxSpecRunner {
         List<GivenCleaner> givenCleaners = newArrayList();
         try {
             for (Given given : restxSpec.getGiven()) {
-                Optional<GivenRunner> runnerFor = findRunnerFor(given);
+                Optional<GivenRunner<Given>> runnerFor = findRunnerFor(given);
                 if (!runnerFor.isPresent()) {
                     throw new IllegalStateException(
                             "no runner found for given " + given + ". double check your classpath and factory settings.");
@@ -104,7 +104,7 @@ public class RestxSpecRunner {
             }
 
             for (When when : restxSpec.getWhens()) {
-                Optional<WhenChecker> checkerFor = findCheckerFor(when);
+                Optional<WhenChecker<When>> checkerFor = findCheckerFor(when);
                 if (!checkerFor.isPresent()) {
                     throw new IllegalStateException("no checker found for when " + when + "." +
                             " double check your classpath and factory settings.");
@@ -119,26 +119,28 @@ public class RestxSpecRunner {
         }
     }
 
-    private Optional<WhenChecker> findCheckerFor(When when) {
+    @SuppressWarnings("unchecked")
+    private <T extends When> Optional<WhenChecker<T>> findCheckerFor(T when) {
         if (when instanceof WhenChecker) {
-            return Optional.of((WhenChecker) when);
+            return Optional.of((WhenChecker<T>) when);
         }
         for (WhenChecker whenChecker : whenCheckers) {
             if (whenChecker.getWhenClass().isAssignableFrom(when.getClass())) {
-                return Optional.of(whenChecker);
+                return Optional.of((WhenChecker<T>) whenChecker);
             }
         }
 
         return Optional.absent();
     }
 
-    private Optional<GivenRunner> findRunnerFor(Given given) {
+    @SuppressWarnings("unchecked")
+    private <T extends Given> Optional<GivenRunner<T>> findRunnerFor(T given) {
         if (given instanceof GivenRunner) {
-            return Optional.of((GivenRunner) given);
+            return Optional.of((GivenRunner<T>) given);
         }
-        for (GivenRunner givenRunner : givenRunners) {
+        for (GivenRunner<?> givenRunner : givenRunners) {
             if (givenRunner.getGivenClass().isAssignableFrom(given.getClass())) {
-                return Optional.of(givenRunner);
+                return Optional.of((GivenRunner<T>) givenRunner);
             }
         }
 

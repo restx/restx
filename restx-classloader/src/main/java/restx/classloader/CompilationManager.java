@@ -129,7 +129,7 @@ public class CompilationManager {
         eventBus.register(new Object() {
             @Subscribe
             public void onWatchEvent(FileWatchEvent event) {
-                WatchEvent.Kind<Path> kind = event.getKind();
+                WatchEvent.Kind<?> kind = event.getKind();
                 Path source = event.getDir().resolve(event.getPath());
                 if (!source.toFile().isFile()) {
                     return;
@@ -455,7 +455,7 @@ public class CompilationManager {
 
     private void compile(Collection<Path> sources) {
         // MUST BE CALLED in compileExecutor only
-        Stopwatch stopwatch = new Stopwatch().start();
+        Stopwatch stopwatch = Stopwatch.createStarted();
         compiling = true;
         try {
             lastDiagnostics.clear();

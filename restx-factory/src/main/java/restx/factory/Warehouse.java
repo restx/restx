@@ -85,10 +85,12 @@ public class Warehouse implements AutoCloseable {
         return id;
     }
 
+    @SuppressWarnings("unchecked")
     <T> Optional<StoredBox<T>> getStoredBox(Name<T> name) {
         return Optional.fromNullable((StoredBox<T>) boxes.get(name));
     }
 
+    @SuppressWarnings("unchecked")
     <T> Optional<NamedComponent<T>> checkOut(Name<T> name) {
         StoredBox<T> storedBox = (StoredBox<T>) boxes.get(name);
         if (storedBox != null) {
@@ -106,7 +108,7 @@ public class Warehouse implements AutoCloseable {
     }
 
     <T> void checkIn(ComponentBox<T> componentBox, SatisfiedBOM satisfiedBOM, long maxTime) {
-        StoredBox<?> previousBox = boxes.put(componentBox.getName(), new StoredBox(componentBox, satisfiedBOM, maxTime));
+        StoredBox<?> previousBox = boxes.put(componentBox.getName(), new StoredBox<>(componentBox, satisfiedBOM, maxTime));
         if (previousBox != null) {
             try {
                 previousBox.box.close();

@@ -135,6 +135,7 @@ public class SimpleRestxResponse implements RestxResponse {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> clazz) {
         if (clazz == Response.class) {
             return (T) response;

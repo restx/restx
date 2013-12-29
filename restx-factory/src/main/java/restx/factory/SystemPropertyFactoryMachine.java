@@ -13,6 +13,7 @@ public class SystemPropertyFactoryMachine implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> MachineEngine<T> getEngine(final Name<T> name) {
         return new NoDepsMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
             @Override
@@ -23,6 +24,7 @@ public class SystemPropertyFactoryMachine implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
         if (componentClass != String.class) {
             return emptySet();

@@ -25,6 +25,7 @@ public class JongoCollectionFactory implements FactoryMachine {
     public <T> MachineEngine<T> getEngine(final Name<T> name) {
         return new StdMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
             @Override
+            @SuppressWarnings("unchecked")
             protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
                 return (T) new StdJongoCollection(satisfiedBOM.getOne(jongoQuery).get().getComponent(),
                                 name.getName());

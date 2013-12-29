@@ -24,17 +24,18 @@ public class ConsolidatedConfigFactoryMachine implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> MachineEngine<T> getEngine(Name<T> name) {
         if (!canBuild(name)) {
             throw new IllegalArgumentException("unsuported name " + name);
         }
-        return new StdMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
+        return (MachineEngine<T>) new StdMachineEngine<RestxConfig>((Name<RestxConfig>) name, BoundlessComponentBox.FACTORY) {
 
             private final Factory.Query<ConfigSupplier> configSupplierQuery = Factory.Query.byClass(ConfigSupplier.class);
             private final Factory.Query<String> stringsQuery = Factory.Query.byClass(String.class);
 
             @Override
-            protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
+            protected RestxConfig doNewComponent(SatisfiedBOM satisfiedBOM) {
                 List<ConfigElement> elements = new ArrayList<>();
 
                 // fetch system properties as ConfigElements, of strongest priority
@@ -67,7 +68,7 @@ public class ConsolidatedConfigFactoryMachine implements FactoryMachine {
                             s.getName().getName(), s.getComponent()));
                 }
 
-                return (T) StdRestxConfig.of(Iterables.concat(factoryElements, elements));
+                return StdRestxConfig.of(Iterables.concat(factoryElements, elements));
             }
 
             @Override
@@ -78,6 +79,7 @@ public class ConsolidatedConfigFactoryMachine implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
         if (componentClass == RestxConfig.class) {
             return Collections.singleton(Name.of((Class<T>) RestxConfig.class));

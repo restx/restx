@@ -43,7 +43,7 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                             DB_URI + " param is required"));
             Jongo jongo = new Jongo(new MongoClient(mongoClientURI).getDB(mongoClientURI.getDatabase()));
             try {
-                Stopwatch stopwatch = new Stopwatch().start();
+                Stopwatch stopwatch = Stopwatch.createStarted();
                 MongoCollection collection = jongo.getCollection(given.getCollection());
                 Iterable<String> items = Splitter.on("\n").trimResults().omitEmptyStrings().split(given.getData());
                 int count = 0;
@@ -106,7 +106,7 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                                 checkNotNull(params.get(DB_URI),
                                         DB_URI + " param is required"));
                         Jongo jongo = new Jongo(new MongoClient(mongoClientURI).getDB(mongoClientURI.getDatabase()));
-                        Stopwatch stopwatch = new Stopwatch().start();
+                        Stopwatch stopwatch = Stopwatch.createStarted();
                         jongo.getCollection(given.getCollection()).drop();
                         System.out.printf("dropped %s -- %s%n", given.getCollection(), stopwatch.stop().toString());
                     } catch (UnknownHostException e) {

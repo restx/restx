@@ -42,6 +42,7 @@ public class VoidContentTypeModule {
     public EntityRequestBodyReaderFactory voidEntityRequestBodyReaderFactory() {
         return new EntityRequestBodyReaderFactory() {
             @Override
+            @SuppressWarnings("unchecked")
             public <T> Optional<? extends EntityRequestBodyReader<T>> mayBuildFor(Type valueType, String contentType) {
                 if (!contentType.toLowerCase(Locale.ENGLISH).equals("void")) {
                     return Optional.absent();

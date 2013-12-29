@@ -82,9 +82,10 @@ public class RestxSpec {
     private final String path;
     private final String title;
     private final ImmutableList<? extends Given> given;
-    private final ImmutableList<? extends When> whens;
+    private final ImmutableList<? extends When<?>> whens;
 
-    public RestxSpec(String path, String title, ImmutableList<? extends Given> given, ImmutableList<? extends When> whens) {
+    public RestxSpec(String path, String title,
+                     ImmutableList<? extends Given> given, ImmutableList<? extends When<?>> whens) {
         this.path = checkNotNull(path);
         this.title = checkNotNull(title);
         this.given = given;
@@ -152,12 +153,12 @@ public class RestxSpec {
         }
     }
 
-    public RestxSpec withWhens(ImmutableList<When> whens) {
+    public RestxSpec withWhens(ImmutableList<When<?>> whens) {
         return new RestxSpec(path, title, given, whens);
     }
 
     public RestxSpec withWhenAt(int index, When when) {
-        List<When> whens = new ArrayList<>(getWhens());
+        List<When<?>> whens = new ArrayList<>(getWhens());
         whens.set(index, when);
         return withWhens(ImmutableList.copyOf(whens));
     }
@@ -166,7 +167,7 @@ public class RestxSpec {
         return given;
     }
 
-    public ImmutableList<? extends When> getWhens() {
+    public ImmutableList<? extends When<?>> getWhens() {
         return whens;
     }
 }

@@ -13,6 +13,7 @@ public abstract class SingleComponentCustomizerEngine<E> implements ComponentCus
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> ComponentCustomizer<T> getCustomizer(Name<T> name) {
         return (ComponentCustomizer<T>) this;
     }

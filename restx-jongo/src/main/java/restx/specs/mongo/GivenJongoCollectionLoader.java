@@ -51,7 +51,7 @@ public final class GivenJongoCollectionLoader implements RestxSpecLoader.GivenLo
                 String s = (String) seq;
                 Iterables.addAll(sequence, Splitter.on(",").omitEmptyStrings().trimResults().split(s));
             } else if (seq instanceof Iterable) {
-                Iterables.addAll(sequence, (Iterable<? extends String>) seq);
+                Iterables.addAll(sequence, asIterableString((Iterable) seq));
             } else {
                 throw new IllegalArgumentException("unsupported type for sequence in " + given +
                         ": " + seq.getClass().getName() +
@@ -64,5 +64,10 @@ public final class GivenJongoCollectionLoader implements RestxSpecLoader.GivenLo
                 path,
                 data,
                 ImmutableList.copyOf(sequence));
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Iterable<? extends String> asIterableString(Iterable seq) {
+        return (Iterable<? extends String>) seq;
     }
 }

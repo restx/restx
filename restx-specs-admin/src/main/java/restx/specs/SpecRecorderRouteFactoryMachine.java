@@ -22,7 +22,7 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
             new MachineEngine<SpecRecorderRoute>() {
 
                 @Override
-                public Name getName() {
+                public Name<SpecRecorderRoute> getName() {
                     return RECORDER_ROUTE_NAME;
                 }
 
@@ -37,7 +37,7 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
                     if (!recorder.isPresent()) {
                         return new EmptyBox<>(RECORDER_ROUTE_NAME);
                     }
-                    return BoundlessComponentBox.FACTORY.of(new NamedComponent(RECORDER_ROUTE_NAME,
+                    return BoundlessComponentBox.FACTORY.of(new NamedComponent<>(RECORDER_ROUTE_NAME,
                             new SpecRecorderRoute(recorder.get().getComponent(),
                                     satisfiedBOM.getOneAsComponent(storageSettings).get()
                                     )));
@@ -66,7 +66,7 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
                     if (!RestxContext.Modes.RECORDING.equals(settings.mode())) {
                         return new EmptyBox<>(ADMIN_PAGE_NAME);
                     }
-                    return BoundlessComponentBox.FACTORY.of(new NamedComponent(ADMIN_PAGE_NAME,
+                    return BoundlessComponentBox.FACTORY.of(new NamedComponent<>(ADMIN_PAGE_NAME,
                             new AdminPage("/@/ui/recorder/", "Recorder")));
                 }
             }

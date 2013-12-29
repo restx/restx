@@ -21,6 +21,7 @@ public class EntityRequestBodyReaderRegistry {
         this.entityRequestBodyReaderFactories = entityRequestBodyReaderFactories;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> EntityRequestBodyReader<T> build(final Type type, Optional<String> contentType) {
         String ct = entityContentTypeResolver.resolveContentType(type, contentType);
 

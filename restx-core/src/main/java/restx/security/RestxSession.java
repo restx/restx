@@ -63,14 +63,16 @@ public class RestxSession {
         }
         private final ImmutableMap<String, LoadingCache<String, ?>> caches;
 
+        @SuppressWarnings("unchecked") // can't use Iterable<Entry<?> as parameter in injectable constructor ATM
         public Definition(Iterable<Entry> entries) {
             ImmutableMap.Builder<String, LoadingCache<String, ?>> builder = ImmutableMap.builder();
-            for (Entry entry : entries) {
+            for (Entry<?> entry : entries) {
                 builder.put(entry.key, CacheBuilder.newBuilder().maximumSize(1000).build(entry.loader));
             }
             caches = builder.build();
         }
 
+        @SuppressWarnings("unchecked")
         public <T> LoadingCache<String, T> getCache(Class<T> clazz, String key) {
             return (LoadingCache<String, T>) caches.get(key);
         }

@@ -22,13 +22,13 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
                         BoundlessComponentBox.FACTORY) {
                     @Override
                     protected ComponentCustomizerEngine doNewComponent(SatisfiedBOM satisfiedBOM) {
-                        return new SingleComponentClassCustomizerEngine(0, UUIDGenerator.class) {
+                        return new SingleComponentClassCustomizerEngine<UUIDGenerator>(0, UUIDGenerator.class) {
                             @Override
-                            public NamedComponent customize(final NamedComponent namedComponent) {
-                                return new NamedComponent(namedComponent.getName(), new UUIDGenerator() {
+                            public NamedComponent<UUIDGenerator> customize(final NamedComponent<UUIDGenerator> namedComponent) {
+                                return new NamedComponent<>(namedComponent.getName(), new UUIDGenerator() {
                                     @Override
                                     public String doGenerate() {
-                                        String uuid = ((UUIDGenerator) namedComponent.getComponent()).doGenerate();
+                                        String uuid = namedComponent.getComponent().doGenerate();
                                         tape.recordGeneratedId(uuid);
                                         return uuid;
                                     }

@@ -113,7 +113,7 @@ public class FileBasedUserRepositoryTest {
 
 
     private FileBasedUserRepository<StdUser> newRepo(boolean reloadOnChange) {
-        return new FileBasedUserRepository(
+        return new FileBasedUserRepository<>(
                     StdUser.class, mapper, admin,
                     usersPath, credentialsPath, reloadOnChange);
     }

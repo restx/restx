@@ -57,7 +57,7 @@ public class SpecsResource {
                 return Optional.absent();
             }
 
-            When when = spec.get().getWhens().get(wtsIndex);
+            When<ThenHttpResponse> when = asWhenHttp(spec.get().getWhens().get(wtsIndex));
             storage.store(
                     spec.get().withWhenAt(wtsIndex, when.withThen(response)));
 
@@ -65,6 +65,11 @@ public class SpecsResource {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private When<ThenHttpResponse> asWhenHttp(When<?> when) {
+        return (When<ThenHttpResponse>) when;
     }
 
 }

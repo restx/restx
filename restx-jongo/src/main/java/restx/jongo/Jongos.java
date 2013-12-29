@@ -24,6 +24,7 @@ public class Jongos {
         return new ObjectId().toString();
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> ResultHandler<T> singleField(final String field, Class<T> fieldClass) {
         return new ResultHandler<T>() {
             @Override

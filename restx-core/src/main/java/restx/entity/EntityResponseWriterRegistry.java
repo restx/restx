@@ -24,6 +24,7 @@ public class EntityResponseWriterRegistry {
         this.entityResponseWriterFactories = entityResponseWriterFactories;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> EntityResponseWriter<T> build(final Type type, Optional<String> contentType) {
         String ct = entityContentTypeResolver.resolveContentType(type, contentType);
 

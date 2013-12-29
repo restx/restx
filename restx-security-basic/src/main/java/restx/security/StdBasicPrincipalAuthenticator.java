@@ -9,10 +9,10 @@ import org.joda.time.Duration;
  * Time: 14:46
  */
 public class StdBasicPrincipalAuthenticator implements BasicPrincipalAuthenticator {
-    private final UserService users;
+    private final UserService<?> users;
     private final SecuritySettings securitySettings;
 
-    public StdBasicPrincipalAuthenticator(UserService users, SecuritySettings securitySettings) {
+    public StdBasicPrincipalAuthenticator(UserService<?> users, SecuritySettings securitySettings) {
         this.users = users;
         this.securitySettings = securitySettings;
     }

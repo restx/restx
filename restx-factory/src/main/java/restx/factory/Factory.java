@@ -85,7 +85,7 @@ public class Factory implements AutoCloseable {
 
 
     public static class LocalMachines {
-        private static final ThreadLocal<String> threadLocals = new ThreadLocal() {
+        private static final ThreadLocal<String> threadLocals = new ThreadLocal<String>() {
             @Override
             protected String initialValue() {
                 return String.format("TL[%s][%03d]", Thread.currentThread().getName(), IDS.incrementAndGet());
@@ -195,11 +195,13 @@ public class Factory implements AutoCloseable {
             return id;
         }
 
+        @SuppressWarnings("unchecked")
         public LocalMachines set(String name, Object component) {
             Class aClass = component.getClass();
             set(NamedComponent.of(aClass, name, component));
             return this;
         }
+        @SuppressWarnings("unchecked")
         public LocalMachines set(int priority, String name, Object component) {
             Class aClass = component.getClass();
             set(priority, NamedComponent.of(aClass, name, component));
@@ -253,7 +255,7 @@ public class Factory implements AutoCloseable {
 
         public Builder withMetrics(MetricRegistry metrics) {
             machines.put("IndividualMachines",
-                    new SingletonFactoryMachine<MetricRegistry>(0, new NamedComponent(METRICS_NAME, metrics)));
+                    new SingletonFactoryMachine<>(0, new NamedComponent<>(METRICS_NAME, metrics)));
             return this;
         }
 
@@ -353,11 +355,11 @@ public class Factory implements AutoCloseable {
 
     public static abstract class Query<T> {
         public static <T> Query<T> byName(Name<T> name) {
-            return new NameQuery(name);
+            return new NameQuery<>(name);
         }
 
         public static <T> Query<T> byClass(Class<T> componentClass) {
-            return new ClassQuery(componentClass);
+            return new ClassQuery<>(componentClass);
         }
 
         public static Query<Factory> factoryQuery() {
@@ -533,12 +535,12 @@ public class Factory implements AutoCloseable {
 
         @Override
         public Query<T> bind(Factory factory) {
-            return new NameQuery(factory, isMandatory(), getName());
+            return new NameQuery<>(factory, isMandatory(), getName());
         }
 
         @Override
         public Query<T> setMandatory(boolean mandatory) {
-            return new NameQuery(mayGetFactory(), mandatory, getName());
+            return new NameQuery<>(mayGetFactory(), mandatory, getName());
         }
 
         @Override
@@ -598,12 +600,12 @@ public class Factory implements AutoCloseable {
 
         @Override
         public Query<T> bind(Factory factory) {
-            return new ClassQuery(factory, isMandatory(), getComponentClass());
+            return new ClassQuery<>(factory, isMandatory(), getComponentClass());
         }
 
         @Override
         public Query<T> setMandatory(boolean mandatory) {
-            return new ClassQuery(mayGetFactory(), mandatory, getComponentClass());
+            return new ClassQuery<>(mayGetFactory(), mandatory, getComponentClass());
         }
 
         @Override
@@ -749,11 +751,11 @@ public class Factory implements AutoCloseable {
     }
 
     public <T> Query<T> queryByName(Name<T> name) {
-        return new NameQuery(name).bind(this);
+        return new NameQuery<>(name).bind(this);
     }
 
     public <T> Query<T> queryByClass(Class<T> componentClass) {
-        return new ClassQuery(componentClass).bind(this);
+        return new ClassQuery<>(componentClass).bind(this);
     }
 
     /**
@@ -991,8 +993,8 @@ public class Factory implements AutoCloseable {
         }
 
         BuildingBox<T> buildingBox = new BuildingBox<>(
-                ImmutableList.<SatisfiedQuery>of(SatisfiedQuery.of(query, name)), engine);
-        Deque<BuildingBox> dependencies = buildBuildingBoxesClosure(buildingBox);
+                ImmutableList.<SatisfiedQuery<?>>of(SatisfiedQuery.of(query, name)), engine);
+        Deque<BuildingBox<?>> dependencies = buildBuildingBoxesClosure(buildingBox);
 
         logger.info("{} - dependencies closure for {} is: {}", id, name, dependencies);
         satisfyBoms(dependencies);
@@ -1000,50 +1002,17 @@ public class Factory implements AutoCloseable {
         return buildAndStore(buildingBox);
     }
 
-    private Deque<BuildingBox> buildBuildingBoxesClosure(BuildingBox buildingBox) {
-
+    private Deque<BuildingBox<?>> buildBuildingBoxesClosure(BuildingBox<?> buildingBox) {
         // first we traverse the dependencies graph of this buildingbox, and create a building box for each node
-        Deque<BuildingBox> dependenciesWithNoIncomingEdges = new LinkedList<>();
-        Map<Name, BuildingBox> dependenciesByName = new HashMap<>();
-        Queue<BuildingBox> dependenciesToSatisfy = new LinkedList<>(asList(buildingBox));
+        Deque<BuildingBox<?>> dependenciesWithNoIncomingEdges = new LinkedList<>();
+        Map<Name<?>, BuildingBox<?>> dependenciesByName = new HashMap<>();
+        Queue<BuildingBox<?>> dependenciesToSatisfy = new LinkedList<BuildingBox<?>>(asList(buildingBox));
         while (!dependenciesToSatisfy.isEmpty()) {
             BuildingBox buildingBox1 = dependenciesToSatisfy.poll();
 
             ImmutableSet<Query<?>> queries = buildingBox1.engine.getBillOfMaterial().getQueries();
-            for (Query query : queries) {
-                Set<Name> names = query.bind(this).findNames();
-                if (names.isEmpty() && query.isMandatory()) {
-                    Set<Name> similarNames = findSimilarNamesByNamedType(query.getComponentClass());
-                    if (similarNames.isEmpty()) {
-                        throw Factory.UnsatisfiedDependency.on(buildingBox1.hierarchy, query).raise();
-                    } else {
-                        throw Factory.UnsatisfiedDependency.on(
-                                buildingBox1.hierarchy, query, machineNotFoundMessage(query, similarNames)).raise();
-                    }
-                }
-                for (Name n : names) {
-                    BuildingBox buildingBox2 = dependenciesByName.get(n);
-                    if (buildingBox2 != null) {
-                        // already in dependencies, but we have to add it to box dependencies
-                        buildingBox1.addName(query, n, buildingBox2);
-                    } else {
-                        Optional<FactoryMachine> machineFor = findMachineFor(n);
-                        if (!machineFor.isPresent()) {
-                            if (query.isMandatory() && names.size() == 1) {
-                                throw UnsatisfiedDependency.on(
-                                        buildingBox1.hierarchy, query, machineNotFoundMessage(n)).raise();
-                            }
-                        } else {
-                            buildingBox2 = new BuildingBox(
-                                    ImmutableList.builder().addAll(buildingBox1.hierarchy)
-                                            .add(SatisfiedQuery.of(query, n)).build(),
-                                    machineFor.get().getEngine(n));
-                            dependenciesToSatisfy.add(buildingBox2);
-                            buildingBox1.addName(query, n, buildingBox2);
-                            dependenciesByName.put(n, buildingBox2);
-                        }
-                    }
-                }
+            for (Query<?> query : queries) {
+                buildBuildingBoxClosureForQuery(dependenciesByName, dependenciesToSatisfy, buildingBox1, query);
             }
 
             if (buildingBox1.names.isEmpty()) {
@@ -1052,7 +1021,7 @@ public class Factory implements AutoCloseable {
         }
 
         // then we do a topological sort of this graph - see http://en.wikipedia.org/wiki/Topological_sorting
-        Deque<BuildingBox> dependencies = new ArrayDeque<>();
+        Deque<BuildingBox<?>> dependencies = new ArrayDeque<>();
         while (!dependenciesWithNoIncomingEdges.isEmpty()) {
             BuildingBox n = dependenciesWithNoIncomingEdges.removeFirst();
             dependencies.addLast(n);
@@ -1069,6 +1038,50 @@ public class Factory implements AutoCloseable {
         return dependencies;
     }
 
+    private <D> void buildBuildingBoxClosureForQuery(
+            Map<Name<?>, BuildingBox<?>> dependenciesByName,
+            Queue<BuildingBox<?>> dependenciesToSatisfy, BuildingBox<?> buildingBox, Query<D> query) {
+        Set<? extends Name<D>> names = query.bind(this).findNames();
+        if (names.isEmpty() && query.isMandatory()) {
+            Set<Name> similarNames = findSimilarNamesByNamedType(query.getComponentClass());
+            if (similarNames.isEmpty()) {
+                throw UnsatisfiedDependency.on(buildingBox.hierarchy, query).raise();
+            } else {
+                throw UnsatisfiedDependency.on(
+                        buildingBox.hierarchy, query, machineNotFoundMessage(query, similarNames)).raise();
+            }
+        }
+        for (Name<D> n : names) {
+            BuildingBox<D> buildingBox2 = getDependencyBuildingBox(dependenciesByName, n);
+            if (buildingBox2 != null) {
+                // already in dependencies, but we have to add it to box dependencies
+                buildingBox.addName(query, n, buildingBox2);
+            } else {
+                Optional<FactoryMachine> machineFor = findMachineFor(n);
+                if (!machineFor.isPresent()) {
+                    if (query.isMandatory() && names.size() == 1) {
+                        throw UnsatisfiedDependency.on(
+                                buildingBox.hierarchy, query, machineNotFoundMessage(n)).raise();
+                    }
+                } else {
+                    buildingBox2 = new BuildingBox<>(
+                            ImmutableList.<SatisfiedQuery<?>>builder()
+                                    .addAll(buildingBox.hierarchy)
+                                    .add(SatisfiedQuery.of(query, n)).build(),
+                            machineFor.get().getEngine(n));
+                    dependenciesToSatisfy.add(buildingBox2);
+                    buildingBox.addName(query, n, buildingBox2);
+                    dependenciesByName.put(n, buildingBox2);
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <D> BuildingBox<D> getDependencyBuildingBox(Map<Name<?>, BuildingBox<?>> dependenciesByName, Name<D> n) {
+        return (BuildingBox<D>) dependenciesByName.get(n);
+    }
+
     private Set<Name> findSimilarNamesByNamedType(Class componentClass) {
         Set<Name> names = new LinkedHashSet<>();
         for (Name<?> name : warehouse.listNames()) {
@@ -1079,21 +1092,17 @@ public class Factory implements AutoCloseable {
         return names;
     }
 
-    private void satisfyBoms(Deque<BuildingBox> dependencies) {
-        for (BuildingBox buildingBox = dependencies.pollFirst(); buildingBox != null; buildingBox = dependencies.pollFirst()) {
+    private void satisfyBoms(Deque<BuildingBox<?>> dependencies) {
+        for (BuildingBox<?> buildingBox = dependencies.pollFirst(); buildingBox != null; buildingBox = dependencies.pollFirst()) {
             if (buildingBox.engine.getBillOfMaterial().getQueries().isEmpty()) {
                 buildingBox.satisfiedBOM = new SatisfiedBOM(buildingBox.engine.getBillOfMaterial(),
                         ImmutableMultimap.<Query<?>, NamedComponent<?>>of());
             } else {
                 ImmutableMultimap.Builder<Query<?>, NamedComponent<?>> materials = ImmutableMultimap.builder();
-                for (Query key : buildingBox.engine.getBillOfMaterial().getQueries()) {
-                    Collection<Name> names = buildingBox.names.get(key);
-                    for (Name name : names) {
-                        Optional<NamedComponent> c = buildAndStore(
-                                (Factory.BuildingBox) buildingBox.deps.get(name));
-                        if (c.isPresent()) {
-                            materials.put(key, c.get());
-                        }
+                for (Query<?> key : buildingBox.engine.getBillOfMaterial().getQueries()) {
+                    Collection<Name<?>> names = buildingBox.names.get(key);
+                    for (Name<?> name : names) {
+                        uncheckedPutIfPresent(materials, key, buildAndStore(getDependencyBuildingBox(buildingBox.deps, name)));
                     }
                 }
                 buildingBox.satisfiedBOM = new SatisfiedBOM(buildingBox.engine.getBillOfMaterial(), materials.build());
@@ -1148,13 +1157,13 @@ public class Factory implements AutoCloseable {
             return box.pick();
         }
 
-        List<ComponentCustomizer> customizers = Lists.newArrayList();
+        List<ComponentCustomizer<T>> customizers = Lists.newArrayList();
         for (ComponentCustomizerEngine customizerEngine : customizerEngines()) {
             if (customizerEngine.canCustomize(box.getName())) {
                 customizers.add(customizerEngine.getCustomizer(box.getName()));
             }
         }
-        for (ComponentCustomizer customizer : Ordering.from(customizerComparator).sortedCopy(customizers)) {
+        for (ComponentCustomizer<T> customizer : Ordering.from(customizerComparator).sortedCopy(customizers)) {
             context = metrics.timer("<CUSTOMIZE> " + name.getSimpleName()
                     + " <WITH> " + customizer.getClass().getSimpleName()).time();
             try {
@@ -1254,6 +1263,13 @@ public class Factory implements AutoCloseable {
                         : " similar components found: " + Joiner.on(", ").join(similarNames));
     }
 
+
+    @SuppressWarnings("unchecked")
+    private static void uncheckedPutIfPresent(ImmutableMultimap.Builder map, Object key, Optional o) {
+        if (o.isPresent()) {
+            map.put(key, o.get());
+        }
+    }
 
     public static class UnsatisfiedDependency {
         public static <T> UnsatisfiedDependency on(Query<T> unsatisfied) {
@@ -1413,8 +1429,8 @@ public class Factory implements AutoCloseable {
 
     private static class BuildingBox<T> {
         final MachineEngine<T> engine;
-        final ImmutableList<SatisfiedQuery> hierarchy;
-        final Multimap<Query, Name> names = ArrayListMultimap.create();
+        final ImmutableList<SatisfiedQuery<?>> hierarchy;
+        final Multimap<Query<?>, Name<?>> names = ArrayListMultimap.create();
         final Map<Name<?>, BuildingBox<?>> deps = new LinkedHashMap<>();
 
         // these 2 fields are used for topological sorting only
@@ -1425,7 +1441,7 @@ public class Factory implements AutoCloseable {
         SatisfiedBOM satisfiedBOM;
         NamedComponent<T> component;
 
-        BuildingBox(ImmutableList<SatisfiedQuery> hierarchy, MachineEngine<T> engine) {
+        BuildingBox(ImmutableList<SatisfiedQuery<?>> hierarchy, MachineEngine<T> engine) {
             this.hierarchy = hierarchy;
             this.engine = engine;
         }
@@ -1437,7 +1453,7 @@ public class Factory implements AutoCloseable {
                     '}';
         }
 
-        public void addName(Query query, Name name, BuildingBox buildingBox) {
+        public <D> void addName(Query<D> query, Name<D> name, BuildingBox<D> buildingBox) {
             names.put(query, name);
             deps.put(name, buildingBox);
             depsToSort.add(buildingBox);

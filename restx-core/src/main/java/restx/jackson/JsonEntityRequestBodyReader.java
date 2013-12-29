@@ -16,7 +16,7 @@ import java.io.IOException;
  */
 public class JsonEntityRequestBodyReader<T> implements EntityRequestBodyReader<T> {
     public static <T> JsonEntityRequestBodyReader<T> using(ObjectReader reader) {
-        return new JsonEntityRequestBodyReader(reader);
+        return new JsonEntityRequestBodyReader<>(reader);
     }
 
     protected final ObjectReader reader;

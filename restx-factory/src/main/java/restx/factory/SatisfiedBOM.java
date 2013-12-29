@@ -27,6 +27,7 @@ public class SatisfiedBOM {
         return bom;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> Iterable<NamedComponent<T>> get(Factory.Query<T> key) {
         ImmutableCollection namedComponents = checkNotNull(materials.get(key),
                 "key not found: %s. Check your bill of materials. Available keys: %s", key, materials.keySet());

@@ -15,6 +15,7 @@ import java.io.IOException;
  * Date: 2/16/13
  * Time: 4:24 PM
  */
+@SuppressWarnings("unchecked")
 public class WebServerExample {
     private static final ObjectMapper mapper = new ObjectMapper();
 

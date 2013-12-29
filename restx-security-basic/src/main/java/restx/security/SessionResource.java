@@ -32,7 +32,7 @@ public class SessionResource {
         RestxSession.current().clearPrincipal();
         RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, null);
 
-        Map principal = (Map) session.get("principal");
+        Map<String, ?> principal = getPrincipal(session);
         if (principal == null) {
             throw new WebException(HttpStatus.UNAUTHORIZED);
         }
@@ -51,6 +51,11 @@ public class SessionResource {
         } else {
             throw new WebException(HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Map<String, ?> getPrincipal(Map session) {
+        return (Map<String, ?>) session.get("principal");
     }
 
     @GET("/sessions/current")

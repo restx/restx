@@ -27,6 +27,7 @@ public class SimpleWebServerTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Test
+    @SuppressWarnings("unchecked")
     public void should_handle_simple_routes() throws Exception {
         SimpleWebServer server = SimpleWebServer.builder().setRouter(StdRestxMainRouter.builder()
                 .addRouter(RestxRouter.builder()

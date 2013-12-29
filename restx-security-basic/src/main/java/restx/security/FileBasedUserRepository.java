@@ -61,6 +61,7 @@ public class FileBasedUserRepository<U extends RestxPrincipal> implements UserRe
         this.users = new CachedData<U>(usersPath, "users",
                 mapper, Types.newParameterizedType(List.class, userClass), reloadOnChange) {
             @Override
+            @SuppressWarnings("unchecked")
             protected Map<String, U> toMap(Object o) {
                 List<U> users = (List<U>) o;
                 Map<String, U> usersMap = new LinkedHashMap();
@@ -142,6 +143,7 @@ public class FileBasedUserRepository<U extends RestxPrincipal> implements UserRe
             return data;
         }
 
+        @SuppressWarnings("unchecked")
         protected Map<String, T> toMap(Object o) {
             return (Map<String, T>) o;
         }

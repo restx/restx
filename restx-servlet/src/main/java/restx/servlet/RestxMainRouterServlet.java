@@ -34,12 +34,7 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         if (!baseUri.isPresent() && baseServer != null) {
             try {
                 // try to use servlet3 API without actually requiring it
-                ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator(
-                        "config.getServletContext().getServletRegistration(config.getServletName()).getMappings()",
-                        Collection.class,
-                        new String[]{"config"},
-                        new Class[]{ServletConfig.class});
-                Collection<String> mappings = (Collection<String>) expressionEvaluator.evaluate(new Object[]{config});
+                Collection<String> mappings = getMappings(config);
                 if (!mappings.isEmpty()) {
                     String routerPath = mappings.iterator().next();
                     if (routerPath.endsWith("/*")) {
@@ -69,6 +64,16 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         registerIdNeeded(serverId);
 
         init(RestxMainRouterFactory.newInstance(serverId, baseUri));
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Collection<String> getMappings(ServletConfig config) throws CompileException, InvocationTargetException {
+        ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator(
+                "config.getServletContext().getServletRegistration(config.getServletName()).getMappings()",
+                Collection.class,
+                new String[]{"config"},
+                new Class[]{ServletConfig.class});
+        return (Collection<String>) expressionEvaluator.evaluate(new Object[]{config});
     }
 
     @Override

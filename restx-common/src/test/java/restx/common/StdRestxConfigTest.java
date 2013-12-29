@@ -24,7 +24,7 @@ public class StdRestxConfigTest {
         assertThat(config.getString("key1").isPresent()).isTrue();
         assertThat(config.getString("key1").get()).isEqualTo("val1");
         assertThat(config.getElement("key1").isPresent()).isTrue();
-        assertThat(config.getElement("key1").get()).isEqualsToByComparingFields(ConfigElement.of("key1", "val1"));
+        assertThat(config.getElement("key1").get()).isEqualToComparingFieldByField(ConfigElement.of("key1", "val1"));
 
         assertThat(config.getString("key2").isPresent()).isTrue();
         assertThat(config.getInt("key2").isPresent()).isTrue();
@@ -49,7 +49,7 @@ public class StdRestxConfigTest {
         assertThat(config.getInt("key1").isPresent()).isFalse();
         assertThat(config.getBoolean("key1").isPresent()).isFalse();
         assertThat(config.getElement("key1").isPresent()).isTrue();
-        assertThat(config.getElement("key1").get()).isEqualsToByComparingFields(ConfigElement.of("key1", ""));
+        assertThat(config.getElement("key1").get()).isEqualToComparingFieldByField(ConfigElement.of("key1", ""));
 
         assertThat(config.elements()).extracting("key", "value").containsExactly(tuple("key1", ""));
     }
@@ -63,7 +63,7 @@ public class StdRestxConfigTest {
         assertThat(config.getString("key1").isPresent()).isTrue();
         assertThat(config.getString("key1").get()).isEqualTo("val1");
         assertThat(config.getElement("key1").isPresent()).isTrue();
-        assertThat(config.getElement("key1").get()).isEqualsToByComparingFields(ConfigElement.of("key1", "val1"));
+        assertThat(config.getElement("key1").get()).isEqualToComparingFieldByField(ConfigElement.of("key1", "val1"));
 
         assertThat(config.elements()).extracting("key", "value").containsExactly(tuple("key1", "val1"));
     }
@@ -77,7 +77,7 @@ public class StdRestxConfigTest {
         assertThat(config.getString("key1").isPresent()).isTrue();
         assertThat(config.getString("key1").get()).isEqualTo("val1");
         assertThat(config.getElement("key1").isPresent()).isTrue();
-        assertThat(config.getElement("key1").get()).isEqualsToByComparingFields(
+        assertThat(config.getElement("key1").get()).isEqualToComparingFieldByField(
                 ConfigElement.of("source1", "doc2", "key1", "val1"));
     }
 
@@ -91,13 +91,13 @@ public class StdRestxConfigTest {
         assertThat(config.getString("key1").isPresent()).isTrue();
         assertThat(config.getString("key1").get()).isEqualTo("val1");
         assertThat(config.getElement("key1").isPresent()).isTrue();
-        assertThat(config.getElement("key1").get()).isEqualsToByComparingFields(
+        assertThat(config.getElement("key1").get()).isEqualToComparingFieldByField(
                 ConfigElement.of("restx/common/config.properties", "Doc 1", "key1", "val1"));
 
         assertThat(config.getString("key2").isPresent()).isTrue();
         assertThat(config.getInt("key2").isPresent()).isTrue();
         assertThat(config.getInt("key2").get()).isEqualTo(2);
-        assertThat(config.getElement("key2").get()).isEqualsToByComparingFields(
+        assertThat(config.getElement("key2").get()).isEqualToComparingFieldByField(
                 ConfigElement.of("restx/common/config.properties", "Doc 2\non 2 lines", "key2", "2"));
     }
 }

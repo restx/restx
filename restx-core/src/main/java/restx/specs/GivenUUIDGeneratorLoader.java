@@ -19,14 +19,14 @@ import static restx.common.MorePreconditions.checkInstanceOf;
 @Named("uuids") @Component
 public class GivenUUIDGeneratorLoader implements RestxSpecLoader.GivenLoader {
     @Override
-    public Given load(Map given) {
+    public Given load(Map<String, ?> given) {
         List<String> uuids = newArrayList();
         Object data = checkContainsKey("given", given, "uuids");
         if (data instanceof String) {
             String s = (String) data;
             Iterables.addAll(uuids, Splitter.on(",").omitEmptyStrings().trimResults().split(s));
         } else if (data instanceof Iterable) {
-            Iterables.addAll(uuids, (Iterable<? extends String>) data);
+            Iterables.addAll(uuids, asIterableString((Iterable) data));
         } else {
             throw new IllegalArgumentException("unsupported type for uuids data in " + given +
                     ": " + data.getClass().getName() +
@@ -34,5 +34,10 @@ public class GivenUUIDGeneratorLoader implements RestxSpecLoader.GivenLoader {
         }
 
         return new GivenUUIDGenerator(ImmutableList.copyOf(uuids));
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Iterable<? extends String> asIterableString(Iterable<?> data) {
+        return (Iterable<? extends String>) data;
     }
 }

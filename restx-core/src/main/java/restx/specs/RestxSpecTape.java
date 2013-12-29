@@ -7,7 +7,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -111,7 +113,7 @@ public class RestxSpecTape {
         givens.put(GivenTime.class.getSimpleName() + "/now", new GivenTime(now));
         ThreadLocalMillisProvider.setCurrentMillisFixed(now.getMillis());
         recordedSpec.setRecordTime(now);
-        Stopwatch stopwatch = new Stopwatch().start();
+        Stopwatch stopwatch = Stopwatch.createStarted();
         System.out.print("RECORDING REQUEST...");
         final String method = restxRequest.getHttpMethod();
         final String path = restxRequest.getRestxUri().substring(1); // remove leading slash
@@ -132,7 +134,7 @@ public class RestxSpecTape {
             }
         };
         recordingResponse = new RestxResponseWrapper(restxResponse) {
-            private Stopwatch stopwatch = new Stopwatch();
+            private Stopwatch stopwatch = Stopwatch.createUnstarted();
             private ByteArrayOutputStream baos;
             private PrintWriter realWriter;
             private PrintWriter writer;
@@ -185,9 +187,9 @@ public class RestxSpecTape {
 
                 System.out.println(" >> recorded response (" + baos.size() + " bytes) -- " + stopwatch.stop());
                 if (realWriter != null) {
-                    CharStreams.copy(CharStreams.asCharSource(baos.toString(Charsets.UTF_8.name())).openStream(), realWriter);
+                    CharStreams.copy(CharSource.wrap(baos.toString(Charsets.UTF_8.name())).openStream(), realWriter);
                 } else if (realOS != null) {
-                    ByteStreams.copy(ByteStreams.asByteSource(baos.toByteArray()).openStream(), realOS);
+                    ByteStreams.copy(ByteSource.wrap(baos.toByteArray()).openStream(), realOS);
                 }
                 super.close();
 
@@ -205,7 +207,7 @@ public class RestxSpecTape {
 
                 RestxSpec restxSpec = new RestxSpec(
                         specPath, title,
-                        ImmutableList.copyOf(givens.values()), ImmutableList.<When>of(
+                        ImmutableList.copyOf(givens.values()), ImmutableList.<When<?>>of(
                         new WhenHttpRequest(method, path, cookies, new String(requestBody, Charsets.UTF_8),
                                 new ThenHttpResponse(status.getCode(), baos.toString(Charsets.UTF_8.name())))));
                 System.out.println("-----------------  RESTX SPEC  ---------------- \n"

@@ -21,6 +21,7 @@ public class WarehouseProvidersMachine implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean canBuild(Name<?> name) {
         for (Warehouse provider : providers) {
             if (Iterables.tryFind(provider.listNames(),
@@ -88,6 +89,7 @@ public class WarehouseProvidersMachine implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
         Set<Name<T>> names = new LinkedHashSet<>();
         for (Warehouse provider : providers) {

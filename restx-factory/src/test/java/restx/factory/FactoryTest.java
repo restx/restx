@@ -192,6 +192,7 @@ public class FactoryTest {
                             }
 
                             @Override
+                            @SuppressWarnings("unchecked")
                             public NamedComponent<T> customize(NamedComponent<T> namedComponent) {
                                 return new NamedComponent<>(
                                         namedComponent.getName(), (T) (namedComponent.getComponent() + " world"));
@@ -351,16 +352,17 @@ public class FactoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void should_build_component_lists_from_multiple_machines() throws Exception {
         Factory factory = Factory.builder()
-                .addMachine(new SingleNameFactoryMachine(
+                .addMachine(new SingleNameFactoryMachine<>(
                         0, new NoDepsMachineEngine<String>(Name.of(String.class, "test 1"), BoundlessComponentBox.FACTORY) {
                     @Override
                     protected String doNewComponent(SatisfiedBOM satisfiedBOM) {
                         return "value 1";
                     }
                 }))
-                .addMachine(new SingleNameFactoryMachine(
+                .addMachine(new SingleNameFactoryMachine<>(
                         0, new NoDepsMachineEngine<String>(Name.of(String.class, "test 2"), BoundlessComponentBox.FACTORY) {
                     @Override
                     protected String doNewComponent(SatisfiedBOM satisfiedBOM) {

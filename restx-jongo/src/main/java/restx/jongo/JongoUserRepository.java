@@ -12,14 +12,14 @@ import restx.security.UserRepository;
 public class JongoUserRepository<U extends RestxPrincipal> implements UserRepository<U> {
     private final JongoCollection users;
     private final JongoCollection usersCredentials;
-    private final UserRefStrategy userRefStrategy;
+    private final UserRefStrategy<U> userRefStrategy;
     private final CredentialsStrategy credentialsStrategy;
     private final Class<U> userClass;
     private final U defaultAdminUser;
 
     public JongoUserRepository(JongoCollection users,
                                JongoCollection usersCredentials,
-                               UserRefStrategy userRefStrategy,
+                               UserRefStrategy<U> userRefStrategy,
                                CredentialsStrategy credentialsStrategy,
                                Class<U> userClass,
                                U defaultAdminUser) {

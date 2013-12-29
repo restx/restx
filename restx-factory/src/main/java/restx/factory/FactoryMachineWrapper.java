@@ -73,6 +73,7 @@ public class FactoryMachineWrapper implements FactoryMachine {
                         public ComponentBox<T> newComponent(final SatisfiedBOM satisfiedBOM) {
                             return new ComponentBoxWrapper<T>(super.newComponent(satisfiedBOM)) {
                                 @Override
+                                @SuppressWarnings("unchecked")
                                 public Optional<NamedComponent<T>> pick() {
                                     Optional<NamedComponent<T>> pick = super.pick();
                                     if (!pick.isPresent()) {

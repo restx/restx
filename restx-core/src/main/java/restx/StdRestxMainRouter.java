@@ -99,7 +99,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
     @Override
     public void route(RestxRequest restxRequest, final RestxResponse restxResponse) throws IOException {
         logger.debug("<< {}", restxRequest);
-        Stopwatch stopwatch = new Stopwatch().start();
+        Stopwatch stopwatch = Stopwatch.createStarted();
 
         Timer.Context monitor = metrics.timer("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath()).time();
         try {

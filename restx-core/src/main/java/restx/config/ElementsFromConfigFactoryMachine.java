@@ -44,6 +44,7 @@ public class ElementsFromConfigFactoryMachine extends DefaultFactoryMachine {
                     public <T> MachineEngine<T> getEngine(final Name<T> name) {
                         return new NoDepsMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
                             @Override
+                            @SuppressWarnings("unchecked")
                             protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
                                 if (name.getClazz() == String.class) {
                                     return (T) config.getString(name.getName()).get();
@@ -57,19 +58,22 @@ public class ElementsFromConfigFactoryMachine extends DefaultFactoryMachine {
                     }
 
                     @Override
+                    @SuppressWarnings("unchecked")
                     public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
                         if (String.class == componentClass) {
-                            return Sets.newHashSet(Iterables.transform(config.elements(), new Function<ConfigElement, Name<T>>() {
+                            return (Set) Sets.newHashSet(Iterables.transform(config.elements(),
+                                    new Function<ConfigElement, Name<String>>() {
                                 @Override
-                                public Name<T> apply(ConfigElement input) {
-                                    return (Name<T>) Name.of(String.class, input.getKey());
+                                public Name<String> apply(ConfigElement input) {
+                                    return Name.of(String.class, input.getKey());
                                 }
                             }));
                         } else if (ConfigElement.class == componentClass) {
-                            return Sets.newHashSet(Iterables.transform(config.elements(), new Function<ConfigElement, Name<T>>() {
+                            return (Set) Sets.newHashSet(Iterables.transform(config.elements(),
+                                    new Function<ConfigElement, Name<ConfigElement>>() {
                                 @Override
-                                public Name<T> apply(ConfigElement input) {
-                                    return (Name<T>) Name.of(ConfigElement.class, input.getKey());
+                                public Name<ConfigElement> apply(ConfigElement input) {
+                                    return Name.of(ConfigElement.class, input.getKey());
                                 }
                             }));
                         } else {

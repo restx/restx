@@ -27,7 +27,7 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
 
     @Override
     public void check(WhenHttpRequest when, ImmutableMap<String, String> params) {
-        Stopwatch stopwatch = new Stopwatch().start();
+        Stopwatch stopwatch = Stopwatch.createStarted();
         String baseUrl = checkNotNull(params.get(BASE_URL),
                 BASE_URL + " param is required");
         String url = baseUrl + "/" + when.getPath();
@@ -70,7 +70,7 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
         assertThat(code).isEqualTo(when.getThen().getExpectedCode());
         if (isJSON(when.getThen().getExpected())) {
             MatcherAssert.assertThat(body,
-                SameJSONAs.sameJSONAs(when.getThen().getExpected()).allowingExtraUnexpectedFields());
+                    SameJSONAs.sameJSONAs(when.getThen().getExpected()).allowingExtraUnexpectedFields());
         } else if (!when.getThen().getExpected().trim().isEmpty()) {
             MatcherAssert.assertThat(body.trim(), equalTo(when.getThen().getExpected().trim()));
         }

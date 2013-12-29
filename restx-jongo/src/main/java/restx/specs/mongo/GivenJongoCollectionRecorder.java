@@ -74,7 +74,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
             if (givens.containsKey(key)) {
                 return;
             }
-            Stopwatch stopwatch = new Stopwatch().start();
+            Stopwatch stopwatch = Stopwatch.createStarted();
             System.out.print("RECORDING " + mongoCollection.getName() + "...");
             Iterable<String> items = mongoCollection.find().map(new ResultHandler<String>() {
                 @Override

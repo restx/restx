@@ -9,16 +9,16 @@ import java.nio.file.WatchEvent;
 * Time: 2:17 PM
 */
 public class FileWatchEvent {
-    public static FileWatchEvent newInstance(Path root, Path dir, Path path, WatchEvent.Kind kind, int count) {
+    public static FileWatchEvent newInstance(Path root, Path dir, Path path, WatchEvent.Kind<?> kind, int count) {
         return new FileWatchEvent(root, normalizePath(root, dir.resolve(normalizePath(dir, path))), kind, count);
     }
 
     private final Path dir;
     private final Path path;
-    private final WatchEvent.Kind kind;
+    private final WatchEvent.Kind<?> kind;
     private final int count;
 
-    private FileWatchEvent(Path dir, Path path, WatchEvent.Kind kind, int count) {
+    private FileWatchEvent(Path dir, Path path, WatchEvent.Kind<?> kind, int count) {
         this.dir = dir;
         this.path = path;
         this.kind = kind;
@@ -33,7 +33,7 @@ public class FileWatchEvent {
         return path;
     }
 
-    public WatchEvent.Kind getKind() {
+    public WatchEvent.Kind<?> getKind() {
         return kind;
     }
 

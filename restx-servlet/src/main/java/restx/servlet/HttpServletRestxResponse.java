@@ -140,6 +140,7 @@ public class HttpServletRestxResponse implements RestxResponse {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> clazz) {
         if (clazz == HttpServletResponse.class || clazz == ServletResponse.class) {
             return (T) resp;

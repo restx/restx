@@ -27,6 +27,7 @@ public class MorePreconditions {
         return o1;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T checkInstanceOf(String name, Object o, Class<T> clazz) {
         Preconditions.checkNotNull(o, "%s must not be null and be an instance of %s", name, clazz.getName());
         Preconditions.checkArgument(clazz.isInstance(o),

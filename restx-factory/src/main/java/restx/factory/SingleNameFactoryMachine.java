@@ -27,14 +27,16 @@ public class SingleNameFactoryMachine<C> implements FactoryMachine {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> MachineEngine<T> getEngine(Name<T> name) {
         return (MachineEngine<T>) engine;
     }
 
     @Override
-    public Set nameBuildableComponents(Class componentClass) {
+    @SuppressWarnings("unchecked")
+    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
         if (componentClass.isAssignableFrom(name.getClazz())) {
-            return Collections.singleton(name);
+            return Collections.singleton((Name<T>) name);
         } else {
             return Collections.emptySet();
         }

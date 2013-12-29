@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.serializers.BsonSerializer;
-import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -19,13 +18,14 @@ import java.io.IOException;
  * Date: 1/24/13
  * Time: 9:03 AM
  */
+@SuppressWarnings("deprecation") // DateMidnight is deprecated, but we still want to provide custom ser/deser for it
 public class BsonJodaTimeModule extends SimpleModule {
     public BsonJodaTimeModule() {
         super("BsonJodaTimeModule");
 
-        addSerializer(DateMidnight.class, new BsonSerializer<DateMidnight>() {
+        addSerializer(org.joda.time.DateMidnight.class, new BsonSerializer<org.joda.time.DateMidnight>() {
             @Override
-            public void serialize(DateMidnight date, BsonGenerator bsonGenerator, SerializerProvider serializerProvider)
+            public void serialize(org.joda.time.DateMidnight date, BsonGenerator bsonGenerator, SerializerProvider serializerProvider)
                     throws IOException {
                 if (date == null) {
                     serializerProvider.defaultSerializeNull(bsonGenerator);
@@ -46,11 +46,12 @@ public class BsonJodaTimeModule extends SimpleModule {
             }
         });
 
-        addDeserializer(DateMidnight.class, new JsonDeserializer<DateMidnight>() {
+        addDeserializer(org.joda.time.DateMidnight.class, new JsonDeserializer<org.joda.time.DateMidnight>() {
             @Override
-            public DateMidnight deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+            public org.joda.time.DateMidnight deserialize(JsonParser jp, DeserializationContext ctxt)
+                    throws IOException, JsonProcessingException {
                 Object date = jp.getEmbeddedObject();
-                return new DateMidnight(date, DateTimeZone.UTC);
+                return new org.joda.time.DateMidnight(date, DateTimeZone.UTC);
             }
         });
 

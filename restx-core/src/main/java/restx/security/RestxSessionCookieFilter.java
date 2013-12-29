@@ -100,24 +100,24 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
                 logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
                 return emptySession;
             }
-            Map entries = mapper.readValue(cookie, Map.class);
-            DateTime expires = DateTime.parse((String) entries.remove(EXPIRES));
+            Map<String, String> entries = readEntries(cookie);
+            DateTime expires = DateTime.parse(entries.remove(EXPIRES));
             if (expires.isBeforeNow()) {
                 return emptySession;
             }
 
             Duration expiration = req.isPersistentCookie(restxSessionCookieName) ? new Duration(DateTime.now(), expires) : Duration.ZERO;
-            ImmutableMap valueidsByKey = ImmutableMap.copyOf(entries);
-            String principalName = (String) valueidsByKey.get(RestxPrincipal.SESSION_DEF_KEY);
+            ImmutableMap<String, String> valueidsByKey = ImmutableMap.copyOf(entries);
+            String principalName = valueidsByKey.get(RestxPrincipal.SESSION_DEF_KEY);
             Optional<RestxPrincipal> principalOptional = RestxSession.getValue(
                     sessionDefinition, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principalName);
             if (principalOptional.isPresent() && principalOptional.get().getPrincipalRoles().contains("restx-admin")) {
                 Optional<String> su = req.getHeader("RestxSu");
                 if (su.isPresent() && !Strings.isNullOrEmpty(su.get())) {
                     try {
-                        entries.putAll(mapper.readValue(su.get(), Map.class));
+                        entries.putAll(readEntries(su.get()));
                         valueidsByKey = ImmutableMap.copyOf(entries);
-                        principalName = (String) valueidsByKey.get(RestxPrincipal.SESSION_DEF_KEY);
+                        principalName = valueidsByKey.get(RestxPrincipal.SESSION_DEF_KEY);
                         principalOptional = RestxSession.getValue(
                                 sessionDefinition, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principalName);
                         logger.info("restx-admin sudoing request with {}", su.get());
@@ -129,6 +129,11 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
             }
             return new RestxSession(sessionDefinition, valueidsByKey, principalOptional, expiration);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected Map<String, String> readEntries(String cookie) throws IOException {
+        return mapper.readValue(cookie, Map.class);
     }
 
     private void updateSessionInClient(RestxResponse resp, RestxSession session) {
