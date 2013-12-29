@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>{{groupId}}</groupId>
+    <artifactId>{{artifactId}}-ui</artifactId>
+    <version>{{version}}</version>
+    <packaging>pom</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <properties>
+                                <basedir>${project.basedir}</basedir>
+                                <buildScript>build</buildScript>
+                            </properties>
+                            <source><![CDATA[
+                                                        def basedir = new File(properties['basedir'])
+                            def buildScript = properties['buildScript']
+
+                            def isWindows = { System.properties['os.name'].toLowerCase().contains('windows') }
+
+                            if (!new File(basedir, buildScript).exists()) {
+                                buildScript = buildScript + (isWindows() ? '.bat' : '.sh')
+                            }
+
+                            def cmds = new File(basedir, buildScript).text.split('\n').findAll {
+                                !it.trim().isEmpty() && !it.trim().startsWith('#') && !it.trim().toLowerCase().startsWith('rem ')
+                            }
+
+                            cmds.each { cmd ->
+                                println ">> " + cmd
+                                if (isWindows()) {
+                                    cmd = "cmd /c " + cmd
+                                }
+                                def process = new ProcessBuilder(cmd.split(' ')).directory(basedir).start()
+                                process.in.eachLine { line -> println line }
+                            }
+                        ]]></source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

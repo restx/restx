@@ -7,19 +7,30 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
+import restx.common.MoreResources;
 import restx.common.Mustaches;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.net.URL;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+
+import static com.google.common.io.Files.newReaderSupplier;
 
 /**
  * User: xavierhanin
@@ -99,31 +110,6 @@ public abstract class StdShellCommand implements ShellCommand {
         return shortDescription;
     }
 
-    protected <T> ImmutableMap<Template, String> buildTemplates(String basePath, ImmutableSet<String> tpls) {
-        ImmutableMap.Builder<Template, String> builder = ImmutableMap.builder();
-
-        for (String tpl : tpls) {
-            builder.put(Mustaches.compile(basePath + tpl),
-                    tpl
-                            .replaceAll("^_([^/]+$)", "$1")
-                            .replaceAll("/_([^/]+$)", "/$1")
-                            .replaceAll("\\$([^_]+)\\$", "\\{\\{$1\\}\\}"));
-        }
-
-        return builder.build();
-    }
-
-    protected void generate(ImmutableMap<Template, String> templates, Path path, Object scope) throws IOException {
-        for (Map.Entry<Template, String> entry : templates.entrySet()) {
-            Mustaches.execute(entry.getKey(), scope, resolvePath(path, entry.getValue(), scope));
-        }
-
-    }
-
-    private Path resolvePath(Path path, String relative, Object scope) {
-        return path.resolve(Mustaches.execute(
-                Mustache.compiler().escapeHTML(false).compile(relative), scope));
-    }
 
     protected List<String> splitArgs(String line) {
         return RestxShell.splitArgs(line);
