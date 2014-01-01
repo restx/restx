@@ -121,12 +121,12 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
 
         @Override
         public boolean isStarted() {
-            return false;
+            return true;
         }
 
         @Override
         public String baseUrl() {
-            throw new UnsupportedOperationException();
+            return System.getProperty("restx.server.baseUrl", "");
         }
 
         @Override
