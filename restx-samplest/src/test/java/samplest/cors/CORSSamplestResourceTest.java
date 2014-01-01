@@ -47,6 +47,13 @@ public class CORSSamplestResourceTest {
     }
 
     @Test
+    public void should_accept_same_origin_on_get() throws Exception {
+        HttpRequest httpRequest = client().GET("/api/cors/1")
+                .header("Origin", server.getServer().baseUrl());
+        assertHttpResponse(httpRequest, 200, "CORS1");
+    }
+
+    @Test
     public void should_reject_invalid_origin_on_post() throws Exception {
         HttpRequest httpRequest = client().POST("/api/cors/1").header("Origin", "http://localhost:80").send("{}");
         assertHttpResponse(httpRequest, 403, "");

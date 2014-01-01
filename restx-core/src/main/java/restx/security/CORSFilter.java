@@ -47,7 +47,26 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
     }
 
     protected boolean isSimpleCORSRequest(RestxRequest req) {
-        return SIMPLE_METHODS.contains(req.getHttpMethod());
+        if  (!SIMPLE_METHODS.contains(req.getHttpMethod())) {
+            return false;
+        }
+        Optional<String> origin = req.getHeader("Origin");
+        if (!origin.isPresent()) {
+            return false;
+        }
+        // same origin check.
+        // see http://stackoverflow.com/questions/15512331/chrome-adding-origin-header-to-same-origin-request
+        Optional<String> host = req.getHeader("Host");
+        if (!host.isPresent()) {
+            // no host header, can't check same origin
+            return true;
+        }
+        if (origin.get().endsWith(host.get())) {
+            logger.debug("Same Origin request not considered as CORS Request: {}", req);
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override
