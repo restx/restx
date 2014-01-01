@@ -20,7 +20,22 @@ public class MoreObjects {
         if (classLoader.getClass().getName().equals("sun.misc.Launcher$AppClassLoader")) {
             return "AppClassLoader";
         } else {
-            return classLoader.toString();
+            String classloaderStr = classLoader.toString();
+            // some classloaders have very detailed toString implementation and usually have new lines inside in
+            // that cases (eg Tomcat WebappClassLoader). This breaks the layout when used in RESTX cases,
+            // so we keep only the data before the new line
+            classloaderStr = cutAfter(classloaderStr, '\r');
+            classloaderStr = cutAfter(classloaderStr, '\n');
+            return classloaderStr;
+        }
+    }
+
+    private static String cutAfter(String str, char c) {
+        int index = str.indexOf(c);
+        if (index != -1) {
+            return str.substring(0, index);
+        } else {
+            return str;
         }
     }
 }
