@@ -19,13 +19,15 @@ public class Sessions {
         private final String key;
         private final long firstAccess;
         private final long lastAccess;
+        private final long lastAccessNano;
         private final int count;
         private final ImmutableMap<String, String> metadata;
 
-        private SessionData(String key, long firstAccess, long lastAccess, int count, ImmutableMap<String, String> metadata) {
+        private SessionData(String key, long firstAccess, long lastAccess, long lastAccessNano, int count, ImmutableMap<String, String> metadata) {
             this.key = checkNotNull(key);
             this.firstAccess = firstAccess;
             this.lastAccess = lastAccess;
+            this.lastAccessNano = lastAccessNano;
             this.count = count;
             this.metadata = checkNotNull(metadata);
         }
@@ -51,7 +53,7 @@ public class Sessions {
         }
 
         private SessionData touch(ImmutableMap<String, String> metadata) {
-            return new SessionData(key, firstAccess, System.nanoTime(), count + 1, metadata);
+            return new SessionData(key, firstAccess, System.currentTimeMillis(), System.nanoTime(), count + 1, metadata);
         }
 
         @Override
@@ -66,7 +68,7 @@ public class Sessions {
 
         @Override
         public int compareTo(SessionData o) {
-            return (int) (lastAccess - o.lastAccess);
+            return (int) (lastAccessNano - o.lastAccessNano);
         }
 
         @Override
@@ -112,8 +114,8 @@ public class Sessions {
             if (sessionData != null) {
                 updatedSessionData = sessionData.touch(metadata);
             } else {
-                long access = System.nanoTime();
-                updatedSessionData = new SessionData(key, access, access, 1, metadata);
+                long access = System.currentTimeMillis();
+                updatedSessionData = new SessionData(key, access, access, System.nanoTime(), 1, metadata);
             }
 
             updated = sessions.put(key, updatedSessionData) == sessionData;

@@ -16,8 +16,8 @@
         <tr ng-repeat="session in sessionStats| filter:searchQuery | orderBy:predicate:reverse">
             <td>{{session.key}}</td>
             <td>{{session.count}}</td>
-            <td>{{session.firstAccess / 1000000 | date:'yyyy-MM-dd HH:mm:ss'}}</td>
-            <td>{{session.lastAccess / 1000000 | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td>{{session.firstAccess | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+            <td>{{session.lastAccess | date:'yyyy-MM-dd HH:mm:ss'}}</td>
             <td>{{session.metadata.clientAddress}}</td>
             <td title="{{session.metadata.userAgent}}">
                 {{session.metadata.userAgent | uaBrowser }}</td>
