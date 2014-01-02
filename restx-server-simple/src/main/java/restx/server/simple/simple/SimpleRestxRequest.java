@@ -40,16 +40,6 @@ public class SimpleRestxRequest  extends AbstractRequest {
     }
 
     @Override
-    public int getPort() {
-        String host = request.getValue("Host");
-        if (host.indexOf(":") != -1) {
-            return Integer.parseInt(host.substring(host.indexOf(":") + 1));
-        } else {
-            return 80;
-        }
-    }
-
-    @Override
     public String getBaseUri() {
         return "http://" + request.getValue("Host") + apiPath;
     }

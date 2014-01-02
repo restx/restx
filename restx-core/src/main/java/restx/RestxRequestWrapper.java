@@ -22,11 +22,6 @@ public class RestxRequestWrapper implements RestxRequest {
     }
 
     @Override
-    public int getPort() {
-        return original.getPort();
-    }
-
-    @Override
     public String getBaseUri() {
         return original.getBaseUri();
     }

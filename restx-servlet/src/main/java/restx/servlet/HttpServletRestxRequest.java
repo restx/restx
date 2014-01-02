@@ -31,11 +31,6 @@ public class HttpServletRestxRequest extends AbstractRequest {
         this.request = request;
     }
 
-    @Override
-    public int getPort() {
-        return request.getServerPort();
-    }
-
     public String getClientAddress() {
         return getHeader("X-Forwarded-For").or(request.getRemoteAddr());
     }

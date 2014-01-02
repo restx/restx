@@ -64,11 +64,6 @@ public class StdRequest extends AbstractRequest {
     }
 
     @Override
-    public int getPort() {
-        return port;
-    }
-
-    @Override
     public String getBaseUri() {
         return baseUri;
     }

@@ -39,15 +39,6 @@ public interface RestxRequest {
     String getBaseNetworkPath();
 
     /**
-     * The port on which the request was received.
-     *
-     * This is the port on which the server is listening.
-     *
-     * @return the port on which the request was received.
-     */
-    int getPort();
-
-    /**
      * Returns the restx portion of the request path.
      * <p>
      * If incoming request is http://mydomain.com/api/myresource/test?q=test and baseUri is http://mydomain.com/api,
