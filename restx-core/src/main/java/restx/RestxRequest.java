@@ -19,6 +19,15 @@ public interface RestxRequest {
      * Returns the base URI of this request.
      * Eg http://mydomain.com/api or http://mydomain.com:8080
      *
+     * When used behind a proxy, this will try to return the client facing URI, by using:
+     * - X-Forwarded-Host for the host
+     * - X-Forwarded-Proto for the scheme
+     * - checking first Via to know if request was made in HTTPS
+     *
+     * see http://en.wikipedia.org/wiki/X-Forwarded-For
+     * see http://en.wikipedia.org/wiki/List_of_HTTP_header_fields
+     * see http://httpd.apache.org/docs/current/mod/mod_proxy.html#proxyvia
+     *
      * @return the base URI of this request.
      */
     String getBaseUri();
@@ -33,6 +42,8 @@ public interface RestxRequest {
      *
      * See also this discussion:
      * http://stackoverflow.com/questions/5799577/does-using-www-example-com-in-javascript-chose-http-https-protocol-automatical
+     *
+     * Note that if Via headers are set getBaseUri should be fine too.
      *
      * @return the base network path of this request.
      */
@@ -56,6 +67,19 @@ public interface RestxRequest {
      * @return the restx portion of the full request uri.
      */
     String getRestxUri();
+
+    /**
+     * Is this request performed through a secured connection or not.
+     *
+     * This will return true if:
+     * - the HttpSettings proto() is set to 'https'
+     * - the request has a 'X-Forwarded-Proto' header with value 'https', and comes from an authorized proxy
+     *   as defined by HttpSettings.forwardedSupport()
+     * - the request was performed in HTTPS on this server
+     *
+     * @return true if this request is performed through a secured (HTTPS) connection.
+     */
+    boolean isSecured();
 
     /**
      * HTTP METHOD, eg GET, POST, ...

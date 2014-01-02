@@ -42,6 +42,11 @@ public class RestxRequestWrapper implements RestxRequest {
     }
 
     @Override
+    public boolean isSecured() {
+        return original.isSecured();
+    }
+
+    @Override
     public String getHttpMethod() {
         return original.getHttpMethod();
     }

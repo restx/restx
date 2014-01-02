@@ -3,6 +3,8 @@ package restx.server.simple;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.simpleframework.http.*;
+import restx.HttpSettings;
+import restx.factory.Factory;
 import restx.server.simple.simple.SimpleRestxRequest;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -33,7 +35,8 @@ public class CookiesTest {
 
     private static SimpleRestxRequest createRestxRequest(Cookie... cookies) {
         Request simpleRequest = createSimpleRequestMock(cookies);
-        return new SimpleRestxRequest("/foo", simpleRequest);
+        return new SimpleRestxRequest(Factory.getInstance().getComponent(HttpSettings.class),
+                "/foo", simpleRequest);
     }
 
     private static Request createSimpleRequestMock(Cookie... cookies) {

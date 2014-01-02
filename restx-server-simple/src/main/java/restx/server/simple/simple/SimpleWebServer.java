@@ -11,9 +11,11 @@ import org.simpleframework.transport.connect.Connection;
 import org.simpleframework.transport.connect.SocketConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.HttpSettings;
 import restx.RestxMainRouter;
 import restx.RestxMainRouterFactory;
 import restx.common.MoreIO;
+import restx.factory.Factory;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;
 import restx.server.WebServers;
@@ -105,6 +107,7 @@ public abstract class SimpleWebServer implements WebServer {
     private final String serverId;
 
     private final String routerPath;
+    private final HttpSettings httpSettings;
     private final String appBase;
     private final int port;
 
@@ -116,6 +119,7 @@ public abstract class SimpleWebServer implements WebServer {
         this.routerPath = routerPath;
         this.appBase = appBase;
         this.port = port;
+        this.httpSettings = Factory.getInstance().getComponent(HttpSettings.class);
     }
 
     public String getServerId() {
@@ -140,7 +144,7 @@ public abstract class SimpleWebServer implements WebServer {
                 try {
                     if (request.getTarget().startsWith(routerPath)) {
                         router.route(
-                                new SimpleRestxRequest(routerPath, request), new SimpleRestxResponse(response));
+                                new SimpleRestxRequest(httpSettings, routerPath, request), new SimpleRestxResponse(response));
                     } else {
                         response.getPrintStream().print("Not found...");
                         response.getPrintStream().close();

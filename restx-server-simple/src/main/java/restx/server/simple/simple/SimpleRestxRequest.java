@@ -9,6 +9,7 @@ import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Query;
 import org.simpleframework.http.Request;
 import restx.AbstractRequest;
+import restx.HttpSettings;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -29,7 +30,8 @@ public class SimpleRestxRequest  extends AbstractRequest {
     private BufferedInputStream bufferedInputStream;
     private ImmutableMap<String, ImmutableList<String>> queryParams;
 
-    public SimpleRestxRequest(String apiPath, Request request) {
+    public SimpleRestxRequest(HttpSettings httpSettings, String apiPath, Request request) {
+        super(httpSettings);
         this.apiPath = apiPath;
         this.request = request;
         String path = request.getTarget().substring(apiPath.length());
@@ -40,13 +42,18 @@ public class SimpleRestxRequest  extends AbstractRequest {
     }
 
     @Override
-    public String getBaseUri() {
-        return "http://" + request.getValue("Host") + apiPath;
+    protected String getBaseApiPath() {
+        return apiPath;
     }
 
     @Override
-    public String getBaseNetworkPath() {
-        return request.getValue("Host") + apiPath;
+    protected String getLocalScheme() {
+        return request.isSecure() ? "https" : "http";
+    }
+
+    @Override
+    public String getLocalClientAddress() {
+        return request.getClientAddress().getAddress().getHostAddress();
     }
 
     @Override
@@ -115,11 +122,6 @@ public class SimpleRestxRequest  extends AbstractRequest {
     public boolean isPersistentCookie(String cookie) {
         Map<String, String> cookiesMap = getCookiesMap();
         return cookiesMap.containsKey(cookie) ? request.getCookie(cookie).getExpiry() > 0 : false;
-    }
-
-    @Override
-    public String getClientAddress() {
-        return getHeader("X-Forwarded-For").or(request.getClientAddress().toString());
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import restx.factory.Factory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,11 +29,13 @@ import static com.google.common.collect.Iterables.getFirst;
  */
 public class StdRequest extends AbstractRequest {
 
+
     public static StdRequestBuilder builder() {
         return new StdRequestBuilder();
     }
 
-    private final int port;
+    private final String localScheme;
+    private final String baseApiPath;
     private final String baseUri;
     private final String restxPath;
     private final String httpMethod;
@@ -45,6 +48,7 @@ public class StdRequest extends AbstractRequest {
     private StdRequest(String baseUri, String restxPath, String httpMethod,
                       ImmutableMap<String, String> headers, ImmutableMap<String, ImmutableList<String>> queryParams,
                       ImmutableMap<String, String> cookiesMap, Supplier<InputStream> inputStreamSupplier) {
+        super(Factory.getInstance().getComponent(HttpSettings.class));
         this.baseUri = checkNotNull(baseUri, "baseUri is required");
         this.restxPath = checkNotNull(restxPath, "restxPath is required");
         this.httpMethod = checkNotNull(httpMethod, "httpMethod is required");
@@ -52,15 +56,30 @@ public class StdRequest extends AbstractRequest {
         this.cookiesMap = checkNotNull(cookiesMap, "cookies map is required");
         this.headers = checkNotNull(headers, "headers is required");
         this.inputStreamSupplier = checkNotNull(inputStreamSupplier, "inputstream supplier is required");
-        this.port = getPortFromBaseUri(baseUri);
+        this.localScheme = getSchemeFromBaseUri(baseUri);
+        this.baseApiPath = getBaseApiPathFromBaseUri(baseUri);
     }
 
-    private int getPortFromBaseUri(String baseUri) {
+    private String getBaseApiPathFromBaseUri(String baseUri) {
+        return baseUri.replaceAll("^[^:]+://[^/]+/", "/");
+    }
+
+    private String getSchemeFromBaseUri(String baseUri) {
         try {
-            return new URI(baseUri).getPort();
+            return new URI(baseUri).getScheme();
         } catch (URISyntaxException e) {
-            return 80;
+            return "http";
         }
+    }
+
+    @Override
+    protected String getBaseApiPath() {
+        return baseApiPath;
+    }
+
+    @Override
+    protected String getLocalScheme() {
+        return localScheme;
     }
 
     @Override
@@ -138,7 +157,7 @@ public class StdRequest extends AbstractRequest {
     }
 
     @Override
-    public String getClientAddress() {
+    public String getLocalClientAddress() {
         return "";
     }
 

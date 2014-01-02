@@ -29,6 +29,11 @@ public class CoreModule {
     }
 
     @Provides
+    public ConfigSupplier httpConfigSupplier(ConfigLoader configLoader) {
+        return configLoader.fromResource("restx/httpConfig");
+    }
+
+    @Provides
     public EventBus eventBus() {
         return new EventBus();
     }

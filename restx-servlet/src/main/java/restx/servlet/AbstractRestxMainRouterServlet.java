@@ -1,6 +1,8 @@
 package restx.servlet;
 
+import restx.HttpSettings;
 import restx.RestxMainRouter;
+import restx.factory.Factory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -15,6 +17,7 @@ import java.io.IOException;
  */
 public class AbstractRestxMainRouterServlet extends HttpServlet {
     private RestxMainRouter mainRouter;
+    private HttpSettings httpSettings;
 
     public AbstractRestxMainRouterServlet() {
     }
@@ -25,6 +28,7 @@ public class AbstractRestxMainRouterServlet extends HttpServlet {
 
     protected void init(RestxMainRouter mainRouter) {
         this.mainRouter = mainRouter;
+        httpSettings = Factory.getInstance().getComponent(HttpSettings.class);
     }
 
     @Override
@@ -42,7 +46,7 @@ public class AbstractRestxMainRouterServlet extends HttpServlet {
     @Override
     protected void service(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         mainRouter.route(
-                new HttpServletRestxRequest(req),
+                new HttpServletRestxRequest(httpSettings, req),
                 new HttpServletRestxResponse(resp, req));
     }
 }

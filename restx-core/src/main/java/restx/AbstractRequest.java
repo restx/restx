@@ -1,10 +1,16 @@
 package restx;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -12,6 +18,12 @@ import java.util.Map;
  * Time: 18:38
  */
 public abstract class AbstractRequest implements RestxRequest {
+    private final HttpSettings httpSettings;
+
+    protected AbstractRequest(HttpSettings httpSettings) {
+        this.httpSettings = httpSettings;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[RESTX REQUEST] ");
@@ -37,4 +49,87 @@ public abstract class AbstractRequest implements RestxRequest {
         }
         sb.setLength(sb.length() - 1);
     }
+
+    @Override
+    public String getBaseUri() {
+        return getScheme() + ":" + getBaseNetworkPath();
+    }
+
+    @Override
+    public String getBaseNetworkPath() {
+        checkProxyRequest();
+        return "//" + getHost() + getBaseApiPath();
+    }
+
+    protected String getHost() {
+        return httpSettings.host().or(getHeader("X-Forwarded-Host")).or(getHeader("Host")).get();
+    }
+
+    @Override
+    public boolean isSecured() {
+        checkProxyRequest();
+        return getScheme().equalsIgnoreCase("https");
+    }
+
+    protected String getScheme() {
+        Optional<String> proto = httpSettings.scheme().or(getHeader("X-Forwarded-Proto"));
+        if (proto.isPresent()) {
+            return proto.get();
+        }
+        Optional<String> via = getHeader("Via");
+        if (via.isPresent()) {
+            boolean secured = via.get().toUpperCase(Locale.ENGLISH).startsWith("HTTPS");
+            return secured ? "https" : "http";
+        } else {
+            return getLocalScheme();
+        }
+    }
+
+    @Override
+    public String getClientAddress() {
+        // see http://en.wikipedia.org/wiki/X-Forwarded-For
+        checkProxyRequest();
+        Optional<String> xff = getHeader("X-Forwarded-For");
+        if (xff.isPresent()) {
+            return Iterables.getFirst(Splitter.on(",").trimResults().split(xff.get()),
+                    getLocalClientAddress());
+        } else {
+            return getLocalClientAddress();
+        }
+    }
+
+    protected void checkProxyRequest() {
+        if (getHeader("X-Forwarded-Proto").isPresent()) {
+            String localClientAddress = getLocalClientAddress();
+            Collection<String> forwardedSupport = httpSettings.forwardedSupport();
+            if (!forwardedSupport.contains("all")
+                    && !forwardedSupport.contains(localClientAddress)) {
+                throw new IllegalArgumentException("Unauthorized proxy request from " + localClientAddress);
+            }
+        }
+    }
+
+    /**
+     * Returns the client address of this request, without taking proxy into account
+     * @return
+     */
+    protected abstract String getLocalClientAddress();
+
+
+    /**
+     * The path on which restx is mounted.
+     * Eg /api
+     *
+     * @return the path on which restx is mounted.
+     */
+    protected abstract String getBaseApiPath();
+
+    /**
+     * The URL scheme used for this request, without taking proxy into account.
+     * Eg: http, https
+     *
+     * @return
+     */
+    protected abstract String getLocalScheme();
+
 }

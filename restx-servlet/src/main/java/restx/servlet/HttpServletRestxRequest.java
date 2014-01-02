@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import restx.AbstractRequest;
+import restx.HttpSettings;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.Cookie;
@@ -27,29 +28,29 @@ public class HttpServletRestxRequest extends AbstractRequest {
     private BufferedInputStream bufferedInputStream;
     private ImmutableMap<String, ImmutableList<String>> queryParams;
 
-    public HttpServletRestxRequest(HttpServletRequest request) {
+    public HttpServletRestxRequest(HttpSettings httpSettings, HttpServletRequest request) {
+        super(httpSettings);
         this.request = request;
     }
 
-    public String getClientAddress() {
-        return getHeader("X-Forwarded-For").or(request.getRemoteAddr());
+    @Override
+    public String getLocalClientAddress() {
+        return request.getRemoteAddr();
     }
 
     @Override
-    public String getBaseUri() {
-        String url = request.getRequestURL().toString();
-        return url.substring(0, url.lastIndexOf(getRestxPath()));
+    protected String getBaseApiPath() {
+        return request.getContextPath() + request.getServletPath();
     }
 
     @Override
-    public String getBaseNetworkPath() {
-        return getBaseUri().replaceAll("^https?:", "");
+    protected String getLocalScheme() {
+        return request.getScheme();
     }
 
     @Override
     public String getRestxPath() {
-        return request.getRequestURI().substring(
-                (request.getContextPath() + request.getServletPath()).length());
+        return request.getRequestURI().substring((getBaseApiPath()).length());
     }
 
     @Override

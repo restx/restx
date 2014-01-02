@@ -23,6 +23,26 @@ public class ContextParamsTest {
     }
 
     @Test
+    public void should_use_proxy_headers_for_base_uri() throws Exception {
+        HttpRequest httpRequest = server.client().GET(
+                "/api/contextParams/baseUri")
+                .header("Via", "HTTPS/1.1 proxy")
+                .header("X-Forwarded-Host", "www.example.com");
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("https://www.example.com/api");
+    }
+
+    @Test
+    public void should_use_proxy_headers_proto_for_base_uri() throws Exception {
+        HttpRequest httpRequest = server.client().GET(
+                "/api/contextParams/baseUri")
+                .header("X-Forwarded-Proto", "https")
+                .header("X-Forwarded-Host", "www.example.com");
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("https://www.example.com/api");
+    }
+
+    @Test
     public void should_access_client_address() throws Exception {
         HttpRequest httpRequest = server.client().GET(
                 "/api/contextParams/clientAddress");

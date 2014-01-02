@@ -19,6 +19,7 @@ public class StdRequestTest {
         StdRequest request = StdRequest.builder().setBaseUri("http://localhost:8080/api").setRestxPath("/message")
                 .setQueryParams(ImmutableMap.<String, ImmutableList<String>>of("q", ImmutableList.of("val1", "val2"))).build();
         assertThat(request.getBaseUri()).isEqualTo("http://localhost:8080/api");
+        assertThat(request.getBaseApiPath()).isEqualTo("/api");
         assertThat(request.getRestxPath()).isEqualTo("/message");
         assertThat(request.getRestxUri()).isEqualTo("/message?q=val1&q=val2");
     }
