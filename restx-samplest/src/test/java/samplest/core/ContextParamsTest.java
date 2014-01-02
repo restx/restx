@@ -31,6 +31,14 @@ public class ContextParamsTest {
     }
 
     @Test
+    public void should_use_x_forwarded_for_client_address() throws Exception {
+        HttpRequest httpRequest = server.client().GET(
+                "/api/contextParams/clientAddress").header("X-Forwarded-For", "10.0.10.1");
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).contains("10.0.10.1");
+    }
+
+    @Test
     public void should_access_request() throws Exception {
         HttpRequest httpRequest = server.client().GET(
                 "/api/contextParams/request");

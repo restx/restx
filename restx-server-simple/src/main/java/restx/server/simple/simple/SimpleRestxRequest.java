@@ -129,7 +129,7 @@ public class SimpleRestxRequest  extends AbstractRequest {
 
     @Override
     public String getClientAddress() {
-        return request.getClientAddress().toString();
+        return getHeader("X-Forwarded-For").or(request.getClientAddress().toString());
     }
 
     @Override

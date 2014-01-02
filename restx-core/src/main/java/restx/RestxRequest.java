@@ -83,6 +83,16 @@ public interface RestxRequest {
     boolean isPersistentCookie(String cookie);
     ImmutableMap<String,String> getCookiesMap();
 
+    /**
+     * The address (IP) of the client.
+     *
+     * If X-Forwarded-For header is present, it will return its value, otherwise it returns
+     * the remote client address.
+     *
+     * see http://httpd.apache.org/docs/current/mod/mod_proxy.html#x-headers for details on this header.
+     *
+     * @return
+     */
     String getClientAddress();
 
     InputStream getContentStream() throws IOException;
