@@ -1,5 +1,6 @@
 package restx;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 
@@ -76,6 +77,18 @@ public class RestxContext {
             public void onAfterWriteContent(RestxRequest req, RestxResponse resp) {
                 lifecycleListener.onAfterWriteContent(req, resp);
                 listener.onAfterWriteContent(req, resp);
+            }
+
+            @Override
+            public void onEntityInput(RestxRoute route, RestxRequest req, RestxResponse resp, Object input) {
+                lifecycleListener.onEntityInput(route, req, resp, input);
+                listener.onEntityInput(route, req, resp, input);
+            }
+
+            @Override
+            public void onEntityOutput(RestxRoute route, RestxRequest req, RestxResponse resp, Object input, Optional<?> output) {
+                lifecycleListener.onEntityOutput(route, req, resp, input, output);
+                listener.onEntityOutput(route, req, resp, input, output);
             }
         }, matches, matchesIterator);
     }

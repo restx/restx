@@ -108,9 +108,14 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+        RouteLifecycleListener lifecycleListener = ctx.getLifecycleListener();
         resp.setLogLevel(logLevel);
-        ctx.getLifecycleListener().onRouteMatch(this, req, resp);
-        Optional<O> result = doRoute(req, match, entityRequestBodyReader.readBody(req, ctx));
+
+        lifecycleListener.onRouteMatch(this, req, resp);
+        I input = entityRequestBodyReader.readBody(req, ctx);
+        lifecycleListener.onEntityInput(this, req, resp, input);
+        Optional<O> result = doRoute(req, match, input);
+        lifecycleListener.onEntityOutput(this, req, resp, input, result);
         if (result.isPresent()) {
             entityResponseWriter.sendResponse(getSuccessStatus(), result.get(), req, resp, ctx);
         } else {
