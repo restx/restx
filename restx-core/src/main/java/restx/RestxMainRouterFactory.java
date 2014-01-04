@@ -547,7 +547,8 @@ public class RestxMainRouterFactory {
             }
         } else {
             return appSettings.hotReload().or(Boolean.TRUE)
-                && !getMode().equals("prod")
+                && !getMode().equals(RestxContext.Modes.PROD)
+                && !getMode().equals(RestxContext.Modes.TEST)
                 && appSettings.appPackage().isPresent();
         }
     }
@@ -569,7 +570,8 @@ public class RestxMainRouterFactory {
             }
         } else {
             return appSettings.hotCompile().or(Boolean.TRUE)
-                && !getMode().equals("prod")
+                && !getMode().equals(RestxContext.Modes.PROD)
+                && !getMode().equals(RestxContext.Modes.TEST)
                 && appSettings.appPackage().isPresent()
                 && hasToolsJar();
         }
