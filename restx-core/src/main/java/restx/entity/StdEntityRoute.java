@@ -113,9 +113,10 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
 
         lifecycleListener.onRouteMatch(this, req, resp);
         I input = entityRequestBodyReader.readBody(req, ctx);
-        lifecycleListener.onEntityInput(this, req, resp, input);
+        Optional<I> optionalInput = Optional.fromNullable(input);
+        lifecycleListener.onEntityInput(this, req, resp, optionalInput);
         Optional<O> result = doRoute(req, match, input);
-        lifecycleListener.onEntityOutput(this, req, resp, input, result);
+        lifecycleListener.onEntityOutput(this, req, resp, optionalInput, result);
         if (result.isPresent()) {
             entityResponseWriter.sendResponse(getSuccessStatus(), result.get(), req, resp, ctx);
         } else {

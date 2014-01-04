@@ -28,9 +28,9 @@ public interface RouteLifecycleListener {
      * @param route the route processing the request, which most of the time is a StdEntityRoute
      * @param req the processed request
      * @param resp the upcoming response
-     * @param input the request content unmarshalled into an entity. May be null if request has no content.
+     * @param input the request content unmarshalled into an entity
      */
-    void onEntityInput(RestxRoute route, RestxRequest req, RestxResponse resp, Object input);
+    void onEntityInput(RestxRoute route, RestxRequest req, RestxResponse resp, Optional<?> input);
 
     /**
      * Called when an entity route has done its job and returned the output as an entity, which has yet to be
@@ -41,10 +41,10 @@ public interface RouteLifecycleListener {
      * @param route the route processing the request, which most of the time is a StdEntityRoute
      * @param req the processed request
      * @param resp the upcoming response
-     * @param input the request content unmarshalled into an entity. May be null if request has no content.
+     * @param input the request content unmarshalled into an entity
      * @param output the returned output
      */
-    void onEntityOutput(RestxRoute route, RestxRequest req, RestxResponse resp, Object input, Optional<?> output);
+    void onEntityOutput(RestxRoute route, RestxRequest req, RestxResponse resp, Optional<?> input, Optional<?> output);
 
     /**
      * Called just before the response is written.

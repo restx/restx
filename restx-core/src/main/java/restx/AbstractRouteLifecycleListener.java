@@ -20,10 +20,10 @@ public  abstract class AbstractRouteLifecycleListener implements RouteLifecycleL
     }
 
     @Override
-    public void onEntityInput(RestxRoute route, RestxRequest req, RestxResponse resp, Object input) {
+    public void onEntityInput(RestxRoute route, RestxRequest req, RestxResponse resp, Optional<?> input) {
     }
 
     @Override
-    public void onEntityOutput(RestxRoute route, RestxRequest req, RestxResponse resp, Object input, Optional<?> output) {
+    public void onEntityOutput(RestxRoute route, RestxRequest req, RestxResponse resp, Optional<?> input, Optional<?> output) {
     }
 }
