@@ -10,6 +10,7 @@ import java.io.File;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static restx.common.MoreFiles.extractZip;
 
 /**
  * User: xavierhanin
@@ -34,5 +35,18 @@ public class MoreFilesTest {
         assertThat(targetDir.toFile()).exists();
         assertThat(targetDir.resolve("test").toFile()).exists().hasContent("test");
         assertThat(targetDir.resolve("subfolder/test2").toFile()).exists().hasContent("test2");
+    }
+
+    @Test
+    public void should_extract_zip() throws Exception {
+        File dest = folder.newFolder("dest");
+
+        extractZip(new File("src/test/resources/restx/common/test.zip"), dest);
+
+        assertThat(new File(dest, "A.txt")).exists();
+        assertThat(new File(dest, "1/B.txt")).exists();
+        assertThat(new File(dest, "1/C.txt")).exists();
+        assertThat(new File(dest, "2/D.txt")).exists();
+        assertThat(new File(dest, "2/E.txt")).exists().hasContent("hello");
     }
 }
