@@ -2,14 +2,21 @@ package restx.common;
 
 import com.google.common.base.Function;
 import com.google.common.eventbus.EventBus;
+import com.google.common.io.ByteStreams;
 import restx.common.watch.WatcherServiceLoader;
 import restx.common.watch.WatcherSettings;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ExecutorService;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static com.google.common.io.Files.createParentDirs;
 
 /**
  */
@@ -95,6 +102,20 @@ public class MoreFiles {
             throw new IllegalStateException(
                     "couldn't find " + location + " in " + workingDir
                             + "\nCheck your working directory.\n");
+        }
+    }
+
+    public static void extractZip(File zip, File toDir) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zip))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    File file = new File(toDir, entry.getName());
+                    createParentDirs(file);
+                    Files.copy(zis, file.toPath());
+                    zis.closeEntry();
+                }
+            }
         }
     }
 }
