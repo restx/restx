@@ -7,6 +7,7 @@ import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.security.PermitAll;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -34,5 +35,10 @@ public class ContextParamsResource {
     @GET("/contextParams/locale")
     public String getLocale(@Param(kind = Param.Kind.CONTEXT, value = "locale") Locale locale) {
         return locale.toLanguageTag();
+    }
+    @PermitAll
+    @GET("/contextParams/locales")
+    public String getLocales(@Param(kind = Param.Kind.CONTEXT, value = "locales") List<Locale> locales) {
+        return locales.toString();
     }
 }

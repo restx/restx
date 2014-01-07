@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -189,4 +190,8 @@ public class HttpServletRestxRequest extends AbstractRequest {
         return request.getLocale();
     }
 
+    @Override
+    public List<Locale> getLocales() {
+        return Collections.<Locale>list(request.getLocales());
+    }
 }
