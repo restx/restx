@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class Car {
     private String brand;
+    @JsonSerialize(using = JacksonSerializerComponent.class)
     private String model;
 
     @JsonSerialize(using = CustomJacksonSerializer.class)

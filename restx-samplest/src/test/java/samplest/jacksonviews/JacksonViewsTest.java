@@ -23,7 +23,7 @@ public class JacksonViewsTest {
         assertThat(httpRequest.body().trim()).isEqualTo(
                 "[ {\n" +
                         "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"Model1\",\n" +
+                        "  \"model\" : \"samplest-Model1\",\n" +
                         "  \"status\" : {\n" +
                         "    \"status\" : \"ko\",\n" +
                         "    \"details\" : \"\"\n" +
@@ -31,7 +31,7 @@ public class JacksonViewsTest {
                         "  \"details\" : \"Detail1\"\n" +
                         "}, {\n" +
                         "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"Model2\",\n" +
+                        "  \"model\" : \"samplest-Model2\",\n" +
                         "  \"status\" : {\n" +
                         "    \"status\" : \"ok\",\n" +
                         "    \"details\" : \"status detail 2\"\n" +
@@ -46,13 +46,13 @@ public class JacksonViewsTest {
         assertThat(httpRequest.body().trim()).isEqualTo(
                 "[ {\n" +
                         "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"Model1\",\n" +
+                        "  \"model\" : \"samplest-Model1\",\n" +
                         "  \"status\" : {\n" +
                         "    \"status\" : \"ko\"\n" +
                         "  }\n" +
                         "}, {\n" +
                         "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"Model2\",\n" +
+                        "  \"model\" : \"samplest-Model2\",\n" +
                         "  \"status\" : {\n" +
                         "    \"status\" : \"ok\"\n" +
                         "  }\n" +
