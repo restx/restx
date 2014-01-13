@@ -138,6 +138,33 @@ public interface RestxRequest {
      */
     <T> T unwrap(Class<T> clazz);
 
+    /**
+     *
+     * Returns the preferred <code>Locale</code> that the client will
+     * accept content in, based on the Accept-Language header.
+     * If the client request doesn't provide an Accept-Language header,
+     * this method returns the default locale for the server.
+     *
+     *
+     * @return		the preferred <code>Locale</code> for the client
+     *
+     */
     Locale getLocale();
+
+    /**
+     *
+     * Returns an <code>ImmutableList</code> of <code>Locale</code> objects
+     * indicating, in decreasing order starting with the preferred locale, the
+     * locales that are acceptable to the client based on the Accept-Language
+     * header.
+     * If the client request doesn't provide an Accept-Language header,
+     * this method returns an <code>ImmutableList</code> containing one
+     * <code>Locale</code>, the default locale for the server.
+     *
+     *
+     * @return		an <code>ImmutableList</code> of preferred
+     *                  <code>Locale</code> objects for the client
+     *
+     */
     ImmutableList<Locale> getLocales();
 }
