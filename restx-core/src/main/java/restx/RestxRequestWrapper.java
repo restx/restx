@@ -122,7 +122,7 @@ public class RestxRequestWrapper implements RestxRequest {
     }
 
     @Override
-    public List<Locale> getLocales() {
+    public ImmutableList<Locale> getLocales() {
         return original.getLocales();
     }
 }

@@ -14,6 +14,7 @@ import restx.HttpSettings;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -167,8 +168,13 @@ public class SimpleRestxRequest  extends AbstractRequest {
     }
 
     @Override
-    public List<Locale> getLocales() {
-        return request.getLocales();
+    public ImmutableList<Locale> getLocales() {
+        List<Locale> locales = request.getLocales();
+        if (locales.isEmpty()) {
+            return ImmutableList.of(Locale.getDefault());
+        } else {
+            return ImmutableList.copyOf(locales);
+        }
     }
 
 }

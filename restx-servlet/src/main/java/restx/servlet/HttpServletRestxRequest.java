@@ -1,10 +1,7 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import restx.AbstractRequest;
 import restx.HttpSettings;
 
@@ -193,7 +190,8 @@ public class HttpServletRestxRequest extends AbstractRequest {
     }
 
     @Override
-    public List<Locale> getLocales() {
-        return Collections.<Locale>list(request.getLocales());
+    @SuppressWarnings("unchecked")
+    public ImmutableList<Locale> getLocales() {
+        return ImmutableList.copyOf(Iterators.<Locale>forEnumeration(request.getLocales()));
     }
 }

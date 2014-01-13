@@ -215,7 +215,7 @@ public class StdRequest extends AbstractRequest {
     }
 
     @Override
-    public List<Locale> getLocales() {
+    public ImmutableList<Locale> getLocales() {
         List<Locale> locales = new ArrayList<>();
 
         for (String language : getLanguages()) {
@@ -230,7 +230,7 @@ public class StdRequest extends AbstractRequest {
             locales.add(Locale.getDefault());
         }
 
-        return locales;
+        return ImmutableList.copyOf(locales);
     }
 
     public static class StdRequestBuilder {
