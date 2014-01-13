@@ -73,4 +73,12 @@ public class ContextParamsTest {
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo("fr-FR");
     }
+
+    @Test
+    public void should_access_locales() throws Exception {
+        HttpRequest httpRequest = server.client().GET(
+                "/api/contextParams/locales").header("Accept-Language", "fr-FR, en-US");
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("[fr_FR, en_US]");
+    }
 }

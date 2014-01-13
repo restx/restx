@@ -120,4 +120,9 @@ public class RestxRequestWrapper implements RestxRequest {
     public Locale getLocale() {
         return original.getLocale();
     }
+
+    @Override
+    public List<Locale> getLocales() {
+        return original.getLocales();
+    }
 }

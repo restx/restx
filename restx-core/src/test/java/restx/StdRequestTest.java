@@ -2,6 +2,7 @@ package restx;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -86,5 +87,64 @@ public class StdRequestTest {
                 .setHeaders(ImmutableMap.of("Accept-Language", "en-US,en;q=0.8,fr;q=0.6"))
                 .build();
         assertThat(request.getLocale()).isEqualTo(Locale.forLanguageTag("en-US"));
+    }
+
+
+
+    @Test
+    public void should_get_one_with_default_locale() throws Exception {
+        StdRequest request = StdRequest.builder().setBaseUri("http://localhost:8080/api")
+                .setRestxPath("/")
+                .build();
+        assertThat(request.getLocales()).isEqualTo(Lists.newArrayList(Locale.getDefault()));
+    }
+
+    @Test
+    public void should_get_one_with_fr_locale_from_header() throws Exception {
+        StdRequest request = StdRequest.builder().setBaseUri("http://localhost:8080/api")
+                .setRestxPath("/")
+                .setHeaders(ImmutableMap.of("Accept-Language", "fr-FR"))
+                .build();
+        assertThat(request.getLocales()).isEqualTo(Lists.newArrayList(Locale.forLanguageTag("fr-FR")));
+    }
+
+    @Test
+    public void should_get_two_locales_from_header() throws Exception {
+        StdRequest request = StdRequest.builder().setBaseUri("http://localhost:8080/api")
+                .setRestxPath("/")
+                .setHeaders(ImmutableMap.of("Accept-Language", "fr-FR,en-US"))
+                .build();
+        assertThat(request.getLocales()).isEqualTo(Lists.newArrayList(Locale.forLanguageTag("fr-FR"), Locale.forLanguageTag("en-US")));
+    }
+
+    @Test
+    public void should_get_two_locales_from_header_with_list_with_spaces() throws Exception {
+        StdRequest request = StdRequest.builder().setBaseUri("http://localhost:8080/api")
+                .setRestxPath("/")
+                .setHeaders(ImmutableMap.of("Accept-Language", " fr-FR , en-US "))
+                .build();
+        assertThat(request.getLocales()).isEqualTo(Lists.newArrayList(Locale.forLanguageTag("fr-FR"), Locale.forLanguageTag("en-US")));
+    }
+
+    @Test
+    public void should_get_three_locales_from_header_complex_list_with_quality() throws Exception {
+        StdRequest request = StdRequest.builder().setBaseUri("http://localhost:8080/api")
+                .setRestxPath("/")
+                .setHeaders(ImmutableMap.of("Accept-Language", "en-US,en;q=0.8,fr;q=0.6"))
+                .build();
+        assertThat(request.getLocales()).isEqualTo(Lists.newArrayList(
+                Locale.forLanguageTag("en-US"), Locale.forLanguageTag("en"), Locale.forLanguageTag("fr")));
+
+    }
+
+    @Test
+    public void should_get_three_locales_from_header_complex_list_with_quality_and_spaces() throws Exception {
+        StdRequest request = StdRequest.builder().setBaseUri("http://localhost:8080/api")
+                .setRestxPath("/")
+                .setHeaders(ImmutableMap.of("Accept-Language", "en-US,en;q=0.8,fr;q=0.6"))
+                .build();
+        assertThat(request.getLocales()).isEqualTo(Lists.newArrayList(
+                Locale.forLanguageTag("en-US"), Locale.forLanguageTag("en"), Locale.forLanguageTag("fr")));
+
     }
 }

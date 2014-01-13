@@ -166,4 +166,9 @@ public class SimpleRestxRequest  extends AbstractRequest {
         return Locale.getDefault();
     }
 
+    @Override
+    public List<Locale> getLocales() {
+        return request.getLocales();
+    }
+
 }
