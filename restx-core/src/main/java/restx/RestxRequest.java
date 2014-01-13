@@ -139,4 +139,5 @@ public interface RestxRequest {
     <T> T unwrap(Class<T> clazz);
 
     Locale getLocale();
+    List<Locale> getLocales();
 }

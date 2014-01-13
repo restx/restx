@@ -184,30 +184,53 @@ public class StdRequest extends AbstractRequest {
 
     @Override
     public Locale getLocale() {
-        final String acceptLanguage = headers.get("Accept-Language");
-
-        List<String> languagesList = new ArrayList<>();
-
-        if (!Strings.isNullOrEmpty(acceptLanguage)) {
-            final Iterable<String> split =
-                    Splitter.on(",").split(acceptLanguage.replace(" ", "").replace(";", ","));
-
-            for (String s1 : split) {
-                if (!s1.startsWith("q=")) {
-                    languagesList.add(s1);
-                }
-            }
-        }
+        List<String> languages = getLanguages();
 
         Locale locale;
 
-        if (languagesList.isEmpty()) {
+        if (languages.isEmpty()) {
             locale = Locale.getDefault();
         } else {
-            locale = Locale.forLanguageTag(languagesList.get(0));
+            locale = Locale.forLanguageTag(languages.get(0));
         }
 
         return locale;
+    }
+
+    private List<String> getLanguages() {
+        final String acceptLanguageHeader = headers.get("Accept-Language");
+        List<String> languages = new ArrayList<>();
+
+        if (!Strings.isNullOrEmpty(acceptLanguageHeader)) {
+            final Iterable<String> split =
+                    Splitter.on(",").split(acceptLanguageHeader.replace(" ", "").replace(";", ","));
+
+            for (String s1 : split) {
+                if (!s1.startsWith("q=")) {
+                    languages.add(s1);
+                }
+            }
+        }
+        return languages;
+    }
+
+    @Override
+    public List<Locale> getLocales() {
+        List<Locale> locales = new ArrayList<>();
+
+        for (String language : getLanguages()) {
+            Locale locale = Locale.forLanguageTag(language);
+
+            if (locale != null) {
+                locales.add(locale);
+            }
+        }
+
+        if (locales.isEmpty()) {
+            locales.add(Locale.getDefault());
+        }
+
+        return locales;
     }
 
     public static class StdRequestBuilder {
