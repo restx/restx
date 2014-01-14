@@ -27,7 +27,7 @@
                                 <buildScript>build</buildScript>
                             </properties>
                             <source><![CDATA[
-                                                        def basedir = new File(properties['basedir'])
+                            def basedir = new File(properties['basedir'])
                             def buildScript = properties['buildScript']
 
                             def isWindows = { System.properties['os.name'].toLowerCase().contains('windows') }
@@ -36,19 +36,12 @@
                                 buildScript = buildScript + (isWindows() ? '.bat' : '.sh')
                             }
 
-                            def cmds = new File(basedir, buildScript).text.split('\n').findAll {
-                                !it.trim().isEmpty() && !it.trim().startsWith('#') && !it.trim().toLowerCase().startsWith('rem ')
-                            }
-
-                            cmds.each { cmd ->
-                                println ">> " + cmd
-                                if (isWindows()) {
-                                    cmd = "cmd /c " + cmd
-                                }
-                                def process = new ProcessBuilder(cmd.split(' ')).directory(basedir).start()
-                                process.in.eachLine { line -> println line }
-                            }
-                        ]]></source>
+                            def cmd = isWindows() ? "cmd /c $buildScript" : "sh $buildScript"
+                            println ">> " + cmd
+                            def process = new ProcessBuilder(cmd.split(' ')).directory(basedir) .redirectErrorStream(true).start()
+                            process.in.eachLine { line -> println line }
+                            ]]>
+                            </source>
                         </configuration>
                     </execution>
                 </executions>
