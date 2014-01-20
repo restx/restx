@@ -51,7 +51,9 @@ public class GivenUUIDGeneratorRecorder implements RestxSpecRecorder.GivenRecord
 
         @Override
         public void close() throws Exception {
-            givens.put("uuids", givenUUIDGenerator);
+            if (!givenUUIDGenerator.getPlaybackUUIDs().isEmpty()) {
+                givens.put("uuids", givenUUIDGenerator);
+            }
         }
 
         private void recordGeneratedId(String uuid) {
