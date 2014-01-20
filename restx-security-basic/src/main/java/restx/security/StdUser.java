@@ -28,4 +28,12 @@ public class StdUser implements RestxPrincipal {
     public String getName() {
         return name;
     }
+
+    @Override
+    public String toString() {
+        return "StdUser{" +
+                "name='" + name + '\'' +
+                ", roles=" + roles +
+                '}';
+    }
 }
