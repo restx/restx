@@ -31,7 +31,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
     @Override
     public AutoCloseable recordIn(Map<String, Given> givens) {
         final Tape tape = new Tape(givens);
-        final Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
+        final Factory.Query<Mapper> mapperQuery = Factory.Query.byName(Name.of(Mapper.class, "Mapper"));
         Factory.LocalMachines.threadLocal().addMachine(
                 new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
                         Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplier"),

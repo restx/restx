@@ -21,6 +21,7 @@ import restx.specs.mongo.GivenJongoCollection;
 import restx.tests.GivenCleaner;
 import restx.tests.GivenRunner;
 
+import java.lang.reflect.Field;
 import java.net.UnknownHostException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -64,7 +65,6 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                 }
             };
 
-            final Factory.Query<Mapper> mapperQuery = Factory.Query.byClass(Mapper.class);
             final SingleNameFactoryMachine<ComponentCustomizerEngine> customizerMachine =
                     new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
                         Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplierOf"
@@ -72,7 +72,7 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                         BoundlessComponentBox.FACTORY) {
                 @Override
                 public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of(mapperQuery);
+                    return BillOfMaterials.of();
                 }
 
                 @Override
@@ -82,10 +82,8 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                         @Override
                         public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
                             if (namedComponent.getName().getName().equals(given.getCollection())) {
-                                Mapper mapper = satisfiedBOM.getOne(mapperQuery).get().getComponent();
                                 return new NamedComponent<>(namedComponent.getName(),
-                                        new SequencedJongoCollection(namedComponent.getComponent(), mapper,
-                                                mapper.getObjectIdUpdater(), iteratingSequence));
+                                        new SequencedJongoCollection(namedComponent.getComponent(),iteratingSequence));
                             } else {
                                 return namedComponent;
                             }
@@ -125,15 +123,10 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
 
     private class SequencedJongoCollection implements JongoCollection {
         private final JongoCollection collection;
-        private final Mapper mapper;
-        private final ObjectIdUpdater objectIdUpdater;
         private final CollectionSequence iteratingSequence;
 
-        public SequencedJongoCollection(JongoCollection collection, Mapper mapper,
-                                        ObjectIdUpdater objectIdUpdater, CollectionSequence iteratingSequence) {
+        public SequencedJongoCollection(JongoCollection collection, CollectionSequence iteratingSequence) {
             this.collection = collection;
-            this.mapper = mapper;
-            this.objectIdUpdater = objectIdUpdater;
             this.iteratingSequence = iteratingSequence;
         }
 
@@ -144,6 +137,8 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
 
         @Override
         public MongoCollection get() {
+            final Mapper mapper = getMapper();
+
             MongoCollection mongoCollection = new MongoCollection(
                     collection.get().getDBCollection(),
                     new Mapper() {
@@ -162,17 +157,17 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                             return new ObjectIdUpdater() {
                                 @Override
                                 public boolean mustGenerateObjectId(Object pojo) {
-                                    return objectIdUpdater.mustGenerateObjectId(pojo);
+                                    return mapper.getObjectIdUpdater().mustGenerateObjectId(pojo);
                                 }
 
                                 @Override
                                 public Object getId(Object pojo) {
-                                    return objectIdUpdater.getId(pojo);
+                                    return mapper.getObjectIdUpdater().getId(pojo);
                                 }
 
                                 @Override
                                 public void setObjectId(Object target, ObjectId id) {
-                                    objectIdUpdater.setObjectId(target,
+                                    mapper.getObjectIdUpdater().setObjectId(target,
                                             new ObjectId(iteratingSequence.next().or(id.toString())));
                                 }
                             };
@@ -184,6 +179,18 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
                         }
                     });
             return mongoCollection;
+        }
+
+        protected Mapper getMapper() {
+            try {
+                Field mapperField = MongoCollection.class.getDeclaredField("mapper");
+                mapperField.setAccessible(true);
+                return (Mapper) mapperField.get(collection.get());
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

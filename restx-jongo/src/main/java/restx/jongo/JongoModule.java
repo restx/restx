@@ -23,7 +23,7 @@ import javax.inject.Named;
 public class JongoModule {
     public static final Name<Jongo> NAME = Name.of(Jongo.class, "Jongo");
 
-    @Provides
+    @Provides @Named("Mapper")
     public Mapper mapper() {
         return new JacksonMapper.Builder()
                         .registerModule(new BsonJodaTimeModule())
@@ -34,7 +34,7 @@ public class JongoModule {
     @Provides @Named("Jongo")
     public Jongo jongo(@Named(MongoModule.MONGO_DB_NAME) String dbName,
                                 @Named(MongoModule.MONGO_CLIENT_NAME) MongoClient mongoClient,
-                                Mapper mapper) {
+                                @Named("Mapper") Mapper mapper) {
         return new Jongo(mongoClient.getDB(dbName), mapper);
     }
 }
