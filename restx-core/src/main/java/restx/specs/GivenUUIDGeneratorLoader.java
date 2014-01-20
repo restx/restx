@@ -27,7 +27,7 @@ public class GivenUUIDGeneratorLoader implements RestxSpecLoader.GivenLoader {
             Iterables.addAll(uuids, Splitter.on(",").omitEmptyStrings().trimResults().split(s));
         } else if (data instanceof Iterable) {
             Iterables.addAll(uuids, asIterableString((Iterable) data));
-        } else {
+        } else if (data != null) {
             throw new IllegalArgumentException("unsupported type for uuids data in " + given +
                     ": " + data.getClass().getName() +
                     " must be either String or Iterable.");
