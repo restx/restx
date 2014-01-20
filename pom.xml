@@ -118,6 +118,7 @@
         <module>restx-apidocs</module>
         <module>restx-monitor-admin</module>
         <module>restx-factory-admin</module>
+        <module>restx-log-admin</module>
         <module>restx-specs-tests</module>
         <module>restx-specs-admin</module>
         <module>restx-specs-server</module>
