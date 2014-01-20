@@ -111,7 +111,8 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
             String principalName = valueidsByKey.get(RestxPrincipal.SESSION_DEF_KEY);
             Optional<RestxPrincipal> principalOptional = RestxSession.getValue(
                     sessionDefinition, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principalName);
-            if (principalOptional.isPresent() && principalOptional.get().getPrincipalRoles().contains("restx-admin")) {
+            if (principalOptional.isPresent()
+                    && Permissions.hasRole("restx-admin").has(principalOptional.get(), null).isPresent()) {
                 Optional<String> su = req.getHeader("RestxSu");
                 if (su.isPresent() && !Strings.isNullOrEmpty(su.get())) {
                     try {

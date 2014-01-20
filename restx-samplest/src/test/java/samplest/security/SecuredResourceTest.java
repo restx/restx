@@ -37,6 +37,14 @@ public class SecuredResourceTest {
     }
 
     @Test
+    public void should_access_secured_resource_with_su() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin").GET("/api/security/user")
+                .header("RestxSu", "{ \"principal\": \"user1\" }");
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("user1");
+    }
+
+    @Test
     public void should_access_secured_resource_with_http_basic() throws Exception {
         HttpTestClient client = server.client();
         HttpRequest httpRequest = client.GET("/api/security/user")
