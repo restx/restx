@@ -35,7 +35,8 @@ angular.module('admin').config(function($httpProvider) {
                         window.onSecurityException(baseUri, response, backTo);
                     } else {
                         // default implementation
-                        if (response.config.headers && response.config.headers.RestxSu && response.status === 403) {
+                        if (response.config.headers && response.config.headers.RestxSu
+                            && (response.status === 401 || response.status === 403)) {
                             // do nothing, the forbidden was sent while sudoing, probably in api docs
                         } else {
                             window.location = baseUri + '/@/ui/login.html?backTo=' + backTo;
