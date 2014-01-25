@@ -1,0 +1,24 @@
+body {
+    padding-top: 60px;
+}
+
+.key {
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+    font-size: 14px;
+}
+
+.value {
+    width: 560px;
+}
+
+.key, .value {
+    text-overflow: ellipsis; white-space: nowrap;
+}
+
+table { table-layout: fixed; }
+table th, table td { overflow: hidden; }
+
+td[contentEditable] {
+    cursor: pointer;
+    background-color: #D0D0D0;
+}
