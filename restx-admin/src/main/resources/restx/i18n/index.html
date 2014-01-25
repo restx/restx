@@ -41,7 +41,10 @@
         <div class="row">
             <div class="span12" ng-controller="I18nController">
                 <p class="pull-right"><span class="label label-info">Tip</span> The labels can be edited by clicking on their values</p>
-                <button class="btn" ng-repeat="locale in locales" ng-click="setLocale(locale)">{{ locale }}</button>
+                <div>
+                    Current Locale: <strong>{{locale}}</strong> - Select Locale:
+                    <button class="btn" ng-if="l !== locale" ng-repeat="l in locales" ng-click="setLocale(l)">{{ l }}</button>
+                </div>
 
                 <table class="table table-striped">
                     <thead>
