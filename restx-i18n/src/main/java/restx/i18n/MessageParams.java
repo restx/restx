@@ -33,16 +33,31 @@ public class MessageParams {
         return new MessageParams(ImmutableMap.of(k1, value(v1)));
     }
 
+    public static MessageParams of(String k1, Object v1, String k2, Object v2) {
+        return new MessageParams(ImmutableMap.of(k1, value(v1), k2, value(v2)));
+    }
+
+    public static MessageParams of(String k1, Object v1, String k2, Object v2, String k3, Object v3) {
+        return new MessageParams(ImmutableMap.of(k1, value(v1), k2, value(v2), k3, value(v3)));
+    }
+
+    public static MessageParams of(String k1, Object v1, String k2, Object v2, String k3, Object v3, String k4, Object v4) {
+        return new MessageParams(ImmutableMap.of(k1, value(v1), k2, value(v2), k3, value(v3), k4, value(v4)));
+    }
+
     private static Object value(Object v) {
         return v == null ? "" : v;
     }
-
 
     public MessageParams(ImmutableMap<String, ?> map) {
         this.map = map;
     }
 
     private final ImmutableMap<String, ?> map;
+
+    public MessageParams concat(String key, Object value) {
+        return new MessageParams(ImmutableMap.<String, Object>builder().putAll(map).put(key, value(value)).build());
+    }
 
     public Map<String, ?> toMap() {
         return map;
