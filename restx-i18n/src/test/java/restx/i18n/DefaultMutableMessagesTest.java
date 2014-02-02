@@ -25,7 +25,7 @@ public class DefaultMutableMessagesTest {
         final File file = folder.newFile();
         Files.copy(new File("src/test/resources/restx/i18n/test.properties"), file);
 
-        DefaultMutableMessages m = new DefaultMutableMessages("restx.i18n.test") {
+        DefaultMutableMessages m = new DefaultMutableMessages("restx.i18n.mtest") {
             @Override
             protected URL getResource(String resourceName) {
                 try {
