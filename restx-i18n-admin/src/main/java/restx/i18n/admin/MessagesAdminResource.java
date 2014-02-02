@@ -2,7 +2,6 @@ package restx.i18n.admin;
 
 import restx.annotations.GET;
 import restx.annotations.POST;
-import restx.annotations.PUT;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.i18n.Messages;
@@ -18,11 +17,11 @@ import java.util.*;
  * Time: 16:34
  */
 @RestxResource @Component
-public class MessagesResource {
+public class MessagesAdminResource {
     private final Messages messages;
     private final Collection<SupportedLocale> supportedLocales;
 
-    public MessagesResource(@Named("Messages") Messages messages, Collection<SupportedLocale> supportedLocales) {
+    public MessagesAdminResource(@Named("Messages") Messages messages, Collection<SupportedLocale> supportedLocales) {
         this.messages = messages;
         this.supportedLocales = supportedLocales;
     }

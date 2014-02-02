@@ -13,7 +13,7 @@ import java.util.Locale;
  * Date: 2/2/14
  * Time: 08:31
  */
-@Module
+@Module(priority = 100)
 public class I18nModule {
     @Provides
     @Named("Messages")
@@ -31,4 +31,8 @@ public class I18nModule {
     }
 
 
+    @Provides @Named("restx.i18n.labelsJsTemplate")
+    public String labelsJsTemplate() {
+        return "// RESTX Labels - customize this with restx.i18n.labelsJsTemplate named String\nwindow.labels = {LABELS};";
+    }
 }

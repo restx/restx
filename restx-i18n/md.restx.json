@@ -15,7 +15,9 @@
         ],
         "test": [
             "junit:junit:${junit.version}",
-            "org.assertj:assertj-core:${assertj-core.version}"
+            "org.assertj:assertj-core:${assertj-core.version}",
+            "io.restx:restx-specs-tests:${restx.version}",
+            "io.restx:restx-server-simple:${restx.version}"
         ]
     }
 }
