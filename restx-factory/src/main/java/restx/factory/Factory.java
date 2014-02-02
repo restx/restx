@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 import static restx.common.MoreObjects.toString;
+import static restx.common.MorePreconditions.checkPresent;
 import static restx.common.MoreStrings.indent;
 
 /**
@@ -770,7 +771,8 @@ public class Factory implements AutoCloseable {
      * @return
      */
     public <T> T getComponent(Class<T> componentClass) {
-        return queryByClass(componentClass).mandatory().findOneAsComponent().get();
+        return checkPresent(queryByClass(componentClass).mandatory().findOneAsComponent(),
+                "component of class %s not found", componentClass);
     }
 
     /**
@@ -785,7 +787,8 @@ public class Factory implements AutoCloseable {
      * @return
      */
     public <T> T getComponent(Name<T> componentName) {
-        return queryByName(componentName).mandatory().findOneAsComponent().get();
+        return checkPresent(queryByName(componentName).mandatory().findOneAsComponent(),
+                "component of name %s not found", componentName);
     }
 
     /**
