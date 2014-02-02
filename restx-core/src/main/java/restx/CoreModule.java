@@ -8,19 +8,8 @@ import restx.common.UUIDGenerator;
 import restx.config.ConfigLoader;
 import restx.config.ConfigSupplier;
 import restx.factory.*;
-import restx.i18n.DefaultMessages;
-import restx.i18n.DefaultMutableMessages;
-import restx.i18n.Messages;
-import restx.i18n.SupportedLocale;
 
 import javax.inject.Named;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import static restx.factory.Factory.LocalMachines.overrideComponents;
 
 /**
  */
@@ -37,20 +26,6 @@ public class CoreModule {
     @Provides
     public ConfigSupplier httpConfigSupplier(ConfigLoader configLoader) {
         return configLoader.fromResource("restx/httpConfig");
-    }
-
-    @Provides @Named("Messages")
-    public Messages messages(AppSettings appSettings) {
-        if (RestxContext.Modes.PROD.equals(appSettings.mode())) {
-            return new DefaultMessages("labels", StandardCharsets.UTF_8);
-        } else {
-            return new DefaultMutableMessages("labels", StandardCharsets.UTF_8);
-        }
-    }
-
-    @Provides @Named("ROOT")
-    public SupportedLocale rootSupportedLocale() {
-        return new SupportedLocale(Locale.ROOT);
     }
 
     @Provides

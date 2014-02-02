@@ -1,10 +1,13 @@
-package restx.i18n;
+package restx.i18n.admin;
 
 import restx.annotations.GET;
 import restx.annotations.POST;
 import restx.annotations.PUT;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
+import restx.i18n.Messages;
+import restx.i18n.MutableMessages;
+import restx.i18n.SupportedLocale;
 
 import javax.inject.Named;
 import java.io.IOException;

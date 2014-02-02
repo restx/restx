@@ -1,4 +1,4 @@
-package restx.i18n;
+package restx.i18n.admin;
 
 import restx.admin.AdminPage;
 import restx.factory.Module;

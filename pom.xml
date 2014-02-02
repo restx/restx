@@ -115,6 +115,8 @@
         <module>restx-core-annotation-processor</module>
         <module>restx-annotation-processors-package</module>
         <module>restx-admin</module>
+        <module>restx-i18n</module>
+        <module>restx-i18n-admin</module>
         <module>restx-apidocs</module>
         <module>restx-monitor-admin</module>
         <module>restx-factory-admin</module>

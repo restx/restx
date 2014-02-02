@@ -1,4 +1,4 @@
-package restx.i18n;
+package restx.i18n.admin;
 
 import com.google.common.collect.ImmutableMap;
 import restx.ResourcesRoute;

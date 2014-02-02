@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.restx</groupId>
+        <artifactId>restx-parent</artifactId>
+        <version>0.32-SNAPSHOT</version>
+    </parent>
+
+    <groupId>io.restx</groupId>
+    <artifactId>restx-i18n</artifactId>
+    <version>0.32-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>restx-i18n</name>
+
+    <properties>
+        <restx.version>0.32-SNAPSHOT</restx.version>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <slf4j-api.version>1.7.5</slf4j-api.version>
+        <junit.version>4.11</junit.version>
+        <assertj-core.version>1.5.0</assertj-core.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-factory</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-core</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-core-annotation-processor</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj-core.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
