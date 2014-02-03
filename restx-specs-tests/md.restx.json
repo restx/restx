@@ -16,7 +16,8 @@
             "org.hamcrest:hamcrest-library:${hamcrest.version}",
             "uk.co.datumedge:hamcrest-json:${hamcrest-json.version}",
             "org.assertj:assertj-core:${assertj-core.version}",
-            "com.github.kevinsawicki:http-request:${http-request.version}"
+            "com.github.kevinsawicki:http-request:${http-request.version}",
+            "com.googlecode.java-diff-utils:diffutils:${diffutils.version}"
         ],
         "test": [
             "io.restx:restx-server-jetty:${restx.version}"
