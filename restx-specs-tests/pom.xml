@@ -25,6 +25,7 @@
         <assertj-core.version>1.5.0</assertj-core.version>
         <hamcrest.version>1.3</hamcrest.version>
         <hamcrest-json.version>0.2</hamcrest-json.version>
+        <diffutils.version>1.3.0</diffutils.version>
     </properties>
 
     <dependencies>
@@ -72,6 +73,11 @@
             <groupId>com.github.kevinsawicki</groupId>
             <artifactId>http-request</artifactId>
             <version>${http-request.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.java-diff-utils</groupId>
+            <artifactId>diffutils</artifactId>
+            <version>${diffutils.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
