@@ -16,6 +16,7 @@ import static restx.common.MoreStrings.indent;
  * Time: 21:34
  */
 public class JsonAssertions {
+
     public static JsonAssertions assertThat(String json) {
         return new JsonAssertions(new StringJsonSource("actual", json));
     }
@@ -33,12 +34,15 @@ public class JsonAssertions {
     private final JsonSource actual;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private boolean allowingExtraUnexpectedFields;
+
     private JsonAssertions(JsonSource actual) {
         this.actual = actual;
         differ = new JsonDiffer();
     }
 
     public JsonAssertions allowingExtraUnexpectedFields() {
+        allowingExtraUnexpectedFields = true;
         differ.getLeftConfig().setIgnoreExtraFields(true);
         return this;
     }
@@ -126,6 +130,16 @@ public class JsonAssertions {
                     }
                     i++;
                 }
+            }
+
+            // merging can be done with simple copy paste when not allowing extra fields,
+            // but with extra fields allowed copying the actual content when it's the expectation which is not
+            // up to date leads to adding previously ignored fields to the expectation.
+            // therefore we dump a merged expect in this case to ease test maintenance.
+            if (allowingExtraUnexpectedFields) {
+                sb.append("\n\nif the expectation is not up to date, here is a merged" +
+                        " expect that you can use to fix your test:\n");
+                sb.append(indent(new JsonMerger().mergeToRight(diff), 2)).append("\n\n");
             }
 
             throw new AssertionError(sb.toString());
