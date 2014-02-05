@@ -15,6 +15,7 @@ import java.util.Map;
  * Date: 3/2/14
  * Time: 22:03
  */
+@SuppressWarnings("unchecked")
 public class JsonDiffer {
     public static class Config {
         private boolean ignoreExtraFields = false;

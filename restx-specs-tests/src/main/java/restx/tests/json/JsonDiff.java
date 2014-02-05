@@ -13,6 +13,7 @@ import static restx.common.MorePreconditions.checkPresent;
  * Date: 2/2/14
  * Time: 18:49
  */
+@SuppressWarnings("unchecked")
 public class JsonDiff {
     private final JsonWithLocationsParser.ParsedJsonWithLocations leftObj;
     private final JsonWithLocationsParser.ParsedJsonWithLocations rightObj;

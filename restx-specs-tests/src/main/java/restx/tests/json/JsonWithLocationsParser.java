@@ -68,7 +68,7 @@ public class JsonWithLocationsParser {
 
     public static class ParsedJsonLocations {
         private final String source;
-        private Map<Object, JsonObjectLocation> locations = new HashMap();
+        private Map<Object, JsonObjectLocation> locations = new HashMap<>();
 
         public ParsedJsonLocations(String source) {
             this.source = source;
