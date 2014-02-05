@@ -79,6 +79,7 @@ public class MessageParams {
 
     public static class MessageParamsDeserializer extends JsonDeserializer<MessageParams> {
         @Override
+        @SuppressWarnings("unchecked")
         public MessageParams deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             JsonDeserializer<Object> mapDeser = ctxt.findRootValueDeserializer(MapType.construct(
                     LinkedHashMap.class,
