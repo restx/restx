@@ -22,13 +22,15 @@ public class JsonDiff {
     private List<String> currentRightPath = new LinkedList<>(asList("."));
     private Map<String, Object> leftContexts = new LinkedHashMap<>();
     private Map<String, Object> rightContexts = new LinkedHashMap<>();
+    private Map<String, Setter> leftSetters = new LinkedHashMap<>();
+    private Map<String, Setter> rightSetters = new LinkedHashMap<>();
 
     public JsonDiff(JsonWithLocationsParser.ParsedJsonWithLocations leftObj,
                     JsonWithLocationsParser.ParsedJsonWithLocations rightObj) {
         this.leftObj = leftObj;
         this.rightObj = rightObj;
 
-        putContexts(leftObj.getRoot(), rightObj.getRoot());
+        putContexts(new NoSetter(), leftObj.getRoot(), new NoSetter(), rightObj.getRoot());
     }
 
     public JsonWithLocationsParser.ParsedJsonWithLocations getLeftObj() {
@@ -88,9 +90,11 @@ public class JsonDiff {
                 "can't find right context for " + o);
     }
 
-    public JsonDiff putContexts(Object left, Object right) {
+    public JsonDiff putContexts(Setter leftSetter, Object left, Setter rightSetter, Object right) {
         leftContexts.put(currentLeftPath(), left);
+        leftSetters.put(currentLeftPath(), leftSetter);
         rightContexts.put(currentRightPath(), right);
+        rightSetters.put(currentRightPath(), rightSetter);
         return this;
     }
 
@@ -118,18 +122,38 @@ public class JsonDiff {
         return Joiner.on("/").join(path);
     }
 
+    private Object getLeftAt(String path) {
+        return leftContexts.get(path);
+    }
+
+    private void setLeftAt(String path, Object value) {
+        leftSetters.get(path).set(value);
+    }
+
+    private Object getRightAt(String path) {
+        return rightContexts.get(path);
+    }
+
+    private void setRightAt(String path, Object value) {
+        rightSetters.get(path).set(value);
+    }
+
     public static interface Difference {
         public abstract String getType();
         public String getLeftPath();
         public String getRightPath();
         public JsonObjectLocation getLeftContext();
-        public JsonObjectLocation getRightContext();
-    }
 
+        public JsonObjectLocation getRightContext();
+        void mergeToRight(JsonDiff diff);
+        void mergeToLeft(JsonDiff diff);
+
+    }
     public static abstract class AbstractDiff implements Difference {
         private final String leftPath;
         private final String rightPath;
         private final JsonObjectLocation leftContext;
+
         private final JsonObjectLocation rightContext;
 
         protected AbstractDiff(String leftPath, String rightPath, JsonObjectLocation leftContext, JsonObjectLocation rightContext) {
@@ -153,10 +177,20 @@ public class JsonDiff {
             return leftContext;
         }
 
+
         public JsonObjectLocation getRightContext() {
             return rightContext;
         }
 
+        @Override
+        public void mergeToRight(JsonDiff diff) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void mergeToLeft(JsonDiff diff) {
+            throw new UnsupportedOperationException();
+        }
         @Override
         public String toString() {
             return "Diff{" +
@@ -167,18 +201,17 @@ public class JsonDiff {
                     '}';
         }
     }
-
     public static class ValueDiff extends AbstractDiff {
         private final Object leftValue;
         private final Object rightValue;
 
-        protected ValueDiff(String leftPath, String rightPath, JsonObjectLocation leftContext, JsonObjectLocation rightContext,
-                            Object leftValue, Object rightValue) {
+        public ValueDiff(String leftPath, String rightPath,
+                         JsonObjectLocation leftContext, JsonObjectLocation rightContext,
+                         Object leftValue, Object rightValue) {
             super(leftPath, rightPath, leftContext, rightContext);
             this.leftValue = leftValue;
             this.rightValue = rightValue;
         }
-
 
         public String getType() {
             return "CHANGED";
@@ -193,17 +226,28 @@ public class JsonDiff {
         }
 
         @Override
+        public void mergeToRight(JsonDiff diff) {
+            diff.setRightAt(getRightPath(), leftValue);
+        }
+
+        @Override
+        public void mergeToLeft(JsonDiff diff) {
+            diff.setLeftAt(getLeftPath(), rightValue);
+        }
+
+        @Override
         public String toString() {
             return "ValueDiff{" + super.toString() +
                     ", leftValue=" + leftValue +
                     ", rightValue=" + rightValue +
                     '}';
         }
-    }
 
+    }
     public static abstract class ArrayDiff extends AbstractDiff {
         private final int leftPosition;
         private final int rightPosition;
+
         private final List<Object> values;
 
         public ArrayDiff(String leftPath, String rightPath, JsonObjectLocation leftContext, JsonObjectLocation rightContext,
@@ -227,7 +271,6 @@ public class JsonDiff {
         public List<Object> getValues() {
             return values;
         }
-
         @Override
         public String toString() {
             return "ArrayDiff{" + super.toString() +
@@ -237,34 +280,61 @@ public class JsonDiff {
                     ", values=" + values +
                     '}';
         }
-    }
 
+    }
     public static class ArrayInsertedValue extends ArrayDiff {
+
         public ArrayInsertedValue(String leftPath, String rightPath,
                                   JsonObjectLocation leftContext, JsonObjectLocation rightContext,
                                   int leftPosition, int rightPosition, List<Object> values) {
             super(leftPath, rightPath, leftContext, rightContext, leftPosition, rightPosition, values);
         }
-
         public String getType() {
             return "INSERTED";
         }
-    }
 
+        @Override
+        public void mergeToRight(JsonDiff diff) {
+            List l = (List) diff.getRightAt(getRightPath());
+            for (int i = 0; i < getValues().size(); i++) {
+                l.remove(getRightPosition());
+            }
+        }
+
+        @Override
+        public void mergeToLeft(JsonDiff diff) {
+            List l = (List) diff.getLeftAt(getLeftPath());
+            l.addAll(getLeftPosition(), getValues());
+        }
+    }
     public static class ArrayDeletedValue extends ArrayDiff {
+
         public ArrayDeletedValue(String leftPath, String rightPath,
                                  JsonObjectLocation leftContext, JsonObjectLocation rightContext,
                                  int leftPosition, int rightPosition, List<Object> values) {
             super(leftPath, rightPath, leftContext, rightContext, leftPosition, rightPosition, values);
         }
-
         public String getType() {
             return "DELETED";
         }
-    }
 
+        @Override
+        public void mergeToRight(JsonDiff diff) {
+            List l = (List) diff.getRightAt(getRightPath());
+            l.addAll(getRightPosition(), getValues());
+        }
+
+        @Override
+        public void mergeToLeft(JsonDiff diff) {
+            List l = (List) diff.getLeftAt(getLeftPath());
+            for (int i = 0; i < getValues().size(); i++) {
+                l.remove(getLeftPosition());
+            }
+        }
+    }
     public static abstract class KeyDiff extends AbstractDiff {
         private final String key;
+
         private final Object value;
 
         protected KeyDiff(String leftPath, String rightPath, JsonObjectLocation leftContext, JsonObjectLocation rightContext,
@@ -281,7 +351,6 @@ public class JsonDiff {
         public Object getValue() {
             return value;
         }
-
         @Override
         public String toString() {
             return "KeyDiff{" + super.toString() +
@@ -290,9 +359,16 @@ public class JsonDiff {
                     ", value=" + value +
                     '}';
         }
-    }
 
+        protected Map<String, Object> getLeftParent(JsonDiff diff) {
+            return (Map<String, Object>) diff.getLeftAt(getLeftPath());
+        }
+        protected Map<String, Object> getRightParent(JsonDiff diff) {
+            return (Map<String, Object>) diff.getRightAt(getLeftPath());
+        }
+    }
     public static class AddedKey extends KeyDiff {
+
         public AddedKey(String leftPath, String rightPath, JsonObjectLocation leftContext, JsonObjectLocation rightContext,
                         String key, Object value) {
             super(leftPath, rightPath, leftContext, rightContext, key, value);
@@ -300,6 +376,16 @@ public class JsonDiff {
 
         public String getType() {
             return "ADDED";
+        }
+
+        @Override
+        public void mergeToRight(JsonDiff diff) {
+            getRightParent(diff).remove(getKey());
+        }
+
+        @Override
+        public void mergeToLeft(JsonDiff diff) {
+            getLeftParent(diff).put(getKey(), getValue());
         }
     }
 
@@ -311,6 +397,57 @@ public class JsonDiff {
 
         public String getType() {
             return "REMOVED";
+        }
+
+        @Override
+        public void mergeToRight(JsonDiff diff) {
+            getRightParent(diff).put(getKey(), getValue());
+        }
+
+        @Override
+        public void mergeToLeft(JsonDiff diff) {
+            getLeftParent(diff).remove(getKey());
+        }
+    }
+
+    public static interface Setter {
+        void set(Object value);
+    }
+
+    public static class NoSetter  implements Setter {
+        @Override
+        public void set(Object value) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static class ListSetter  implements Setter {
+        private final List<Object> objects;
+        private final int i;
+
+        public ListSetter(List<Object> objects, int i) {
+            this.objects = objects;
+            this.i = i;
+        }
+
+        @Override
+        public void set(Object value) {
+            objects.set(i, value);
+        }
+    }
+
+    public static class MapSetter  implements Setter {
+        private final Map<String, Object> map;
+        private final String key;
+
+        public MapSetter(Map<String, Object> map, String key) {
+            this.map = map;
+            this.key = key;
+        }
+
+        @Override
+        public void set(Object value) {
+            map.put(key, value);
         }
     }
 }

@@ -114,7 +114,8 @@ public class JsonDiffer {
 
                         try {
                             diff(diff.goIn("["+(leftPosition + i)+"]", "["+(rightPosition + i)+"]")
-                                    .putContexts(left, right), left, right);
+                                    .putContexts(new JsonDiff.ListSetter(o1, leftPosition + i), left,
+                                            new JsonDiff.ListSetter(o2, rightPosition + i), right), left, right);
                         } finally {
                             diff.goUp();
                         }
@@ -172,7 +173,9 @@ public class JsonDiffer {
             }
         }
         for (String k : Sets.intersection(m1.keySet(), m2.keySet())) {
-            try { diff(diff.goIn(k).putContexts(m1.get(k), m2.get(k)), m1.get(k), m2.get(k)); } finally { diff.goUp(); }
+            try { diff(diff.goIn(k).putContexts(
+                    new JsonDiff.MapSetter(m1, k), m1.get(k), new JsonDiff.MapSetter(m2, k), m2.get(k)),
+                    m1.get(k), m2.get(k)); } finally { diff.goUp(); }
         }
     }
 }
