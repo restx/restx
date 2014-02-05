@@ -12,9 +12,6 @@
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}",
             "junit:junit:${junit.version}",
-            "org.hamcrest:hamcrest-core:${hamcrest.version}",
-            "org.hamcrest:hamcrest-library:${hamcrest.version}",
-            "uk.co.datumedge:hamcrest-json:${hamcrest-json.version}",
             "org.assertj:assertj-core:${assertj-core.version}",
             "com.github.kevinsawicki:http-request:${http-request.version}",
             "com.googlecode.java-diff-utils:diffutils:${diffutils.version}"
