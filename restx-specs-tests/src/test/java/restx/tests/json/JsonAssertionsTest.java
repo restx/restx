@@ -42,6 +42,48 @@ public class JsonAssertionsTest {
     }
 
     @Test
+    public void should_throw_exception_and_provide_fixed_expect_on_ignored_extra_field_with_error() throws Exception {
+        try {
+            JsonAssertions
+                    .assertThat("{\"key1\": [" +
+                            "{\"key2\": \"val21\", \"key3\": \"val31\"}, " +
+                            "{\"key2\": \"val22\", \"key3\": \"val32\"}" +
+                            "]" +
+                            "}")
+                    .allowingExtraUnexpectedFields()
+                    .isSameJsonAs("{\"key1\": [{\"key2\": \"val22\"}]}");
+            fail("should throw error when not same");
+        } catch (AssertionError e) {
+            assertThat(e).hasMessage(
+                    "Expecting:\n" +
+                            "  {\"key1\": [{\"key2\": \"val21\", \"key3\": \"val31\"}, {\"key2\": \"val22\", \"key3\": \"val32\"}]}\n" +
+                            "to be same json as:\n" +
+                            "  {\"key1\": [{\"key2\": \"val22\"}]}\n" +
+                            "but following differences were found:\n" +
+                            "- within [L1C2]-[L1C83]:\n" +
+                            "  {\"key1\": [{\"key2\": \"val21\", \"key3\": \"val31\"}, {\"key2\": \"val22\", \"key3\": \"val32\"}]}\n" +
+                            "01) extra element(s) in array at position 0 at path './key1' with value(s):\n" +
+                            "      [ {\n" +
+                            "        \"key2\" : \"val21\",\n" +
+                            "        \"key3\" : \"val31\"\n" +
+                            "      } ]\n" +
+                            "\n" +
+                            "\n" +
+                            "if the expectation is not up to date, here is a merged expect that you can use to fix your test:\n" +
+                            "  {\n" +
+                            "    \"key1\" : [ {\n" +
+                            "      \"key2\" : \"val21\",\n" +
+                            "      \"key3\" : \"val31\"\n" +
+                            "    }, {\n" +
+                            "      \"key2\" : \"val22\"\n" +
+                            "    } ]\n" +
+                            "  }\n" +
+                            "\n"
+            );
+        }
+    }
+
+    @Test
     public void should_throw_exception_when_not_same() throws Exception {
         try {
             JsonAssertions.assertThat("{}").isSameJsonAs("{\"key1\":\"val1\"}");
