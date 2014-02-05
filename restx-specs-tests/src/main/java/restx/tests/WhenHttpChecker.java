@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import org.hamcrest.MatcherAssert;
 import restx.factory.Component;
 import restx.specs.WhenHttpRequest;
-import uk.co.datumedge.hamcrest.json.SameJSONAs;
+import restx.tests.json.JsonAssertions;
 
 import java.util.Map;
 
@@ -69,8 +69,7 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
 
         assertThat(code).isEqualTo(when.getThen().getExpectedCode());
         if (isJSON(when.getThen().getExpected())) {
-            MatcherAssert.assertThat(body,
-                    SameJSONAs.sameJSONAs(when.getThen().getExpected()).allowingExtraUnexpectedFields());
+            JsonAssertions.assertThat(body).allowingExtraUnexpectedFields().isSameJsonAs(when.getThen().getExpected());
         } else if (!when.getThen().getExpected().trim().isEmpty()) {
             MatcherAssert.assertThat(body.trim(), equalTo(when.getThen().getExpected().trim()));
         }

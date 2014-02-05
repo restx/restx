@@ -44,8 +44,5 @@
     "maven-verifier.version": "1.4",
     "mockito.version": "1.9.5",
 
-    "hamcrest.version": "1.3",
-    "hamcrest-json.version": "0.2",
-
     "diffutils.version": "1.3.0"
 }

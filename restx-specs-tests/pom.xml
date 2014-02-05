@@ -23,8 +23,6 @@
         <http-request.version>5.5</http-request.version>
         <junit.version>4.11</junit.version>
         <assertj-core.version>1.5.0</assertj-core.version>
-        <hamcrest.version>1.3</hamcrest.version>
-        <hamcrest-json.version>0.2</hamcrest-json.version>
         <diffutils.version>1.3.0</diffutils.version>
     </properties>
 
@@ -48,21 +46,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>${hamcrest.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <version>${hamcrest.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.co.datumedge</groupId>
-            <artifactId>hamcrest-json</artifactId>
-            <version>${hamcrest-json.version}</version>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
