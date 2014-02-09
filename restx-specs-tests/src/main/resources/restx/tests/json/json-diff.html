@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>JSON Assertion failed</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            font-family: Verdana, "DejaVu Sans", "Bitstream Vera Sans", Geneva, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            text-align: left;
+            color: #fff;
+            background: #2b3138;
+        }
+
+        h1 {
+            font-weight: normal;
+            font-size: 40px;
+        }
+        h1 span {
+            font-size: 13px;
+            display: block;
+            padding-left: 4px;
+        }
+
+        .tabs {
+            width: 90%;
+            float: none;
+            list-style: none;
+            position: relative;
+            margin: 20px 0 0 10px;
+            text-align: left;
+        }
+        .tabs > li {
+            float: left;
+            display: block;
+        }
+        .tabs > li > input[type="radio"] {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+        .tabs > li > label {
+            display: block;
+            margin-right: 4px;
+            padding: 14px 21px;
+            border-radius: 3px 3px 0 0;
+            font-size: 20px;
+            font-weight: normal;
+            text-transform: uppercase;
+            background: #4ECDC4;
+            cursor: pointer;
+            position: relative;
+            top: 4px;
+            -webkit-transition: all 0.2s ease-in-out;
+            -moz-transition: all 0.2s ease-in-out;
+            -o-transition: all 0.2s ease-in-out;
+            transition: all 0.2s ease-in-out;
+        }
+        .tabs > li > label:hover {
+            background: #C7F464;
+        }
+        .tabs > li > .tab-content {
+            z-index: 2;
+            display: none;
+            overflow: scroll;
+            width: 100%;
+            font-size: 17px;
+            line-height: 25px;
+            padding: 25px;
+            position: absolute;
+            top: 53px;
+            left: 0;
+            background: #556270;
+        }
+        .tabs  > li > [id^="tab"]:checked + label {
+            top: 0;
+            padding-top: 17px;
+            background: #556270;
+        }
+        .tabs  > li > [id^="tab"]:checked ~ [id^="tab-content"] {
+            display: block;
+        }
+        .tabs  > li > label.selected {
+            background: #C7F464;
+        }
+        pre {
+            background: #ffffff;
+            color: #000000;
+            font-family: "Consolas", "Menlo", "Courier", monospace;
+            overflow: scroll;
+        }
+        button.selectAll {
+            float: right;
+            display: block;
+            margin: 5px;
+            padding: 14px 21px;
+            border-radius: 5px;
+            font-size: 20px;
+            font-weight: normal;
+            background: #4ECDC4;
+            cursor: pointer;
+            color: white;
+            border: none;
+        }
+
+        .context {
+            width: 49%;
+            display: inline-block;
+            vertical-align: top;
+        }
+        #difference {
+            margin-top: 90px;
+            margin-bottom: 10px;
+            max-height: 300px;
+        }
+        #context-expected {
+            max-height: 300px;
+            vertical-align: top;
+        }
+        #context-actual {
+            max-height: 300px;
+            vertical-align: top;
+        }
+
+        .highlight {
+            background: #ffff00;
+        }
+
+        #fix-expected {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<h1>JSON Assertion failed</h1>
+<ul class="tabs main">
+    <li>
+        <input type="radio" name="tabs" id="tab1" checked />
+        <label for="tab1">Differences</label>
+        <div id="tab-content1" class="tab-content">
+            <ul class="tabs">
+                {{#differences}}
+                <li>
+                    <label id="diff-{{number}}">{{number}}</label>
+                </li>
+                {{/differences}}
+            </ul>
+            <div>
+                <pre id="difference">
+                </pre>
+                <div class="context">
+                    <h2>Actual</h2>
+                    <pre id="context-actual">
+                    </pre>
+                </div>
+                <div class="context">
+                    <h2>Expected</h2>
+                    <pre id="context-expected">
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </li>
+    <li>
+        <input type="radio" name="tabs" id="tab2" />
+        <label for="tab2">Actual</label>
+        <div id="tab-content2" class="tab-content">
+            <pre>{{actual}}</pre>
+        </div>
+    </li>
+    <li>
+        <input type="radio" name="tabs" id="tab3" />
+        <label for="tab3">Expected</label>
+        <div id="tab-content3" class="tab-content">
+            <pre>{{expected}}</pre>
+        </div>
+    </li>
+    <li>
+        <input type="radio" name="tabs" id="tab4" />
+        <label for="tab4">Fix Expected</label>
+        <div id="tab-content4" class="tab-content">
+            <button class="selectAll"
+                    onclick="selectText(document.getElementById('fix-expected'))">Select All</button>
+            <p>If it's your expectation which is wrong, here is a fixed one you can use:</p>
+            <pre id="fix-expected">{{fix-expected}}</pre>
+        </div>
+    </li>
+</ul>
+
+<script type="text/javascript">
+    differences = {
+    {{#differences}}
+    "{{number}}": {
+        "difference": "{{difference}}",
+        "actual-path": "{{actual-path}}",
+        "actual-keyOfInterest": "{{actual-keyOfInterest}}",
+        "actual-context": "{{actual-context}}",
+        "expected-path": "{{expected-path}}",
+        "expected-keyOfInterest": "{{expected-keyOfInterest}}",
+        "expected-context": "{{expected-context}}"
+    },
+    {{/differences}}
+    }
+</script>
+<script type="text/javascript">
+    function hiliter(word, element) {
+        var rgxp = new RegExp(word, 'g');
+        var repl = '<span class="highlight">' + word + '</span>';
+        element.innerHTML = element.innerHTML.replace(rgxp, repl);
+    }
+    function selectText(el) {
+        if (document.selection) {
+            var range = document.body.createTextRange();
+            range.moveToElementText(el);
+            range.select();
+        } else if (window.getSelection) {
+            var range = document.createRange();
+            range.selectNode(el);
+            window.getSelection().addRange(range);
+        }
+    }
+
+    function selectDifference(diffId) {
+        [].forEach.call(document.querySelectorAll("#tab-content1 .tabs label"), function (el) {
+            el.classList.remove('selected');
+        });
+        document.getElementById('diff-' + diffId).classList.add('selected');
+
+        var diff = differences[diffId];
+        document.getElementById('difference').innerHTML = diff.difference;
+        document.getElementById('context-actual').innerHTML = diff['actual-context'];
+        document.getElementById('context-expected').innerHTML = diff['expected-context'];
+
+        hiliter('"' + diff['actual-keyOfInterest'] + '"', document.getElementById('context-actual'));
+        hiliter('"' + diff['expected-keyOfInterest'] + '"', document.getElementById('context-expected'));
+    }
+
+    [].forEach.call(document.querySelectorAll("#tab-content1 .tabs label"), function(el) {
+        el.addEventListener('click', function() {
+            selectDifference(el.innerHTML);
+        }, false);
+    });
+
+    selectDifference('1');
+</script>
+</body>
+</html>
