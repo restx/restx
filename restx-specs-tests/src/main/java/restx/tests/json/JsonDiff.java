@@ -123,7 +123,7 @@ public class JsonDiff {
         return Joiner.on("/").join(path);
     }
 
-    private Object getLeftAt(String path) {
+    Object getLeftAt(String path) {
         return leftContexts.get(path);
     }
 
@@ -131,12 +131,20 @@ public class JsonDiff {
         leftSetters.get(path).set(value);
     }
 
-    private Object getRightAt(String path) {
+    Object getRightAt(String path) {
         return rightContexts.get(path);
     }
 
     private void setRightAt(String path, Object value) {
         rightSetters.get(path).set(value);
+    }
+
+    String getParentPath(String path) {
+        return path.substring(0, path.lastIndexOf('/'));
+    }
+
+    String getLastElementPath(String path) {
+        return path.substring(path.lastIndexOf('/') + 1);
     }
 
     public static interface Difference {
