@@ -13,11 +13,15 @@ import java.util.regex.Pattern;
  */
 public class Jongos {
     public static Pattern startingWith(String expr) {
-        return Pattern.compile(String.format("\\Q%s\\E.*", expr));
+        return Pattern.compile(String.format("^\\Q%s\\E.*", expr));
+    }
+
+    public static Pattern startingWithIgnoreCase(String expr) {
+        return Pattern.compile(String.format("^\\Q%s\\E.*", expr), Pattern.CASE_INSENSITIVE);
     }
 
     public static Pattern ignoreCase(String expr) {
-        return Pattern.compile(String.format("\\Q%s\\E", expr), Pattern.CASE_INSENSITIVE);
+        return Pattern.compile(String.format("^\\Q%s\\E$", expr), Pattern.CASE_INSENSITIVE);
     }
 
     public static String newObjectIdKey() {
