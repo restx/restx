@@ -140,7 +140,8 @@ public class JsonDiff {
     }
 
     String getParentPath(String path) {
-        return path.substring(0, path.lastIndexOf('/'));
+        int i = path.lastIndexOf('/');
+        return i == -1 ? path : path.substring(0, i);
     }
 
     String getLastElementPath(String path) {
