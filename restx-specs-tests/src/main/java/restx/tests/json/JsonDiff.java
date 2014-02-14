@@ -265,7 +265,7 @@ public class JsonDiff {
             super(leftPath, rightPath, leftContext, rightContext);
             this.leftPosition = leftPosition;
             this.rightPosition = rightPosition;
-            this.values = values;
+            this.values = new ArrayList<>(values);
         }
 
         public abstract String getType();
