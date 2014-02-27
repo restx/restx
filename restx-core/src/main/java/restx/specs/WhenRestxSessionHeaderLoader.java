@@ -39,6 +39,6 @@ public class WhenRestxSessionHeaderLoader implements RestxSpecLoader.WhenHeaderL
         }
 
         whenHttpRequestBuilder.addCookie(restxSessionCookieDescriptor.getCookieName(), sessionContent);
-        whenHttpRequestBuilder.addCookie(restxSessionCookieDescriptor.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
+        whenHttpRequestBuilder.addCookie(restxSessionCookieDescriptor.getCookieSignatureName(), signature.sign(sessionContent));
     }
 }

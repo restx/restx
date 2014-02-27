@@ -51,7 +51,7 @@ public class HttpTestClient {
         String sessionContent = String.format(
                 "{\"_expires\":\"%s\",\"principal\":\"%s\",\"sessionKey\":\"%s\"}", expires, principal, uuid);
         cookiesBuilder.put(restxSessionCookieDescriptor.getCookieName(), sessionContent);
-        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieSignatureName(), Crypto.sign(sessionContent, signature.getKey()));
+        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieSignatureName(), signature.sign(sessionContent));
 
         return new HttpTestClient(baseUrl, principal, cookiesBuilder.build());
     }

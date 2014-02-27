@@ -96,7 +96,7 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
             return emptySession;
         } else {
             String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName()).or("");
-            if (!Crypto.sign(cookie, signatureKey.getKey()).equals(sig)) {
+            if (!signatureKey.check(cookie, sig)) {
                 logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
                 return emptySession;
             }
@@ -159,7 +159,7 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
                 map.put(EXPIRES, DateTime.now().plusDays(30).toString());
                 String sessionJson = mapper.writeValueAsString(map);
                 return ImmutableMap.of(restxSessionCookieDescriptor.getCookieName(), sessionJson,
-                        restxSessionCookieDescriptor.getCookieSignatureName(), Crypto.sign(sessionJson, signatureKey.getKey()));
+                        restxSessionCookieDescriptor.getCookieSignatureName(), signatureKey.sign(sessionJson));
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

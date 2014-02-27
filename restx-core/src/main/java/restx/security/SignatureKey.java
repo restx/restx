@@ -1,5 +1,7 @@
 package restx.security;
 
+import restx.common.Crypto;
+
 /**
  * User: xavierhanin
  * Date: 1/30/13
@@ -13,7 +15,11 @@ public class SignatureKey {
         this.key = key;
     }
 
-    public byte[] getKey() {
-        return key;
+    public String sign(String s) {
+        return Crypto.sign(s, key);
+    }
+
+    public boolean check(String s, String signature) {
+        return Crypto.sign(s, key).equals(signature);
     }
 }
