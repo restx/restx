@@ -174,6 +174,10 @@ public class RestxSpecTape {
 
             @Override
             public void close() throws Exception {
+                if (isClosed()) {
+                    return;
+                }
+
                 if (writer != null) {
                     writer.flush();
                 }

@@ -29,6 +29,7 @@ public abstract class AbstractResponse<R> implements RestxResponse {
     private PrintWriter writer;
     private OutputStream outputStream;
     private RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
+    private boolean closed;
 
     protected AbstractResponse(Class<R> responseClass, R response) {
         this.responseClass = responseClass;
@@ -91,14 +92,26 @@ public abstract class AbstractResponse<R> implements RestxResponse {
 
     @Override
     public void close() throws Exception {
-        if (writer != null) {
-            writer.println();
-            writer.close();
+        if (isClosed()) {
+            return;
         }
-        if (outputStream != null) {
-            outputStream.close();
+        try {
+            if (writer != null) {
+                writer.println();
+                writer.close();
+            }
+            if (outputStream != null) {
+                outputStream.close();
+            }
+            closeResponse();
+        } finally {
+            closed = true;
         }
-        closeResponse();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return closed;
     }
 
     public RestxLogLevel getLogLevel() {

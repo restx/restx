@@ -82,4 +82,6 @@ public interface RestxResponse extends AutoCloseable {
      */
     <T> T unwrap(Class<T> clazz);
 
+    boolean isClosed();
+
 }

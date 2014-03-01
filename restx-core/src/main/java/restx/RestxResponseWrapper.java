@@ -24,13 +24,14 @@ import java.nio.charset.Charset;
  */
 public class RestxResponseWrapper implements RestxResponse {
     private final RestxResponse restxResponse;
+    private PrintWriter writer;
 
     public RestxResponseWrapper(RestxResponse restxResponse) {
         this.restxResponse = restxResponse;
     }
 
     public PrintWriter getWriter() throws IOException {
-        return new PrintWriter(
+        return writer = new PrintWriter(
                 new OutputStreamWriter(getOutputStream(), getCharset().or(Charsets.UTF_8)), true);
     }
 
@@ -63,7 +64,19 @@ public class RestxResponseWrapper implements RestxResponse {
     }
 
     public void close() throws Exception {
+        if (writer != null) {
+            try {
+                writer.close();
+            } finally {
+                writer = null;
+            }
+        }
         restxResponse.close();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return restxResponse.isClosed();
     }
 
     public RestxResponse clearCookie(String cookie) {
