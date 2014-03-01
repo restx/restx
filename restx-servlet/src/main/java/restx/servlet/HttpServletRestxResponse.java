@@ -1,11 +1,9 @@
 package restx.servlet;
 
-import com.google.common.base.Optional;
 import org.joda.time.Duration;
+import restx.AbstractResponse;
 import restx.http.HttpStatus;
-import restx.RestxLogLevel;
 import restx.RestxResponse;
-import restx.http.HTTP;
 
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
@@ -13,65 +11,34 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 
 /**
  * User: xavierhanin
  * Date: 2/6/13
  * Time: 9:40 PM
  */
-public class HttpServletRestxResponse implements RestxResponse {
-
+public class HttpServletRestxResponse extends AbstractResponse<HttpServletResponse> {
     private final HttpServletResponse resp;
     private final HttpServletRequest request;
-    private HttpStatus status = HttpStatus.OK;
-    private RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
 
     public HttpServletRestxResponse(HttpServletResponse resp, HttpServletRequest request) {
+        super(HttpServletResponse.class, resp);
         this.resp = resp;
         this.request = request;
     }
 
     @Override
-    public HttpStatus getStatus() {
-        // HttpServletResponse#getStatus() is available in servlet 3 only.
-        //  return resp.getStatus();
-        return status;
-    }
-
-    @Override
-    public RestxResponse setStatus(HttpStatus httpStatus) {
-        this.status = httpStatus;
+    protected void doSetStatus(HttpStatus httpStatus) {
         resp.setStatus(httpStatus.getCode());
-        return this;
     }
 
     @Override
-    public RestxResponse setContentType(String s) {
-        if (HTTP.isTextContentType(s)) {
-            Optional<String> cs = HTTP.charsetFromContentType(s);
-            if (!cs.isPresent()) {
-                s += "; charset=UTF-8";
-            }
-        }
-        resp.setContentType(s);
-        return this;
-    }
-
-    @Override
-    public PrintWriter getWriter() throws IOException {
-        return resp.getWriter();
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws IOException {
+    protected OutputStream doGetOutputStream() throws IOException {
         return resp.getOutputStream();
     }
 
     @Override
-    public RestxResponse addCookie(String cookie, String value) {
-        addCookie(cookie, value, Duration.ZERO);
-        return this;
+    protected void closeResponse() throws IOException {
     }
 
     @Override
@@ -118,24 +85,6 @@ public class HttpServletRestxResponse implements RestxResponse {
     @Override
     public RestxResponse setHeader(String headerName, String header) {
         resp.setHeader(headerName, header);
-        return this;
-    }
-
-    @Override
-    public void close() throws Exception {
-    }
-
-    @Override
-    public String toString() {
-        return "[RESTX RESPONSE] " + status;
-    }
-
-    public RestxLogLevel getLogLevel() {
-        return logLevel;
-    }
-
-    public RestxResponse setLogLevel(RestxLogLevel logLevel) {
-        this.logLevel = logLevel;
         return this;
     }
 
