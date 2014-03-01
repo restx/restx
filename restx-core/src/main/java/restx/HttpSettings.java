@@ -18,4 +18,7 @@ public interface HttpSettings {
 
     @SettingsKey(key = "restx.http.scheme")
     Optional<String> scheme();
+
+    @SettingsKey(key = "restx.http.gzip.paths", defaultValue = "/{s:.+}")
+    Collection<String> gzipPaths();
 }

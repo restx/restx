@@ -33,4 +33,10 @@ public class HttpSettingsConfig implements HttpSettings {
     public Optional<String> scheme() {
         return config.getString("restx.http.scheme");
     }
+
+    @Override
+    public Collection<String> gzipPaths() {
+        return Splitter.on(",").trimResults().splitToList(
+                config.getString("restx.http.gzip.paths").or("/{s:.+}"));
+    }
 }
