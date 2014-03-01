@@ -5,15 +5,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.samskivert.mustache.Template;
 import restx.common.Mustaches;
+import restx.common.processor.RestxAbstractProcessor;
 import restx.config.Settings;
 import restx.config.SettingsKey;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
@@ -32,8 +30,9 @@ import java.util.Set;
 @SupportedAnnotationTypes({
         "restx.config.Settings"
 })
+@SupportedOptions({ "debug" })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class SettingsAnnotationProcessor extends AbstractProcessor {
+public class SettingsAnnotationProcessor extends RestxAbstractProcessor {
     final Template settingsProviderTpl;
     final Template settingsConfigTpl;
 
@@ -43,12 +42,12 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    protected boolean processImpl(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws Exception {
         for (Element elem : roundEnv.getElementsAnnotatedWith(Settings.class)) {
             try {
                 TypeElement typeElement = (TypeElement) elem;
                 if (!typeElement.getKind().isInterface()) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    error(
                             String.format("only an interface can be annotated with @Settings - %s",
                                     typeElement.getSimpleName()), typeElement);
                     continue;
@@ -65,8 +64,7 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                     if (element.getKind() == ElementKind.METHOD) {
                         ExecutableElement methodElem = (ExecutableElement) element;
                         if (!methodElem.getParameters().isEmpty()) {
-                            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                    "invalid settings accessor method - it must not take any parameter", methodElem);
+                            error("invalid settings accessor method - it must not take any parameter", methodElem);
                             continue;
                         }
 
@@ -77,8 +75,7 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                             optional = true;
                             List<? extends TypeMirror> typeArguments = ((DeclaredType) methodElem.getReturnType()).getTypeArguments();
                             if (typeArguments.isEmpty()) {
-                                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                        String.format("unsupported return type %s for settings accessor method" +
+                                error(String.format("unsupported return type %s for settings accessor method" +
                                                 " - you must provide generic type when using Optional",
                                                 accessorReturnType), methodElem);
                                 continue;
@@ -99,8 +96,7 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                                 configAccessor = "getInt";
                                 break;
                             default:
-                                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                        String.format("unsupported return type %s for settings accessor method" +
+                                error(String.format("unsupported return type %s for settings accessor method" +
                                                 " - it must be one of [String, Integer, int]",
                                                 accessorReturnType), methodElem);
                                 continue;
@@ -109,9 +105,8 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                         SettingsKey settingsKey = element.getAnnotation(SettingsKey.class);
 
                         if (settingsKey == null) {
-                            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                                    String.format(
-                                            "all methods in a Settings interface must be annotated with @SettingsKey - %s",
+                            error(String.format(
+                                    "all methods in a Settings interface must be annotated with @SettingsKey - %s",
                                             element.getSimpleName()), element);
                             continue;
                         }
@@ -141,34 +136,9 @@ public class SettingsAnnotationProcessor extends AbstractProcessor {
                     generateJavaClass(pack + "." + settingsSimpleType + "Provider", settingsProviderTpl, ctx, elem);
                 }
             } catch (Exception e) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "error when processing " + elem + ": " + e,
-                        elem);
+                fatalError("error when processing " + elem, e, elem);
             }
         }
         return true;
     }
-
-
-    private PackageElement getPackage(TypeElement typeElement) {
-        Element el = typeElement.getEnclosingElement();
-        while (el != null) {
-            if (el instanceof PackageElement) {
-                return (PackageElement) el;
-            }
-            el = el.getEnclosingElement();
-        }
-        throw new IllegalStateException("no package for " + typeElement);
-    }
-
-    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, Object> ctx,
-            Element originatingElements) throws IOException {
-        JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className, originatingElements);
-        try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(ctx, writer);
-        }
-    }
-
-
 }

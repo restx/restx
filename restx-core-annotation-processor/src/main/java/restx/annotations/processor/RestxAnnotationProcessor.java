@@ -6,6 +6,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.samskivert.mustache.Template;
 import restx.StdRestxRequestMatcher;
+import restx.common.processor.RestxAbstractProcessor;
 import restx.http.HttpStatus;
 import restx.RestxLogLevel;
 import restx.annotations.*;
@@ -14,16 +15,10 @@ import restx.factory.When;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,8 +33,9 @@ import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 @SupportedAnnotationTypes({
         "restx.annotations.RestxResource"
 })
+@SupportedOptions({ "debug" })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class RestxAnnotationProcessor extends AbstractProcessor {
+public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     final Template routerTpl;
 
     public RestxAnnotationProcessor() {
@@ -47,73 +43,58 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            final Map<String, ResourceGroup> groups = Maps.newHashMap();
-            final Set<Element> modulesListOriginatingElements = Sets.newHashSet();
+    protected boolean processImpl(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws Exception {
+        final Map<String, ResourceGroup> groups = Maps.newHashMap();
+        final Set<Element> modulesListOriginatingElements = Sets.newHashSet();
 
-            for (ResourceMethodAnnotation annotation : getResourceMethodAnnotationsInRound(roundEnv)) {
-                try {
-                    TypeElement typeElem = (TypeElement) annotation.methodElem.getEnclosingElement();
-                    RestxResource r = typeElem.getAnnotation(RestxResource.class);
-                    if (r == null) {
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                            String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
-                                    annotation.methodElem.getSimpleName(), typeElem.getSimpleName()), typeElem);
-                        continue;
-                    }
-
-                    SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
-                    HttpStatus successStatus = successStatusAnn==null?HttpStatus.OK:successStatusAnn.value();
-
-                    Verbosity verbosity = annotation.methodElem.getAnnotation(Verbosity.class);
-                    RestxLogLevel logLevel = verbosity == null ? RestxLogLevel.DEFAULT : verbosity.value();
-
-                    ResourceGroup group = getResourceGroup(r, groups);
-                    ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
-
-                    String permission = buildPermission(annotation, typeElem);
-
-                    Consumes inContentTypeAnn = annotation.methodElem.getAnnotation(Consumes.class);
-                    Optional<String> inContentType = Optional.fromNullable(inContentTypeAnn != null ? inContentTypeAnn.value() : null);
-                    Produces outContentTypeAnn = annotation.methodElem.getAnnotation(Produces.class);
-                    Optional<String> outContentType = Optional.fromNullable(outContentTypeAnn != null ? outContentTypeAnn.value() : null);
-
-                    ResourceMethod resourceMethod = new ResourceMethod(
-                            resourceClass,
-                            annotation.httpMethod, annotation.path,
-                            annotation.methodElem.getSimpleName().toString(),
-                            annotation.methodElem.getReturnType().toString(),
-                            successStatus, logLevel, permission,
-                            typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString(),
-                            inContentType, outContentType
-                    );
-
-                    resourceClass.resourceMethods.add(resourceMethod);
-                    resourceClass.originatingElements.add(annotation.methodElem);
-
-                    buildResourceMethodParams(annotation, resourceMethod);
-                } catch (Exception e) {
-                    processingEnv.getMessager().printMessage(
-                            Diagnostic.Kind.ERROR,
-                            "error when processing " + annotation.methodElem + ": " + e,
-                            annotation.methodElem);
+        for (ResourceMethodAnnotation annotation : getResourceMethodAnnotationsInRound(roundEnv)) {
+            try {
+                TypeElement typeElem = (TypeElement) annotation.methodElem.getEnclosingElement();
+                RestxResource r = typeElem.getAnnotation(RestxResource.class);
+                if (r == null) {
+                    error(
+                        String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
+                                annotation.methodElem.getSimpleName(), typeElem.getSimpleName()), typeElem);
+                    continue;
                 }
-            }
 
-            if (!groups.isEmpty()) {
-                generateFiles(groups, modulesListOriginatingElements);
+                SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
+                HttpStatus successStatus = successStatusAnn==null?HttpStatus.OK:successStatusAnn.value();
+
+                Verbosity verbosity = annotation.methodElem.getAnnotation(Verbosity.class);
+                RestxLogLevel logLevel = verbosity == null ? RestxLogLevel.DEFAULT : verbosity.value();
+
+                ResourceGroup group = getResourceGroup(r, groups);
+                ResourceClass resourceClass = getResourceClass(typeElem, r, group, modulesListOriginatingElements);
+
+                String permission = buildPermission(annotation, typeElem);
+
+                Consumes inContentTypeAnn = annotation.methodElem.getAnnotation(Consumes.class);
+                Optional<String> inContentType = Optional.fromNullable(inContentTypeAnn != null ? inContentTypeAnn.value() : null);
+                Produces outContentTypeAnn = annotation.methodElem.getAnnotation(Produces.class);
+                Optional<String> outContentType = Optional.fromNullable(outContentTypeAnn != null ? outContentTypeAnn.value() : null);
+
+                ResourceMethod resourceMethod = new ResourceMethod(
+                        resourceClass,
+                        annotation.httpMethod, annotation.path,
+                        annotation.methodElem.getSimpleName().toString(),
+                        annotation.methodElem.getReturnType().toString(),
+                        successStatus, logLevel, permission,
+                        typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString(),
+                        inContentType, outContentType
+                );
+
+                resourceClass.resourceMethods.add(resourceMethod);
+                resourceClass.originatingElements.add(annotation.methodElem);
+
+                buildResourceMethodParams(annotation, resourceMethod);
+            } catch (Exception e) {
+                fatalError("error when processing " + annotation.methodElem, e, annotation.methodElem);
             }
-        } catch (IOException e) {
-            processingEnv.getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "IO error when processing annotations: " + e);
-            return false;
-        } catch (Exception e) {
-            processingEnv.getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "error when processing annotations: " + e);
-            return false;
+        }
+
+        if (!groups.isEmpty()) {
+            generateFiles(groups, modulesListOriginatingElements);
         }
         return true;
     }
@@ -167,7 +148,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
             }
             if (pathParamNamesToMatch.contains(reqParamName)) {
                 if (parameterKind != null && parameterKind != ResourceMethodParameterKind.PATH) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    error(
                         String.format("%s param %s matches a Path param name", parameterKind.name(), reqParamName),
                             annotation.methodElem);
                     continue;
@@ -189,7 +170,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
                 parameterKind));
         }
         if (!pathParamNamesToMatch.isEmpty()) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+            error(
                 String.format("path param(s) %s not found among method parameters", pathParamNamesToMatch),
                     annotation.methodElem);
         }
@@ -236,16 +217,6 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
 
                 generateJavaClass(resourceClass.fqcn + "Router", routerTpl, ctx, resourceClass.originatingElements);
             }
-
-        }
-    }
-
-    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, ? extends Object> ctx,
-            Set<Element> originatingElements) throws IOException {
-        JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className,
-                Iterables.toArray(originatingElements, Element.class));
-        try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(ctx, writer);
         }
     }
 
@@ -381,7 +352,7 @@ public class RestxAnnotationProcessor extends AbstractProcessor {
         Collection<ResourceMethodAnnotation> methodAnnotations = Lists.newArrayList();
         for (Element resourceElem : roundEnv.getElementsAnnotatedWith(RestxResource.class)) {
             if (! (resourceElem instanceof TypeElement)) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                error(
                     String.format("Only a class can be annotated with @RestxResource. Found %s",
                             resourceElem.getSimpleName()), resourceElem);
                 continue;

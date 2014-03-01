@@ -6,13 +6,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.samskivert.mustache.Template;
 import restx.common.Mustaches;
+import restx.common.processor.RestxAbstractProcessor;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -33,8 +31,9 @@ import java.util.Set;
 @SupportedAnnotationTypes({
         "restx.exceptions.ErrorCode"
 })
+@SupportedOptions({ "debug" })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class ErrorAnnotationProcessor extends AbstractProcessor {
+public class ErrorAnnotationProcessor extends RestxAbstractProcessor {
     final Template errorDescriptorTpl;
 
     public ErrorAnnotationProcessor() {
@@ -42,7 +41,7 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    protected boolean processImpl(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws Exception{
         for (Element elem : roundEnv.getElementsAnnotatedWith(ErrorCode.class)) {
             try {
                 ErrorCode errorCode = elem.getAnnotation(ErrorCode.class);
@@ -77,22 +76,9 @@ public class ErrorAnnotationProcessor extends AbstractProcessor {
 
                 generateJavaClass(pack + "." + descriptor, errorDescriptorTpl, ctx, elem);
             } catch (Exception e) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "error when processing " + elem + ": " + e,
-                        elem);
+                fatalError("error when processing " + elem, e, elem);
             }
         }
         return true;
     }
-
-    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, Object> ctx,
-            Element originatingElements) throws IOException {
-        JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className, originatingElements);
-        try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(ctx, writer);
-        }
-    }
-
-
 }

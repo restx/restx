@@ -5,12 +5,10 @@ import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
 import com.samskivert.mustache.Template;
+import restx.common.processor.RestxAbstractProcessor;
 import restx.factory.*;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.lang.model.SourceVersion;
@@ -18,10 +16,7 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
 import javax.tools.FileObject;
-import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import java.io.*;
 import java.util.Collection;
@@ -43,8 +38,9 @@ import static restx.common.Mustaches.compile;
         "restx.factory.Alternative",
         "restx.factory.Machine"
 })
+@SupportedOptions({ "debug" })
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class FactoryAnnotationProcessor extends AbstractProcessor {
+public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     final Template componentMachineTpl;
     final Template alternativeMachineTpl;
     final Template conditionalMachineTpl;
@@ -59,29 +55,19 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
     }
 
+
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        try {
-            machinesDeclaration.processing();
-            if (roundEnv.processingOver()) {
-                machinesDeclaration.generate();
-            } else {
-                processComponents(roundEnv);
-                processAlternatives(roundEnv);
-                processModules(roundEnv);
-                processMachines(roundEnv);
-            }
-        } catch (IOException e) {
-            processingEnv.getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "IO error when processing annotations: " + e);
-            return false;
-        } catch (Exception e) {
-            processingEnv.getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    "error when processing annotations: " + e);
-            return false;
+    protected boolean processImpl(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws IOException {
+        machinesDeclaration.processing();
+        if (roundEnv.processingOver()) {
+            machinesDeclaration.generate();
+        } else {
+            processComponents(roundEnv);
+            processAlternatives(roundEnv);
+            processModules(roundEnv);
+            processMachines(roundEnv);
         }
+
         return true;
     }
 
@@ -89,10 +75,8 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         for (Element annotation : roundEnv.getElementsAnnotatedWith(Module.class)) {
             try {
                 if (!(annotation instanceof TypeElement)) {
-                    processingEnv.getMessager().printMessage(
-                            Diagnostic.Kind.ERROR,
-                            "annotating element " + annotation + " of type " + annotation.getKind().name()
-                                    + " with @Module is not supported");
+                    error("annotating element " + annotation + " of type " + annotation.getKind().name()
+                                    + " with @Module is not supported", annotation);
                     continue;
                 }
                 TypeElement typeElem = (TypeElement) annotation;
@@ -121,10 +105,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
                 generateMachineFile(module);
             } catch (IOException e) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "error when processing " + annotation + ": " + e,
-                        annotation);
+                fatalError("error when processing " + annotation, e, annotation);
             }
         }
     }
@@ -133,19 +114,14 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         for (Element annotation : roundEnv.getElementsAnnotatedWith(Machine.class)) {
             try {
                 if (!(annotation instanceof TypeElement)) {
-                    processingEnv.getMessager().printMessage(
-                            Diagnostic.Kind.ERROR,
-                            "annotating element " + annotation + " of type " + annotation.getKind().name()
-                                    + " with @Machine is not supported");
+                    error("annotating element " + annotation + " of type " + annotation.getKind().name()
+                                    + " with @Machine is not supported", annotation);
                     continue;
                 }
                 TypeElement typeElem = (TypeElement) annotation;
                 machinesDeclaration.declareService(typeElem.getQualifiedName().toString());
             } catch (Exception e) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "error when processing " + annotation + ": " + e,
-                        annotation);
+                fatalError("error when processing " + annotation, e, annotation);
             }
         }
     }
@@ -154,10 +130,8 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
         for (Element elem : roundEnv.getElementsAnnotatedWith(Component.class)) {
             try {
                 if (!(elem instanceof TypeElement)) {
-                    processingEnv.getMessager().printMessage(
-                            Diagnostic.Kind.ERROR,
-                            "annotating element " + elem + " of type " + elem.getKind().name()
-                                    + " with @Component is not supported");
+                    error("annotating element " + elem + " of type " + elem.getKind().name()
+                                    + " with @Component is not supported", elem);
                     continue;
                 }
                 TypeElement component = (TypeElement) elem;
@@ -181,34 +155,17 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
                     generateMachineFile(componentClass, when);
                 }
             } catch (Exception e) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "error when processing " + elem + ": " + e,
-                        elem);
-
+                fatalError("error when processing " + elem, e, elem);
             }
         }
-    }
-
-    private PackageElement getPackage(TypeElement typeElement) {
-        Element el = typeElement.getEnclosingElement();
-        while (el != null) {
-            if (el instanceof PackageElement) {
-                return (PackageElement) el;
-            }
-            el = el.getEnclosingElement();
-        }
-        throw new IllegalStateException("no package for " + typeElement);
     }
 
     private void processAlternatives(RoundEnvironment roundEnv) throws IOException {
         for (Element elem : roundEnv.getElementsAnnotatedWith(Alternative.class)) {
             try {
                 if (!(elem instanceof TypeElement)) {
-                    processingEnv.getMessager().printMessage(
-                            Diagnostic.Kind.ERROR,
-                            "annotating element " + elem + " of type " + elem.getKind().name()
-                                    + " with @Alternative is not supported");
+                    error("annotating element " + elem + " of type " + elem.getKind().name()
+                                    + " with @Alternative is not supported", elem);
                     continue;
                 }
                 TypeElement component = (TypeElement) elem;
@@ -243,9 +200,7 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
                 When when = component.getAnnotation(When.class);
                 if (when == null) {
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                            "an Alternative MUST be annotated with @When to tell when it must be activated",
-                            elem);
+                    error("an Alternative MUST be annotated with @When to tell when it must be activated", elem);
                     continue;
                 }
 
@@ -253,17 +208,9 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
 
                 generateMachineFile(componentClass, alternativeToComponentClass, when);
             } catch (Exception e) {
-                processingEnv.getMessager().printMessage(
-                        Diagnostic.Kind.ERROR,
-                        "error when processing " + elem + ": " + e,
-                        elem);
+                fatalError("error when processing " + elem, e, elem);
             }
         }
-    }
-
-    private TypeElement asTypeElement(TypeMirror typeMirror) {
-        Types TypeUtils = this.processingEnv.getTypeUtils();
-        return (TypeElement)TypeUtils.asElement(typeMirror);
     }
 
     private ExecutableElement findInjectableConstructor(TypeElement component) {
@@ -418,15 +365,6 @@ public class FactoryAnnotationProcessor extends AbstractProcessor {
             parametersCode.add(parameter.getFromSatisfiedBomCode());
         }
         return parametersCode;
-    }
-
-    private void generateJavaClass(String className, Template mustache, ImmutableMap<String, ? extends Object> ctx,
-            Set<Element> originatingElements) throws IOException {
-        JavaFileObject fileObject = processingEnv.getFiler().createSourceFile(className,
-                Iterables.toArray(originatingElements, Element.class));
-        try (Writer writer = fileObject.openWriter()) {
-            mustache.execute(ctx, writer);
-        }
     }
 
     private static class ComponentClass {
