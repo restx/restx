@@ -1,11 +1,13 @@
 package restx;
 
+import com.google.common.base.Optional;
 import org.joda.time.Duration;
 import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 
 /**
  * User: xavierhanin
@@ -26,6 +28,11 @@ public class RestxResponseWrapper implements RestxResponse {
     public RestxResponse setStatus(HttpStatus i) {
         restxResponse.setStatus(i);
         return this;
+    }
+
+    @Override
+    public Optional<Charset> getCharset() {
+        return restxResponse.getCharset();
     }
 
     public OutputStream getOutputStream() throws IOException {

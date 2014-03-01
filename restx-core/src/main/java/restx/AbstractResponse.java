@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 
 /**
  * Date: 1/3/14
@@ -24,7 +25,7 @@ public abstract class AbstractResponse<R> implements RestxResponse {
     private final R response;
 
     private HttpStatus status = HttpStatus.OK;
-    private String charset;
+    private Charset charset;
     private PrintWriter writer;
     private OutputStream outputStream;
     private RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
@@ -52,13 +53,17 @@ public abstract class AbstractResponse<R> implements RestxResponse {
             Optional<String> cs = HTTP.charsetFromContentType(s);
             if (!cs.isPresent()) {
                 s += "; charset=UTF-8";
-                charset = Charsets.UTF_8.name();
+                charset = Charsets.UTF_8;
             } else {
-                charset = cs.get();
+                charset = Charset.forName(cs.get());
             }
         }
         setHeader("Content-Type", s);
         return this;
+    }
+
+    public Optional<Charset> getCharset() {
+        return Optional.fromNullable(charset);
     }
 
     @Override
@@ -70,7 +75,7 @@ public abstract class AbstractResponse<R> implements RestxResponse {
         if (charset == null) {
             logger.warn("no charset defined while getting writer to write http response." +
                     " Make sure you call setContentType() before calling getWriter(). Using UTF-8 charset.");
-            charset = Charsets.UTF_8.name();
+            charset = Charsets.UTF_8;
         }
         return writer = new PrintWriter(
                 new OutputStreamWriter(doGetOutputStream(), charset), true);
