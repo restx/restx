@@ -1,26 +1,38 @@
 package restx.security;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.inject.Named;
+
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import restx.*;
-import restx.common.Crypto;
+
+import restx.AbstractRouteLifecycleListener;
+import restx.RestxContext;
+import restx.RestxFilter;
+import restx.RestxHandler;
+import restx.RestxHandlerMatch;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxResponse;
+import restx.RouteLifecycleListener;
+import restx.StdRestxRequestMatch;
+import restx.WebException;
 import restx.factory.Component;
 import restx.factory.Name;
 import restx.http.HttpStatus;
 import restx.jackson.FrontObjectMapperFactory;
-
-import javax.inject.Named;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -30,6 +42,7 @@ import java.util.Map;
 @Component(priority = -200)
 public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
     public static final Name<RestxSessionCookieFilter> NAME = Name.of(RestxSessionCookieFilter.class, "RestxSessionCookieFilter");
+	public static final String COOKIE_SIGNER_NAME = "CookieSigner";
 
     private static final String EXPIRES = "_expires";
 
@@ -37,24 +50,25 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
 
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
-    private final SignatureKey signatureKey;
-    private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
+	private final Signer signer;
+	private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
     private final RestxSession emptySession;
 
-    public RestxSessionCookieFilter(
-            RestxSession.Definition sessionDefinition,
-            @Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
-            Optional<SignatureKey> signatureKey,
-            RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
-        this.sessionDefinition = sessionDefinition;
-        this.mapper = mapper;
-        this.signatureKey = signatureKey.or(SignatureKey.DEFAULT);
-        this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
-        this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String,String>of(),
-                Optional.<RestxPrincipal>absent(), Duration.ZERO);
-    }
+	public RestxSessionCookieFilter(
+			RestxSession.Definition sessionDefinition,
+			@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
+			@Named(COOKIE_SIGNER_NAME) Signer signer,
+			RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
 
-    @Override
+		this.sessionDefinition = sessionDefinition;
+		this.mapper = mapper;
+		this.signer = signer;
+		this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
+		this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String, String>of(),
+				Optional.<RestxPrincipal>absent(), Duration.ZERO);
+	}
+
+	@Override
     public Optional<RestxHandlerMatch> match(RestxRequest req) {
         return Optional.of(new RestxHandlerMatch(
                 new StdRestxRequestMatch("*", req.getRestxPath()),
@@ -96,8 +110,8 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
             return emptySession;
         } else {
             String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName()).or("");
-            if (!Crypto.sign(cookie, signatureKey.getKey()).equals(sig)) {
-                logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
+			if (!signer.verify(cookie, sig)) {
+				logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
                 return emptySession;
             }
             Map<String, String> entries = readEntries(cookie);
@@ -159,8 +173,8 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
                 map.put(EXPIRES, DateTime.now().plusDays(30).toString());
                 String sessionJson = mapper.writeValueAsString(map);
                 return ImmutableMap.of(restxSessionCookieDescriptor.getCookieName(), sessionJson,
-                        restxSessionCookieDescriptor.getCookieSignatureName(), Crypto.sign(sessionJson, signatureKey.getKey()));
-            }
+						restxSessionCookieDescriptor.getCookieSignatureName(), signer.sign(sessionJson));
+			}
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
