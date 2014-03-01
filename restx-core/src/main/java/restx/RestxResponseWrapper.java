@@ -1,24 +1,37 @@
 package restx;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
 import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 
 /**
- * User: xavierhanin
- * Date: 3/17/13
- * Time: 3:28 PM
+ * A wrapper delegating all calls to an underlying response.
+ *
+ * Useful for implementing response wrapper by extending this class.
+ *
+ * Note that all but one method are delegated to underlying response.
+ * The exception is the getWriter() method, which builds a writer using
+ * getOutputStream() and underlying getCharset(). This is the standard way
+ * to implement getWriter(), and it makes it much easier to wrap the response
+ * outputstream.
  */
 public class RestxResponseWrapper implements RestxResponse {
     private final RestxResponse restxResponse;
 
     public RestxResponseWrapper(RestxResponse restxResponse) {
         this.restxResponse = restxResponse;
+    }
+
+    public PrintWriter getWriter() throws IOException {
+        return new PrintWriter(
+                new OutputStreamWriter(getOutputStream(), getCharset().or(Charsets.UTF_8)), true);
     }
 
     public HttpStatus getStatus() {
@@ -51,10 +64,6 @@ public class RestxResponseWrapper implements RestxResponse {
 
     public void close() throws Exception {
         restxResponse.close();
-    }
-
-    public PrintWriter getWriter() throws IOException {
-        return restxResponse.getWriter();
     }
 
     public RestxResponse clearCookie(String cookie) {

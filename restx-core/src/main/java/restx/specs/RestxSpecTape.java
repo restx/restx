@@ -136,7 +136,6 @@ public class RestxSpecTape {
         recordingResponse = new RestxResponseWrapper(restxResponse) {
             private Stopwatch stopwatch = Stopwatch.createUnstarted();
             private ByteArrayOutputStream baos;
-            private PrintWriter realWriter;
             private PrintWriter writer;
             private OutputStream realOS;
             public HttpStatus status = HttpStatus.OK;
@@ -144,13 +143,7 @@ public class RestxSpecTape {
             @Override
             public PrintWriter getWriter() throws IOException {
                 if (writer == null) {
-                    if (recordPath.isPresent()) {
-                        super.setHeader("RestxSpecPath", specPath);
-                    }
-                    System.out.print("RECORDING RESPONSE...");
-                    stopwatch.start();
-                    realWriter = super.getWriter();
-                    writer = new PrintWriter(baos = new ByteArrayOutputStream());
+                    writer = super.getWriter();
                 }
 
                 return writer;
@@ -186,9 +179,7 @@ public class RestxSpecTape {
                 }
 
                 System.out.println(" >> recorded response (" + baos.size() + " bytes) -- " + stopwatch.stop());
-                if (realWriter != null) {
-                    CharStreams.copy(CharSource.wrap(baos.toString(Charsets.UTF_8.name())).openStream(), realWriter);
-                } else if (realOS != null) {
+                if (realOS != null) {
                     ByteStreams.copy(ByteSource.wrap(baos.toByteArray()).openStream(), realOS);
                 }
                 super.close();
