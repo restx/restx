@@ -15,7 +15,7 @@
     <div class="container">
         <div class="row">
             <div class="span12">
-                <form class="form-horizontal" action='' method="POST">
+                <form ng-submit="authenticate()" class="form-horizontal" action='' method="POST" form-autofill-fix>
                   <fieldset>
                     <div id="legend">
                       <legend class="">Login to RESTX Admin console</legend>
@@ -24,7 +24,7 @@
                       <!-- Username -->
                       <label class="control-label"  for="username">Username</label>
                       <div class="controls">
-                        <input type="text" id="username" name="username" placeholder="" class="input-xlarge" ng-model="username">
+                        <input type="text" id="username" name="username" placeholder="" class="input-xlarge" ng-model="username" autofocus>
                       </div>
                     </div>
 
@@ -40,7 +40,7 @@
                     <div class="control-group">
                       <!-- Button -->
                       <div class="controls">
-                        <button class="btn btn-success" ng-click="authenticate(username, password)">Login</button>
+                        <button class="btn btn-success" type="submit">Login</button>
                       </div>
                     </div>
                   </fieldset>
