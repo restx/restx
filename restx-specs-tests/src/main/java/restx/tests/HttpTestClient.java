@@ -1,18 +1,18 @@
 package restx.tests;
 
-import com.github.kevinsawicki.http.HttpRequest;
-import com.google.common.collect.ImmutableMap;
-import org.joda.time.DateTime;
-import restx.RestxMainRouterFactory;
-import restx.common.Crypto;
-import restx.common.UUIDGenerator;
-import restx.factory.Factory;
-import restx.security.RestxSessionCookieDescriptor;
-import restx.security.SignatureKey;
+import static restx.RestxMainRouterFactory.Blade;
 
 import java.util.Map;
 
-import static restx.RestxMainRouterFactory.Blade;
+import org.joda.time.DateTime;
+
+import com.github.kevinsawicki.http.HttpRequest;
+import com.google.common.collect.ImmutableMap;
+
+import restx.common.UUIDGenerator;
+import restx.factory.Factory;
+import restx.security.RestxSessionCookieDescriptor;
+import restx.security.Signer;
 
 /**
  * HttpTestClient is a helper to create com.github.kevinsawicki.http.HttpRequest
@@ -43,7 +43,7 @@ public class HttpTestClient {
     public HttpTestClient authenticatedAs(String principal) {
         Factory factory = Factory.newInstance();
         RestxSessionCookieDescriptor restxSessionCookieDescriptor = factory.getComponent(RestxSessionCookieDescriptor.class);
-        SignatureKey signature = factory.queryByClass(SignatureKey.class).findOneAsComponent().or(SignatureKey.DEFAULT);
+        Signer signer = factory.queryByClass(Signer.class).findOneAsComponent().get();
 
         ImmutableMap.Builder<String, String> cookiesBuilder = ImmutableMap.<String, String>builder().putAll(cookies);
         String uuid = factory.getComponent(UUIDGenerator.class).doGenerate();
@@ -51,7 +51,7 @@ public class HttpTestClient {
         String sessionContent = String.format(
                 "{\"_expires\":\"%s\",\"principal\":\"%s\",\"sessionKey\":\"%s\"}", expires, principal, uuid);
         cookiesBuilder.put(restxSessionCookieDescriptor.getCookieName(), sessionContent);
-        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieSignatureName(), signature.sign(sessionContent));
+        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieSignatureName(), signer.sign(sessionContent));
 
         return new HttpTestClient(baseUrl, principal, cookiesBuilder.build());
     }

@@ -1,12 +1,11 @@
 package restx.specs;
 
-import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.security.SignatureKey;
-import restx.common.Crypto;
+
 import restx.factory.Component;
 import restx.security.RestxSessionCookieDescriptor;
+import restx.security.Signer;
 
 /**
  * @author fcamblor
@@ -17,11 +16,11 @@ public class WhenRestxSessionHeaderLoader implements RestxSpecLoader.WhenHeaderL
     private static final Logger logger = LoggerFactory.getLogger(WhenRestxSessionHeaderLoader.class);
 
     private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
-    private final SignatureKey signature;
+    private final Signer signer;
 
-    public WhenRestxSessionHeaderLoader(RestxSessionCookieDescriptor restxSessionCookieDescriptor, Optional<SignatureKey> signature) {
+    public WhenRestxSessionHeaderLoader(RestxSessionCookieDescriptor restxSessionCookieDescriptor, Signer signer) {
         this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
-        this.signature = signature.or(SignatureKey.DEFAULT);
+        this.signer = signer;
     }
 
     @Override
@@ -39,6 +38,6 @@ public class WhenRestxSessionHeaderLoader implements RestxSpecLoader.WhenHeaderL
         }
 
         whenHttpRequestBuilder.addCookie(restxSessionCookieDescriptor.getCookieName(), sessionContent);
-        whenHttpRequestBuilder.addCookie(restxSessionCookieDescriptor.getCookieSignatureName(), signature.sign(sessionContent));
+        whenHttpRequestBuilder.addCookie(restxSessionCookieDescriptor.getCookieSignatureName(), signer.sign(sessionContent));
     }
 }
