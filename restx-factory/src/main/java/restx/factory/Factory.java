@@ -458,11 +458,19 @@ public class Factory implements AutoCloseable {
             } else if (components.size() == 1) {
                 return Optional.of(components.iterator().next());
             } else {
-                throw UnsatisfiedDependency.on(this).causedBy(String.format(
-                        "more than one component is available for query %s." +
-                                " Please select which one you want with a more specific query." +
-                                " Available components are: %s",
-                        this, components)).raise();
+                StringBuilder sb = new StringBuilder();
+                sb.append("more than one component is available for query ").append(this).append(".\n")
+                        .append(" Please select which one you want with a more specific query,\n")
+                        .append(" or by deactivating one of the available components.\n")
+                        .append(" Available components:\n");
+                for (NamedComponent<T> component : components) {
+                    sb.append(" - ").append(component).append("\n")
+                            .append("         [Activation key: '")
+                            .append(activationKey(component.getName().getClazz(), component.getName().getName()))
+                            .append("']\n");
+                }
+
+                throw UnsatisfiedDependency.on(this).causedBy(sb.toString()).raise();
             }
         }
     }

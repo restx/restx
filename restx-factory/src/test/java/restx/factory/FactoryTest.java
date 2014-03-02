@@ -153,6 +153,27 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_find_one_when_multiple_available_fail() throws Exception {
+        Factory factory = Factory.builder().addMachine(testMachine("test")).addMachine(testMachine("test2")).build();
+
+        try {
+            factory.queryByClass(String.class).findOne();
+            fail("should raise exception when asking for one component with multiple available");
+        } catch (IllegalStateException e) {
+            assertThat(e)
+                    .hasMessage("more than one component is available for query QueryByClass{componentClass=java.lang.String[]}.\n" +
+                            " Please select which one you want with a more specific query,\n" +
+                            " or by deactivating one of the available components.\n" +
+                            " Available components:\n" +
+                            " - NamedComponent{name=Name{name='test', clazz=java.lang.String[]}, component=value1}\n" +
+                            "         [Activation key: 'restx.activation::java.lang.String::test']\n" +
+                            " - NamedComponent{name=Name{name='test2', clazz=java.lang.String[]}, component=value1}\n" +
+                            "         [Activation key: 'restx.activation::java.lang.String::test2']\n")
+            ;
+        }
+    }
+
+    @Test
     public void should_warn_about_missing_annotated_machine() throws Exception {
         Factory factory = Factory.builder().addFromServiceLoader().build();
 
