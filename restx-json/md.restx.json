@@ -1,0 +1,18 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-json:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "com.google.guava:guava:${guava.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.assertj:assertj-core:${assertj-core.version}"
+        ]
+    }
+}

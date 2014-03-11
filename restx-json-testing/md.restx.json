@@ -1,0 +1,21 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-json-testing:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "com.fasterxml.jackson.core:jackson-core:${jackson.version}",
+            "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
+            "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
+            "io.restx:restx-json:${restx.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.assertj:assertj-core:${assertj-core.version}"
+        ]
+    }
+}
