@@ -1,10 +1,8 @@
 package restx.json;
 
 /**
-* Date: 11/3/14
-* Time: 22:35
 */
-public class Buffers {
+class Buffers {
     static final ThreadLocal<Buffers> BUFFERS = new ThreadLocal<Buffers>() {
         @Override
         protected Buffers initialValue() {

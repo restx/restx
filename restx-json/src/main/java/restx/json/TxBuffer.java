@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  */
-public class TxBuffer {
+class TxBuffer {
     /**
      * Let's limit maximum segment length to something sensible
      * like 256k

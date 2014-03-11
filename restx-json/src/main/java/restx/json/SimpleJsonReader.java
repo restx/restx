@@ -4,7 +4,7 @@ import java.io.IOException;
 
 /**
  */
-public final class SimpleJsonReader extends JsonReader {
+final class SimpleJsonReader extends JsonReader {
     private final char[] buffer;
     private final char[] textBuffer;
 
