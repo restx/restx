@@ -20,7 +20,7 @@ public class TwitterBench {
     private static ObjectMapper objectMapper;
 
     public static void main(String[] args) throws Exception {
-        _data = Resources.toByteArray(Resources.getResource("twitter-search.jsn"));
+        _data = Resources.toByteArray(Resources.getResource("twitter-search.json"));
 
         long reps = 10000L;
 
