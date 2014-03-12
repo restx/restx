@@ -2,62 +2,52 @@ package restx.json.testing.twitter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.base.Stopwatch;
 import com.google.common.io.Resources;
+import restx.json.testing.JsonBench;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.concurrent.TimeUnit;
+import java.io.*;
 
 /**
- * Date: 11/3/14
- * Time: 21:40
+ * Benchmark inspired by: https://github.com/FasterXML/jvm-json-benchmark
+ * Comparing only jackson with rxjson, jackson being the best so far.
  */
 public class TwitterBench {
-    private static byte[] _data;
-    private static ObjectMapper objectMapper;
+    private static class JacksonBench extends JsonBench<TwitterSearch> {
+        private static ObjectMapper objectMapper = new ObjectMapper();
+
+        ObjectReader jacksonReader = objectMapper.reader(TwitterSearch.class);
+
+        public JacksonBench(int threads, int count, long reps, byte[] data) {
+            super("jackson", threads, count, reps, data);
+        }
+
+        @Override
+        protected TwitterSearch parse(Reader reader) throws IOException {
+            return jacksonReader.readValue(reader);
+        }
+    }
+
+    private static class RxJsonBench extends JsonBench<TwitterSearch> {
+        public RxJsonBench(int threads, int count, long reps, byte[] data) {
+            super("rxjson", threads, count, reps, data);
+        }
+
+        @Override
+        protected TwitterSearch parse(Reader reader) throws Exception {
+            return TwitterSearchParser.parse(reader);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
-        _data = Resources.toByteArray(Resources.getResource("twitter-search.json"));
-
-        long reps = 10000L;
-
-        Stopwatch stopwatch;
-
-        objectMapper = new ObjectMapper();
-
-        for (int i = 0 ; i<10 ; i++) {
-            stopwatch = Stopwatch.createStarted();
-            readJackson(reps);
-            System.out.println("jackson: " + stopwatch.stop() + " throughput=" + (reps * 1000 / stopwatch.elapsed(TimeUnit.MILLISECONDS)) + "/s");
+        byte[] data = Resources.toByteArray(Resources.getResource("twitter-search.json"));
 
 
-            stopwatch = Stopwatch.createStarted();
-            readRxJson(reps);
-            System.out.println("rxjson : " + stopwatch.stop() + " throughput=" + (reps * 1000 / stopwatch.elapsed(TimeUnit.MILLISECONDS)) + "/s");
-        }
-    }
-    private static long readJackson(long reps) throws IOException {
-        ObjectReader jacksonReader = objectMapper.reader(TwitterSearch.class);
-        long hash = 1;
-
-        while (--reps >= 0) {
-            hash += jacksonReader.readValue(new InputStreamReader(inputStream(), "UTF-8")).hashCode();
-        }
-        return hash;
-    }
-
-    private static long readRxJson(long reps) throws Exception {
-        long hash = 1;
-        while (--reps >= 0) {
-            hash += TwitterSearchParser.parse(new InputStreamReader(inputStream(), "UTF-8")).hashCode();
-        }
-        return hash;
-    }
-
-    protected static InputStream inputStream() {
-        return new ByteArrayInputStream(_data);
+        System.out.println("Twitter Search JSON binding Micro Benchmark\n" +
+                "- each json is a twitter search result object \n" +
+                "   - with 15 twitter entries\n" +
+                "   - made of " + data.length + " bytes\n" +
+                "   - parsed from a ByteArrayInputStream (bytes loaded only once at start of bench)");
+        new JacksonBench(Runtime.getRuntime().availableProcessors(), 10, 10000, data).bench();
+        new RxJsonBench(Runtime.getRuntime().availableProcessors(), 10, 10000, data).bench();
     }
 }
