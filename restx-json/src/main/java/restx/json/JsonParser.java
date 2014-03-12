@@ -128,17 +128,15 @@ public abstract class JsonParser<T> {
 
     protected final double readDoublePrimitive() throws IOException {
         int i = 0;
-        for (; CharMatcher.DIGIT.matches(reader.lookAhead(i)); i++) {
+        while (true) {
+            char c = reader.lookAhead(i);
+            if (c < ' ' || c == '}' || c == ',') {
+                break;
+            }
+            i++;
         }
         if (i==0) {
             throw complain();
-        }
-
-        if (reader.lookAhead(i) == '.') {
-            i++;
-
-            for (; CharMatcher.DIGIT.matches(reader.lookAhead(i)); i++) {
-            }
         }
         return Double.parseDouble(reader.newString(i));
     }
