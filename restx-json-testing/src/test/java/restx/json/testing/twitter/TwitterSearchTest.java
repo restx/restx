@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.io.InputStreamReader;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Date: 12/3/14
@@ -32,5 +33,16 @@ public class TwitterSearchTest {
                                "created_at =Sat, 17 Jan 2009 06:14:13 +0000}"); 
                         // compare toString as an esay way to test all properties at once
 
+    }
+
+    @Test
+    public void should_error_on_invalid() throws Exception {
+        try {
+            TwitterSearchParser.parse(
+                    new InputStreamReader(TwitterBench.class.getResourceAsStream("/twitter-search-invalid.json"), "UTF-8"));
+            fail("parsing invalid json should raise exception");
+        } catch (Exception e) {
+            assertThat(e).hasMessageContaining("line 17 col 9");
+        }
     }
 }

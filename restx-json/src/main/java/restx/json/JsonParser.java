@@ -215,11 +215,14 @@ public abstract class JsonParser<T> {
     }
 
     protected final RuntimeException complain() {
-        return new RuntimeException("error at " + reader.index() + " (" + ((char) reader.current()) + ")");
+        return new RuntimeException("error at line " + reader.line() + " col " + reader.column() + " (" + ((char) reader.current()) + ")");
     }
 
     protected final void skipWhitespaceIfNeeded() throws IOException {
         while (reader.current() <= ' ') {
+            if (reader.current() == '\n') {
+                reader.nextLine();
+            }
             reader.readChar();
         }
     }

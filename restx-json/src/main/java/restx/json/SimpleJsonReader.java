@@ -11,11 +11,14 @@ final class SimpleJsonReader extends JsonReader {
     private final int loaded; // currently loaded chars from bufferStartIndex.
 
     private int pos = -1;   // current position in current buffer
+    private int line = -1;
+    private int startLineIndex;
 
     public SimpleJsonReader(Buffers buffers, int loaded) {
         buffer = buffers.readerBuffer;
         textBuffer = buffers.readerBuffer2;
-        pos = 0;
+        pos = startLineIndex = 0;
+        line = 1;
         this.loaded = loaded;
     }
 
@@ -95,5 +98,21 @@ final class SimpleJsonReader extends JsonReader {
 
     @Override
     public void close() throws Exception {
+    }
+
+    @Override
+    public void nextLine() {
+        line++;
+        startLineIndex = pos + 1;
+    }
+
+    @Override
+    public int line() {
+        return line;
+    }
+
+    @Override
+    public int column() {
+        return pos - startLineIndex + 1;
     }
 }

@@ -20,6 +20,8 @@ final class BufferedJsonReader extends JsonReader {
 
     private int bufferStartIndex;   // index among all chars of current buffer first char
     private int pos = -1;   // current position in current buffer
+    private int line = -1;
+    private int startLineIndex = -1;
 
     BufferedJsonReader(Reader reader, Buffers buffers, int loaded) throws IOException {
         this.buffers = buffers;
@@ -29,7 +31,8 @@ final class BufferedJsonReader extends JsonReader {
         this.loaded = loaded;
         mayHaveMore = true;
         bufferStartIndex = 0;
-        pos = 0;
+        pos = startLineIndex = 0;
+        line = 1;
         this.reader = reader;
     }
 
@@ -257,4 +260,19 @@ final class BufferedJsonReader extends JsonReader {
         reader.close();
     }
 
+    @Override
+    public void nextLine() {
+        line++;
+        startLineIndex = bufferStartIndex + pos + 1;
+    }
+
+    @Override
+    public int line() {
+        return line;
+    }
+
+    @Override
+    public int column() {
+        return bufferStartIndex + pos - startLineIndex + 1;
+    }
 }

@@ -37,4 +37,10 @@ public abstract class JsonReader implements AutoCloseable {
     public abstract String readString() throws IOException;
 
     public abstract String newString(int l) throws IOException;
+
+    public abstract void nextLine();
+
+    public abstract int line();
+
+    public abstract int column();
 }
