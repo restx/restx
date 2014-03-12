@@ -29,7 +29,7 @@ public class TwitterEntryParser extends JsonParser<TwitterEntry> {
         // sacrificing error detection.
         reader.readChar();
         if (reader.lookAhead(2) == '"') {
-            skipToPropertyValue(2); result.setId(readInt()); return;
+            skipToPropertyValue(2); result.setId(readPrimitveInt()); return;
         } else if (reader.lookAhead(4) == '"') {
             skipToPropertyValue(4); result.setText(readString()); return;
         } else if (reader.lookAhead(6) == '"') {
@@ -61,7 +61,7 @@ public class TwitterEntryParser extends JsonParser<TwitterEntry> {
     protected void readProperty(String property, TwitterEntry result) throws IOException {
         // unoptimized implementation, not used as long as optimized version is defined
         switch (property) {
-            case "id": result.setId(readInt()); break;
+            case "id": result.setId(readPrimitveInt()); break;
             case "text": result.setText(readString()); break;
             case "to_user": result.setTo_user(readString()); break;
             case "from_user": result.setFrom_user(readString()); break;

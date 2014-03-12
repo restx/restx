@@ -1,7 +1,5 @@
 package restx.json;
 
-import com.google.common.base.CharMatcher;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,7 +80,7 @@ public abstract class JsonParser<T> {
 
     protected abstract void readProperty(String property, T result) throws IOException;
 
-    protected final long readLong() throws IOException {
+    protected final long readPrimitveLong() throws IOException {
         long l = 1;
         if (reader.current() == '-') {
             l = -1; reader.readChar();
@@ -106,7 +104,7 @@ public abstract class JsonParser<T> {
         }
     }
 
-    protected final int readInt() throws IOException {
+    protected final int readPrimitveInt() throws IOException {
         int l = 1;
         if (reader.current() == '-') {
             l = -1; reader.readChar();
@@ -135,10 +133,10 @@ public abstract class JsonParser<T> {
             readNull();
             return null;
         }
-        return readInt();
+        return readPrimitveInt();
     }
 
-    protected final double readDoublePrimitive() throws IOException {
+    protected final double readPrimitveDouble() throws IOException {
         int i = 0;
         char c = reader.lookAhead(i);
         while (!(c < ' ' || c == '}' || c == ',')) {

@@ -30,14 +30,14 @@ public class TwitterSearchParser extends JsonParser<TwitterSearch> {
     protected void readProperty(String property, TwitterSearch result) throws IOException {
         switch (property) {
             case "results": result.setResults(readObjectArray(new TwitterEntryParser(reader))); break;
-            case "since_id": result.setSince_id(readLong()); break;
-            case "max_id": result.setMax_id(readLong()); break;
-            case "page": result.setPage(readInt()); break;
-            case "results_per_page": result.setResults_per_page(readInt()); break;
+            case "since_id": result.setSince_id(readPrimitveLong()); break;
+            case "max_id": result.setMax_id(readPrimitveLong()); break;
+            case "page": result.setPage(readPrimitveInt()); break;
+            case "results_per_page": result.setResults_per_page(readPrimitveInt()); break;
             case "query": result.setQuery(readString()); break;
             case "refresh_url": result.setRefresh_url(readString()); break;
             case "next_page": result.setNext_page(readString()); break;
-            case "completed_in": result.setCompleted_in(readDoublePrimitive()); break;
+            case "completed_in": result.setCompleted_in(readPrimitveDouble()); break;
             default: throw new RuntimeException("unknown property: " + property);
         }
     }
