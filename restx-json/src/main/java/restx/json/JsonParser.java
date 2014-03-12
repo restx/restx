@@ -83,15 +83,21 @@ public abstract class JsonParser<T> {
     protected abstract void readProperty(String property, T result) throws IOException;
 
     protected final long readLong() throws IOException {
-        long l;
-        l = reader.current() - '0';
-        if (l < 0 || l > 9) {
+        long l = 1;
+        if (reader.current() == '-') {
+            l = -1; reader.readChar();
+        } else if (reader.current() == '+') {
+            reader.readChar();
+        }
+        int d = reader.current() - '0';
+        if (d < 0 || d > 9) {
             throw complain();
         }
+        l = l * d;
 
         reader.readChar();
         while (true) {
-            int d = reader.current() - '0';
+            d = reader.current() - '0';
             if (d < 0 || d > 9) {
                 return l;
             }
@@ -101,15 +107,21 @@ public abstract class JsonParser<T> {
     }
 
     protected final int readInt() throws IOException {
-        int l;
-        l = reader.current() - '0';
-        if (l < 0 || l > 9) {
+        int l = 1;
+        if (reader.current() == '-') {
+            l = -1; reader.readChar();
+        } else if (reader.current() == '+') {
+            reader.readChar();
+        }
+        int d = reader.current() - '0';
+        if (d < 0 || d > 9) {
             throw complain();
         }
+        l = l * d;
 
         reader.readChar();
         while (true) {
-            int d = reader.current() - '0';
+            d = reader.current() - '0';
             if (d < 0 || d > 9) {
                 return l;
             }
