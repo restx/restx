@@ -140,12 +140,9 @@ public abstract class JsonParser<T> {
 
     protected final double readDoublePrimitive() throws IOException {
         int i = 0;
-        while (true) {
-            char c = reader.lookAhead(i);
-            if (c < ' ' || c == '}' || c == ',') {
-                break;
-            }
-            i++;
+        char c = reader.lookAhead(i);
+        while (!(c < ' ' || c == '}' || c == ',')) {
+            c = reader.lookAhead(++i);
         }
         if (i==0) {
             throw complain();
