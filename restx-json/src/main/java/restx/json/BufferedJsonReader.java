@@ -138,9 +138,9 @@ final class BufferedJsonReader extends JsonReader {
     }
 
     public String readString() throws IOException {
-        int l = buffer.length;
+        int len = buffer.length;
         tbuf.resetWithBuffer(textbuffer);
-        for (int j = pos; j < l; j++) {
+        for (int j = pos; j < len; j++) {
             if (buffer[j] == '"') {
                 String s = new String(buffer, pos, j - pos);
                 pos = j;
@@ -150,7 +150,7 @@ final class BufferedJsonReader extends JsonReader {
                 tbuf.append(buffer, pos, charsLen);
                 pos += charsLen + 1;
 
-                for (j+=2; j < l; j++) {
+                for (j+=2; j < len; j++) {
                     if (buffer[j] == '"') {
                         charsLen = j - pos;
                         tbuf.append(buffer, pos, charsLen);
@@ -170,7 +170,7 @@ final class BufferedJsonReader extends JsonReader {
         // reached end of current buffer and still not end of String
 
         // copy chars at end of current buffer if any
-        int c = l - pos;
+        int c = len - pos;
         if (c > 0) {
             tbuf.append(buffer, pos, c);
             pos += c;
@@ -179,19 +179,19 @@ final class BufferedJsonReader extends JsonReader {
         if (buffer2Loaded) {
             gotoBuffer2();
         } else {
-            int r = reader.read(buffer, 0, l);
+            int r = reader.read(buffer, 0, len);
             if (r == -1) {
                 throw new IOException("unterminated string " + tbuf.asString() + ": end of source reached");
             }
 
-            mayHaveMore = r == l;
-            bufferStartIndex += l;
+            mayHaveMore = r == len;
+            bufferStartIndex += len;
             loaded = r;
             pos = 0;
         }
 
         do {
-            for (int j = pos; j < l; j++) {
+            for (int j = pos; j < len; j++) {
                 if (buffer[j] == '"') {
                     int charsLen = j - pos;
                     tbuf.append(buffer, pos, charsLen);
@@ -208,19 +208,19 @@ final class BufferedJsonReader extends JsonReader {
             // reached end of current buffer and still not end of String
 
             // copy chars at end of current buffer if any
-            c = l - pos;
+            c = len - pos;
             if (c > 0) {
                 tbuf.append(buffer, pos, c);
                 pos += c;
             }
 
-            int r = reader.read(buffer, 0, l);
+            int r = reader.read(buffer, 0, len);
             if (r == -1) {
                 throw new IOException("unterminated string " + tbuf.asString() + ": end of source reached");
             }
 
-            mayHaveMore = r == l;
-            bufferStartIndex += l;
+            mayHaveMore = r == len;
+            bufferStartIndex += len;
             loaded = r;
             pos = 0;
         } while (true);

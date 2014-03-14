@@ -53,8 +53,8 @@ final class SimpleJsonReader extends JsonReader {
     }
 
     public String readString() throws IOException {
-        int l = loaded;
-        for (int j = pos; j < l; j++) {
+        int len = loaded;
+        for (int j = pos; j < len; j++) {
             if (buffer[j] == '"') {
                 String s = new String(buffer, pos, j - pos);
                 pos = j;
@@ -66,7 +66,7 @@ final class SimpleJsonReader extends JsonReader {
                 pos += charsLen + 1;
                 destPos += charsLen;
 
-                for (j+=2; j < l; j++) {
+                for (j+=2; j < len; j++) {
                     if (buffer[j] == '"') {
                         charsLen = j - pos;
                         System.arraycopy(buffer, pos, textBuffer, destPos, charsLen);
