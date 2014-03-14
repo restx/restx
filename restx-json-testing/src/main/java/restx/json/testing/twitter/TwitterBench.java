@@ -22,8 +22,8 @@ public class TwitterBench {
         }
 
         @Override
-        protected TwitterSearch parse(Reader reader) throws IOException {
-            return jacksonReader.readValue(reader);
+        protected TwitterSearch parse(InputStream stream) throws IOException {
+            return jacksonReader.readValue(stream);
         }
     }
 
@@ -33,8 +33,8 @@ public class TwitterBench {
         }
 
         @Override
-        protected TwitterSearch parse(Reader reader) throws Exception {
-            return TwitterSearchParser.parse(reader);
+        protected TwitterSearch parse(InputStream stream) throws Exception {
+            return TwitterSearchParser.parse(new InputStreamReader(stream, "UTF-8"));
         }
     }
 

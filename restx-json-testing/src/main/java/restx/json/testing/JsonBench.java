@@ -31,7 +31,7 @@ public abstract class JsonBench<T> {
         final AtomicLong counter = new AtomicLong();
         // warmup
         System.out.println("[WARMUP]   " + name);
-        benchParse(reps, readerSupplier());
+        benchParse(reps, streamSupplier());
 
         System.out.println("[STARTING] " + name + " " + count + " times " + reps + " in " + threads + " threads");
         final CountDownLatch latch = new CountDownLatch(threads);
@@ -42,7 +42,7 @@ public abstract class JsonBench<T> {
                 public void run() {
                     for (int i = 0; i < count; i++) {
                         try {
-                            benchParse(reps, readerSupplier());
+                            benchParse(reps, streamSupplier());
                             System.out.print(".");
                         } catch (Exception e) {
                             throw new RuntimeException(e);
@@ -60,20 +60,16 @@ public abstract class JsonBench<T> {
         executor.shutdown();
     }
 
-    protected Supplier<Reader> readerSupplier() {
-        return new Supplier<Reader>() {
+    protected Supplier<InputStream> streamSupplier() {
+        return new Supplier<InputStream>() {
             @Override
-            public Reader get() {
-                try {
-                    return new InputStreamReader(inputStream(), "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
+            public InputStream get() {
+                return inputStream();
             }
         };
     }
 
-    long benchParse(long reps, Supplier<Reader> reader) throws Exception {
+    long benchParse(long reps, Supplier<InputStream> reader) throws Exception {
         long hash = 1;
         while (--reps >= 0) {
             hash += parse(reader.get()).hashCode();
@@ -82,7 +78,7 @@ public abstract class JsonBench<T> {
     }
 
 
-    protected abstract T parse(Reader reader) throws Exception;
+    protected abstract T parse(InputStream stream) throws Exception;
 
 
     protected InputStream inputStream() {
