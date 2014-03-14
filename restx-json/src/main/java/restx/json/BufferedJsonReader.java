@@ -137,19 +137,28 @@ final class BufferedJsonReader extends JsonReader {
         }
     }
 
+
     public String readString() throws IOException {
+        /*
+        WARNING: UGLY OPTIMIZED CODE AHEAD!
+        WATCH OUT, NERVER SAY YOU'VE NOT BEEN WARNED!
+         */
         int len = buffer.length;
         tbuf.resetWithBuffer(textbuffer);
         for (int j = pos; j < len; j++) {
             if (buffer[j] == '"') {
+                // easy path, the whole String is a substring of current buffer
+                // a single arraycopy and we're good to go
                 String s = new String(buffer, pos, j - pos);
                 pos = j;
                 return s;
             } else if (buffer[j] == '\\') {
+                // an escaped character, we have to use the TxBuffer
                 int charsLen = j - pos;
                 tbuf.append(buffer, pos, charsLen);
                 pos += charsLen + 1;
 
+                // finish the other parts of the current buffer (outer loop won't be used anymore)
                 for (j+=2; j < len; j++) {
                     if (buffer[j] == '"') {
                         charsLen = j - pos;
@@ -176,6 +185,7 @@ final class BufferedJsonReader extends JsonReader {
             pos += c;
         }
 
+        // make next chars chunk available in `buffer`
         if (buffer2Loaded) {
             gotoBuffer2();
         } else {
@@ -190,7 +200,9 @@ final class BufferedJsonReader extends JsonReader {
             pos = 0;
         }
 
+        // loop until end of String
         do {
+            // process chars in current `buffer`, continuing to fill the TxBuffer
             for (int j = pos; j < len; j++) {
                 if (buffer[j] == '"') {
                     int charsLen = j - pos;
@@ -214,6 +226,7 @@ final class BufferedJsonReader extends JsonReader {
                 pos += c;
             }
 
+            // read next chars chunk, and continue
             int r = reader.read(buffer, 0, len);
             if (r == -1) {
                 throw new IOException("unterminated string " + tbuf.asString() + ": end of source reached");
