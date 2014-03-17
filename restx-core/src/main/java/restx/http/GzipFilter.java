@@ -76,7 +76,6 @@ public class GzipFilter implements RestxFilter, RestxHandler {
 
                 @Override
                 public void close() throws Exception {
-                    super.close();
                     if (gzipOutputStream != null) {
                         try {
                             gzipOutputStream.close();
@@ -84,6 +83,7 @@ public class GzipFilter implements RestxFilter, RestxHandler {
                             gzipOutputStream = null;
                         }
                     }
+                    super.close();
                 }
             }, restxContext);
         } finally {
