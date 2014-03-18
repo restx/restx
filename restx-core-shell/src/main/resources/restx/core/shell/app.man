@@ -74,12 +74,25 @@ Your app will be started in different modes depending on your working directory 
   - By guessing it from source files
 
 
+## app archive <jarFile>
+
+Create a restx archive from current working directory.
+A restx archive is a standard jar archive, with source (including assets) ressources located in `META-INF/restx/app/`
+folder.
+
+Purpose of these archives is to be easily deployable with the `app grab` command.
+They embed a restx module descriptor which will be used to provision dependencies before launching the restx app.
+
+`<jarFile>`
+  Path to generated restx archive vile.
+
 ## app grab <coordinates> [<destination>]
 
 Grab and unpack a restx archive/project into a directory, then change restx shell to this directory in order
 to easily chain this command with `app run` command.
 
-A restx archive is a standard jar archive, with static ressources located in `META-INF/restx/app/` folder.
+A restx archive is a standard jar archive, with sources (including assets) ressources located in `META-INF/restx/app/`
+folder.
 Note that a restx archive MUST contain a `META-INF/restx/app/md.restx.json` file in order to be considered valid.
 
 `<coordinates>`

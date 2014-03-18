@@ -71,6 +71,8 @@ public class AppShellCommand extends StdShellCommand {
                 return Optional.of(new RunAppCommandRunner(args));
             case "grab":
                 return Optional.of(new GrabAppCommandRunner(args));
+            case "archive":
+                return Optional.of(new ArchiveAppCommandRunner(args));
         }
 
         return Optional.absent();
@@ -803,6 +805,28 @@ public class AppShellCommand extends StdShellCommand {
             this.grabbingStrategy.unpackCoordinatesTo(this.coordinates, this.destinationDirectoy, this.projectName, shell);
 
             shell.cd(destinationDirectoy);
+        }
+    }
+
+    private class ArchiveAppCommandRunner implements ShellCommandRunner {
+        private final Path jarFile;
+
+        public ArchiveAppCommandRunner(List<String> args) {
+            if(args.size() < 3) {
+                throw new IllegalArgumentException("app archive : missing jarFile argument");
+            }
+
+            this.jarFile = Paths.get(args.get(2));
+        }
+
+        @Override
+        public void run(RestxShell shell) throws Exception {
+            AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
+            new RestxArchive(jarFile).pack(
+                    shell.currentLocation(),
+                    shell.currentLocation().resolve(appSettings.targetClasses()),
+                    Arrays.asList("target", "tmp", "logs")
+            );
         }
     }
 }

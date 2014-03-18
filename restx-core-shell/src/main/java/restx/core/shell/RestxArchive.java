@@ -24,13 +24,6 @@ public class RestxArchive {
         this.jarFile = jarFile;
     }
 
-    public static void main(String[] args) {
-        new RestxArchive(Paths.get("/tmp/helloworld.jar")).pack(
-                Paths.get("/tmp/helloworld"),
-                Paths.get("/tmp/helloworld/target/restx/classes"),
-                Arrays.asList("target", "tmp", "logs"));
-    }
-
     private static class JarCopierFileVisitor extends SimpleFileVisitor<Path> {
         private final Path startingDirectory;
         private final String targetDirPrefix;
@@ -114,6 +107,9 @@ public class RestxArchive {
                     path += "/";
                 }
             }
+
+            // TODO : It would be a good thing to generate md.restx.json file if it doesn't exist yet
+            // Because a jar archive without this descriptor won't be considered as valid restx archive
 
             // Copying everything into CHROOT directory
             Files.walkFileTree(workingDirectory, new JarCopierFileVisitor(workingDirectory, jarOS, CHROOT, packagingExcludes));
