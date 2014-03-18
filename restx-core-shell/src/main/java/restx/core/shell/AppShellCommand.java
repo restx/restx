@@ -758,7 +758,7 @@ public class AppShellCommand extends StdShellCommand {
             singleFileGrabber.grabSingleFileTo(coordinates, jarFile, shell);
 
             AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
-            new RestxArchiveUnpacker().unpack(jarFile, destinationDir, appSettings);
+            new RestxArchive(jarFile).unpack(destinationDir, appSettings);
             jarFile.toFile().delete();
         }
 
