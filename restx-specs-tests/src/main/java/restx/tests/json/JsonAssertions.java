@@ -27,7 +27,6 @@ import static restx.common.MoreStrings.indent;
  */
 public class JsonAssertions {
 
-
     public static JsonAssertions assertThat(String json) {
         return new JsonAssertions(new StringJsonSource("actual", json));
     }
@@ -47,6 +46,7 @@ public class JsonAssertions {
 
     private boolean allowingExtraUnexpectedFields;
     private int contentLengthHtmlReportThreshold = 600;
+    private JsonDiffComparator jsonDiffComparator = null;
 
     private JsonAssertions(JsonSource actual) {
         this.actual = actual;
@@ -56,6 +56,11 @@ public class JsonAssertions {
     public JsonAssertions allowingExtraUnexpectedFields() {
         allowingExtraUnexpectedFields = true;
         differ.getLeftConfig().setIgnoreExtraFields(true);
+        return this;
+    }
+
+    public JsonAssertions withJsonDiffComparator(JsonDiffComparator jsonDiffComparator) {
+        this.jsonDiffComparator = jsonDiffComparator;
         return this;
     }
 
@@ -75,7 +80,7 @@ public class JsonAssertions {
         return isSameJsonAs(new URLJsonSource(expected, cs));
     }
     public JsonAssertions isSameJsonAs(JsonSource expected) {
-        JsonDiff diff = differ.compare(actual, expected);
+        JsonDiff diff = differ.compare(actual, expected, this.jsonDiffComparator);
 
         if (!diff.isSame()) {
             if (expected.content().length() < contentLengthHtmlReportThreshold
