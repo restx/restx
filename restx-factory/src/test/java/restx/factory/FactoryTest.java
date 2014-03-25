@@ -65,6 +65,17 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_prepare_auto_preparable() throws Exception {
+        LifecycleComponent lifecycleComponent = new LifecycleComponent();
+        Factory factory = Factory.builder().addMachine(new SingletonFactoryMachine<>(0,
+                NamedComponent.of(
+                        AutoPreparable.class, "t", lifecycleComponent))).build();
+        factory.prepare();
+
+        assertThat(lifecycleComponent.prepared).isTrue();
+    }
+
+    @Test
     public void should_not_close_closeable_from_other_warehouse() throws Exception {
         LifecycleComponent lifecycleComponent = new LifecycleComponent();
         Factory factory = Factory.builder().addMachine(new SingletonFactoryMachine<>(0,
@@ -515,9 +526,10 @@ public class FactoryTest {
         });
     }
 
-    private static class LifecycleComponent implements AutoStartable, AutoCloseable {
+    private static class LifecycleComponent implements AutoStartable, AutoCloseable, AutoPreparable {
         private boolean closed;
         private boolean started;
+        private boolean prepared;
 
         @Override
         public void close() throws Exception {
@@ -527,6 +539,11 @@ public class FactoryTest {
         @Override
         public void start() {
             started = true;
+        }
+
+        @Override
+        public void prepare() {
+            prepared = true;
         }
     }
 

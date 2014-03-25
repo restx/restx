@@ -813,11 +813,31 @@ public class Factory implements AutoCloseable {
     }
 
     /**
+     * Returns current factory, used only for fluent API to have more readable code
+     * like factory.start().and().prepare();
+     *
+     * @return current factory
+     */
+    public Factory and() {
+        return this;
+    }
+
+    /**
      * Starts all the AutoStartable components of this factory.
      */
     public Factory start() {
         for (AutoStartable startable : queryByClass(AutoStartable.class).findAsComponents()) {
             startable.start();
+        }
+        return this;
+    }
+
+    /**
+     * Prepares all the AutoPreparable components of this factory.
+     */
+    public Factory prepare() {
+        for (AutoPreparable preparable : queryByClass(AutoPreparable.class).findAsComponents()) {
+            preparable.prepare();
         }
         return this;
     }

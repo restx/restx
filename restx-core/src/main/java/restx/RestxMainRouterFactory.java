@@ -199,6 +199,8 @@ public class RestxMainRouterFactory {
                 }
             }
 
+            factory.prepare();
+
             try {
                 StdRestxMainRouter stdRestxMainRouter = newStdRouter(factory);
                 if (stopwatch.elapsed(TimeUnit.MILLISECONDS) > 200) {
@@ -355,7 +357,7 @@ public class RestxMainRouterFactory {
 
             StdRestxMainRouter mainRouter = newStdRouter(factory);
             routers.put(serverId, mainRouter);
-            factory.start();
+            factory.start().and().prepare();
 
             logPrompt(baseUri, "READY", mainRouter);
 
