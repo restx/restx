@@ -671,7 +671,14 @@ public class RestxMainRouterFactory {
             public ImmutableSet<Class> get() {
                 Collection<Class> coldClasses = new HashSet<>();
                 for (Name<?> name : factory.getWarehouse().listNames()) {
-                    coldClasses.add(factory.getComponent(name).getClass());
+                    Optional<?> c = factory.queryByName(name).findOneAsComponent();
+                    if (c.isPresent()) {
+                        coldClasses.add(c.get().getClass());
+                    } else {
+                        logger.debug(
+                                "invalid cold class {}: found in factory warehouse but not available as component." +
+                                " Ignored.", name);
+                    }
                 }
 
                 return ImmutableSet.copyOf(coldClasses);
