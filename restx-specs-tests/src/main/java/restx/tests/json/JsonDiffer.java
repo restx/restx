@@ -1,6 +1,7 @@
 package restx.tests.json;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -10,6 +11,8 @@ import difflib.myers.Equalizer;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Date: 3/2/14
@@ -40,6 +43,7 @@ public class JsonDiffer {
 
     private Config leftConfig = new Config();
     private Config rightConfig = new Config();
+    private JsonDiffComparator jsonDiffComparator = DEFAULT_JSON_DIFF_COMPARATOR;
 
     public Config getLeftConfig() {
         return leftConfig;
@@ -49,30 +53,27 @@ public class JsonDiffer {
         return rightConfig;
     }
 
-    public JsonDiff compare(JsonSource left, JsonSource right) {
-        return compare(left, right, DEFAULT_JSON_DIFF_COMPARATOR);
+    public JsonDiffer setJsonDiffComparator(JsonDiffComparator jsonDiffComparator) {
+        this.jsonDiffComparator = checkNotNull(jsonDiffComparator);
+        return this;
     }
 
-    public JsonDiff compare(JsonSource left, JsonSource right, JsonDiffComparator jsonDiffComparator) {
-        if (jsonDiffComparator == null) {
-            jsonDiffComparator = DEFAULT_JSON_DIFF_COMPARATOR;
-        }
-
+    public JsonDiff compare(JsonSource left, JsonSource right) {
         try {
             JsonWithLocationsParser.ParsedJsonWithLocations leftObj = new JsonWithLocationsParser().parse(left, Object.class);
             JsonWithLocationsParser.ParsedJsonWithLocations rightObj = new JsonWithLocationsParser().parse(right, Object.class);
 
-            return diff(new JsonDiff(leftObj, rightObj), leftObj.getRoot(), rightObj.getRoot(), jsonDiffComparator);
+            return diff(new JsonDiff(leftObj, rightObj), leftObj.getRoot(), rightObj.getRoot());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private JsonDiff diff(JsonDiff diff, Object o1, Object o2, JsonDiffComparator jsonDiffComparator) {
+    private JsonDiff diff(JsonDiff diff, Object o1, Object o2) {
         if (o1 instanceof Map && o2 instanceof  Map) {
-            diffMaps(diff, (Map) o1, (Map) o2, jsonDiffComparator);
+            diffMaps(diff, (Map) o1, (Map) o2);
         } else if (o1 instanceof List && o2 instanceof List) {
-            diffLists(diff, (List) o1, (List) o2, jsonDiffComparator);
+            diffLists(diff, (List) o1, (List) o2);
         } else {
             if (!jsonDiffComparator.compare(diff, o1, o2)) {
                 diff.addDifference(new JsonDiff.ValueDiff(
@@ -87,12 +88,12 @@ public class JsonDiffer {
         return diff;
     }
 
-    private void diffLists(final JsonDiff diff, List<Object> o1, List<Object> o2, final JsonDiffComparator jsonDiffComparator) {
+    private void diffLists(final JsonDiff diff, List<Object> o1, List<Object> o2) {
         final Patch<Object> lDiff = DiffUtils.diff(o1, o2, new Equalizer<Object>() {
             @Override
             public boolean equals(Object o1, Object o2) {
                 // we don't give new roots here, since we only need to know if objects are the the same
-                return diff(new JsonDiff(diff.getLeftObj(), diff.getRightObj()), o1, o2, jsonDiffComparator).isSame();
+                return diff(new JsonDiff(diff.getLeftObj(), diff.getRightObj()), o1, o2).isSame();
             }
         });
         for (Delta<Object> objectDelta : lDiff.getDeltas()) {
@@ -133,7 +134,7 @@ public class JsonDiffer {
                             diff(diff.goIn("["+(leftPosition + i)+"]", "["+(rightPosition + i)+"]")
                                     .putContexts(new JsonDiff.ListSetter(o1, leftPosition + i), left,
                                             new JsonDiff.ListSetter(o2, rightPosition + i), right),
-                                    left, right, jsonDiffComparator);
+                                    left, right);
                         } finally {
                             diff.goUp();
                         }
@@ -169,7 +170,7 @@ public class JsonDiffer {
         }
     }
 
-    private void diffMaps(JsonDiff diff, Map<String, Object> m1, Map<String, Object> m2, JsonDiffComparator jsonDiffComparator) {
+    private void diffMaps(JsonDiff diff, Map<String, Object> m1, Map<String, Object> m2) {
         if (!leftConfig.isIgnoreExtraFields()) {
             for (String k : Sets.difference(m1.keySet(), m2.keySet())) {
                 diff.addDifference(new JsonDiff.RemovedKey(
@@ -191,10 +192,14 @@ public class JsonDiffer {
             }
         }
         for (String k : Sets.intersection(m1.keySet(), m2.keySet())) {
-            try { diff(diff.goIn(k).putContexts(
-                    new JsonDiff.MapSetter(m1, k), m1.get(k), new JsonDiff.MapSetter(m2, k), m2.get(k)),
-                    m1.get(k), m2.get(k), jsonDiffComparator);
-            } finally { diff.goUp(); }
+            try {
+                diff(diff.goIn(k).putContexts(
+                        new JsonDiff.MapSetter(m1, k), m1.get(k),
+                        new JsonDiff.MapSetter(m2, k), m2.get(k)),
+                        m1.get(k), m2.get(k));
+            } finally {
+                diff.goUp();
+            }
         }
     }
 }

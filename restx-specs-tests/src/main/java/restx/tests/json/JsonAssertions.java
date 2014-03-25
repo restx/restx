@@ -46,7 +46,6 @@ public class JsonAssertions {
 
     private boolean allowingExtraUnexpectedFields;
     private int contentLengthHtmlReportThreshold = 600;
-    private JsonDiffComparator jsonDiffComparator = null;
 
     private JsonAssertions(JsonSource actual) {
         this.actual = actual;
@@ -60,7 +59,7 @@ public class JsonAssertions {
     }
 
     public JsonAssertions withJsonDiffComparator(JsonDiffComparator jsonDiffComparator) {
-        this.jsonDiffComparator = jsonDiffComparator;
+        differ.setJsonDiffComparator(jsonDiffComparator);
         return this;
     }
 
@@ -80,7 +79,7 @@ public class JsonAssertions {
         return isSameJsonAs(new URLJsonSource(expected, cs));
     }
     public JsonAssertions isSameJsonAs(JsonSource expected) {
-        JsonDiff diff = differ.compare(actual, expected, this.jsonDiffComparator);
+        JsonDiff diff = differ.compare(actual, expected);
 
         if (!diff.isSame()) {
             if (expected.content().length() < contentLengthHtmlReportThreshold
