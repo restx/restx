@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
@@ -103,5 +104,18 @@ public class RestxBuild {
             return new MavenSupport();
         }
         return new RestxJsonSupport();
+    }
+
+    public static List<Path> resolveForeignModuleDescriptorsIn(Path directory) {
+        List<Path> possibleForeignModuleDescriptors = Arrays.asList(
+                directory.resolve("pom.xml"), directory.resolve("module.ivy"));
+
+        List<Path> existingForeignModuleDescriptors = new ArrayList<>();
+        for(Path possibleForeignModuleDescriptor : possibleForeignModuleDescriptors){
+            if(Files.exists(possibleForeignModuleDescriptor)) {
+                existingForeignModuleDescriptors.add(possibleForeignModuleDescriptor);
+            }
+        }
+        return existingForeignModuleDescriptors;
     }
 }
