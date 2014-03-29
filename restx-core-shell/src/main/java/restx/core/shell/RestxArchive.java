@@ -2,7 +2,9 @@ package restx.core.shell;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Iterables;
 import restx.AppSettings;
+import restx.build.RestxBuild;
 
 import java.io.*;
 import java.nio.file.*;
@@ -96,24 +98,41 @@ public class RestxArchive {
     public void pack(Path workingDirectory, final Path targetClassesDirectory, List<String> packagingExcludes) {
         try(final JarOutputStream jarOS = new JarOutputStream(new FileOutputStream(jarFile.toFile()))) {
 
-            Files.walkFileTree(targetClassesDirectory, new JarCopierFileVisitor(targetClassesDirectory, jarOS, "", Collections.<String>emptyList()));
-
-            // Ensuring CHROOT is made available in target jar
-            String path = "";
-            for(String chrootChunk  : Splitter.on("/").split(CHROOT)){
-                if(!chrootChunk.isEmpty()) {
-                    path += chrootChunk;
-                    createJarDirIfNotExists(jarOS, targetClassesDirectory, path);
-                    path += "/";
+            // Generating md.restx.json if it doesn't exist yet
+            // Because a restx archive without this descriptor won't be considered as valid restx archive
+            Path md = workingDirectory.resolve("md.restx.json");
+            boolean generatedMd = false;
+            if(!Files.exists(md)){
+                List<Path> foreignModuleDescriptors = RestxBuild.resolveForeignModuleDescriptorsIn(workingDirectory);
+                if(!foreignModuleDescriptors.isEmpty()) {
+                    Path firstModuleDescriptor = Iterables.getFirst(foreignModuleDescriptors, null);
+                    RestxBuild.convert(firstModuleDescriptor, md);
+                    generatedMd = true;
+                } else {
+                    throw new RuntimeException("Project descriptor (either a md.restx.json, or a foreign descriptor (pom, ivy, ...) file) is missing !");
                 }
             }
 
-            // TODO : It would be a good thing to generate md.restx.json file if it doesn't exist yet
-            // Because a jar archive without this descriptor won't be considered as valid restx archive
+            try {
+                Files.walkFileTree(targetClassesDirectory, new JarCopierFileVisitor(targetClassesDirectory, jarOS, "", Collections.<String>emptyList()));
 
-            // Copying everything into CHROOT directory
-            Files.walkFileTree(workingDirectory, new JarCopierFileVisitor(workingDirectory, jarOS, CHROOT, packagingExcludes));
+                // Ensuring CHROOT is made available in target jar
+                String path = "";
+                for(String chrootChunk  : Splitter.on("/").split(CHROOT)){
+                    if(!chrootChunk.isEmpty()) {
+                        path += chrootChunk;
+                        createJarDirIfNotExists(jarOS, targetClassesDirectory, path);
+                        path += "/";
+                    }
+                }
 
+                // Copying everything into CHROOT directory
+                Files.walkFileTree(workingDirectory, new JarCopierFileVisitor(workingDirectory, jarOS, CHROOT, packagingExcludes));
+            } finally {
+                if(generatedMd) {
+                    md.toFile().delete();
+                }
+            }
         } catch (IOException e) {
             Throwables.propagate(e);
         }
