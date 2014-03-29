@@ -113,7 +113,7 @@ public class JettyWebServer implements WebServer {
     private ThreadPool createThreadPool() {
         QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setMinThreads(1);
-        threadPool.setMaxThreads(10);
+        threadPool.setMaxThreads(Math.max(10, Runtime.getRuntime().availableProcessors()));
         return threadPool;
     }
 
