@@ -181,13 +181,10 @@ public class DepsShellCommand extends StdShellCommand {
                 new RestxJsonSupport().generate(descriptor, w);
             }
 
-            for (Path mod : asList(shell.currentLocation().resolve("pom.xml"),
-                    shell.currentLocation().resolve("module.ivy"))) {
-                if (mod.toFile().exists()) {
-                    shell.printIn("updating " + mod, RestxShell.AnsiCodes.ANSI_PURPLE);
-                    shell.println("");
-                    RestxBuild.convert(mdFile.toPath(), mod);
-                }
+            for (Path mod : RestxBuild.resolveForeignModuleDescriptorsIn(shell.currentLocation())) {
+                shell.printIn("updating " + mod, RestxShell.AnsiCodes.ANSI_PURPLE);
+                shell.println("");
+                RestxBuild.convert(mdFile.toPath(), mod);
             }
         }
     }
