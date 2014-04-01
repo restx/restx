@@ -24,28 +24,32 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSupplier {
     private String db;
+    private String uri;
 
     @Inject
     public GivenJongoCollectionSpecRuleSupplier(MongoSettings mongoSettings) {
         this.db = mongoSettings.dbName();
+        this.uri = mongoSettings.uri();
     }
 
     @Override
     public GivenSpecRule get() {
-        return new GivenJongoCollectionSpecRule(db);
+        return new GivenJongoCollectionSpecRule(db, uri);
     }
 
     public static class GivenJongoCollectionSpecRule implements GivenSpecRule {
         private static final AtomicLong counter = new AtomicLong();
         private final String db;
+        private final String uri;
 
-        public GivenJongoCollectionSpecRule(String db) {
+        public GivenJongoCollectionSpecRule(String db, String uri) {
             this.db = db + "-test-" + DateTime.now().getMillis() + "-" + counter.incrementAndGet();
+            this.uri = uri;
         }
 
         @Override
         public Map<String, String> getRunParams() {
-            return ImmutableMap.of(GivenJongoCollection.DB_URI, "mongodb://localhost/" + db);
+            return ImmutableMap.of(GivenJongoCollection.DB_URI, uri + "/" + db);
         }
 
         @Override
@@ -60,7 +64,7 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
         public void onTearDown(Factory.LocalMachines localMachines) {
             System.out.println("dropping database " + db);
             try {
-                new MongoClient(new MongoClientURI("mongodb://localhost")).dropDatabase(db);
+                new MongoClient(new MongoClientURI(uri)).dropDatabase(db);
             } catch (UnknownHostException e) {
                 throw new IllegalStateException("got unknown host exception while contacting mongo db on localhost", e);
             }
