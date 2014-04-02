@@ -17,5 +17,6 @@
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-specs-tests" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-jongo" rev="latest.integration" conf="default" />
+        <dependency org="de.flapdoodle.embed" name="de.flapdoodle.embed.mongo" rev="1.42" conf="default" />
     </dependencies>
 </ivy-module>

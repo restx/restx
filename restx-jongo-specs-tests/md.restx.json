@@ -10,7 +10,8 @@
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-specs-tests:${restx.version}",
-            "io.restx:restx-jongo:${restx.version}"
+            "io.restx:restx-jongo:${restx.version}",
+            "de.flapdoodle.embed:de.flapdoodle.embed.mongo:${de.flapdoodle.embed.version}"
         ]
     }
 }
