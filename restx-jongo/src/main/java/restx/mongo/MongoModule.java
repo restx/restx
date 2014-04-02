@@ -26,6 +26,7 @@ import java.util.Arrays;
 public class MongoModule {
     public static final String MONGO_CLIENT_NAME = "mongoClient";
     public static final String MONGO_DB_NAME = "mongo.db";
+    public static final String MONGO_URI = "mongo.uri";
 
     @Provides @Named(MONGO_CLIENT_NAME)
     public MongoClient mongoClient(MongoSettings settings) {
