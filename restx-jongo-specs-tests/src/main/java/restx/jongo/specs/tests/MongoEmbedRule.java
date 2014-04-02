@@ -19,6 +19,14 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 
+/**
+ * Rule which allows :
+ *  1/ download specific version of mongodb
+ *  2/ get free/dynamic port to mongodb
+ *  3/ start mongodb
+ *  4/ execute tests
+ *  5/ stop mongodb
+ */
 public class MongoEmbedRule implements TestRule {
 
     private Version.Main mongoVersion;

@@ -13,7 +13,48 @@ import org.junit.runners.model.InitializationError;
 import restx.tests.RestxSpecTestsRunner;
 
 /**
+ * A runner which can be used to run a set of specs as JUnit tests and use embed mongo with dynamic port.
+ * (download specify version).
  *
+ * Example of use:
+ *
+ * <code>
+ * @RunWith(MongoRestxSpecTestsRunner.class)
+ * @FindSpecsIn("specs/city")
+ * public class CitySpecTest { }
+ * </code>
+ *
+ * or
+ *
+ * <code>
+ * @RunWith(MongoRestxSpecTestsRunner.class)
+ * @FindSpecsIn("specs/city")
+ * @MongoVersion(Version.Main.PRODUCTION)
+ * public class CitySpecTest { }
+ * </code>
+ *
+ * or
+ *
+ * <code>
+ * @RunWith(MongoRestxSpecTestsRunner.class)
+ * public class CitySpecTest extends RestxSpecTests {
+ *     public CitySpecTest() {
+ *         super(new RestxSpecRule(), RestxSpecTests.findSpecsIn("specs/city"));
+ *     }
+ * }
+ * </code>
+ *
+ * or
+ *
+ * <code>
+ * @RunWith(MongoRestxSpecTestsRunner.class)
+ * @MongoVersion(Version.Main.PRODUCTION)
+ * public class CitySpecTest extends RestxSpecTests {
+ *     public CitySpecTest() {
+ *         super(new RestxSpecRule(), RestxSpecTests.findSpecsIn("specs/city"));
+ *     }
+ * }
+ * </code>
  */
 public class MongoRestxSpecTestsRunner extends RestxSpecTestsRunner {
 
