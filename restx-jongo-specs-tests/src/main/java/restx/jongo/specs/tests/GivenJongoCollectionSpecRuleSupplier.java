@@ -54,7 +54,7 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
 
         @Override
         public void onSetup(Factory.LocalMachines localMachines) {
-            System.out.println("using db " + db);
+            System.out.println("using db " + uri + "/" + db);
             localMachines
                     .addMachine(new SingletonFactoryMachine<>(
                             -10, new NamedComponent<>(Name.of(String.class, MongoModule.MONGO_DB_NAME), db)));
@@ -62,7 +62,7 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
 
         @Override
         public void onTearDown(Factory.LocalMachines localMachines) {
-            System.out.println("dropping database " + db);
+            System.out.println("dropping database " + uri + "/" + db);
             try {
                 new MongoClient(new MongoClientURI(uri)).dropDatabase(db);
             } catch (UnknownHostException e) {

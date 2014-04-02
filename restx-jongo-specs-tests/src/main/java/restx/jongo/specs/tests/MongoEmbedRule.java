@@ -21,43 +21,53 @@ import de.flapdoodle.embed.process.runtime.Network;
 
 public class MongoEmbedRule implements TestRule {
 
-	@Override
-	public Statement apply(final Statement base, Description description) {
-		return new Statement() {
+    private Version.Main mongoVersion;
 
-			@Override
-			public void evaluate() throws Throwable {
-				InetAddress addr = Network.getLocalHost();
-				int port = Network.getFreeServerPort(addr);
+    public MongoEmbedRule() {
+        this(Version.Main.PRODUCTION);
+    }
 
-				System.setProperty(MongoModule.MONGO_URI, new StringBuilder(
-						"mongodb://").append(addr.getHostName()).append(":")
-						.append(port).toString());
+    public MongoEmbedRule(Version.Main mongoVersion) {
+        this.mongoVersion = mongoVersion;
+    }
 
-				MongodStarter runtime = MongodStarter.getDefaultInstance();
-				MongodExecutable _mongodExe = runtime
-						.prepare(new MongodConfigBuilder()
-								.version(Version.Main.PRODUCTION)
-								.net(new Net(port, hostIsIPv6(addr))).build());
-				MongodProcess _mongod = _mongodExe.start();
-				new MongoClient(addr.getHostName(), port);
+    @Override
+    public Statement apply(final Statement base, Description description) {
+        return new Statement() {
 
-				base.evaluate();
+            @Override
+            public void evaluate() throws Throwable {
+                InetAddress addr = Network.getLocalHost();
+                int port = Network.getFreeServerPort(addr);
 
-				_mongod.stop();
-				_mongodExe.stop();
-			}
+                System.setProperty(MongoModule.MONGO_URI, new StringBuilder(
+                        "mongodb://").append(addr.getHostName()).append(":")
+                        .append(port).toString());
 
-			private boolean hostIsIPv6(InetAddress addr)
-					throws UnknownHostException {
-				byte[] ipAddr = addr.getAddress();
-				if (ipAddr.length > 4) {
-					return true;
-				}
-				return false;
-			}
+                MongodStarter runtime = MongodStarter.getDefaultInstance();
+                MongodExecutable _mongodExe = runtime
+                        .prepare(new MongodConfigBuilder()
+                                .version(mongoVersion)
+                                .net(new Net(port, hostIsIPv6(addr))).build());
+                MongodProcess _mongod = _mongodExe.start();
+                new MongoClient(addr.getHostName(), port);
 
-		};
-	}
+                base.evaluate();
+
+                _mongod.stop();
+                _mongodExe.stop();
+            }
+
+            private boolean hostIsIPv6(InetAddress addr)
+                    throws UnknownHostException {
+                byte[] ipAddr = addr.getAddress();
+                if (ipAddr.length > 4) {
+                    return true;
+                }
+                return false;
+            }
+
+        };
+    }
 
 }
