@@ -200,7 +200,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
             PrintWriter out = restxResponse.getWriter();
             out.println("UNEXPECTED CLIENT ERROR:");
             out.print(ex.getMessage());
-        } catch (RuntimeException ex) {
+        } catch (Throwable ex) {
             logger.error("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
             restxResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             restxResponse.setContentType("text/plain");
