@@ -104,7 +104,13 @@ public abstract class AbstractRequest implements RestxRequest {
             Collection<String> forwardedSupport = httpSettings.forwardedSupport();
             if (!forwardedSupport.contains("all")
                     && !forwardedSupport.contains(localClientAddress)) {
-                throw new IllegalArgumentException("Unauthorized proxy request from " + localClientAddress);
+                throw new IllegalArgumentException(
+                        "Unauthorized proxy request from " + localClientAddress + "\n" +
+                                "If you are the application developer or operator, you can set `restx.http.XForwardedSupport`\n" +
+                                "system property to allow proxy requests from this proxy IP with:\n" +
+                                "  -Drestx.http.XForwardedSupport=" + localClientAddress + "\n" +
+                                "Or if you want to allow any proxy request:\n" +
+                                "  -Drestx.http.XForwardedSupport=all");
             }
         }
     }
