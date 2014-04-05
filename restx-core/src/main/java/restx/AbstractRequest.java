@@ -62,7 +62,18 @@ public abstract class AbstractRequest implements RestxRequest {
     }
 
     protected String getHost() {
-        return httpSettings.host().or(getHeader("X-Forwarded-Host")).or(getHeader("Host")).get();
+        Optional<String> host = httpSettings.host();
+        if (host.isPresent()) {
+            return host.get();
+        }
+
+        Optional<String> forwardedHost = getHeader("X-Forwarded-Host");
+        if (forwardedHost.isPresent()) {
+            return Iterables.getFirst(Splitter.on(",").trimResults().split(forwardedHost.get()),
+                    getHeader("Host").or(""));
+        } else {
+            return getHeader("Host").or("");
+        }
     }
 
     @Override
