@@ -35,6 +35,15 @@ public class ServletSecurityFilter implements RestxFilter, RestxHandler {
             }
         } catch (IllegalArgumentException ex) {
             return Optional.absent();
+        } catch (NoClassDefFoundError e) {
+            if ("javax/servlet/http/HttpServletRequest".equals(e.getMessage())) {
+                // this may happen when app depends on restx-servlet to have servlet support, but is run outside a servlet container
+                // eg with restx-simple-server. In this case the provided dependency on servlet API (that is provided by
+                // the servlet container when run inside such container) will make us fail with a NoClassDefFoundError
+                return Optional.absent();
+            } else {
+                throw e;
+            }
         }
     }
 
