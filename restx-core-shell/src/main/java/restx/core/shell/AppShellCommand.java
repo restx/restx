@@ -494,7 +494,8 @@ public class AppShellCommand extends StdShellCommand {
 
             String command = "java" +
                     " -cp \"" + appSettings.targetClasses() + ":" + appSettings.targetDependency() + "/*\"" +
-                    " -Drestx.app.package=" + pack.get()
+                    " -Drestx.app.package=" + pack.get() +
+                    " -Drestx.mode=prod"
                     ;
 
             File startSh = shell.currentLocation().resolve("start.sh").toFile();
