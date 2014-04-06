@@ -4,7 +4,7 @@ given:
   - uuids: [ "e2b4430f-9541-4602-9a3a-413d17c56a6b" ]
 wts:
   - when: |
-      GET message?who=xavier
+      GET message
       $RestxSession: {"_expires":"2013-09-27T01:18:00.822+02:00","principal":"admin","sessionKey":"e2b4430f-9541-4602-9a3a-413d17c56a6b"}
     then: |
-      {"message":"hello xavier, it's 01:18:00"}
+      {"message":"hello admin, it's 01:18:00"}
