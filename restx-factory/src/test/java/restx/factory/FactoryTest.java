@@ -379,7 +379,7 @@ public class FactoryTest {
 
     private SingleNameFactoryMachine<FactoryMachine> alternativeMachine() {
         return new AlternativesFactoryMachine<>(0, Name.of(String.class, "mode"),
-                ImmutableMap.of("dev", new SingletonFactoryMachine<>(0, NamedComponent.of(
+                ImmutableMap.of("dev", new SingletonFactoryMachine<>(-100, NamedComponent.of(
                         String.class, "test", "hello"))), BoundlessComponentBox.FACTORY);
     }
 
