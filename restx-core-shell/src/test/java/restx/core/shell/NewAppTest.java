@@ -99,6 +99,7 @@ public class NewAppTest {
         desc.adminPassword = "pwd";
         desc.defaultPort = "8080";
         desc.baseAPIPath = "/api";
+        desc.javaVersion = "1.7";
         desc.restxVersion = resolveCurrentModuleVersion();
         desc.generateHelloResource = generateHelloResource;
         return desc;

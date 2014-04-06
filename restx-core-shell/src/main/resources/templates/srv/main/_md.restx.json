@@ -3,7 +3,7 @@
     "packaging": "war",
 
     "properties": {
-        "java.version": "1.7",
+        "java.version": "{{javaVersion}}",
         "restx.version": "{{restxVersion}}"{{#useSrvuiLayout}},
         "project.war.resources.directory": "../ui/dist"{{/useSrvuiLayout}}
     },

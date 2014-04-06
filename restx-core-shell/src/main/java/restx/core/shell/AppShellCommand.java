@@ -114,6 +114,7 @@ public class AppShellCommand extends StdShellCommand {
         String adminPassword;
         String defaultPort;
         String baseAPIPath;
+        String javaVersion;
         String restxVersion;
         boolean generateHelloResource;
         boolean useSrvuiLayout;
@@ -191,6 +192,12 @@ public class AppShellCommand extends StdShellCommand {
                             "\t- 'none': get no module descriptor generated. WARNING: this will make it harder to build your app.\n" +
                             "If you don't know these tools, use default answer.\n"
             );
+
+            descriptor.javaVersion = shell.ask("java version [%s]? ",
+                    System.getProperty("java.version").replaceAll("^(\\d+\\.\\d+).*$", "$1"),
+                    "The version of Java you want to use in your application.\n" +
+                            "RESTX supports Java 7 (1.7) and Java 8 (1.8)\n" +
+                            "Example: 1.7, 1.8");
 
             descriptor.restxVersion = shell.ask("restx version [%s]? ", Version.getVersion("io.restx", "restx-core"));
 
@@ -311,6 +318,7 @@ public class AppShellCommand extends StdShellCommand {
                     .put("adminPassword", descriptor.adminPassword)
                     .put("defaultPort", descriptor.defaultPort)
                     .put("baseAPIPath", descriptor.baseAPIPath)
+                    .put("javaVersion", descriptor.javaVersion)
                     .put("restxVersion", descriptor.restxVersion)
                     .put("useSrvuiLayout", descriptor.useSrvuiLayout)
                     .build();
