@@ -15,12 +15,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Resources route allows to serves files from the classpath.
- * <p>
- *     Example:
- *     <pre>
- *         new ResourcesRoute("myResources", "/")
- *     </pre>
- * </p>
+ *
+ * Example:
+ * <pre>new ResourcesRoute("myResources", "/")</pre>
  */
 public class ResourcesRoute implements RestxRoute, RestxHandler {
     /**

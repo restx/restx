@@ -66,6 +66,7 @@ public interface RestxResponse extends AutoCloseable {
      * Sets the log level of this response.
      *
      * @param level the new level
+     * @return self
      */
     RestxResponse setLogLevel(RestxLogLevel level);
     RestxLogLevel getLogLevel();
@@ -76,7 +77,7 @@ public interface RestxResponse extends AutoCloseable {
      * Examnple: This is a HttpServletRequest in a servlet container.
      *
      * @param clazz the class of the underlying implementation
-     * @param <T>
+     * @param <T> unwrapped class
      * @return the unwrapped implementation.
      * @throws java.lang.IllegalArgumentException if the underlying implementation is not of given type.
      */

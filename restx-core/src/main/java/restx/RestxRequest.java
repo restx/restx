@@ -106,7 +106,7 @@ public interface RestxRequest {
      *
      * see http://httpd.apache.org/docs/current/mod/mod_proxy.html#x-headers for details on this header.
      *
-     * @return
+     * @return IP address of the client.
      */
     String getClientAddress();
 
@@ -132,7 +132,7 @@ public interface RestxRequest {
      * Examnple: This is a HttpServletRequest in a servlet container.
      *
      * @param clazz the class of the underlying implementation
-     * @param <T>
+     * @param <T> unwrapped class
      * @return the unwrapped implementation.
      * @throws java.lang.IllegalArgumentException if the underlying implementation is not of given type.
      */

@@ -10,16 +10,16 @@ public interface UserRepository<U extends RestxPrincipal> {
     /**
      * Finds a user by name in the repository.
      *
-     * @param name
-     * @return
+     * @param name user name
+     * @return Optional user
      */
     Optional<U> findUserByName(String name);
 
     /**
      * Finds a user credentials by userName
      *
-     * @param name
-     * @return
+     * @param name user name
+     * @return Optional credential
      */
     Optional<String> findCredentialByUserName(String name);
 

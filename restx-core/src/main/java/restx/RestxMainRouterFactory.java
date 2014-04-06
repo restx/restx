@@ -20,6 +20,7 @@ import restx.server.WebServer;
 import restx.server.WebServers;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRecorder;
+import restx.specs.RestxSpecRecorder.GivenRecorder;
 import restx.specs.RestxSpecTape;
 
 import javax.tools.Diagnostic;
@@ -27,7 +28,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -136,7 +142,7 @@ public class RestxMainRouterFactory {
                 logger.debug("RECORDING {}", restxRequest);
 
                 Factory factory = Factory.newInstance();
-                Set<RestxSpecRecorder.GivenRecorder> recorders = factory.getComponents(RestxSpecRecorder.GivenRecorder.class);
+                Set<GivenRecorder> recorders = factory.getComponents(RestxSpecRecorder.GivenRecorder.class);
                 RestxSessionCookieFilter sessionFilter = factory.getComponent(RestxSessionCookieFilter.class);
                 final RestxSpecRecorder restxSpecRecorder = new RestxSpecRecorder(
                                                                 recorders, sessionFilter, storageSettings, repository);

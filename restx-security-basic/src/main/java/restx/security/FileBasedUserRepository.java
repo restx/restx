@@ -18,7 +18,6 @@ import java.util.Map;
 /**
  * A UserRepository implementation using 2 files to load data.
  *
- * <p>
  *     One file is used to store users, in json format as a Map&lt;String, U&gt; read with jackson.
  *
  *     Example:
@@ -30,9 +29,8 @@ import java.util.Map;
  *             }
  *         ]
  *     </pre>
- * </p>
- * <p>
- *     Another file is used to store user credentials.
+ *
+ *    Another file is used to store user credentials.
  *     Storing credentials separately is a good practice, which allow to have different security policies on the
  *     two files, and avoid to have credentials part of the user class.
  *
@@ -42,7 +40,6 @@ import java.util.Map;
  *             "admin": "tuyvuicxvcx78vdsfuisd"
  *         }
  *     </pre>
- * </p>
  */
 public class FileBasedUserRepository<U extends RestxPrincipal> implements UserRepository<U> {
     private static final Logger logger = LoggerFactory.getLogger(FileBasedUserRepository.class);

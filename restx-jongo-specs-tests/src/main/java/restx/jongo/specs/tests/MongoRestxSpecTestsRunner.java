@@ -19,24 +19,24 @@ import restx.tests.RestxSpecTestsRunner;
  * Example of use:
  *
  * <code>
- * @RunWith(MongoRestxSpecTestsRunner.class)
- * @FindSpecsIn("specs/city")
+ * \@RunWith(MongoRestxSpecTestsRunner.class)
+ * \@FindSpecsIn("specs/city")
  * public class CitySpecTest { }
  * </code>
  *
  * or
  *
  * <code>
- * @RunWith(MongoRestxSpecTestsRunner.class)
- * @FindSpecsIn("specs/city")
- * @MongoVersion(Version.Main.PRODUCTION)
+ * \@RunWith(MongoRestxSpecTestsRunner.class)
+ * \@FindSpecsIn("specs/city")
+ * \@MongoVersion(Version.Main.PRODUCTION)
  * public class CitySpecTest { }
  * </code>
  *
  * or
  *
  * <code>
- * @RunWith(MongoRestxSpecTestsRunner.class)
+ * \@RunWith(MongoRestxSpecTestsRunner.class)
  * public class CitySpecTest extends RestxSpecTests {
  *     public CitySpecTest() {
  *         super(new RestxSpecRule(), RestxSpecTests.findSpecsIn("specs/city"));
@@ -47,8 +47,8 @@ import restx.tests.RestxSpecTestsRunner;
  * or
  *
  * <code>
- * @RunWith(MongoRestxSpecTestsRunner.class)
- * @MongoVersion(Version.Main.PRODUCTION)
+ * \@RunWith(MongoRestxSpecTestsRunner.class)
+ * \@MongoVersion(Version.Main.PRODUCTION)
  * public class CitySpecTest extends RestxSpecTests {
  *     public CitySpecTest() {
  *         super(new RestxSpecRule(), RestxSpecTests.findSpecsIn("specs/city"));
@@ -60,15 +60,6 @@ public class MongoRestxSpecTestsRunner extends RestxSpecTestsRunner {
 
     private final TestRule rule;
 
-    /**
-     * @param pTestClass
-     * @throws InitializationError
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws InstantiationException
-     * @throws NoSuchFieldException
-     * @throws IOException
-     */
     public MongoRestxSpecTestsRunner(Class<?> pTestClass) throws InitializationError, IllegalAccessException, InvocationTargetException, InstantiationException, NoSuchFieldException, IOException {
         super(pTestClass);
         MongoVersion mongoVersion = getTestClass().getJavaClass().getAnnotation(MongoVersion.class);

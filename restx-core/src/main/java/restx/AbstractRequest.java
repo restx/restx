@@ -128,7 +128,7 @@ public abstract class AbstractRequest implements RestxRequest {
 
     /**
      * Returns the client address of this request, without taking proxy into account
-     * @return
+     * @return the client address of this request, without taking proxy into account
      */
     protected abstract String getLocalClientAddress();
 
@@ -145,7 +145,7 @@ public abstract class AbstractRequest implements RestxRequest {
      * The URL scheme used for this request, without taking proxy into account.
      * Eg: http, https
      *
-     * @return
+     * @return URL scheme used for this request, without taking proxy into account.
      */
     protected abstract String getLocalScheme();
 

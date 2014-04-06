@@ -11,17 +11,19 @@ public abstract class WatchService implements Closeable {
 
     /**
      * Closes this watch service.
-     * <p/>
+     *
      * <p> If a thread is currently blocked in the {@link #take take} or {@link
      * #poll(long,TimeUnit) poll} methods waiting for a key to be queued then
      * it immediately receives a {@link ClosedWatchServiceException}. Any
      * valid keys associated with this watch service are {@link WatchKey#isValid
      * invalidated}.
-     * <p/>
+     * </p>
+     *
      * <p> After a watch service is closed, any further attempt to invoke
      * operations upon it will throw {@link ClosedWatchServiceException}.
      * If this watch service is already closed then invoking this method
      * has no effect.
+     * </p>
      *
      * @throws IOException if an I/O error occurs
      */

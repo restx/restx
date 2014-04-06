@@ -20,15 +20,15 @@ import static java.lang.String.format;
  * Example of use:
  *
  * <code>
- * @RunWith(RestxSpecTestsRunner.class)
- * @FindSpecsIn("specs/city")
+ * \@RunWith(RestxSpecTestsRunner.class)
+ * \@FindSpecsIn("specs/city")
  * public class CitySpecTest { }
  * </code>
  *
  * or
  *
  * <code>
- * @RunWith(RestxSpecTestsRunner.class)
+ * \@RunWith(RestxSpecTestsRunner.class)
  * public class CitySpecTest extends RestxSpecTests {
  *     public CitySpecTest() {
  *         super(new RestxSpecRule(), RestxSpecTests.findSpecsIn("specs/city"));

@@ -35,9 +35,11 @@ package com.barbarysoftware.watchservice;
  * {@link #context() context} method returns any context associated with
  * the event. In the case of a repeated event then the context is the same for
  * all events.
+ * </p>
  *
  * <p> Watch events are immutable and safe for use by multiple concurrent
  * threads.
+ * </p>
  *
  * @param   <T>     The type of the context object associated with the event
  *

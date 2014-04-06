@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutionException;
  * <pre>
  *     "RestxSession": {
  *          "definition": {  // this is configured once at application level
- *              "USER": (valueId) -> { return db.findOne("{_id: #}", valueId).as(User.class); }
+ *              "USER": (valueId) -&gt; { return db.findOne("{_id: #}", valueId).as(User.class); }
  *          }
  *          "valueIdsByKeys": {
  *              "USER": "johndoe@acme.com" // valued from session cookie
