@@ -178,6 +178,7 @@ public class JsonAssertions {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     private Object toContext(Object o, String keyOfInterest) {
         if (o instanceof Map) {
             Map<String, Object> map = (Map) o;
