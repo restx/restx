@@ -1,5 +1,9 @@
 package {{mainPackage}};
 
+import restx.config.ConfigLoader;
+import restx.config.ConfigSupplier;
+import restx.factory.Provides;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
@@ -18,15 +22,9 @@ public class AppModule {
     }
 
     @Provides
-    @Named("restx.admin.password")
-    public String restxAdminPassword() {
-        return "{{adminPassword}}";
-    }
-
-    @Provides
-    @Named("app.name")
-    public String appName(){
-        return "{{appName}}";
+    public ConfigSupplier appConfigSupplier(ConfigLoader configLoader) {
+        // Load settings.properties in {{mainPackage}} package as a set of config entries
+        return configLoader.fromResource("{{mainPackage}}/settings");
     }
 
     @Provides
