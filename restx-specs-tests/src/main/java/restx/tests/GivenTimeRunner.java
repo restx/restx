@@ -1,12 +1,14 @@
 package restx.tests;
 
 import com.google.common.collect.ImmutableMap;
-import org.joda.time.DateTimeUtils;
 import restx.common.ThreadLocalMillisProvider;
 import restx.factory.AutoStartable;
 import restx.factory.Component;
-import restx.factory.NamedComponent;
 import restx.specs.GivenTime;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 import static restx.factory.Factory.LocalMachines.overrideComponents;
 import static restx.factory.Factory.LocalMachines.threadLocal;
@@ -21,6 +23,7 @@ public class GivenTimeRunner implements GivenRunner<GivenTime> {
     @Override
     public GivenCleaner run(GivenTime given, ImmutableMap<String, String> params) {
         threadLocal().set("FixedTimeComponent", new FixedTimeComponent(given.getTime().getMillis()));
+        overrideComponents().set(Clock.class, "clock", Clock.fixed(Instant.ofEpochMilli(given.getTime().getMillis()), ZoneId.systemDefault()));
         return NoopGivenCleaner.INSTANCE;
     }
 
