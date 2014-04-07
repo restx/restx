@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import restx.AppSettings;
 import restx.RestxContext;
 import restx.factory.*;
@@ -32,6 +33,7 @@ public class FrontObjectMapperFactory {
         ObjectMapper mapper = new ObjectMapper()
                 .registerModule(new JodaModule())
                 .registerModule(new GuavaModule())
+                .registerModule(new JSR310Module())
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .disable(DeserializationFeature.EAGER_DESERIALIZER_FETCH)
