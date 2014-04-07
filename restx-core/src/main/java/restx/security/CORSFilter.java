@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.*;
 import restx.factory.Component;
-import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -21,8 +20,7 @@ import static java.util.Arrays.asList;
 @Component
 public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler {
     private static final Logger logger = LoggerFactory.getLogger(CORSFilter.class);
-    private static final Collection<String> SIMPLE_METHODS = asList("GET", "HEAD", "POST");
-
+    private static final Collection<String> SIMPLE_METHODS = asList("GET", "HEAD", "POST", "OPTIONS", "DELETE");
     private final Iterable<CORSAuthorizer> authorizers;
 
 
@@ -47,7 +45,7 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
     }
 
     protected boolean isSimpleCORSRequest(RestxRequest req) {
-        if  (!SIMPLE_METHODS.contains(req.getHttpMethod())) {
+        if (!SIMPLE_METHODS.contains(req.getHttpMethod())) {
             return false;
         }
         Optional<String> origin = req.getHeader("Origin");
@@ -71,10 +69,15 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        resp.setHeader("Access-Control-Allow-Origin", ((CORS) match.getOtherParams().get("cors")).getOrigin());
+        CORS cors = (CORS) match.getOtherParams().get("cors");
+        if (cors != null && cors.isAccepted()) {
+            resp.setHeader("Access-Control-Allow-Origin", "*");
+            resp.setHeader("Access-Control-Allow-Credentials", Boolean.TRUE.toString());
+            resp.setHeader("Access-Control-Allow-Methods", SIMPLE_METHODS.toString());
+            resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        }
         ctx.nextHandlerMatch().handle(req, resp, ctx);
     }
-
 
     public String toString() {
         return "CORSFilter";
