@@ -1,5 +1,6 @@
 package restx.i18n;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -11,6 +12,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Time: 14:58
  */
 public class DefaultMessagesTest {
+
+    @Before
+    public void setUp() throws Exception {
+        Locale.setDefault(Locale.US);
+    }
+
     @Test
     public void should_translate_simple() throws Exception {
         DefaultMessages m = new DefaultMessages("restx.i18n.test");
