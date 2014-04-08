@@ -8,13 +8,15 @@ import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import restx.AppSettings;
 import restx.RestxContext;
-import restx.factory.*;
+import restx.factory.Factory;
 import restx.factory.Module;
+import restx.factory.Name;
+import restx.factory.Provides;
 
 import javax.inject.Named;
+import java.util.Set;
 
 /**
  * User: xavierhanin
@@ -33,11 +35,13 @@ public class FrontObjectMapperFactory {
         ObjectMapper mapper = new ObjectMapper()
                 .registerModule(new JodaModule())
                 .registerModule(new GuavaModule())
-                .registerModule(new JSR310Module())
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .disable(DeserializationFeature.EAGER_DESERIALIZER_FETCH)
                 .disable(SerializationFeature.EAGER_SERIALIZER_FETCH);
+
+        Set<com.fasterxml.jackson.databind.Module> modules = factory.getComponents(com.fasterxml.jackson.databind.Module.class);
+        mapper.registerModules(modules);
 
         mapper.setHandlerInstantiator(new HandlerInstantiator() {
             @Override

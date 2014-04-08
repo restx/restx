@@ -4,13 +4,12 @@ import com.google.common.base.Optional;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import restx.RestxMainRouterFactory;
+import com.google.common.collect.Sets;
 import restx.factory.Factory;
 import restx.specs.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.transform;
@@ -95,12 +94,14 @@ public class RestxSpecRunner {
         List<GivenCleaner> givenCleaners = newArrayList();
         try {
             for (Given given : restxSpec.getGiven()) {
-                Optional<GivenRunner<Given>> runnerFor = findRunnerFor(given);
-                if (!runnerFor.isPresent()) {
+                Set<GivenRunner<Given>> runnersFor = findRunnersFor(given);
+                if (runnersFor.isEmpty()) {
                     throw new IllegalStateException(
                             "no runner found for given " + given + ". double check your classpath and factory settings.");
                 }
-                givenCleaners.add(runnerFor.get().run(given, params));
+                for (GivenRunner<Given> runner : runnersFor) {
+                    givenCleaners.add(runner.run(given, params));
+                }
             }
 
             for (When when : restxSpec.getWhens()) {
@@ -134,17 +135,18 @@ public class RestxSpecRunner {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Given> Optional<GivenRunner<T>> findRunnerFor(T given) {
+    private <T extends Given> Set<GivenRunner<T>> findRunnersFor(T given) {
         if (given instanceof GivenRunner) {
-            return Optional.of((GivenRunner<T>) given);
+            return Sets.newHashSet((GivenRunner<T>) given);
         }
+        Set<GivenRunner<T>> compatibleRunners = new HashSet<>();
         for (GivenRunner<?> givenRunner : givenRunners) {
             if (givenRunner.getGivenClass().isAssignableFrom(given.getClass())) {
-                return Optional.of((GivenRunner<T>) givenRunner);
+                compatibleRunners.add((GivenRunner<T>) givenRunner);
             }
         }
 
-        return Optional.absent();
+        return compatibleRunners;
     }
 
     protected Factory.LocalMachines bladeLocalMachines() {
