@@ -32,7 +32,21 @@ public class ShellAppRunner {
             boolean compile(RestxShell shell, Path targetClasses, Path dependenciesDir, Path mainSources, Path mainResources, String className) throws IOException, InterruptedException {
                 return true;
             }
-        }, MAIN_CLASS {
+        },
+        RESOURCES_ONLY {
+            @Override
+            boolean compile(RestxShell shell, Path targetClasses, Path dependenciesDir, Path mainSources, Path mainResources, String className) throws IOException, InterruptedException {
+                shell.print("copying resources...");
+                copyDir(
+                        shell.currentLocation().resolve(mainResources),
+                        shell.currentLocation().resolve(targetClasses)
+                );
+                shell.printIn(" [DONE]", RestxShell.AnsiCodes.ANSI_GREEN);
+                shell.println("");
+                return true;
+            }
+        },
+        MAIN_CLASS {
             @Override
             boolean compile(RestxShell shell, Path targetClasses, Path dependenciesDir, Path mainSources, Path mainResources, String className) throws IOException, InterruptedException {
                 shell.print("compiling App...");
@@ -63,7 +77,8 @@ public class ShellAppRunner {
                 shell.println("");
                 return true;
             }
-        }, ALL {
+        },
+        ALL {
             @Override
             boolean compile(RestxShell shell,
                             Path targetClasses, Path dependenciesDir,

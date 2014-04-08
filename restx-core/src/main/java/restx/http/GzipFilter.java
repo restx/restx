@@ -11,10 +11,10 @@ import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Date: 1/3/14
- * Time: 18:46
+ * A filter to automatically gzip responses when supported by the client.
+ *
+ * You need to @Provide it to enable it, it's not activated by default.
  */
-@Component
 public class GzipFilter implements RestxFilter, RestxHandler {
     private final ImmutableCollection<RestxRequestMatcher> matchers;
 

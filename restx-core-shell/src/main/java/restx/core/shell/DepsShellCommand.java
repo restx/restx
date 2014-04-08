@@ -67,7 +67,7 @@ public class DepsShellCommand extends StdShellCommand {
                 new StringsCompleter("deps"), new StringsCompleter("install", "add")));
     }
 
-    class InstallDepsCommandRunner implements ShellCommandRunner {
+    public class InstallDepsCommandRunner implements ShellCommandRunner {
 
         @Override
         public void run(RestxShell shell) throws Exception {

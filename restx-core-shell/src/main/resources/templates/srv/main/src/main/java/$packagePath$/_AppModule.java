@@ -22,6 +22,12 @@ public class AppModule {
     }
 
     @Provides
+    @Named("restx.admin.password")
+    public String restxAdminPassword() {
+        return "{{adminPassword}}";
+    }
+
+    @Provides
     public ConfigSupplier appConfigSupplier(ConfigLoader configLoader) {
         // Load settings.properties in {{mainPackage}} package as a set of config entries
         return configLoader.fromResource("{{mainPackage}}/settings");

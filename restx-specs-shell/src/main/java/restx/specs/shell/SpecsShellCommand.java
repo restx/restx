@@ -7,7 +7,9 @@ import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
 import restx.AppSettings;
 import restx.Apps;
+import restx.core.shell.DepsShellCommand;
 import restx.core.shell.ShellAppRunner;
+import restx.core.shell.ShellAppRunner.CompileMode;
 import restx.factory.Component;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
@@ -100,8 +102,13 @@ public class SpecsShellCommand extends StdShellCommand {
                     .concat(new SingletonFactoryMachine<>(-10000, NamedComponent.of(String.class, "restx.app.package", basePack)))
                     .getComponent(AppSettings.class);
 
+            if (!DepsShellCommand.depsUpToDate(shell)) {
+                shell.println("restx> deps install");
+                new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+            }
+
             new ShellAppRunner(appSettings, "restx.tests.RestxSpecTestServer",
-                    ShellAppRunner.CompileMode.NO, quiet, false, Collections.<String>emptyList()).run(shell);
+                    CompileMode.RESOURCES_ONLY, quiet, false, Collections.<String>emptyList()).run(shell);
         }
     }
 
