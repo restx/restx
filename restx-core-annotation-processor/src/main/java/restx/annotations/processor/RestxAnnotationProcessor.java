@@ -251,7 +251,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                             parameter.kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
                             toSchemaKey(parameter.type),
-                            String.valueOf(!parameter.optional)
+                            String.valueOf(!parameter.guavaOptional && !parameter.java8Optional)
                     ).replaceAll("\\{PARAMETER}", parameter.name));
                 }
             }
@@ -265,11 +265,15 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 call = call + ";\n" +
                         "                return Optional.of(Empty.EMPTY);";
             } else {
-                if (!resourceMethod.returnTypeOptional) {
+                if (resourceMethod.returnTypeGuavaOptional) {
+                    call = call ;
+                } else if (resourceMethod.returnTypeJava8Optional) {
+                    call = "Optional.fromNullable(" + call + ".orElse(null))";
+                } else {
                     call = "Optional.of(" + call + ")";
                 }
-
                 call = "return " + call + ";";
+
             }
 
             String outEntity = resourceMethod.returnType.equalsIgnoreCase("void") ? "Empty" : resourceMethod.returnType;
@@ -387,7 +391,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         return methodAnnotations;
     }
 
-    static Pattern optionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
+    static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
+    static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
 
     private static class ResourceMethodAnnotation {
         final String httpMethod;
@@ -435,7 +440,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String path;
         final String name;
         final String realReturnType;
-        final boolean returnTypeOptional;
+        final boolean returnTypeGuavaOptional;
+        final boolean returnTypeJava8Optional;
         final String returnType;
         final String id;
         final ImmutableList<String> pathParamNames;
@@ -459,10 +465,18 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.sourceLocation = sourceLocation;
             this.inContentType = inContentType;
             this.outContentType = outContentType;
-            Matcher m = optionalPattern.matcher(returnType);
+            Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(returnType);
+            Matcher java8OptionalMatcher = java8OptionalPattern.matcher(returnType);
             this.realReturnType = returnType;
-            this.returnTypeOptional = m.matches();
-            this.returnType = returnTypeOptional ? m.group(1) : returnType;
+            this.returnTypeGuavaOptional = guavaOptionalMatcher.matches();
+            this.returnTypeJava8Optional = java8OptionalMatcher.matches();
+            if (returnTypeGuavaOptional) {
+                this.returnType = guavaOptionalMatcher.group(1);
+            } else if (returnTypeJava8Optional) {
+                this.returnType = java8OptionalMatcher.group(1);
+            } else {
+                this.returnType = returnType;
+            }
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             this.successStatus = successStatus;
             StdRestxRequestMatcher requestMatcher = new StdRestxRequestMatcher(httpMethod, path);
@@ -473,16 +487,29 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     private static class ResourceMethodParameter {
         final String type;
         final String realType;
-        final boolean optional;
+        final boolean guavaOptional;
+        final boolean java8Optional;
         final String name;
         final String reqParamName;
         final ResourceMethodParameterKind kind;
 
         private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind) {
-            Matcher m = optionalPattern.matcher(type);
+            Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(type);
+            Matcher java8OptionalMatcher = java8OptionalPattern.matcher(type);
             this.realType = type;
-            this.optional = m.matches();
-            this.type = optional ? m.group(1) : type;
+            if (guavaOptionalMatcher.matches()) {
+                this.guavaOptional = true;
+                this.java8Optional = false;
+                this.type = guavaOptionalMatcher.group(1);
+            } else if (java8OptionalMatcher.matches()) {
+                this.guavaOptional = false;
+                this.java8Optional = true;
+                this.type = java8OptionalMatcher.group(1);
+            } else {
+                this.guavaOptional = false;
+                this.java8Optional = false;
+                this.type = type;
+            }
             this.name = name;
             this.reqParamName = reqParamName;
             this.kind = kind;
@@ -495,7 +522,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 // TODO: we should check the type, in case of list, use getQueryParams,
                 // and we should better handle missing params
                 String code = String.format("request.getQueryParam(\"%s\")", parameter.name);
-                if (!parameter.optional) {
+                if (parameter.guavaOptional) {
+                    code = code;
+                } else if (parameter.java8Optional) {
+                    code = String.format("java.util.Optional.ofNullable(%s.orNull())", code);
+                } else {
                     code = String.format("checkPresent(%s, \"query param %s is required\")", code, parameter.name);
                 }
                 return code;
