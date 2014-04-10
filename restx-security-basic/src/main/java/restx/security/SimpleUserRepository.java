@@ -26,7 +26,8 @@ public class SimpleUserRepository<U extends RestxPrincipal> implements UserRepos
 
     @Override
     public Optional<String> findCredentialByUserName(String userName) {
-        return Optional.fromNullable("admin".equals(userName) ? "$2a$10$iZluFUJShbjb1ue68bLrDuGCeJL9EMLHelVIf8u0SUbCseDOvKnoe" : null);
+        //User admin / admin
+        return Optional.fromNullable("admin".equals(userName) ? "$2a$10$QL7OBVj/qpEdWKQNTXp12.08e3AR3szAzTZOCRlAPS2BOIaYXESrW" : null);
     }
 
     @Override
