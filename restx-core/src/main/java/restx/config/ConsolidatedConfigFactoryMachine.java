@@ -5,9 +5,22 @@ import com.google.common.collect.Iterables;
 import restx.common.ConfigElement;
 import restx.common.RestxConfig;
 import restx.common.StdRestxConfig;
-import restx.factory.*;
+import restx.factory.BillOfMaterials;
+import restx.factory.BoundlessComponentBox;
+import restx.factory.Factory;
+import restx.factory.FactoryMachine;
+import restx.factory.Machine;
+import restx.factory.MachineEngine;
+import restx.factory.Name;
+import restx.factory.NamedComponent;
+import restx.factory.SatisfiedBOM;
+import restx.factory.StdMachineEngine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.collect.Iterables.addAll;
 

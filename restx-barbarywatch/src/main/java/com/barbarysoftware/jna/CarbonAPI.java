@@ -1,6 +1,10 @@
 package com.barbarysoftware.jna;
 
-import com.sun.jna.*;
+import com.sun.jna.Callback;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLong;
+import com.sun.jna.Pointer;
 
 public interface CarbonAPI extends Library {
     CarbonAPI INSTANCE = (CarbonAPI) Native.loadLibrary("Carbon", CarbonAPI.class);

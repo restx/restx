@@ -1,6 +1,11 @@
 package restx.factory;
 
-import restx.*;
+import restx.RestxContext;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxResponse;
+import restx.StdRestxRequestMatcher;
+import restx.StdRoute;
 
 import javax.inject.Inject;
 import java.io.IOException;

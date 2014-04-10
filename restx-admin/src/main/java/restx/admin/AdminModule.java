@@ -2,12 +2,15 @@ package restx.admin;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 import restx.factory.Module;
 import restx.factory.Provides;
-import restx.security.*;
+import restx.security.BasicPrincipalAuthenticator;
+import restx.security.RestxPrincipal;
+import restx.security.SecuritySettings;
+import restx.security.StdBasicPrincipalAuthenticator;
+import restx.security.UserService;
 
 import javax.inject.Named;
 

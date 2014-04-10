@@ -9,7 +9,6 @@ import restx.factory.NamedComponent;
 import restx.server.WebServerSupplier;
 import restx.specs.RestxSpec;
 import restx.tests.RestxSpecRule;
-import restx.tests.RestxSpecRunner;
 import restx.tests.RestxSpecTests;
 
 import java.io.IOException;

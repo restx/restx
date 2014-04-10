@@ -4,9 +4,15 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.*;
+import restx.RestxContext;
+import restx.RestxFilter;
+import restx.RestxHandler;
+import restx.RestxHandlerMatch;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxResponse;
+import restx.StdRestxRequestMatch;
 import restx.factory.Component;
-import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.Collection;

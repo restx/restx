@@ -2,13 +2,15 @@ package restx.server.simple;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
-import org.simpleframework.http.*;
+import org.simpleframework.http.Cookie;
+import org.simpleframework.http.Request;
 import restx.HttpSettings;
 import restx.factory.Factory;
 import restx.server.simple.simple.SimpleRestxRequest;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

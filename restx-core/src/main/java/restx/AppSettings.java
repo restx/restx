@@ -3,8 +3,6 @@ package restx;
 import com.google.common.base.Optional;
 import restx.config.SettingsKey;
 
-import java.net.URI;
-
 /**
  */
 public interface AppSettings {

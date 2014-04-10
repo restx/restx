@@ -5,7 +5,17 @@ import com.google.common.collect.ImmutableSet;
 import restx.AppSettings;
 import restx.RestxContext;
 import restx.admin.AdminPage;
-import restx.factory.*;
+import restx.factory.BillOfMaterials;
+import restx.factory.BoundlessComponentBox;
+import restx.factory.ComponentBox;
+import restx.factory.DefaultFactoryMachine;
+import restx.factory.EmptyBox;
+import restx.factory.Factory;
+import restx.factory.Machine;
+import restx.factory.MachineEngine;
+import restx.factory.Name;
+import restx.factory.NamedComponent;
+import restx.factory.SatisfiedBOM;
 
 @Machine
 public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {

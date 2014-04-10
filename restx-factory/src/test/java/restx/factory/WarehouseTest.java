@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMultimap;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * User: xavierhanin

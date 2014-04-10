@@ -5,32 +5,13 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
-import com.samskivert.mustache.Mustache;
-import com.samskivert.mustache.Template;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
-import restx.common.MoreResources;
-import restx.common.Mustaches;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.URL;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import static com.google.common.io.Files.newReaderSupplier;
 
 /**
  * User: xavierhanin

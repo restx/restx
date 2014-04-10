@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.util.Locale;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * User: xavierhanin

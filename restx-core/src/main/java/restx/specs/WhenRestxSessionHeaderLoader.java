@@ -2,7 +2,6 @@ package restx.specs;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import restx.factory.Component;
 import restx.security.RestxSessionCookieDescriptor;
 import restx.security.Signer;

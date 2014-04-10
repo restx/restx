@@ -5,7 +5,10 @@ import com.google.common.io.InputSupplier;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 
 import static com.google.common.io.Resources.getResource;

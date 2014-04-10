@@ -13,19 +13,28 @@ import jline.console.completer.StringsCompleter;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.retrieve.RetrieveOptions;
-import restx.build.*;
+import restx.build.GAV;
+import restx.build.IvySupport;
+import restx.build.ModuleDependency;
 import restx.build.ModuleDescriptor;
+import restx.build.RestxBuild;
+import restx.build.RestxJsonSupport;
 import restx.factory.Component;
-import restx.plugins.*;
-import restx.shell.*;
+import restx.plugins.ModulesManager;
+import restx.shell.RestxShell;
+import restx.shell.ShellCommandRunner;
+import restx.shell.ShellIvy;
+import restx.shell.StdShellCommand;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.Writer;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Arrays.asList;
 
 /**
  * User: xavierhanin

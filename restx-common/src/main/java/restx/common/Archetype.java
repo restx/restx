@@ -2,8 +2,6 @@ package restx.common;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.samskivert.mustache.Mustache;

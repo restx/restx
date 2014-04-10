@@ -1,6 +1,10 @@
 package samplest.cors;
 
-import restx.annotations.*;
+import restx.annotations.GET;
+import restx.annotations.HEAD;
+import restx.annotations.POST;
+import restx.annotations.PUT;
+import restx.annotations.RestxResource;
 import restx.factory.Component;
 
 import java.util.Map;

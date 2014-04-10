@@ -1,7 +1,5 @@
 package restx.factory;
 
-import com.google.common.base.Optional;
-
 import javax.inject.Named;
 
 /**

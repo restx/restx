@@ -1,7 +1,6 @@
 package restx.server.simple.simple;
 
 import com.google.common.base.Optional;
-import com.google.common.eventbus.EventBus;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.core.Container;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import restx.HttpSettings;
 import restx.RestxMainRouter;
 import restx.RestxMainRouterFactory;
-import restx.common.MoreIO;
 import restx.factory.Factory;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;

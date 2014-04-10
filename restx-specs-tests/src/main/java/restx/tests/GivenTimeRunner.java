@@ -1,14 +1,11 @@
 package restx.tests;
 
 import com.google.common.collect.ImmutableMap;
-import org.joda.time.DateTimeUtils;
 import restx.common.ThreadLocalMillisProvider;
 import restx.factory.AutoStartable;
 import restx.factory.Component;
-import restx.factory.NamedComponent;
 import restx.specs.GivenTime;
 
-import static restx.factory.Factory.LocalMachines.overrideComponents;
 import static restx.factory.Factory.LocalMachines.threadLocal;
 
 @Component

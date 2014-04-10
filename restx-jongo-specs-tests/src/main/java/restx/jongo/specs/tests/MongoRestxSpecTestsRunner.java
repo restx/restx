@@ -3,14 +3,13 @@
  */
 package restx.jongo.specs.tests;
 
+import org.junit.rules.TestRule;
+import org.junit.runners.model.InitializationError;
+import restx.tests.RestxSpecTestsRunner;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-
-import org.junit.rules.TestRule;
-import org.junit.runners.model.InitializationError;
-
-import restx.tests.RestxSpecTestsRunner;
 
 /**
  * A runner which can be used to run a set of specs as JUnit tests and use embed mongo with dynamic port.

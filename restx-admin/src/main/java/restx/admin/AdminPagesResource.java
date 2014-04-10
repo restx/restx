@@ -5,7 +5,6 @@ import restx.annotations.GET;
 import restx.annotations.Param;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
-import restx.factory.Factory;
 import restx.security.RolesAllowed;
 
 import java.util.List;

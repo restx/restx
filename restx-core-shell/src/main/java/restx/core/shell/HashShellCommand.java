@@ -1,34 +1,19 @@
 package restx.core.shell;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
-import org.apache.ivy.Ivy;
-import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.retrieve.RetrieveOptions;
 import org.mindrot.jbcrypt.BCrypt;
-import restx.build.*;
 import restx.factory.Component;
-import restx.plugins.ModulesManager;
 import restx.shell.RestxShell;
 import restx.shell.ShellCommandRunner;
-import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
-import java.io.*;
-import java.net.URL;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Arrays.asList;
 
 /**
  * User: xavierhanin

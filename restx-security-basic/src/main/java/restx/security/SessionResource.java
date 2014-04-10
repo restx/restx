@@ -2,15 +2,15 @@ package restx.security;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import restx.common.UUIDGenerator;
-import restx.http.HttpStatus;
 import restx.Status;
 import restx.WebException;
 import restx.annotations.DELETE;
 import restx.annotations.GET;
 import restx.annotations.POST;
 import restx.annotations.RestxResource;
+import restx.common.UUIDGenerator;
 import restx.factory.Component;
+import restx.http.HttpStatus;
 
 import java.util.Map;
 

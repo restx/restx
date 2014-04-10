@@ -1,6 +1,5 @@
 package restx.specs;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;

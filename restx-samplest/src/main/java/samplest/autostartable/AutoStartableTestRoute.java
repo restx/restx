@@ -2,7 +2,12 @@ package samplest.autostartable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.*;
+import restx.RestxContext;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxResponse;
+import restx.StdRestxRequestMatcher;
+import restx.StdRoute;
 import restx.factory.Component;
 
 import java.io.IOException;

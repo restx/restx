@@ -1,8 +1,6 @@
 package restx.server;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.eventbus.EventBus;
 import org.eclipse.jetty.security.DefaultIdentityService;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Handler;
@@ -17,9 +15,7 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.common.MoreFiles;
 
-import java.io.File;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;

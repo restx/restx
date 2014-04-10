@@ -1,12 +1,19 @@
 package restx.specs;
 
 import com.google.common.collect.ImmutableList;
-import restx.CoreModule;
-import restx.RestxContext;
 import restx.common.UUIDGenerator;
-import restx.factory.*;
+import restx.factory.BoundlessComponentBox;
+import restx.factory.Component;
+import restx.factory.ComponentCustomizerEngine;
+import restx.factory.Factory;
+import restx.factory.Name;
+import restx.factory.NamedComponent;
+import restx.factory.NoDepsMachineEngine;
+import restx.factory.SatisfiedBOM;
+import restx.factory.SingleComponentClassCustomizerEngine;
+import restx.factory.SingleNameFactoryMachine;
 
-import java.util.*;
+import java.util.Map;
 
 /**
  * @author fcamblor

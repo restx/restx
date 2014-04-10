@@ -1,7 +1,15 @@
 package restx.jongo;
 
 import org.jongo.Jongo;
-import restx.factory.*;
+import restx.factory.BillOfMaterials;
+import restx.factory.BoundlessComponentBox;
+import restx.factory.Factory;
+import restx.factory.FactoryMachine;
+import restx.factory.Machine;
+import restx.factory.MachineEngine;
+import restx.factory.Name;
+import restx.factory.SatisfiedBOM;
+import restx.factory.StdMachineEngine;
 
 import java.util.Collections;
 import java.util.Set;

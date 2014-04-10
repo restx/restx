@@ -2,9 +2,8 @@ package restx.http;
 
 import com.google.common.base.Optional;
 import org.junit.Test;
-import restx.http.HTTP;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**

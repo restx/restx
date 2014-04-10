@@ -1,13 +1,15 @@
 package restx.entity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
-import restx.*;
-import restx.entity.EntityResponseWriter;
+import restx.RestxContext;
+import restx.RestxLogLevel;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxRequestMatcher;
+import restx.RestxResponse;
+import restx.RouteLifecycleListener;
+import restx.StdRoute;
 import restx.http.HttpStatus;
-import restx.jackson.JsonEntityRequestBodyReader;
-import restx.jackson.JsonEntityResponseWriter;
-import restx.jackson.Views;
 
 import java.io.IOException;
 

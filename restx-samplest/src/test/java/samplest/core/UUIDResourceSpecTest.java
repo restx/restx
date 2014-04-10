@@ -1,7 +1,6 @@
 package samplest.core;
 
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import restx.tests.RestxSpecRule;
 

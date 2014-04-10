@@ -1,18 +1,16 @@
 package restx.tests;
 
-import static restx.RestxMainRouterFactory.Blade;
-
-import java.util.Map;
-
-import org.joda.time.DateTime;
-
 import com.github.kevinsawicki.http.HttpRequest;
 import com.google.common.collect.ImmutableMap;
-
+import org.joda.time.DateTime;
 import restx.common.UUIDGenerator;
 import restx.factory.Factory;
 import restx.security.RestxSessionCookieDescriptor;
 import restx.security.Signer;
+
+import java.util.Map;
+
+import static restx.RestxMainRouterFactory.Blade;
 
 /**
  * HttpTestClient is a helper to create com.github.kevinsawicki.http.HttpRequest

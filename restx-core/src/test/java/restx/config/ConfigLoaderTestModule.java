@@ -1,7 +1,5 @@
 package restx.config;
 
-import restx.config.ConfigLoader;
-import restx.config.ConfigSupplier;
 import restx.factory.Module;
 import restx.factory.Provides;
 

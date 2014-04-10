@@ -5,8 +5,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import restx.common.MoreStrings;
 
-import java.util.List;
-
 /**
  * @author fcamblor
  */

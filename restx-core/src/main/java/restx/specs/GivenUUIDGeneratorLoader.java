@@ -11,7 +11,6 @@ import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static restx.common.MorePreconditions.checkContainsKey;
-import static restx.common.MorePreconditions.checkInstanceOf;
 
 /**
  * @author fcamblor

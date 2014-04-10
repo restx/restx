@@ -1,28 +1,27 @@
 package restx.config.processor;
 
-import com.google.common.base.*;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.samskivert.mustache.Template;
 import restx.common.Mustaches;
 import restx.common.processor.RestxAbstractProcessor;
 import restx.config.Settings;
 import restx.config.SettingsKey;
-import restx.exceptions.ErrorCode;
-import restx.exceptions.ErrorField;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**

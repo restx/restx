@@ -1,11 +1,10 @@
 package restx.security;
 
-import javax.inject.Named;
-
 import com.google.common.base.Optional;
-
 import restx.common.Crypto;
 import restx.factory.Component;
+
+import javax.inject.Named;
 
 /**
  * Default cookie signer, using HMAC-SHA1 algorithm to sign the cookie.

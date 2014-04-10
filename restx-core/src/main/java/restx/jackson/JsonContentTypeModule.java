@@ -1,15 +1,16 @@
 package restx.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.AppSettings;
-import restx.RestxContext;
-import restx.entity.*;
+import restx.entity.EntityDefaultContentTypeProvider;
+import restx.entity.EntityRequestBodyReader;
+import restx.entity.EntityRequestBodyReaderFactory;
+import restx.entity.EntityResponseWriter;
+import restx.entity.EntityResponseWriterFactory;
 import restx.factory.Module;
 import restx.factory.Provides;
 

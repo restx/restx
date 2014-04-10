@@ -1,7 +1,11 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import restx.AbstractRequest;
 import restx.HttpSettings;
 
@@ -11,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
