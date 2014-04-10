@@ -19,7 +19,6 @@
             "com.google.guava:guava:${guava.version}",
             "joda-time:joda-time:${joda-time.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}",
-            "com.codahale.metrics:metrics-core:${metrics.version}",
             "org.reflections:reflections:${reflections.version}"
         ],
         "test": [
