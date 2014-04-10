@@ -1,10 +1,7 @@
 package restx;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -12,11 +9,11 @@ import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import restx.entity.MatchedEntityRoute;
-import restx.entity.StdEntityRoute;
+import restx.common.metrics.api.MetricRegistry;
+import restx.common.metrics.api.Monitor;
+import restx.common.metrics.dummy.DummyMetricRegistry;
 import restx.exceptions.RestxError;
 import restx.http.HttpStatus;
-import restx.jackson.StdJsonProducerEntityRoute;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -70,7 +67,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
         public RestxMainRouter build() {
             return new StdRestxMainRouter(
-                    metrics == null ? new MetricRegistry() : metrics,
+                    metrics == null ? new DummyMetricRegistry() : metrics,
                     new RestxRouting(ImmutableList.copyOf(filters), ImmutableList.copyOf(routes)),
                     mode);
         }
@@ -87,7 +84,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
     }
 
     public StdRestxMainRouter(RestxRouting routing, String mode) {
-        this(new MetricRegistry(), routing, mode);
+        this(new DummyMetricRegistry(), routing, mode);
     }
 
     public StdRestxMainRouter(MetricRegistry metrics, RestxRouting routing, String mode) {
@@ -101,7 +98,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         logger.debug("<< {}", restxRequest);
         Stopwatch stopwatch = Stopwatch.createStarted();
 
-        Timer.Context monitor = metrics.timer("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath()).time();
+        Monitor monitor = metrics.timer("<HTTP> " + restxRequest.getHttpMethod() + " " + restxRequest.getRestxPath()).time();
         try {
             Optional<RestxRouting.Match> m = routing.match(restxRequest);
 

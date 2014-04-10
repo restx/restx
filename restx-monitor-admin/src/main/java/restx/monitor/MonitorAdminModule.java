@@ -1,8 +1,10 @@
 package restx.monitor;
 
 import restx.admin.AdminPage;
+import restx.common.metrics.api.health.HealthCheckRegistry;
 import restx.factory.Module;
 import restx.factory.Provides;
+import restx.metrics.codahale.health.CodahaleHealthCheckRegistry;
 
 import javax.inject.Named;
 

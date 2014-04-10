@@ -1,6 +1,5 @@
 package restx;
 
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.*;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
@@ -13,6 +12,7 @@ import restx.classloader.CompilationManager;
 import restx.classloader.CompilationSettings;
 import restx.classloader.HotReloadingClassLoader;
 import restx.common.RestxConfig;
+import restx.common.metrics.api.MetricRegistry;
 import restx.factory.*;
 import restx.http.HttpStatus;
 import restx.security.RestxSessionCookieFilter;

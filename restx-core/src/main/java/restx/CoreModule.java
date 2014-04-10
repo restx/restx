@@ -1,13 +1,16 @@
 package restx;
 
-import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.UUIDGenerator;
+import restx.common.metrics.api.health.HealthCheckRegistry;
+import restx.common.metrics.dummy.health.DummyHealthCheckRegistry;
 import restx.config.ConfigLoader;
 import restx.config.ConfigSupplier;
-import restx.factory.*;
+import restx.factory.AutoStartable;
+import restx.factory.Module;
+import restx.factory.Provides;
 
 import javax.inject.Named;
 
@@ -45,7 +48,19 @@ public class CoreModule {
 
     @Provides
     public HealthCheckRegistry healthCheckRegistry() {
-        return new HealthCheckRegistry();
+        Class<HealthCheckRegistry> healthCheckRegistryClass = null;
+        try {
+            healthCheckRegistryClass = (Class<HealthCheckRegistry>) Class.forName("restx.metrics.codahale.health.CodahaleHealthCheckRegistry");
+        } catch (ClassNotFoundException e){
+            return new DummyHealthCheckRegistry();
+        }
+
+        try {
+            HealthCheckRegistry healthCheckRegistry = healthCheckRegistryClass.newInstance();
+            return healthCheckRegistry;
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to instanciate class" + healthCheckRegistryClass, e);
+        }
     }
 
     @Provides @Named(UUID_GENERATOR)
