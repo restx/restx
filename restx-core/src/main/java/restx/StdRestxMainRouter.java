@@ -13,6 +13,7 @@ import restx.common.metrics.api.MetricRegistry;
 import restx.common.metrics.api.Monitor;
 import restx.common.metrics.dummy.DummyMetricRegistry;
 import restx.exceptions.RestxError;
+import restx.factory.Factory;
 import restx.http.HttpStatus;
 
 import java.io.BufferedInputStream;
@@ -67,10 +68,14 @@ public class StdRestxMainRouter implements RestxMainRouter {
 
         public RestxMainRouter build() {
             return new StdRestxMainRouter(
-                    metrics == null ? new DummyMetricRegistry() : metrics,
+                    metrics == null ? getMetricsRegistryComponent() : metrics,
                     new RestxRouting(ImmutableList.copyOf(filters), ImmutableList.copyOf(routes)),
                     mode);
         }
+    }
+
+    private static MetricRegistry getMetricsRegistryComponent() {
+        return Factory.getInstance().getComponent(MetricRegistry.class);
     }
 
     private static final Logger logger = LoggerFactory.getLogger(StdRestxMainRouter.class);
@@ -84,7 +89,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
     }
 
     public StdRestxMainRouter(RestxRouting routing, String mode) {
-        this(new DummyMetricRegistry(), routing, mode);
+        this(getMetricsRegistryComponent(), routing, mode);
     }
 
     public StdRestxMainRouter(MetricRegistry metrics, RestxRouting routing, String mode) {
