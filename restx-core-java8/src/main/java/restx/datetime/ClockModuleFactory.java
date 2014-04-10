@@ -5,7 +5,7 @@ import restx.factory.Provides;
 
 import java.time.Clock;
 
- @Module
+@Module(priority = 1000)
 public class ClockModuleFactory {
 
      @Provides
