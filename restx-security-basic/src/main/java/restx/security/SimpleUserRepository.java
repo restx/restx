@@ -13,21 +13,25 @@ public class SimpleUserRepository<U extends RestxPrincipal> implements UserRepos
 
     private final Class<U> userClass;
     private final U defaultAdmin;
+    private String adminUsername;
+    private String adminCredentials;
 
-    public SimpleUserRepository(Class<U> userClass, U defaultAdmin) {
+    public SimpleUserRepository(Class<U> userClass, U defaultAdmin, String adminUsername, String adminCredentials) {
         this.userClass = userClass;
         this.defaultAdmin = defaultAdmin;
+        this.adminUsername = adminUsername;
+        this.adminCredentials = adminCredentials;
     }
 
     @Override
     public Optional<U> findUserByName(String name) {
-        return Optional.fromNullable("admin".equals(name) ? defaultAdmin : null);
+        return Optional.fromNullable(adminUsername.equals(name) ? defaultAdmin : null);
     }
 
     @Override
     public Optional<String> findCredentialByUserName(String userName) {
         //User admin / admin
-        return Optional.fromNullable("admin".equals(userName) ? "$2a$10$QL7OBVj/qpEdWKQNTXp12.08e3AR3szAzTZOCRlAPS2BOIaYXESrW" : null);
+        return Optional.fromNullable(adminUsername.equals(userName) ? adminCredentials : null);
     }
 
     @Override
