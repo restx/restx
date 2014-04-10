@@ -455,6 +455,7 @@ public class Factory implements AutoCloseable {
             return true;
         }
 
+        @Override
         protected Optional<NamedComponent<T>> doFindOne() {
             Set<NamedComponent<T>> components = doFind();
             if (components.isEmpty()) {
@@ -489,6 +490,7 @@ public class Factory implements AutoCloseable {
             return false;
         }
 
+        @Override
         protected Set<NamedComponent<T>> doFind() {
             return doFindOne().asSet();
         }
@@ -710,20 +712,7 @@ public class Factory implements AutoCloseable {
                         new NoDepsMachineEngine<MetricRegistry>(METRICS_NAME, BoundlessComponentBox.FACTORY) {
                             @Override
                             protected MetricRegistry doNewComponent(SatisfiedBOM satisfiedBOM) {
-                                Class<MetricRegistry> metricRegistryClass = null;
-                                try {
-                                    metricRegistryClass = (Class<MetricRegistry>) Class.forName("restx.metrics.codahale.CodahaleMetricRegistry");
-                                } catch (ClassNotFoundException e){
-                                    return new DummyMetricRegistry();
-                                }
-
-                                try {
-                                    MetricRegistry metricRegistry = metricRegistryClass.newInstance();
-                                    return metricRegistry;
-                                } catch (Exception e) {
-                                    throw new RuntimeException("Unable to instanciate class" + metricRegistryClass, e);
-                                }
-
+                                return new DummyMetricRegistry();
                             }
                         }))
 

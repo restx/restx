@@ -2,7 +2,9 @@ package restx.metrics.codahale;
 
 import restx.common.metrics.api.MetricRegistry;
 import restx.common.metrics.api.Timer;
+import restx.factory.Component;
 
+@Component(priority = 1000)
 public class CodahaleMetricRegistry implements MetricRegistry{
 
     com.codahale.metrics.MetricRegistry codahaleMetricRegistry = new com.codahale.metrics.MetricRegistry();

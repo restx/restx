@@ -2,7 +2,9 @@ package restx.metrics.codahale.health;
 
 import restx.common.metrics.api.health.HealthCheck;
 import restx.common.metrics.api.health.HealthCheckRegistry;
+import restx.factory.Component;
 
+@Component(priority = 1000)
 public class CodahaleHealthCheckRegistry implements HealthCheckRegistry {
 
     com.codahale.metrics.health.HealthCheckRegistry codahaleHealthCheckRegistry;

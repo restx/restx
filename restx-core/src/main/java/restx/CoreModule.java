@@ -48,19 +48,7 @@ public class CoreModule {
 
     @Provides
     public HealthCheckRegistry healthCheckRegistry() {
-        Class<HealthCheckRegistry> healthCheckRegistryClass = null;
-        try {
-            healthCheckRegistryClass = (Class<HealthCheckRegistry>) Class.forName("restx.metrics.codahale.health.CodahaleHealthCheckRegistry");
-        } catch (ClassNotFoundException e){
-            return new DummyHealthCheckRegistry();
-        }
-
-        try {
-            HealthCheckRegistry healthCheckRegistry = healthCheckRegistryClass.newInstance();
-            return healthCheckRegistry;
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to instanciate class" + healthCheckRegistryClass, e);
-        }
+        return new DummyHealthCheckRegistry();
     }
 
     @Provides @Named(UUID_GENERATOR)

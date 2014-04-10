@@ -20,4 +20,10 @@ public class MonitorAdminModule {
     public AdminPage getMonitorAdminPage() {
         return new AdminPage("/@/ui/monitor/", "Monitor");
     }
+
+    @Provides
+    public HealthCheckRegistry healthCheckRegistry() {
+        return new CodahaleHealthCheckRegistry();
+    }
+
 }
