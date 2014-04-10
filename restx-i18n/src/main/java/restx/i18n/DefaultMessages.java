@@ -13,6 +13,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
@@ -91,6 +92,19 @@ public class DefaultMessages extends AbstractMessages implements Messages {
                 } catch (IllegalArgumentException e) {
                     return null;
                 }
+            }
+
+            @Override
+            public List<String> getFormats(String baseName) {
+                return ResourceBundle.Control.FORMAT_PROPERTIES;
+            }
+
+            @Override
+            public Locale getFallbackLocale(String baseName, Locale locale) {
+                if (baseName == null || locale == null) {
+                    throw new NullPointerException();
+                }
+                return null;
             }
 
             @Override
