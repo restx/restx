@@ -148,9 +148,12 @@ public class SimpleWebServerTest {
 
             httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo("[\n" +
+            assertThat(httpRequest.body().trim()).isIn("[\n" +
                     "\"test.txt\",\n" +
                     "\"test2.txt\"\n" +
+                    "]", "[\n" +
+                    "\"test2.txt\",\n" +
+                    "\"test.txt\"\n" +
                     "]");
 
             httpRequest = HttpRequest.delete(server.baseUrl() + "/api/test/test.txt");
