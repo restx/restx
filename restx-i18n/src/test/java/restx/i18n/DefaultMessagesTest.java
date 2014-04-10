@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Time: 14:58
  */
 public class DefaultMessagesTest {
+
     @Test
     public void should_translate_simple() throws Exception {
         DefaultMessages m = new DefaultMessages("restx.i18n.test");

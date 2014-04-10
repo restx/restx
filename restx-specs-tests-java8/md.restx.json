@@ -1,0 +1,16 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-specs-tests-java8:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"],
+        "java.version": "1.8"
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-factory:${restx.version}",
+            "io.restx:restx-specs-tests:${restx.version}"
+        ]
+    }
+}
