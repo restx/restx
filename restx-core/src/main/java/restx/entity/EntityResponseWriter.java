@@ -6,6 +6,7 @@ import restx.RestxResponse;
 import restx.http.HttpStatus;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 /**
  * Date: 23/10/13

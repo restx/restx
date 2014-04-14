@@ -8,7 +8,7 @@ import restx.factory.Factory;
 
 import java.util.Collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

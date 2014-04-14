@@ -3,12 +3,9 @@ package restx.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import restx.RestxMainRouter;
-import restx.RestxRequest;
-import restx.RestxRequestMatch;
-import restx.RestxRouter;
-import restx.StdRestxMainRouter;
+import restx.*;
 import restx.entity.MatchedEntityOutputRoute;
+import restx.entity.MatchedEntityRoute;
 import restx.servlet.AbstractRestxMainRouterServlet;
 
 import java.io.IOException;

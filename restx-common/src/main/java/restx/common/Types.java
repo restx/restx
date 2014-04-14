@@ -1,5 +1,6 @@
 package restx.common;
 
+import java.lang.Class;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 

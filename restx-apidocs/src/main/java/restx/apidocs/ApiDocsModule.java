@@ -2,11 +2,11 @@ package restx.apidocs;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
-import restx.admin.AdminPage;
 import restx.factory.Module;
 import restx.factory.Provides;
 import restx.security.CORSAuthorizer;
 import restx.security.StdCORSAuthorizer;
+import restx.admin.AdminPage;
 
 import javax.inject.Named;
 import java.util.regex.Pattern;

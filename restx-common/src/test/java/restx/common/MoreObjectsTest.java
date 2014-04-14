@@ -1,5 +1,6 @@
 package restx.common;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.net.MalformedURLException;

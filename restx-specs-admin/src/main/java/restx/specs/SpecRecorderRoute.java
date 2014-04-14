@@ -4,14 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import restx.ResourcesRoute;
-import restx.RestxContext;
-import restx.RestxRequest;
-import restx.RestxRequestMatch;
-import restx.RestxResponse;
-import restx.RestxRouter;
-import restx.StdRestxRequestMatcher;
-import restx.StdRoute;
+import restx.*;
 
 import java.io.File;
 import java.io.IOException;

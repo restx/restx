@@ -4,6 +4,7 @@ import restx.factory.Module;
 import restx.factory.Provides;
 
 import javax.inject.Named;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownServiceException;
 

@@ -1,5 +1,7 @@
 package restx.server;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import restx.factory.Module;
 import restx.factory.Provides;
 

@@ -4,6 +4,10 @@ import com.google.common.base.Optional;
 import restx.RestxContext;
 import restx.RestxRequest;
 import restx.RestxResponse;
+import restx.entity.AbstractEntityResponseWriter;
+import restx.entity.EntityDefaultContentTypeProvider;
+import restx.entity.EntityResponseWriter;
+import restx.entity.EntityResponseWriterFactory;
 import restx.factory.Module;
 import restx.factory.Provides;
 

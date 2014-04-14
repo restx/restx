@@ -10,11 +10,7 @@ import restx.i18n.SupportedLocale;
 
 import javax.inject.Named;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Date: 25/1/14

@@ -1,5 +1,7 @@
 package restx.server;
 
+import com.google.common.eventbus.EventBus;
+
 /**
  * User: xavierhanin
  * Date: 1/16/13

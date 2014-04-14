@@ -1,12 +1,17 @@
 package restx.jackson;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.collect.Lists;
+import restx.entity.AbstractEntityResponseWriter;
+import restx.entity.EntityResponseWriter;
 import restx.RestxContext;
 import restx.RestxRequest;
 import restx.RestxResponse;
-import restx.entity.AbstractEntityResponseWriter;
+import restx.http.HttpStatus;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Date: 23/10/13

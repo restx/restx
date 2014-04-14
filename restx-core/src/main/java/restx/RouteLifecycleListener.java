@@ -1,6 +1,7 @@
 package restx;
 
 import com.google.common.base.Optional;
+import restx.entity.StdEntityRoute;
 
 /**
  * User: xavierhanin

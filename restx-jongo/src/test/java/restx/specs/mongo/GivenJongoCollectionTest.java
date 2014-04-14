@@ -9,8 +9,7 @@ import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
 import restx.specs.WhenHttpRequest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.extractProperty;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

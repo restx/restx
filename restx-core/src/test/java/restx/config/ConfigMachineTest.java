@@ -5,11 +5,10 @@ import org.junit.Test;
 import restx.common.ConfigElement;
 import restx.common.RestxConfig;
 import restx.common.StdRestxConfig;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.NamedComponent;
-import restx.factory.SingletonFactoryMachine;
-import restx.factory.SystemPropertyFactoryMachine;
+import restx.config.ConfigSupplier;
+import restx.config.ConsolidatedConfigFactoryMachine;
+import restx.config.ElementsFromConfigFactoryMachine;
+import restx.factory.*;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;

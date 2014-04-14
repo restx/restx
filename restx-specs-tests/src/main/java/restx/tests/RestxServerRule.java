@@ -8,6 +8,7 @@ import restx.server.WebServer;
 import restx.server.WebServerSupplier;
 import restx.server.WebServers;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.factory.Factory.LocalMachines.contextLocal;
 
 /**

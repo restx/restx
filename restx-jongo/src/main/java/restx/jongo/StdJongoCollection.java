@@ -2,6 +2,10 @@ package restx.jongo;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
+import restx.factory.*;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * User: xavierhanin

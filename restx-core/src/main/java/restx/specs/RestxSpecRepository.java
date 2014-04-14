@@ -2,18 +2,11 @@ package restx.specs;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.google.common.io.InputSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.RestxRequest;
-import restx.RestxRequestMatch;
-import restx.StdRequest;
-import restx.StdRestxRequestMatcher;
+import restx.*;
 import restx.common.MoreResources;
 import restx.factory.Component;
 

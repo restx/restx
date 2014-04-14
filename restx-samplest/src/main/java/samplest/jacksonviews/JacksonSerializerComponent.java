@@ -3,6 +3,7 @@ package samplest.jacksonviews;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.google.common.base.Strings;
 import restx.factory.Component;
 
 import javax.inject.Named;

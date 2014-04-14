@@ -7,6 +7,7 @@ import org.jongo.marshall.jackson.JacksonMapper;
 import restx.factory.Module;
 import restx.factory.Name;
 import restx.factory.Provides;
+import restx.factory.SatisfiedBOM;
 import restx.jackson.BsonJodaTimeModule;
 import restx.jackson.Views;
 import restx.mongo.MongoModule;

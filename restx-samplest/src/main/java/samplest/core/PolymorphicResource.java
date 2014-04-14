@@ -1,12 +1,14 @@
 package samplest.core;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.collect.Iterables;
 import restx.annotations.GET;
 import restx.annotations.POST;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**

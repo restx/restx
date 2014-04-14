@@ -1,23 +1,13 @@
 package restx.apidocs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import restx.RestxRequest;
-import restx.RestxRequestMatch;
-import restx.RestxRoute;
-import restx.RestxRouter;
-import restx.StdRestxRequestMatcher;
-import restx.description.DescribableRoute;
-import restx.description.OperationDescription;
-import restx.description.OperationParameterDescription;
-import restx.description.OperationReference;
-import restx.description.ResourceDescription;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
+import restx.*;
+import restx.description.*;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.Name;
@@ -28,11 +18,7 @@ import restx.jackson.StdJsonProducerEntityRoute;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static restx.apidocs.ApiDocsIndexRoute.getRouterApiPath;
 

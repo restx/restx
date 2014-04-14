@@ -6,12 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import restx.admin.AdminModule;
 import restx.factory.Module;
 import restx.factory.Provides;
-import restx.security.BasicPrincipalAuthenticator;
-import restx.security.RestxPrincipal;
-import restx.security.SecuritySettings;
-import restx.security.StdBasicPrincipalAuthenticator;
-import restx.security.StdUser;
-import restx.security.UserService;
+import restx.security.*;
 
 import javax.inject.Named;
 

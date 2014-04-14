@@ -1,14 +1,11 @@
 package com.barbarysoftware.watchservice;
 
+import static com.barbarysoftware.watchservice.StandardWatchEventKind.*;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 
 import java.io.File;
-
-import static com.barbarysoftware.watchservice.StandardWatchEventKind.ENTRY_CREATE;
-import static com.barbarysoftware.watchservice.StandardWatchEventKind.ENTRY_DELETE;
-import static com.barbarysoftware.watchservice.StandardWatchEventKind.ENTRY_MODIFY;
 
 public class WatchServiceTest {
     @Before

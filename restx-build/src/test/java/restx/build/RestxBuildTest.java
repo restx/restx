@@ -9,7 +9,7 @@ import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

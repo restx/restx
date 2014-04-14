@@ -1,13 +1,16 @@
 package samplest.autostartable;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kevinsawicki.http.HttpRequest;
 import org.junit.Test;
-import restx.factory.Factory;
-import restx.factory.NamedComponent;
-import restx.factory.SingletonFactoryMachine;
+import restx.factory.*;
 import restx.server.WebServers;
 import restx.server.simple.simple.SimpleWebServer;
 import restx.tests.HttpTestClient;
+import samplest.autostartable.AutoStartableTestComponent;
+import samplest.autostartable.AutoStartableTestRoute;
+
+import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

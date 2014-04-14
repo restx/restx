@@ -15,17 +15,7 @@ import org.jongo.ObjectIdUpdater;
 import org.jongo.marshall.Marshaller;
 import org.jongo.marshall.Unmarshaller;
 import org.jongo.query.QueryFactory;
-import restx.factory.BillOfMaterials;
-import restx.factory.BoundlessComponentBox;
-import restx.factory.Component;
-import restx.factory.ComponentCustomizerEngine;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.NamedComponent;
-import restx.factory.SatisfiedBOM;
-import restx.factory.SingleComponentNameCustomizerEngine;
-import restx.factory.SingleNameFactoryMachine;
-import restx.factory.StdMachineEngine;
+import restx.factory.*;
 import restx.jongo.JongoCollection;
 import restx.specs.mongo.GivenJongoCollection;
 import restx.tests.GivenCleaner;
@@ -35,7 +25,9 @@ import java.lang.reflect.Field;
 import java.net.UnknownHostException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static restx.factory.Factory.LocalMachines.contextLocal;
 import static restx.factory.Factory.LocalMachines.threadLocal;
+import static restx.specs.WhenHttpRequest.CONTEXT_NAME;
 import static restx.specs.mongo.GivenJongoCollection.DB_URI;
 
 @Component

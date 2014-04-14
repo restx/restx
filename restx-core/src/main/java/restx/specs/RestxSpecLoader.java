@@ -10,11 +10,11 @@ import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
-import restx.common.MoreResources;
 import restx.factory.Component;
+import restx.http.HttpStatus;
+import restx.common.MoreResources;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
-import restx.http.HttpStatus;
 
 import javax.inject.Inject;
 import java.io.IOException;

@@ -1,6 +1,7 @@
 package restx.tests.json;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import difflib.Delta;
 import difflib.DiffUtils;

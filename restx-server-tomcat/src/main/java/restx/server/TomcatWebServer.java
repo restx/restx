@@ -1,6 +1,7 @@
 package restx.server;
 
 import com.google.common.base.Throwables;
+import com.google.common.eventbus.EventBus;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;
@@ -8,8 +9,12 @@ import org.apache.catalina.core.StandardServer;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.common.MoreFiles;
+import restx.common.MoreIO;
 
 import javax.servlet.ServletException;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static restx.common.MoreFiles.checkFileExists;

@@ -3,6 +3,7 @@ package restx.http;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import restx.http.HTTP;
 
 import java.util.Arrays;
 

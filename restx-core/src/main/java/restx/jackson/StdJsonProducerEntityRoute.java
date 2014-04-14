@@ -1,5 +1,6 @@
 package restx.jackson;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import restx.RestxLogLevel;
 import restx.RestxRequestMatcher;

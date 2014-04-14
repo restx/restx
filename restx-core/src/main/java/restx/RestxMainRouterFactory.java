@@ -1,11 +1,6 @@
 package restx;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Stopwatch;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.base.Throwables;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -18,11 +13,7 @@ import restx.classloader.CompilationSettings;
 import restx.classloader.HotReloadingClassLoader;
 import restx.common.RestxConfig;
 import restx.common.metrics.api.MetricRegistry;
-import restx.factory.Factory;
-import restx.factory.Name;
-import restx.factory.NamedComponent;
-import restx.factory.SingletonFactoryMachine;
-import restx.factory.Warehouse;
+import restx.factory.*;
 import restx.http.HttpStatus;
 import restx.security.RestxSessionCookieFilter;
 import restx.server.WebServer;

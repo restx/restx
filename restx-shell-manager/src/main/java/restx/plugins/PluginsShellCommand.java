@@ -1,10 +1,6 @@
 package restx.plugins;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
@@ -23,10 +19,7 @@ import restx.shell.ShellCommandRunner;
 import restx.shell.ShellIvy;
 import restx.shell.StdShellCommand;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

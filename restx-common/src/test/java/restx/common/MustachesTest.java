@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.samskivert.mustache.Template;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * User: xavierhanin

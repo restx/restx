@@ -1,12 +1,9 @@
 package com.barbarysoftware.watchservice;
 
+import static com.barbarysoftware.watchservice.StandardWatchEventKind.*;
+
 import java.io.File;
 import java.io.IOException;
-
-import static com.barbarysoftware.watchservice.StandardWatchEventKind.ENTRY_CREATE;
-import static com.barbarysoftware.watchservice.StandardWatchEventKind.ENTRY_DELETE;
-import static com.barbarysoftware.watchservice.StandardWatchEventKind.ENTRY_MODIFY;
-import static com.barbarysoftware.watchservice.StandardWatchEventKind.OVERFLOW;
 
 public class Demo {
 

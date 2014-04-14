@@ -3,14 +3,7 @@ package restx;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import restx.factory.BillOfMaterials;
-import restx.factory.BoundlessComponentBox;
-import restx.factory.Factory;
-import restx.factory.Machine;
-import restx.factory.Name;
-import restx.factory.SatisfiedBOM;
-import restx.factory.SingleNameFactoryMachine;
-import restx.factory.StdMachineEngine;
+import restx.factory.*;
 
 import java.util.Collection;
 

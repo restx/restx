@@ -4,8 +4,8 @@ import org.joda.time.Duration;
 import org.simpleframework.http.Cookie;
 import org.simpleframework.http.Response;
 import restx.AbstractResponse;
-import restx.RestxResponse;
 import restx.http.HttpStatus;
+import restx.RestxResponse;
 
 import java.io.IOException;
 import java.io.OutputStream;

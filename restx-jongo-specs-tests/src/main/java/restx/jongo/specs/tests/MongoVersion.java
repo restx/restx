@@ -3,10 +3,10 @@
  */
 package restx.jongo.specs.tests;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import de.flapdoodle.embed.mongo.distribution.Version;
 
 
 /**

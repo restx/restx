@@ -1,6 +1,7 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
+import com.google.common.eventbus.EventBus;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.ExpressionEvaluator;
 import org.codehaus.janino.JaninoRuntimeException;

@@ -5,17 +5,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import restx.common.MoreResources;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Date: 25/1/14

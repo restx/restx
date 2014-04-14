@@ -1,7 +1,17 @@
 package restx.jongo.specs.tests;
 
+import java.io.IOException;
+import java.net.InetAddress;
+
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
+
+import restx.mongo.MongoModule;
+
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -9,13 +19,6 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-import restx.mongo.MongoModule;
-
-import java.io.IOException;
-import java.net.InetAddress;
 
 /**
  * Rule which allows per JVM process : 

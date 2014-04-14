@@ -2,8 +2,8 @@ package restx.servlet;
 
 import org.joda.time.Duration;
 import restx.AbstractResponse;
-import restx.RestxResponse;
 import restx.http.HttpStatus;
+import restx.RestxResponse;
 
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
