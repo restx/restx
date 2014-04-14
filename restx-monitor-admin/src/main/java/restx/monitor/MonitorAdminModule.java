@@ -21,9 +21,4 @@ public class MonitorAdminModule {
         return new AdminPage("/@/ui/monitor/", "Monitor");
     }
 
-    @Provides
-    public HealthCheckRegistry healthCheckRegistry() {
-        return new CodahaleHealthCheckRegistry();
-    }
-
 }

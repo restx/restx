@@ -61,10 +61,14 @@ import static restx.common.MoreStrings.indent;
  * Time: 5:42 PM
  */
 public class Factory implements AutoCloseable {
+
+    public static final String METRICS_REGISTRY = "MetricRegistry";
+    public static final String HEALTH_CHECK_REGISTRY = "HealthChekcRegistry";
+
     private static final String SERVICE_LOADER = "ServiceLoader";
     private static final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
-    private static final Name<MetricRegistry> METRICS_NAME = Name.of(MetricRegistry.class, "METRICS");
+    private static final Name<MetricRegistry> METRICS_NAME = Name.of(MetricRegistry.class, METRICS_REGISTRY);
     private static final Comparator<ComponentCustomizer> customizerComparator = new Comparator<ComponentCustomizer>() {
         @Override
         public int compare(ComponentCustomizer o1, ComponentCustomizer o2) {

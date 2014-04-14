@@ -9,6 +9,7 @@ import restx.common.metrics.dummy.health.DummyHealthCheckRegistry;
 import restx.config.ConfigLoader;
 import restx.config.ConfigSupplier;
 import restx.factory.AutoStartable;
+import restx.factory.Factory;
 import restx.factory.Module;
 import restx.factory.Provides;
 
@@ -46,7 +47,7 @@ public class CoreModule {
         };
     }
 
-    @Provides
+    @Provides @Named(Factory.HEALTH_CHECK_REGISTRY)
     public HealthCheckRegistry healthCheckRegistry() {
         return new DummyHealthCheckRegistry();
     }

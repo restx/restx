@@ -1,6 +1,6 @@
 {
     "parent": "io.restx:restx-parent:${restx.version}",
-    "module": "io.restx:restx-monitor-admin:${restx.version}",
+    "module": "io.restx:restx-monitor-codahale:${restx.version}",
 
     "properties": {
         "@files": ["../restx.build.properties.json"]
@@ -11,7 +11,6 @@
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}",
-            "io.restx:restx-monitor-codahale:${restx.version}",
             "com.codahale.metrics:metrics-core:${metrics.version}",
             "com.codahale.metrics:metrics-jvm:${metrics.version}",
             "com.codahale.metrics:metrics-graphite:${metrics.version}",

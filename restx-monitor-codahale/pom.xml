@@ -11,10 +11,10 @@
     </parent>
 
     <groupId>io.restx</groupId>
-    <artifactId>restx-monitor-admin</artifactId>
+    <artifactId>restx-monitor-codahale</artifactId>
     <version>0.33-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>restx-monitor-admin</name>
+    <name>restx-monitor-codahale</name>
 
     <properties>
         <restx.version>0.33-SNAPSHOT</restx.version>
@@ -37,11 +37,6 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
-            <version>${restx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-monitor-codahale</artifactId>
             <version>${restx.version}</version>
         </dependency>
         <dependency>

@@ -119,6 +119,7 @@
         <module>restx-i18n-admin</module>
         <module>restx-apidocs</module>
         <module>restx-monitor-admin</module>
+        <module>restx-monitor-codahale</module>
         <module>restx-factory-admin</module>
         <module>restx-log-admin</module>
         <module>restx-specs-tests</module>

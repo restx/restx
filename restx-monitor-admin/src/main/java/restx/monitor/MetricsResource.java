@@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableMap;
 import restx.annotations.GET;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
+import restx.metrics.codahale.CodahaleMetricRegistry;
+import restx.metrics.codahale.health.CodahaleHealthCheckRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.management.ManagementFactory;
@@ -22,9 +24,15 @@ public class MetricsResource {
     private final HealthCheckRegistry healthChecks;
     private final ThreadDump threadDump;
 
-    public MetricsResource(MetricRegistry metrics, HealthCheckRegistry healthChecks) {
-        this.metrics = metrics;
-        this.healthChecks = healthChecks;
+    public MetricsResource(restx.common.metrics.api.MetricRegistry metricRegistry, restx.common.metrics.api.health.HealthCheckRegistry healthCheckRegistry) {
+        if (!(metricRegistry instanceof CodahaleMetricRegistry)){
+            throw new IllegalStateException("restx-monitor-admin expects that module restx-monitor-codahale is loaded");
+        }
+        CodahaleMetricRegistry codahaleMetricRegistry = (CodahaleMetricRegistry) metricRegistry;
+        CodahaleHealthCheckRegistry codahaleHealthCheckRegistry = (CodahaleHealthCheckRegistry) healthCheckRegistry;
+
+        this.metrics = codahaleMetricRegistry.getCodahaleMetricRegistry();
+        this.healthChecks = codahaleHealthCheckRegistry.getCodahaleHealthCheckRegistry();
         threadDump = new ThreadDump(ManagementFactory.getThreadMXBean());
     }
 

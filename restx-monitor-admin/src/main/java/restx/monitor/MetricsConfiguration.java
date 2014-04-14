@@ -40,6 +40,9 @@ public class MetricsConfiguration implements AutoStartable {
     public MetricsConfiguration(restx.common.metrics.api.MetricRegistry metricRegistry, restx.common.metrics.api.health.HealthCheckRegistry healthCheckRegistry,
                                 GraphiteSettings graphiteSettings, AppSettings appSettings) {
 
+        if (!(metricRegistry instanceof CodahaleMetricRegistry)){
+            throw new IllegalStateException("restx-monitor-admin expects that module restx-monitor-codahale is loaded");
+        }
         CodahaleMetricRegistry codahaleMetricRegistry = (CodahaleMetricRegistry) metricRegistry;
         CodahaleHealthCheckRegistry codahaleHealthCheckRegistry = (CodahaleHealthCheckRegistry) healthCheckRegistry;
 
