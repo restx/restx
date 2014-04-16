@@ -32,6 +32,11 @@
             <version>${restx.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-build</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
             <version>${jline.version}</version>
