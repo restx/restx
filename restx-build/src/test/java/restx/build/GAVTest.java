@@ -17,6 +17,11 @@ public class GAVTest {
         shouldBeConsistent("joda-time:joda-time:${joda-time.version}");
     }
 
+    @Test
+    public void should_parse_artifact_with_type() throws Exception {
+        shouldBeConsistent("restx:restx-ui:0.2:zip");
+    }
+
     private void shouldBeConsistent(String gav) {
         assertThat(GAV.parse(gav).toString()).isEqualTo(gav);
     }

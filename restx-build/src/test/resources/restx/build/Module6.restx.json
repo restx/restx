@@ -1,0 +1,21 @@
+{
+    "parent": "com.example:example-parent:0.8",
+    "module": "com.example:example-common:${restx.version}",
+
+    "properties": {
+        "@files": ["Module5.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "com.example:example-dummy:${restx.version}:zip",
+            "com.google.guava:guava:14.0-rc2",
+            "joda-time:joda-time:${joda-time.version}",
+            "com.github.spullara.mustache.java:compiler:0.8.10"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.easytesting:fest-assert-core:2.0M8"
+        ]
+    }
+}
