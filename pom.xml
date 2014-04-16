@@ -144,4 +144,19 @@
         <module>restx-build-shell</module>
         <module>restx-specs-shell</module>
     </modules>
+
+
+    <profiles>
+        <profile>
+            <id>java8</id>
+            <activation>
+                <jdk>[1.8,)</jdk>
+            </activation>
+            <modules>
+                <module>restx-core-java8</module>
+                <module>restx-specs-tests-java8</module>
+                <module>restx-samplest-java8</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

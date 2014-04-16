@@ -407,7 +407,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
         public String getQueryDeclarationCode() {
             TypeMirror targetType = targetType();
-            String optionalOrNotQueryQualifier = isOptionalType() || isMultiType() ? "optional()" : "mandatory()";
+            String optionalOrNotQueryQualifier = isGuavaOptionalType() || isJava8OptionalType() || isMultiType() ? "optional()" : "mandatory()";
 
             if (injectionName.isPresent()) {
                 return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).%s;",
@@ -419,8 +419,10 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         public String getFromSatisfiedBomCode() {
-            if (isOptionalType()) {
+            if (isGuavaOptionalType()) {
                 return String.format("satisfiedBOM.getOneAsComponent(%s)", name);
+            } else if (isJava8OptionalType()) {
+                return String.format("java.util.Optional.ofNullable(satisfiedBOM.getOneAsComponent(%s).orNull())", name);
             } else if (isMultiType()) {
                 String code = String.format("satisfiedBOM.getAsComponents(%s)", name);
                 if (baseType.toString().startsWith(Collection.class.getCanonicalName())
@@ -440,7 +442,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         private TypeMirror targetType() {
-            if (isOptionalType() || isMultiType()) {
+            if (isGuavaOptionalType() || isJava8OptionalType() || isMultiType()) {
                 DeclaredType declaredBaseType = (DeclaredType) baseType;
                 if(declaredBaseType.getTypeArguments().isEmpty()){
                     throw new RuntimeException("Optional | Collection type for parameter " + name + " needs" +
@@ -452,8 +454,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             }
         }
 
-        private boolean isOptionalType() {
+        private boolean isGuavaOptionalType() {
             return baseType.toString().startsWith(Optional.class.getCanonicalName());
+        }
+        private boolean isJava8OptionalType() {
+            return baseType.toString().startsWith("java.util.Optional");
         }
 
         private boolean isMultiType() {
