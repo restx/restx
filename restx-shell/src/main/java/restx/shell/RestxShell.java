@@ -45,7 +45,7 @@ public class RestxShell implements Appendable {
     private WatchDir watcher;
     private final List<WatchListener> listeners = new CopyOnWriteArrayList<>();
     private final ExecutorService watcherExecutorService = Executors.newSingleThreadExecutor();
-    private Path currentLocation = Paths.get(".").normalize();
+    private Path currentLocation = Paths.get(System.getProperty("user.dir"));
     private ExecMode execMode = ExecMode.INTERACTIVE;
 
     public RestxShell(ConsoleReader consoleReader) {

@@ -1,0 +1,16 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-core-java8:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"],
+        "java.version": "1.8"
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-factory:${restx.version}",
+            "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jackson.version}"
+        ]
+    }
+}
