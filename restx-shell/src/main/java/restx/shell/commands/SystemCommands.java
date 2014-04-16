@@ -9,6 +9,7 @@ import restx.shell.ShellCommand;
 import restx.shell.ShellCommandRunner;
 import restx.shell.StdShellCommand;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -54,4 +55,32 @@ public class SystemCommands {
             }
         };
     }
+
+    @Provides public ShellCommand ls() {
+        return new StdShellCommand(ImmutableList.of("ls"), "print current directory content") {
+            @Override
+            protected Optional<? extends ShellCommandRunner> doMatch(String line) {
+                return Optional.of(new ShellCommandRunner() {
+                    @Override
+                    public void run(RestxShell shell) throws Exception {
+                        File currentDir = shell.currentLocation().toFile();
+                        if (currentDir != null) {
+                            if (currentDir.isDirectory()) {
+                                if (currentDir.list().length > 0) {
+                                    for (String contentFileName : currentDir.list()) {
+                                        shell.println(contentFileName);
+                                    }
+                                } else {
+                                    shell.println("Current directory is empty");
+                                }
+                            } else {
+                                shell.println("Current location is not a directory");
+                            }
+                        }
+                    }
+                });
+            }
+        };
+    }
+
 }
