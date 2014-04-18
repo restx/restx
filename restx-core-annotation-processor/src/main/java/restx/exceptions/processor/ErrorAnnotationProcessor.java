@@ -10,15 +10,12 @@ import restx.common.processor.RestxAbstractProcessor;
 import restx.exceptions.ErrorCode;
 import restx.exceptions.ErrorField;
 
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -32,7 +29,6 @@ import java.util.Set;
         "restx.exceptions.ErrorCode"
 })
 @SupportedOptions({ "debug" })
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ErrorAnnotationProcessor extends RestxAbstractProcessor {
     final Template errorDescriptorTpl;
 

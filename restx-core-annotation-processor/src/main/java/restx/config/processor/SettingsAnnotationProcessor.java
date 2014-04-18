@@ -12,8 +12,6 @@ import restx.config.SettingsKey;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -30,7 +28,6 @@ import java.util.Set;
         "restx.config.Settings"
 })
 @SupportedOptions({ "debug" })
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class SettingsAnnotationProcessor extends RestxAbstractProcessor {
     final Template settingsProviderTpl;
     final Template settingsConfigTpl;
