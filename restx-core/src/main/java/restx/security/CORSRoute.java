@@ -46,9 +46,17 @@ public class CORSRoute extends CORSHandler implements RestxRoute, RestxHandler {
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        CORS cors = (CORS) match.getOtherParams().get("cors");
+        AcceptedCORS cors = (AcceptedCORS) match.getOtherParams().get("cors");
         resp.setHeader("Access-Control-Allow-Origin", cors.getOrigin());
-        resp.setHeader("Access-Control-Allow-Methods", Joiner.on(", ").join(cors.getMethods()));
+        if (!cors.getHeaders().isEmpty()) {
+            resp.setHeader("Access-Control-Allow-Headers", Joiner.on(", ").join(cors.getHeaders()));
+        }
+        if (!cors.getMethods().isEmpty()) {
+            resp.setHeader("Access-Control-Allow-Methods", Joiner.on(", ").join(cors.getMethods()));
+        }
+        if (cors.getAllowCredentials().or(false)) {
+            resp.setHeader("Access-Control-Allow-Credentials", "true");
+        }
         resp.setHeader("Access-Control-Max-Age", String.valueOf(cors.getMaxAge()));
     }
 

@@ -3,12 +3,15 @@ package restx.security;
 import com.google.common.base.Optional;
 import restx.RestxRequest;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
 * User: xavierhanin
 * Date: 4/1/13
 * Time: 10:29 PM
 */
-public class CORS {
+public abstract class CORS {
     static CORS check(Iterable<CORSAuthorizer> authorizers, RestxRequest request, String origin, String method, String restxPath) {
         for (CORSAuthorizer authorizer : authorizers) {
             Optional<CORS> cors = authorizer.checkCORS(request, origin, method, restxPath);
@@ -20,42 +23,30 @@ public class CORS {
     }
 
     public static CORS reject() {
-        return new CORS(false, null, null, 0);
+        return REJECTED_CORS;
     }
 
-    public static CORS accept(String origin, Iterable<String> methods) {
-        return new CORS(true, origin, methods, 1728000);
+    public static CORS accept(String origin, Collection<String> methods) {
+        return new AcceptedCORS(origin, methods, Collections.<String>emptyList(), Optional.<Boolean>absent(), 1728000);
     }
-    public static CORS accept(String origin, Iterable<String> methods, int maxAge) {
-        return new CORS(true, origin, methods, maxAge);
+    public static CORS accept(String origin, Collection<String> methods, int maxAge) {
+        return new AcceptedCORS(origin, methods, Collections.<String>emptyList(), Optional.<Boolean>absent(), maxAge);
     }
-
-    private boolean accepted;
-    private String origin;
-    private Iterable<String> methods;
-    private int maxAge;
-
-    CORS(boolean accepted, String origin, Iterable<String> methods, int maxAge) {
-        this.accepted = accepted;
-        this.origin = origin;
-        this.methods = methods;
-        this.maxAge = maxAge;
+    public static CORS accept(String origin, Collection<String> methods, Collection<String> headers, int maxAge) {
+        return new AcceptedCORS(origin, methods, headers, Optional.<Boolean>absent(), maxAge);
+    }
+    public static CORS accept(String origin, Collection<String> methods, Collection<String> headers, Optional<Boolean> credentials, int maxAge) {
+        return new AcceptedCORS(origin, methods, headers, credentials, maxAge);
     }
 
+    public abstract boolean isAccepted();
 
-    public boolean isAccepted() {
-        return accepted;
+    private static final RejectedCORS REJECTED_CORS = new RejectedCORS();
+
+    private final static class RejectedCORS extends CORS {
+        public boolean isAccepted() {
+            return false;
+        }
     }
 
-    public String getOrigin() {
-        return origin;
-    }
-
-    public Iterable<String> getMethods() {
-        return methods;
-    }
-
-    public int getMaxAge() {
-        return maxAge;
-    }
 }

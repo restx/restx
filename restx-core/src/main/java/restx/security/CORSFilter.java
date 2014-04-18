@@ -1,5 +1,6 @@
 package restx.security;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
@@ -47,12 +48,19 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
     }
 
     protected boolean isSimpleCORSRequest(RestxRequest req) {
+        // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
         if  (!SIMPLE_METHODS.contains(req.getHttpMethod())) {
             return false;
         }
         Optional<String> origin = req.getHeader("Origin");
         if (!origin.isPresent()) {
             return false;
+        }
+        if ("POST".equals(req.getHttpMethod())) {
+            if (!asList("application/x-www-form-urlencoded", "multipart/form-data", "text/plain")
+                    .contains(req.getContentType())) {
+                return false;
+            }
         }
         // same origin check.
         // see http://stackoverflow.com/questions/15512331/chrome-adding-origin-header-to-same-origin-request
@@ -71,7 +79,17 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        resp.setHeader("Access-Control-Allow-Origin", ((CORS) match.getOtherParams().get("cors")).getOrigin());
+        AcceptedCORS cors = (AcceptedCORS) match.getOtherParams().get("cors");
+        resp.setHeader("Access-Control-Allow-Origin", cors.getOrigin());
+        if (!cors.getHeaders().isEmpty()) {
+            resp.setHeader("Access-Control-Allow-Headers", Joiner.on(", ").join(cors.getHeaders()));
+        }
+        if (!cors.getMethods().isEmpty()) {
+            resp.setHeader("Access-Control-Allow-Methods", Joiner.on(", ").join(cors.getMethods()));
+        }
+        if (cors.getAllowCredentials().or(false)) {
+            resp.setHeader("Access-Control-Allow-Credentials", "true");
+        }
         ctx.nextHandlerMatch().handle(req, resp, ctx);
     }
 

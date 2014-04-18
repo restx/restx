@@ -5,8 +5,8 @@ import com.google.common.collect.ImmutableList;
 import restx.factory.Module;
 import restx.factory.Provides;
 import restx.security.CORSAuthorizer;
-import restx.security.StdCORSAuthorizer;
 import restx.admin.AdminPage;
+import restx.security.StdCORSAuthorizer;
 
 import javax.inject.Named;
 import java.util.regex.Pattern;
@@ -20,10 +20,11 @@ import java.util.regex.Pattern;
 public class ApiDocsModule {
     @Provides
     public CORSAuthorizer getApiDocsAuthorizer() {
-        return new StdCORSAuthorizer(
-                Predicates.<CharSequence>alwaysTrue(),
-                Predicates.contains(Pattern.compile("^/@/api-docs")),
-                ImmutableList.of("GET"));
+        return StdCORSAuthorizer.builder()
+                .setOriginMatcher(Predicates.<CharSequence>alwaysTrue())
+                .setPathMatcher(Predicates.contains(Pattern.compile("^/@/api-docs")))
+                .setAllowedMethods(ImmutableList.of("GET"))
+                .build();
     }
 
     @Provides @Named("ApiDocs")
