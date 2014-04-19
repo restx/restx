@@ -61,11 +61,11 @@ public class StdRestxRequestMatcherTest {
 
     @Test
     public void should_matcher_with_several_path_params_match_not_match() throws Exception {
-        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user/{name}/children/{child}");
+        StdRestxRequestMatcher matcher = new StdRestxRequestMatcher("GET", "/user/{name}/children/{child1}/{child2}");
 
-        Optional<? extends RestxRequestMatch> match = matcher.match("GET", "/user/johndoe/children/bobby");
+        Optional<? extends RestxRequestMatch> match = matcher.match("GET", "/user/johndoe/children/bobby/drake");
         assertThat(match.isPresent()).isTrue();
-        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe", "child", "bobby"));
+        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe", "child1", "bobby", "child2", "drake"));
 
         match = matcher.match("GET", "/user/johndoe");
         assertThat(match.isPresent()).isFalse();
