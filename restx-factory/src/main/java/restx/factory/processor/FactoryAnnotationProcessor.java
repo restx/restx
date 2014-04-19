@@ -8,10 +8,11 @@ import com.samskivert.mustache.Template;
 import restx.common.processor.RestxAbstractProcessor;
 import restx.factory.*;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
@@ -39,7 +40,6 @@ import static restx.common.Mustaches.compile;
         "restx.factory.Machine"
 })
 @SupportedOptions({ "debug" })
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     final Template componentMachineTpl;
     final Template alternativeMachineTpl;

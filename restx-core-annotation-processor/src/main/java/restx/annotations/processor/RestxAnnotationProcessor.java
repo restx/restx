@@ -5,18 +5,19 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.samskivert.mustache.Template;
-import restx.StdRestxRequestMatcher;
-import restx.common.processor.RestxAbstractProcessor;
-import restx.http.HttpStatus;
 import restx.RestxLogLevel;
+import restx.StdRestxRequestMatcher;
 import restx.annotations.*;
 import restx.common.Mustaches;
+import restx.common.processor.RestxAbstractProcessor;
 import restx.factory.When;
+import restx.http.HttpStatus;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
 
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.*;
 import java.io.IOException;
 import java.util.*;
@@ -34,7 +35,6 @@ import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
         "restx.annotations.RestxResource"
 })
 @SupportedOptions({ "debug" })
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     final Template routerTpl;
 

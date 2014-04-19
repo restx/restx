@@ -7,6 +7,7 @@ import com.samskivert.mustache.Template;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
@@ -99,5 +100,10 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
         try (Writer writer = fileObject.openWriter()) {
             mustache.execute(ctx, writer);
         }
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
     }
 }
