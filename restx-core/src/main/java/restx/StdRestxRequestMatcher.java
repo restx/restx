@@ -186,7 +186,7 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
         private StringBuilder pathParamName = new StringBuilder();
         @Override
         public void handle(int curChar, PathPatternParser pathPatternParser) {
-            if (!Character.isLetter(curChar)) {
+            if (!Character.isLetterOrDigit(curChar)) {
                 pathPatternParser.patternBuilder.append("([^\\/]+)");
                 pathPatternParser.stdPathPatternBuilder.append("{").append(pathParamName).append("}");
                 pathPatternParser.groupNamesBuilder.add(pathParamName.toString());

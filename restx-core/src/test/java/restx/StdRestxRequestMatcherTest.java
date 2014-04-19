@@ -132,10 +132,10 @@ public class StdRestxRequestMatcherTest {
         StdRestxRequestMatcher matcher;
         Optional<? extends RestxRequestMatch> match;
 
-        matcher = new StdRestxRequestMatcher("GET", "/user/:name/children/:child");
-        match = matcher.match("GET", "/user/johndoe/children/bobby");
+        matcher = new StdRestxRequestMatcher("GET", "/user/:name/children/:child1/:child2");
+        match = matcher.match("GET", "/user/johndoe/children/bobby/drake");
         assertThat(match.isPresent()).isTrue();
-        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe", "child", "bobby"));
+        assertThat(match.get().getPathParams()).isEqualTo(ImmutableMap.of("name", "johndoe", "child1", "bobby", "child2", "drake"));
 
         match = matcher.match("GET", "/user/johndoe");
         assertThat(match.isPresent()).isFalse();
