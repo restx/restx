@@ -164,11 +164,11 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
                     inRegexDef = true;
                     pathParamRegex.append("(");
                 } else {
-                    if (!Character.isLetter(curChar)) {
+                    if (!Character.isLetterOrDigit(curChar)) {
                         //only letters are authorized in path param name
                         throw new IllegalArgumentException(String.format(
                                 "illegal path parameter definition '%s' at offset %d" +
-                                        " - only letters are authorized in path param name",
+                                        " - only letters and digits are authorized in path param name",
                                 pathPatternParser.pathPattern, pathPatternParser.offset));
                     } else {
                         pathParamName.appendCodePoint(curChar);
@@ -186,7 +186,7 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
         private StringBuilder pathParamName = new StringBuilder();
         @Override
         public void handle(int curChar, PathPatternParser pathPatternParser) {
-            if (!Character.isLetter(curChar)) {
+            if (!Character.isLetterOrDigit(curChar)) {
                 pathPatternParser.patternBuilder.append("([^\\/]+)");
                 pathPatternParser.stdPathPatternBuilder.append("{").append(pathParamName).append("}");
                 pathPatternParser.groupNamesBuilder.add(pathParamName.toString());
