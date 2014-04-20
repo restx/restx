@@ -28,6 +28,13 @@ public class RestxSpecRule extends RestxServerRule {
     }
 
     /**
+     * A shortcut for new RestxSpecRule(routerPath, queryByClass(WebServerSupplier.class), Factory.getInstance())
+     */
+    public RestxSpecRule(String routerPath) {
+        this(routerPath, Factory.getInstance().queryByClass(WebServerSupplier.class).findOne().get().getComponent(), Factory.getInstance());
+    }
+
+    /**
      * A shortcut for new RestxSpecRule("/api", webServerSupplier, Factory.getInstance())
      */
     public RestxSpecRule(WebServerSupplier webServerSupplier) {

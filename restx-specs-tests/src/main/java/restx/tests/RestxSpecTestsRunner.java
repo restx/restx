@@ -48,7 +48,7 @@ public class RestxSpecTestsRunner extends ParentRunner<RestxSpec> {
         super(testClass);
         FindSpecsIn findSpecsIn = getTestClass().getJavaClass().getAnnotation(FindSpecsIn.class);
         if (findSpecsIn != null) {
-            tests = new RestxSpecTests(new RestxSpecRule(), RestxSpecTests.findSpecsIn(findSpecsIn.value()));
+            tests = new RestxSpecTests(new RestxSpecRule(findSpecsIn.withRouterPath()), RestxSpecTests.findSpecsIn(findSpecsIn.value()));
         } else {
             Object o = getTestClass().getOnlyConstructor().newInstance();
             if (!(o instanceof RestxSpecTests)) {
