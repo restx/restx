@@ -9,4 +9,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FindSpecsIn {
     String value();
+    String withRouterPath() default "/api";
 }
