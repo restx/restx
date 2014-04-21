@@ -61,11 +61,15 @@ public class ConfigLoader {
         r = Thread.currentThread().getContextClassLoader().getResource(name);
         if (r != null) {
             try {
-                Iterables.addAll(elements, StdRestxConfig.parse("classpath:" + name,
-                        Resources.newReaderSupplier(r, Charsets.UTF_8)).elements());
+                Iterable<ConfigElement> loadedElements = StdRestxConfig.parse("classpath:" + name,
+                        Resources.newReaderSupplier(r, Charsets.UTF_8)).elements();
+                Iterables.addAll(elements, loadedElements);
+                logger.debug("loaded {} elements from {}", Iterables.size(loadedElements), name);
             } catch (IOException e) {
                 logger.warn("can't load " + name + ": " + e.getMessage(), e);
             }
+        } else {
+            logger.debug("no settings loaded from {}: resource not available", name);
         }
     }
 }
