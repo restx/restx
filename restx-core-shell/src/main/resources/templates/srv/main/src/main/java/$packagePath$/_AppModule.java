@@ -30,7 +30,7 @@ public class AppModule {
     @Provides
     public ConfigSupplier appConfigSupplier(ConfigLoader configLoader) {
         // Load settings.properties in {{mainPackage}} package as a set of config entries
-        return configLoader.fromResource("{{mainPackage}}/settings");
+        return configLoader.fromResource("{{packagePath}}/settings");
     }
 
     @Provides
