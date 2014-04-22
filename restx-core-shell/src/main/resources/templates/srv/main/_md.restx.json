@@ -11,7 +11,7 @@
 {{#useSrvuiLayout}}
     "fragments": {
         "maven": [
-            "classpath:///restx/build/fragments/maven/war-overlay-appresources.xml"
+            "classpath:///restx/build/fragments/maven/war-overlay-resources.xml"
         ]
     },
 {{/useSrvuiLayout}}

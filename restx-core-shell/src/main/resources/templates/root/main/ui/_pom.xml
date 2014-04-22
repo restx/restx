@@ -67,7 +67,7 @@
                     <dependency>
                         <groupId>io.restx</groupId>
                         <artifactId>restx-maven-assemblies</artifactId>
-                        <version>0.1.0-SNAPSHOT</version>
+                        <version>1.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
