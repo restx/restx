@@ -1,7 +1,6 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.*;
@@ -9,10 +8,12 @@ import restx.factory.Component;
 import restx.security.RestxPrincipal;
 import restx.security.RestxSession;
 
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.Principal;
+
+import static restx.servlet.ServletModule.SERVLET_PRINCIPAL_CONVERTER;
 
 /**
  * Date: 17/12/13
@@ -21,6 +22,13 @@ import java.security.Principal;
 @Component(priority = -180)
 public class ServletSecurityFilter implements RestxFilter, RestxHandler {
     private static final Logger logger = LoggerFactory.getLogger(ServletSecurityFilter.class);
+
+    private final ServletPrincipalConverter servletPrincipalConverter;
+
+    public ServletSecurityFilter(
+            @Named(SERVLET_PRINCIPAL_CONVERTER) ServletPrincipalConverter servletPrincipalConverter) {
+        this.servletPrincipalConverter = servletPrincipalConverter;
+    }
 
     @Override
     public Optional<RestxHandlerMatch> match(RestxRequest req) {
@@ -56,20 +64,11 @@ public class ServletSecurityFilter implements RestxFilter, RestxHandler {
             if (userPrincipal instanceof RestxPrincipal) {
                 RestxSession.current().authenticateAs((RestxPrincipal) userPrincipal);
             } else {
-                RestxSession.current().authenticateAs(new RestxPrincipal() {
-                    @Override
-                    public ImmutableSet<String> getPrincipalRoles() {
-                        return ImmutableSet.of();
-                    }
-
-                    @Override
-                    public String getName() {
-                        return userPrincipal.getName();
-                    }
-                });
+                RestxSession.current().authenticateAs(servletPrincipalConverter.toRestxPrincipal(userPrincipal));
             }
         }
 
         ctx.nextHandlerMatch().handle(req, resp, ctx);
     }
+
 }
