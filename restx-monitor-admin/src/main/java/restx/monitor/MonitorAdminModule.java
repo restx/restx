@@ -18,4 +18,5 @@ public class MonitorAdminModule {
     public AdminPage getMonitorAdminPage() {
         return new AdminPage("/@/ui/monitor/", "Monitor");
     }
+
 }

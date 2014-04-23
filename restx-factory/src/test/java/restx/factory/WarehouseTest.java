@@ -18,8 +18,7 @@ public class WarehouseTest {
         Warehouse warehouse = new Warehouse();
 
         warehouse.checkIn(new DisposableComponentBox<>(NamedComponent.of(String.class, "name", "test")),
-                new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()),
-                0L);
+                new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
         assertThat(component.isPresent()).isTrue();
@@ -36,8 +35,7 @@ public class WarehouseTest {
         Warehouse warehouse = new Warehouse();
 
         warehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")),
-                new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()),
-                0L);
+                new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
         Optional<NamedComponent<String>> component = warehouse.checkOut(Name.of(String.class, "name"));
         assertThat(component.isPresent()).isTrue();

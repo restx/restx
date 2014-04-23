@@ -1,18 +1,14 @@
 package restx.mongo;
 
-import com.codahale.metrics.health.HealthCheckRegistry;
-import com.google.common.base.Strings;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
+import restx.common.metrics.api.health.HealthCheckRegistry;
 import restx.factory.AutoStartable;
 import restx.factory.Module;
 import restx.factory.Provides;
 
 import javax.inject.Named;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 
 /**
  * Module providing some sensible defaults for mongo client.

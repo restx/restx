@@ -45,12 +45,10 @@ public class Warehouse implements AutoCloseable {
     public static class StoredBox<T> {
         private final ComponentBox<T> box;
         private final SatisfiedBOM satisfiedBOM;
-        private final long maxTime;
 
-        private StoredBox(ComponentBox<T> box, SatisfiedBOM satisfiedBOM, long maxTime) {
+        private StoredBox(ComponentBox<T> box, SatisfiedBOM satisfiedBOM) {
             this.box = box;
             this.satisfiedBOM = satisfiedBOM;
-            this.maxTime = maxTime;
         }
 
         public ComponentBox<T> getBox() {
@@ -61,16 +59,12 @@ public class Warehouse implements AutoCloseable {
             return satisfiedBOM;
         }
 
-        public long getMaxTime() {
-            return maxTime;
-        }
 
         @Override
         public String toString() {
             return "StoredBox{" +
                     "box=" + box +
                     ", satisfiedBOM=" + satisfiedBOM +
-                    ", maxTime=" + maxTime +
                     '}';
         }
     }
@@ -107,8 +101,8 @@ public class Warehouse implements AutoCloseable {
         return Optional.absent();
     }
 
-    <T> void checkIn(ComponentBox<T> componentBox, SatisfiedBOM satisfiedBOM, long maxTime) {
-        StoredBox<?> previousBox = boxes.put(componentBox.getName(), new StoredBox<>(componentBox, satisfiedBOM, maxTime));
+    <T> void checkIn(ComponentBox<T> componentBox, SatisfiedBOM satisfiedBOM) {
+        StoredBox<?> previousBox = boxes.put(componentBox.getName(), new StoredBox<>(componentBox, satisfiedBOM));
         if (previousBox != null) {
             try {
                 previousBox.box.close();

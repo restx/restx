@@ -13,6 +13,8 @@ import restx.AppSettings;
 import restx.RestxContext;
 import restx.factory.AutoStartable;
 import restx.factory.Component;
+import restx.metrics.codahale.CodahaleMetricRegistry;
+import restx.metrics.codahale.health.CodahaleHealthCheckRegistry;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
@@ -31,10 +33,17 @@ public class MetricsConfiguration implements AutoStartable {
     private final GraphiteSettings graphiteSettings;
     private final AppSettings appSettings;
 
-    public MetricsConfiguration(MetricRegistry metrics, HealthCheckRegistry healthChecks,
+    public MetricsConfiguration(restx.common.metrics.api.MetricRegistry metricRegistry, restx.common.metrics.api.health.HealthCheckRegistry healthCheckRegistry,
                                 GraphiteSettings graphiteSettings, AppSettings appSettings) {
-        this.metrics = metrics;
-        this.healthChecks = healthChecks;
+
+        if (!(metricRegistry instanceof CodahaleMetricRegistry)){
+            throw new IllegalStateException("restx-monitor-admin expects that module restx-monitor-codahale is loaded");
+        }
+        CodahaleMetricRegistry codahaleMetricRegistry = (CodahaleMetricRegistry) metricRegistry;
+        CodahaleHealthCheckRegistry codahaleHealthCheckRegistry = (CodahaleHealthCheckRegistry) healthCheckRegistry;
+
+        this.metrics = codahaleMetricRegistry.getCodahaleMetricRegistry();
+        this.healthChecks = codahaleHealthCheckRegistry.getCodahaleHealthCheckRegistry();
         this.graphiteSettings = graphiteSettings;
         this.appSettings = appSettings;
     }

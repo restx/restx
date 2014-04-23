@@ -1,48 +1,23 @@
 package restx.factory;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Timer;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.MoreObjects;
+import restx.common.metrics.api.MetricRegistry;
+import restx.common.metrics.api.Monitor;
+import restx.common.metrics.api.Timer;
+import restx.common.metrics.dummy.DummyMetricRegistry;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -59,10 +34,14 @@ import static restx.common.MoreStrings.indent;
  * Time: 5:42 PM
  */
 public class Factory implements AutoCloseable {
+
+    public static final String METRICS_REGISTRY = "MetricRegistry";
+    public static final String HEALTH_CHECK_REGISTRY = "HealthChekcRegistry";
+
     private static final String SERVICE_LOADER = "ServiceLoader";
     private static final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
-    private static final Name<MetricRegistry> METRICS_NAME = Name.of(MetricRegistry.class, "METRICS");
+    private static final Name<MetricRegistry> METRICS_NAME = Name.of(MetricRegistry.class, METRICS_REGISTRY);
     private static final Comparator<ComponentCustomizer> customizerComparator = new Comparator<ComponentCustomizer>() {
         @Override
         public int compare(ComponentCustomizer o1, ComponentCustomizer o2) {
@@ -480,6 +459,7 @@ public class Factory implements AutoCloseable {
             return true;
         }
 
+        @Override
         protected Optional<NamedComponent<T>> doFindOne() {
             Set<NamedComponent<T>> components = doFind();
             if (components.isEmpty()) {
@@ -514,6 +494,7 @@ public class Factory implements AutoCloseable {
             return false;
         }
 
+        @Override
         protected Set<NamedComponent<T>> doFind() {
             return doFindOne().asSet();
         }
@@ -735,7 +716,7 @@ public class Factory implements AutoCloseable {
                         new NoDepsMachineEngine<MetricRegistry>(METRICS_NAME, BoundlessComponentBox.FACTORY) {
                             @Override
                             protected MetricRegistry doNewComponent(SatisfiedBOM satisfiedBOM) {
-                                return new MetricRegistry();
+                                return new DummyMetricRegistry();
                             }
                         }))
 
@@ -760,7 +741,7 @@ public class Factory implements AutoCloseable {
         this.id = String.format("%03d-%s(%d)", ID.incrementAndGet(), warehouse.getId(), machinesByBuilder.size());
         this.warehouse = checkNotNull(warehouse);
 
-        this.metrics = new MetricRegistry(); // give a value so that we can call getComponent which uses metrics to trace
+        this.metrics = new DummyMetricRegistry(); // give a value so that we can call getComponent which uses metrics to trace
                                              // the MetricRegistry building itself
         this.metrics = getComponent(MetricRegistry.class);
     }
@@ -1202,12 +1183,12 @@ public class Factory implements AutoCloseable {
     private <T> Optional<NamedComponent<T>> buildAndStore(Name<T> name, MachineEngine<T> engine, SatisfiedBOM satisfiedBOM) {
         logger.info("{} - building {} with {} / {}", id, name, engine, satisfiedBOM);
         Timer timer = metrics.timer("<BUILD> " + name.getSimpleName());
-        Timer.Context context = timer.time();
+        Monitor monitor = timer.time();
         ComponentBox<T> box;
         try {
             box = engine.newComponent(satisfiedBOM);
         } finally {
-            context.stop();
+            monitor.stop();
         }
 
         if (box instanceof BoundlessComponentBox && box.pick().isPresent()
@@ -1224,17 +1205,17 @@ public class Factory implements AutoCloseable {
             }
         }
         for (ComponentCustomizer<T> customizer : Ordering.from(customizerComparator).sortedCopy(customizers)) {
-            context = metrics.timer("<CUSTOMIZE> " + name.getSimpleName()
+            monitor = metrics.timer("<CUSTOMIZE> " + name.getSimpleName()
                     + " <WITH> " + customizer.getClass().getSimpleName()).time();
             try {
                 logger.info("{} - customizing {} with {}", id, name, customizer);
                 box = box.customize(customizer);
             } finally {
-                context.stop();
+                monitor.stop();
             }
         }
 
-        warehouse.checkIn(box, satisfiedBOM, timer.getSnapshot().getMax());
+        warehouse.checkIn(box, satisfiedBOM);
         return warehouse.checkOut(box.getName());
     }
 

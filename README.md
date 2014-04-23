@@ -86,6 +86,10 @@ Shell modules:
 - `restx-build-shell`: Plugin prodividing build support in the shell, especially to generate POM/Ivy files from `md.restx.json` files.
 - `restx-specs-shell`: Plugin providing RESTX specs based HTTP mock server.
 
+Metrics:
+
+- `restx-monitor-codahale`: Codahale metrics for monitor module. Not compatible with Google App Engine.
+
 Others:
 
 - `restx-samplest`: both a sample of individual features and JUnit tests of them

@@ -19,7 +19,6 @@
             "de.undercouch:bson4jackson:${bson4jackson.version}",
             "org.mongodb:mongo-java-driver:${mongo-java-driver.version}",
             "org.jongo:jongo:${jongo.version}",
-            "com.codahale.metrics:metrics-healthchecks:${metrics.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}"
         ],
         "test": [

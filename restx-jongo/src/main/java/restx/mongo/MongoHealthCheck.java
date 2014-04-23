@@ -1,9 +1,9 @@
 package restx.mongo;
 
-import com.codahale.metrics.health.HealthCheck;
 import com.mongodb.Mongo;
+import restx.common.metrics.api.health.HealthCheck;
 
-public class MongoHealthCheck extends HealthCheck {
+public class MongoHealthCheck implements HealthCheck {
     private Mongo mongo;
 
     public MongoHealthCheck(Mongo mongo) {
@@ -11,9 +11,9 @@ public class MongoHealthCheck extends HealthCheck {
     }
 
     @Override
-    protected HealthCheck.Result check() throws Exception {
+    public void check() throws Exception {
+        //throws an exception if unhealthy
         mongo.getDatabaseNames();
-        return Result.healthy();
     }
 
 }

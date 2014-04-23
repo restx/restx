@@ -1,13 +1,17 @@
 package restx;
 
-import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.eventbus.EventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.UUIDGenerator;
+import restx.common.metrics.api.health.HealthCheckRegistry;
+import restx.common.metrics.dummy.health.DummyHealthCheckRegistry;
 import restx.config.ConfigLoader;
 import restx.config.ConfigSupplier;
-import restx.factory.*;
+import restx.factory.AutoStartable;
+import restx.factory.Factory;
+import restx.factory.Module;
+import restx.factory.Provides;
 
 import javax.inject.Named;
 
@@ -43,9 +47,9 @@ public class CoreModule {
         };
     }
 
-    @Provides
+    @Provides @Named(Factory.HEALTH_CHECK_REGISTRY)
     public HealthCheckRegistry healthCheckRegistry() {
-        return new HealthCheckRegistry();
+        return new DummyHealthCheckRegistry();
     }
 
     @Provides @Named(UUID_GENERATOR)
