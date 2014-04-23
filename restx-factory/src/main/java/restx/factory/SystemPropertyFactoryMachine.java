@@ -1,5 +1,8 @@
 package restx.factory;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
+
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +21,9 @@ public class SystemPropertyFactoryMachine implements FactoryMachine {
         return new NoDepsMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
             @Override
             protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
-                return (T) System.getProperty(name.getName());
+                // in case the system property has been nullified, we return an empty string as value, rather than null
+                // which would break the component building
+                return (T) Objects.firstNonNull(System.getProperty(name.getName()), "");
             }
         };
     }
