@@ -11,6 +11,9 @@ import com.google.common.io.ByteProcessor;
 import com.google.common.io.ByteStreams;
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
+import restx.build.MavenSupport;
+import restx.build.ModuleDescriptor;
+import restx.build.RestxJsonSupport;
 import restx.common.Version;
 import restx.factory.Factory;
 import restx.shell.commands.HelpCommand;
@@ -38,6 +41,7 @@ import static jline.console.ConsoleReader.RESET_LINE;
  * Time: 9:42 PM
  */
 public class RestxShell implements Appendable {
+    public static final String DEFAULT_PROMPT = "restx";
     private final ConsoleReader consoleReader;
     private final Factory factory;
     private final ImmutableSet<ShellCommand> commands;
@@ -47,6 +51,7 @@ public class RestxShell implements Appendable {
     private final ExecutorService watcherExecutorService = Executors.newSingleThreadExecutor();
     private Path currentLocation = Paths.get(System.getProperty("user.dir"));
     private ExecMode execMode = ExecMode.INTERACTIVE;
+    private Optional<String> restXProjectName = Optional.absent();
 
     public RestxShell(ConsoleReader consoleReader) {
         this(consoleReader, Factory.getInstance());
@@ -59,6 +64,8 @@ public class RestxShell implements Appendable {
         this.commands = ImmutableSet.copyOf(findCommands());
 
         initConsole(consoleReader);
+
+
     }
 
     public ConsoleReader getConsoleReader() {
@@ -76,6 +83,8 @@ public class RestxShell implements Appendable {
     public void start() throws IOException {
         execMode = ExecMode.INTERACTIVE;
         banner();
+        checkIsRestXProjectDirectory();
+        showPrompt(consoleReader);
 
         try {
             for (ShellCommand command : commands) {
@@ -200,7 +209,41 @@ public class RestxShell implements Appendable {
     }
 
     public void cd(Path path) {
+        restXProjectName(Optional.<String>absent());
         currentLocation = path;
+        checkIsRestXProjectDirectory();
+    }
+
+    private void checkIsRestXProjectDirectory() {
+        File currentDirectory = currentLocation.toFile();
+
+        Optional<ModuleDescriptor> moduleDescriptor = getModuleDescriptor(currentDirectory);
+        if (moduleDescriptor.isPresent()) {
+            restXProjectName(Optional.of(moduleDescriptor.get().getGav().getArtifactId()));
+        }
+    }
+
+    private Optional<ModuleDescriptor> getModuleDescriptor(File currentDirectory) {
+        File restXProjectDescriptor = new File(currentDirectory, "md.restx.json");
+        if (restXProjectDescriptor.exists()) {
+            RestxJsonSupport restxJsonSupport = new RestxJsonSupport();
+            try {
+                return Optional.of(restxJsonSupport.parse(restXProjectDescriptor.toPath()));
+            } catch (IOException e) {
+                printError("Failed to read md.restx.json", e);
+            }
+        }
+        File mavenProjectDescriptor = new File(currentDirectory, "pom.xml");
+        if (mavenProjectDescriptor.exists()) {
+            MavenSupport mavenSupport = new MavenSupport();
+            try {
+                return Optional.of(mavenSupport.parse(mavenProjectDescriptor.toPath()));
+            } catch (IOException e) {
+                printError("Failed to read pom.xml", e);
+            }
+        }
+
+        return Optional.absent();
     }
 
     public Path installLocation() {
@@ -257,7 +300,7 @@ public class RestxShell implements Appendable {
     }
 
     protected void initConsole(ConsoleReader consoleReader) {
-        consoleReader.setPrompt("restx> ");
+        consoleReader.setPrompt(DEFAULT_PROMPT + "> ");
         consoleReader.setHistoryEnabled(true);
     }
 
@@ -265,8 +308,8 @@ public class RestxShell implements Appendable {
         consoleReader.println("===============================================================================");
         consoleReader.println("== WELCOME TO RESTX SHELL - " + version()
                 + (execMode == ExecMode.INTERACTIVE
-                    ? (" - type `help` for help on available commands")
-                    : " - BATCH MODE"));
+                ? (" - type `help` for help on available commands")
+                : " - BATCH MODE"));
         consoleReader.println("===============================================================================");
     }
 
@@ -275,7 +318,6 @@ public class RestxShell implements Appendable {
         for (ShellCommand command : commands) {
             Optional<? extends ShellCommandRunner> match = command.match(line);
             if (match.isPresent()) {
-                String storedPrompt = consoleReader.getPrompt();
                 // store current completers and clean them, so that executing command can perform in a clean env
                 Collection<Completer> storedCompleters = ImmutableList.copyOf(consoleReader.getCompleters());
                 for (Completer completer : storedCompleters) {
@@ -297,7 +339,7 @@ public class RestxShell implements Appendable {
                     for (Completer completer : storedCompleters) {
                         consoleReader.addCompleter(completer);
                     }
-                    consoleReader.setPrompt(storedPrompt);
+                    showPrompt(consoleReader);
                 }
                 break;
             }
@@ -308,7 +350,13 @@ public class RestxShell implements Appendable {
         return false;
     }
 
-
+    private void showPrompt(ConsoleReader consoleReader) {
+        if (restXProjectName.isPresent()) {
+            consoleReader.setPrompt(AnsiCodes.ANSI_CYAN + restXProjectName.get() + AnsiCodes.ANSI_RESET + "> ");
+        } else {
+            consoleReader.setPrompt(DEFAULT_PROMPT + "> ");
+        }
+    }
 
 
     protected void installCompleters() {
@@ -335,6 +383,14 @@ public class RestxShell implements Appendable {
         } else {
             restxShell.start();
         }
+    }
+
+    public void restXProjectName(Optional<String> restXProjectName) {
+        this.restXProjectName = restXProjectName;
+    }
+
+    public Optional<String> restXProjectName() {
+        return restXProjectName;
     }
 
     public String version() {
