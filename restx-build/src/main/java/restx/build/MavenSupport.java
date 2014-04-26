@@ -137,6 +137,9 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             writeXmlTag(w, indent, "groupId", gav.getGroupId());
             writeXmlTag(w, indent, "artifactId", gav.getArtifactId());
             writeXmlTag(w, indent, "version", gav.getVersion());
+            if(gav.getType() != null) {
+                writeXmlTag(w, indent, "type", gav.getType());
+            }
         }
 
         private void writeXmlTag(Writer w, String indent, String tag, String val) throws IOException {

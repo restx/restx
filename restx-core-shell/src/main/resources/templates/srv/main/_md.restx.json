@@ -5,17 +5,21 @@
     "properties": {
         "java.version": "{{javaVersion}}",
         "restx.version": "{{restxVersion}}"{{#useSrvuiLayout}},
-        "project.war.resources.directory": "../ui/dist"{{/useSrvuiLayout}}
+        "project.war.overlay.groupId": "{{groupId}}",
+        "project.war.overlay.artifactId": "{{artifactId}}"{{/useSrvuiLayout}}
     },
 {{#useSrvuiLayout}}
     "fragments": {
         "maven": [
-            "classpath:///restx/build/fragments/maven/custom-war-resources.xml"
+            "classpath:///restx/build/fragments/maven/war-overlay-resources.xml"
         ]
     },
 {{/useSrvuiLayout}}
     "dependencies": {
         "compile": [
+{{#useSrvuiLayout}}
+            "{{groupId}}:{{artifactId}}-ui:{{version}}:zip",
+{{/useSrvuiLayout}}
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-security-basic:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}",

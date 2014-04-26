@@ -71,6 +71,11 @@ public class RestxBuildTest {
         shouldGenerate(json, "Module2.restx.json", ivy, "Module2.ivy");
     }
 
+    @Test
+    public void should_generate_pom_with_type() throws Exception {
+        shouldGenerate(json, "Module6.restx.json", maven, "Module6.pom.xml");
+    }
+
     private void shouldGenerate(RestxBuild.Parser parser, String module, RestxBuild.Generator generator, String expected) throws IOException {
         URL resource = getClass().getResource(module);
         ModuleDescriptor md;
