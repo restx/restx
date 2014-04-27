@@ -84,7 +84,7 @@ public class StdRestxConfigTest {
     @Test
     public void should_parse_properties() throws Exception {
         RestxConfig config = StdRestxConfig.parse(
-                "restx/common/config.properties", Resources.newReaderSupplier(
+                "restx/common/config.properties", Resources.asCharSource(
                 Resources.getResource(
                     "restx/common/config.properties"), Charsets.UTF_8));
 

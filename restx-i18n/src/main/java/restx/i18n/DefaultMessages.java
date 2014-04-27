@@ -9,6 +9,7 @@ import restx.common.MoreResources;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -86,7 +87,7 @@ public class DefaultMessages extends AbstractMessages implements Messages {
 
                 try {
                     final URL resource = getResource(resourceName);
-                    try (InputStreamReader input = Resources.newReaderSupplier(resource, charset).getInput()) {
+                    try (Reader input = Resources.asCharSource(resource, charset).openStream()) {
                         return newResourceBundle(resource, input);
                     }
                 } catch (IllegalArgumentException e) {
@@ -120,7 +121,7 @@ public class DefaultMessages extends AbstractMessages implements Messages {
         }
     }
 
-    protected PropertyResourceBundle newResourceBundle(URL resource, InputStreamReader input) throws IOException {
+    protected PropertyResourceBundle newResourceBundle(URL resource, Reader input) throws IOException {
         return new PropertyResourceBundle(input);
     }
 

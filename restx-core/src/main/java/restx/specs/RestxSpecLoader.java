@@ -5,7 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,6 @@ import restx.factory.NamedComponent;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,14 +56,14 @@ public class RestxSpecLoader {
     }
 
     public RestxSpec load(String resource) throws IOException {
-        return load(resource, Resources.newReaderSupplier(
+        return load(resource, Resources.asCharSource(
                 MoreResources.getResource(resource, true),
                 Charsets.UTF_8));
     }
 
-    public RestxSpec load(String path, InputSupplier<InputStreamReader> inputSupplier) throws IOException {
+    public RestxSpec load(String path, CharSource charSource) throws IOException {
         Yaml yaml = new Yaml();
-        Map spec = (Map) yaml.load(inputSupplier.getInput());
+        Map spec = (Map) yaml.load(charSource.read());
         List<Given> givens = loadGivens(spec);
         List<WhenHttpRequest> whens = Lists.newArrayList();
         Iterable wts = checkInstanceOf("wts", spec.get("wts"), Iterable.class);

@@ -7,7 +7,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
@@ -29,8 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import static com.google.common.io.Files.newReaderSupplier;
 
 /**
  * User: xavierhanin

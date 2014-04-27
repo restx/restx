@@ -1,5 +1,6 @@
 package restx;
 
+import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import restx.http.HTTP;
@@ -50,7 +51,7 @@ public class FSRouter {
                         if (file.isFile()) {
                             resp.setStatus(HttpStatus.OK);
                             resp.setContentType(HTTP.getContentTypeFromExtension(file.getName()).or("application/binary"));
-                            ByteStreams.copy(Files.newInputStreamSupplier(file), resp.getOutputStream());
+                            Files.asByteSource(file).copyTo(resp.getOutputStream());
                         } else if (file.isDirectory() && allowDirectoryListing) {
                             resp.setStatus(HttpStatus.OK);
                             resp.setContentType("application/json");
@@ -104,10 +105,10 @@ public class FSRouter {
                                 throw new WebException(HttpStatus.UNAUTHORIZED);
                             }
                         }
-                        ByteStreams.copy(req.getContentStream(), Files.newOutputStreamSupplier(file));
+                        Files.asByteSink(file).writeFrom(req.getContentStream());
                         resp.setStatus(HttpStatus.CREATED);
                     } else {
-                        ByteStreams.copy(req.getContentStream(), Files.newOutputStreamSupplier(file));
+                        Files.asByteSink(file).writeFrom(req.getContentStream());
                         resp.setStatus(HttpStatus.ACCEPTED);
                     }
                 }

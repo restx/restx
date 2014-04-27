@@ -72,7 +72,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
             resp.setLogLevel(RestxLogLevel.QUIET);
             resp.setStatus(HttpStatus.OK);
             resp.setContentType(HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream"));
-            ByteStreams.copy(Resources.newInputStreamSupplier(resource), resp.getOutputStream());
+            Resources.asByteSource(resource).copyTo(resp.getOutputStream());
         } catch (IllegalArgumentException e) {
             notFound(resp, relativePath);
         }

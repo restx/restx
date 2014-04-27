@@ -1,10 +1,9 @@
 package restx.common;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -22,11 +21,11 @@ import static java.util.Arrays.asList;
 public class StdRestxConfig implements RestxConfig {
     private static final Collection TRUE_VALUES = asList("true", "yes", "on", "1", "y");
 
-    public static RestxConfig parse(String origin, InputSupplier<InputStreamReader> readerSupplier) throws IOException {
+    public static RestxConfig parse(String origin, CharSource charSource) throws IOException {
         List<ConfigElement> elements = new ArrayList<>();
         StringBuilder doc = new StringBuilder();
         int lineCount = 0;
-        for (String line : CharStreams.readLines(readerSupplier)) {
+        for (String line : charSource.readLines()) {
             lineCount++;
             if (line.startsWith("#")) {
                 doc.append(line.substring(1).trim()).append("\n");

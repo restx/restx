@@ -62,7 +62,7 @@ public class ConfigLoader {
         if (r != null) {
             try {
                 Iterable<ConfigElement> loadedElements = StdRestxConfig.parse("classpath:" + name,
-                        Resources.newReaderSupplier(r, Charsets.UTF_8)).elements();
+                        Resources.asCharSource(r, Charsets.UTF_8)).elements();
                 Iterables.addAll(elements, loadedElements);
                 logger.debug("loaded {} elements from {}", Iterables.size(loadedElements), name);
             } catch (IOException e) {

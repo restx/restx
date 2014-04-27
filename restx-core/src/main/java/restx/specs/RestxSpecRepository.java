@@ -3,7 +3,7 @@ package restx.specs;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.CharSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.*;
@@ -12,6 +12,7 @@ import restx.factory.Component;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
@@ -62,9 +63,9 @@ public class RestxSpecRepository {
         Map<String, URL> specs = MoreResources.findResources("", Pattern.compile(".*\\.spec\\.yaml"), searchInSources);
         for (final Map.Entry<String, URL> spec : specs.entrySet()) {
             try {
-                specsMap.put(spec.getKey(), specLoader.load(spec.getKey(), new InputSupplier<InputStreamReader>() {
+                specsMap.put(spec.getKey(), specLoader.load(spec.getKey(), new CharSource() {
                     @Override
-                    public InputStreamReader getInput() throws IOException {
+                    public Reader openStream() throws IOException {
                         return new InputStreamReader(spec.getValue().openStream(), Charsets.UTF_8);
                     }
                 }));

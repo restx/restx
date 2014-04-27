@@ -2,16 +2,15 @@ package restx.common;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteSink;
+import com.google.common.io.ByteSource;
+import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
@@ -22,9 +21,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.google.common.io.Files.copy;
-import static com.google.common.io.Files.newInputStreamSupplier;
-import static com.google.common.io.Files.newReaderSupplier;
+import static com.google.common.io.Files.asByteSink;
+import static com.google.common.io.Files.asByteSource;
+import static com.google.common.io.Files.asCharSource;
 
 /**
  * Date: 6/1/14
@@ -40,7 +39,7 @@ public class Archetype {
                 builder.add(buildTemplate(packageName.replace('.', '/') + '/', r.substring(packageName.length() + 1)));
             } else {
                 builder.add(new StaticArchetypeEntry(r.substring(packageName.length() + 1),
-                        Resources.newInputStreamSupplier(Resources.getResource(r))));
+                        Resources.asByteSource(Resources.getResource(r))));
             }
         }
         return new Archetype(builder.build());
@@ -54,9 +53,9 @@ public class Archetype {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     String name = basePath.relativize(file).toString();
                     if (file.getFileName().toString().startsWith("_")) {
-                        builder.add(buildTemplate(name, newReaderSupplier(file.toFile(), Charsets.UTF_8)));
+                        builder.add(buildTemplate(name, asCharSource(file.toFile(), Charsets.UTF_8)));
                     } else {
-                        builder.add(new StaticArchetypeEntry(name, newInputStreamSupplier(file.toFile())));
+                        builder.add(new StaticArchetypeEntry(name, asByteSource(file.toFile())));
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -76,8 +75,8 @@ public class Archetype {
     }
 
     private static TemplateArchetypeEntry buildTemplate(String tplPath,
-                                                        InputSupplier<InputStreamReader> supplier) {
-        return new TemplateArchetypeEntry(Mustaches.compile(tplPath, supplier),
+                                                        CharSource charSource) {
+        return new TemplateArchetypeEntry(Mustaches.compile(tplPath, charSource),
                 tplPath
                         .replaceAll("^_([^/]+$)", "$1")
                         .replaceAll("/_([^/]+$)", "/$1")
@@ -96,11 +95,11 @@ public class Archetype {
 
     public static class StaticArchetypeEntry extends ArchetypeEntry {
         private final String path;
-        private final InputSupplier<? extends InputStream> inputSupplier;
+        private final ByteSource byteSource;
 
-        public StaticArchetypeEntry(String path, InputSupplier<? extends InputStream> inputSupplier) {
+        public StaticArchetypeEntry(String path, ByteSource byteSource) {
             this.path = path;
-            this.inputSupplier = inputSupplier;
+            this.byteSource = byteSource;
         }
 
         @Override
@@ -109,7 +108,7 @@ public class Archetype {
             if (dest.getParentFile() != null && !dest.getParentFile().exists()) {
                 dest.getParentFile().mkdirs();
             }
-            copy(inputSupplier, dest);
+            byteSource.copyTo(asByteSink(dest));
         }
     }
 

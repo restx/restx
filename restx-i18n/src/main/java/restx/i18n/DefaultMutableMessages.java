@@ -35,7 +35,8 @@ public class DefaultMutableMessages extends DefaultMessages implements MutableMe
         return this;
     }
 
-    protected PropertyResourceBundle newResourceBundle(final URL resource, InputStreamReader input) throws IOException {
+    @Override
+    protected PropertyResourceBundle newResourceBundle(final URL resource, Reader input) throws IOException {
         return new MutablePropertyResourceBundle(input, resource, getCharset());
     }
 
@@ -51,7 +52,7 @@ public class DefaultMutableMessages extends DefaultMessages implements MutableMe
         private final URL resource;
         private final Charset charset;
 
-        public MutablePropertyResourceBundle(InputStreamReader input, URL resource, Charset charset) throws IOException {
+        public MutablePropertyResourceBundle(Reader input, URL resource, Charset charset) throws IOException {
             super(input);
             this.resource = resource;
             this.charset = charset;

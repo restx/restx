@@ -6,6 +6,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.PatternFilenameFilter;
+import com.google.common.io.Resources;
 import jline.console.completer.ArgumentCompleter;
 import jline.console.completer.Completer;
 import jline.console.completer.StringsCompleter;
@@ -312,8 +313,8 @@ public class PluginsShellCommand extends StdShellCommand {
                     URL source = new URL(url + archiveExt);
                     shell.download(source, shell.installLocation().resolve("upgrade" + archiveExt).toFile());
 
-                    ByteStreams.copy(PluginsShellCommand.class.getResourceAsStream("upgrade" + scriptExt),
-                            Files.newOutputStreamSupplier(shell.installLocation().resolve("upgrade" + scriptExt).toFile()));
+                    Resources.asByteSource(Resources.getResource(PluginsShellCommand.class, "upgrade" + scriptExt))
+                            .copyTo(Files.asByteSink(shell.installLocation().resolve("upgrade" + scriptExt).toFile()));
 
                     shell.println("downloaded version " + version + ", restarting");
                     shell.restart();
