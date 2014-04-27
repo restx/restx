@@ -14,15 +14,15 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.3.0" conf="default" />
-        <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.3.0" conf="default" />
-        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.3.0" conf="default" />
-        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="2.3.0" conf="default" />
-        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-guava" rev="2.3.0" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.3.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.3.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.3.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="2.3.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-guava" rev="2.3.2" conf="default" />
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-classloader" rev="latest.integration" conf="default" />
         <dependency org="javax.inject" name="javax.inject" rev="1" conf="default" />
-        <dependency org="com.google.guava" name="guava" rev="15.0" conf="default" />
+        <dependency org="com.google.guava" name="guava" rev="17.0" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.3" conf="default" />
         <dependency org="org.slf4j" name="slf4j-api" rev="1.7.5" conf="default" />
         <dependency org="org.hibernate" name="hibernate-validator" rev="5.0.1.Final" conf="default" />

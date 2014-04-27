@@ -21,7 +21,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <slf4j-api.version>1.7.5</slf4j-api.version>
-        <guava.version>15.0</guava.version>
+        <guava.version>17.0</guava.version>
         <joda-time.version>2.3</joda-time.version>
         <javax.inject.version>1</javax.inject.version>
         <junit.version>4.11</junit.version>

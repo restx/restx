@@ -18,6 +18,6 @@
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core-annotation-processor" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-admin" rev="latest.integration" conf="default" />
-        <dependency org="com.fasterxml.jackson.module" name="jackson-module-jsonSchema" rev="2.3.0" conf="default" />
+        <dependency org="com.fasterxml.jackson.module" name="jackson-module-jsonSchema" rev="2.3.2" conf="default" />
     </dependencies>
 </ivy-module>
