@@ -14,11 +14,11 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.3.2" conf="default" />
-        <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.3.2" conf="default" />
-        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.3.2" conf="default" />
-        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="2.3.2" conf="default" />
-        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-guava" rev="2.3.2" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.3.3" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.3.3" conf="default" />
+        <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.3.3" conf="default" />
+        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="2.3.3" conf="default" />
+        <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-guava" rev="2.3.3" conf="default" />
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-classloader" rev="latest.integration" conf="default" />
         <dependency org="javax.inject" name="javax.inject" rev="1" conf="default" />

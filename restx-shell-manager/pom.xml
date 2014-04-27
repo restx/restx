@@ -20,7 +20,7 @@
         <restx.version>0.33-SNAPSHOT</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
-        <jackson.version>2.3.2</jackson.version>
+        <jackson.version>2.3.3</jackson.version>
         <ivy.version>2.3.0</ivy.version>
         <junit.version>4.11</junit.version>
         <assertj-core.version>1.6.0</assertj-core.version>
