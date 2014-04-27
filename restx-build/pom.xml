@@ -20,7 +20,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <junit.version>4.11</junit.version>
-        <assertj-core.version>1.5.0</assertj-core.version>
+        <assertj-core.version>1.6.0</assertj-core.version>
         <project.main.classname>restx.build.RestxBuild</project.main.classname>
     </properties>
 

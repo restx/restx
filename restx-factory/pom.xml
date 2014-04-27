@@ -26,7 +26,7 @@
         <reflections.version>0.9.9-RC1</reflections.version>
         <javax.inject.version>1</javax.inject.version>
         <junit.version>4.11</junit.version>
-        <assertj-core.version>1.5.0</assertj-core.version>
+        <assertj-core.version>1.6.0</assertj-core.version>
     </properties>
 
     <dependencies>

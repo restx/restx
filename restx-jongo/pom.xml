@@ -26,7 +26,7 @@
         <bson4jackson.version>2.3.0</bson4jackson.version>
         <jongo.version>1.0</jongo.version>
         <junit.version>4.11</junit.version>
-        <assertj-core.version>1.5.0</assertj-core.version>
+        <assertj-core.version>1.6.0</assertj-core.version>
     </properties>
 
     <dependencies>

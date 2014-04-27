@@ -25,7 +25,7 @@
         <joda-time.version>2.3</joda-time.version>
         <javax.inject.version>1</javax.inject.version>
         <junit.version>4.11</junit.version>
-        <assertj-core.version>1.5.0</assertj-core.version>
+        <assertj-core.version>1.6.0</assertj-core.version>
         <project.premain.classname>restx.classloader.HotswapAgent</project.premain.classname>
         <project.agent.can-redefine-classes>true</project.agent.can-redefine-classes>
         <project.agent.can-retransform-classes>false</project.agent.can-retransform-classes>

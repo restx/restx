@@ -39,7 +39,7 @@
     "simple.version": "5.1.6",
 
     "junit.version": "4.11",
-    "assertj-core.version": "1.5.0",
+    "assertj-core.version": "1.6.0",
 
     "maven-verifier.version": "1.4",
     "mockito.version": "1.9.5",

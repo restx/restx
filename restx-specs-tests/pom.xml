@@ -22,7 +22,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <http-request.version>5.5</http-request.version>
         <junit.version>4.11</junit.version>
-        <assertj-core.version>1.5.0</assertj-core.version>
+        <assertj-core.version>1.6.0</assertj-core.version>
         <diffutils.version>1.3.0</diffutils.version>
     </properties>
 

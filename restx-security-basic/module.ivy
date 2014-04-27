@@ -19,6 +19,6 @@
         <dependency org="io.restx" name="restx-core-annotation-processor" rev="latest.integration" conf="default" />
         <dependency org="org.mindrot" name="jbcrypt" rev="0.3m" conf="default" />
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
-        <dependency org="org.assertj" name="assertj-core" rev="1.5.0" conf="test->default" />
+        <dependency org="org.assertj" name="assertj-core" rev="1.6.0" conf="test->default" />
     </dependencies>
 </ivy-module>

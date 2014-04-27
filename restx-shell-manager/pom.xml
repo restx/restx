@@ -23,7 +23,7 @@
         <jackson.version>2.3.2</jackson.version>
         <ivy.version>2.3.0</ivy.version>
         <junit.version>4.11</junit.version>
-        <assertj-core.version>1.5.0</assertj-core.version>
+        <assertj-core.version>1.6.0</assertj-core.version>
     </properties>
 
     <dependencies>
