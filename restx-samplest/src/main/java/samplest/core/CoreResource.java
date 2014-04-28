@@ -9,7 +9,7 @@ import restx.factory.Component;
  * Date: 4/1/14
  * Time: 09:28
  */
-@RestxResource @Component
+@RestxResource("/core") @Component
 public class CoreResource {
     public static final class Message {
         private String msg;
@@ -31,17 +31,17 @@ public class CoreResource {
         }
     }
 
-    @GET("/core/hello")
+    @GET("/hello")
     public String hello(String who) {
         return "hello " + who;
     }
 
-    @GET("/core/hellomsg")
+    @GET("/hellomsg")
     public Message helloMsg(String who) {
         return new Message().setMsg("hello " + who);
     }
 
-    @POST("/core/hellomsg")
+    @POST("/hellomsg")
     public Message helloMsg(Message who) {
         return new Message().setMsg("hello " + who.getMsg());
     }

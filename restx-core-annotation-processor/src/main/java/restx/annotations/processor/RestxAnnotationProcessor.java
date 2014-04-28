@@ -76,7 +76,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
                 ResourceMethod resourceMethod = new ResourceMethod(
                         resourceClass,
-                        annotation.httpMethod, annotation.path,
+                        annotation.httpMethod, r.value() + annotation.path,
                         annotation.methodElem.getSimpleName().toString(),
                         annotation.methodElem.getReturnType().toString(),
                         successStatus, logLevel, permission,
