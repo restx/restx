@@ -46,7 +46,7 @@ public class WebServerExample {
 
     public static void main(String[] args) throws Exception {
       WebServer webServer = new JettyWebServer(
-              "restx/src/test/resources/restx/server/WebServerExample-web.xml",
+              "src/test/resources/restx/server/WebServerExample-web.xml",
               ".", 8080, "localhost");
       webServer.startAndAwait();
     }
