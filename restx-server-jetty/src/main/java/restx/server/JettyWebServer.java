@@ -57,6 +57,26 @@ public class JettyWebServer implements WebServer {
         this.serverId = "Jetty#" + SERVER_ID.incrementAndGet();
     }
 
+    /**
+     * Sets the serverId used by this server.
+     *
+     * Must not be called when server is started.
+     *
+     * The serverId is used to uniquely identify the main Factory used by REST main router in this server.
+     * It allows to access the Factory with Factory.getInstance(serverId).
+     *
+     * @param serverId the server id to set. Must be unique in the JVM.
+     *
+     * @return current server
+     */
+    public synchronized JettyWebServer setServerId(final String serverId) {
+        if (isStarted()) {
+            throw new IllegalStateException("can't set server id when server is started");
+        }
+        this.serverId = serverId;
+        return this;
+    }
+
     @Override
     public String getServerId() {
         return serverId;

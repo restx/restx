@@ -31,7 +31,8 @@ public class TomcatWebServer implements WebServer {
     private final Tomcat tomcat;
     private final String appBase;
     private final int port;
-    private final String serverId;
+    private String serverId;
+    private final Context context;
 
     public TomcatWebServer(String appBase, int port) throws ServletException {
         checkFileExists(appBase);
@@ -51,9 +52,27 @@ public class TomcatWebServer implements WebServer {
         AprLifecycleListener listener = new AprLifecycleListener();
         server.addLifecycleListener(listener);
 
-        Context context = tomcat.addWebapp(contextPath, appBase);
-        context.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
-        context.getServletContext().setInitParameter("restx.serverId", serverId);
+        context = tomcat.addWebapp(contextPath, appBase);
+    }
+
+    /**
+     * Sets the serverId used by this server.
+     *
+     * Must not be called when server is started.
+     *
+     * The serverId is used to uniquely identify the main Factory used by REST main router in this server.
+     * It allows to access the Factory with Factory.getInstance(serverId).
+     *
+     * @param serverId the server id to set. Must be unique in the JVM.
+     *
+     * @return current server
+     */
+    public synchronized TomcatWebServer setServerId(final String serverId) {
+        if (isStarted()) {
+            throw new IllegalStateException("can't set server id when server is started");
+        }
+        this.serverId = serverId;
+        return this;
     }
 
     @Override
@@ -73,6 +92,8 @@ public class TomcatWebServer implements WebServer {
 
     @Override
     public synchronized void start() throws LifecycleException {
+        context.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
+        context.getServletContext().setInitParameter("restx.serverId", serverId);
         checkCanOpenSocket(port);
         WebServers.register(this);
         tomcat.start();
