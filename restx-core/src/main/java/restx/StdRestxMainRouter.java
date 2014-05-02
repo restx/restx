@@ -128,6 +128,9 @@ public class StdRestxMainRouter implements RestxMainRouter {
                 PrintWriter out = restxResponse.getWriter();
                 out.print(sb.toString());
             } else {
+                MDC.put("restx.path", restxRequest.getRestxPath());
+                MDC.put("restx.method", restxRequest.getHttpMethod());
+
                 logger.debug("<< {}\nHANDLERS: {}", restxRequest, m.get().getMatches());
                 RestxContext context = new RestxContext(getMode(), new AbstractRouteLifecycleListener() {},
                         ImmutableList.copyOf(m.get().getMatches()));
