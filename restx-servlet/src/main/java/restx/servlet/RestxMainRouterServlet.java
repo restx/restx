@@ -136,7 +136,7 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
 
         @Override
         public int getPort() {
-            throw new UnsupportedOperationException();
+            return 0;
         }
     }
 }

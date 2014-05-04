@@ -503,11 +503,16 @@ public class RestxMainRouterFactory {
 
             // make server id and base url accessible in the factory components
             Optional<WebServer> serverById = WebServers.getServerById(serverId);
-            builder.addMachine(new SingletonFactoryMachine<>(
-                    0, NamedComponent.of(String.class, "restx.server.id", serverId)))
+            builder
+                    .addMachine(new SingletonFactoryMachine<>(
+                            0, NamedComponent.of(String.class, "restx.server.id", serverId)))
                     .addMachine(new SingletonFactoryMachine<>(
                             0, NamedComponent.of(String.class, "restx.server.baseUrl",
-                            serverById.isPresent() ? serverById.get().baseUrl() : "")));
+                            serverById.isPresent() ? serverById.get().baseUrl() : "")))
+                    .addMachine(new SingletonFactoryMachine<>(
+                            0, NamedComponent.of(String.class, "restx.server.port",
+                            serverById.isPresent() ? String.valueOf(serverById.get().getPort()) : "")))
+            ;
         }
         return builder;
     }
