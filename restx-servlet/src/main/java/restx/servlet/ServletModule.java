@@ -1,7 +1,7 @@
 package restx.servlet;
 
 import com.google.common.collect.ImmutableSet;
-import restx.factory.Machine;
+import restx.common.Version;
 import restx.factory.Module;
 import restx.factory.Provides;
 import restx.security.RestxPrincipal;
@@ -35,5 +35,17 @@ public class ServletModule {
                 };
             }
         };
+    }
+
+    @Provides
+    public RegisteredServerType jettyServerType() {
+        return new RegisteredServerType(
+                "Jetty " + Version.getVersion("org.eclipse.jetty", "jetty-server"), "org.eclipse.jetty");
+    }
+
+    @Provides
+    public RegisteredServerType tomcatServerType() {
+        return new RegisteredServerType(
+                "Apache Tomcat " + Version.getVersion("org.apache.tomcat", "tomcat-catalina"), "org.eclipse.jetty");
     }
 }

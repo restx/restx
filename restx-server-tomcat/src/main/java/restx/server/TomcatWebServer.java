@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.MoreFiles;
 import restx.common.MoreIO;
+import restx.common.Version;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -88,6 +89,11 @@ public class TomcatWebServer implements WebServer {
     @Override
     public String baseUrl() {
         return WebServers.baseUri("localhost", port);
+    }
+
+    @Override
+    public String getServerType() {
+        return "Apache Tomcat " + Version.getVersion("org.apache.tomcat", "tomcat-catalina") + ", embedded";
     }
 
     @Override

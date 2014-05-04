@@ -18,6 +18,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.MoreFiles;
+import restx.common.Version;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicLong;
@@ -90,6 +91,11 @@ public class JettyWebServer implements WebServer {
     @Override
     public String baseUrl() {
         return WebServers.baseUri("127.0.0.1", port);
+    }
+
+    @Override
+    public String getServerType() {
+        return "Jetty " + Version.getVersion("org.eclipse.jetty", "jetty-server") + ", embedded";
     }
 
     @Override

@@ -512,6 +512,9 @@ public class RestxMainRouterFactory {
                     .addMachine(new SingletonFactoryMachine<>(
                             0, NamedComponent.of(String.class, "restx.server.port",
                             serverById.isPresent() ? String.valueOf(serverById.get().getPort()) : "")))
+                    .addMachine(new SingletonFactoryMachine<>(
+                            0, NamedComponent.of(String.class, "restx.server.type",
+                            serverById.isPresent() ? serverById.get().getServerType() : "")))
             ;
         }
         return builder;

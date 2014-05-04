@@ -15,6 +15,7 @@ import restx.HttpSettings;
 import restx.RestxMainRouter;
 import restx.RestxMainRouterFactory;
 import restx.common.MoreIO;
+import restx.common.Version;
 import restx.factory.Factory;
 import restx.server.WebServer;
 import restx.server.WebServerSupplier;
@@ -124,6 +125,11 @@ public abstract class SimpleWebServer implements WebServer {
 
     public String getServerId() {
         return serverId;
+    }
+
+    @Override
+    public String getServerType() {
+        return "SimpleFramework " + Version.getVersion("org.simpleframework", "simple") + ", embedded";
     }
 
     public RestxMainRouter getRouter() {

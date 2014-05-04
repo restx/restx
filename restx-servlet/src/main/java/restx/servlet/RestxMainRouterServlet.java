@@ -1,13 +1,13 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
-import com.google.common.eventbus.EventBus;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.ExpressionEvaluator;
 import org.codehaus.janino.JaninoRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxMainRouterFactory;
+import restx.factory.Factory;
 import restx.server.WebServer;
 import restx.server.WebServers;
 
@@ -15,6 +15,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Set;
 
 public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
     public static final String DEPLOYED_SERVER_ID = "SERVLET-ENGINE-1";
@@ -88,15 +89,40 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
     private static synchronized void registerIdNeeded(String serverId) {
         Optional<WebServer> serverById = WebServers.getServerById(serverId);
         if (!serverById.isPresent()) {
-            WebServers.register(new DeployedWebServer(serverId));
+            WebServers.register(new DeployedWebServer(serverId, guessServerType()));
+        }
+    }
+
+    /**
+     * Tries to guess server type based on current callstack.
+     *
+     * It uses the set of registered server types to make the guess, so this can be contributed through plugins.
+     *
+     * @return the guessed server type, may be 'unknown'
+     */
+    private static String guessServerType() {
+        try {
+            Set<RegisteredServerType> serverTypes = Factory.getInstance().getComponents(RegisteredServerType.class);
+            for (StackTraceElement stackTraceElement : new Exception().fillInStackTrace().getStackTrace()) {
+                for (RegisteredServerType registeredServerType : serverTypes) {
+                    if (stackTraceElement.getClassName().startsWith(registeredServerType.getPackageName())) {
+                        return registeredServerType.getServerType();
+                    }
+                }
+            }
+            return "unknown";
+        } catch (Exception ex) {
+            return "unknown";
         }
     }
 
     private static class DeployedWebServer implements WebServer {
         private final String serverId;
+        private final String serverType;
 
-        private DeployedWebServer(String serverId) {
+        private DeployedWebServer(String serverId, String serverType) {
             this.serverId = serverId;
+            this.serverType = serverType;
         }
 
         @Override
@@ -138,5 +164,11 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         public int getPort() {
             return 0;
         }
+
+        @Override
+        public String getServerType() {
+            return serverType;
+        }
     }
+
 }

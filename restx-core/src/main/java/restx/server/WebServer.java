@@ -43,5 +43,20 @@ public interface WebServer {
      */
     public int getPort();
 
+    /**
+     * The type of this server, can be used for information only.
+     *
+     * Eg:
+     * "Eclipse Jetty 8.1.8.v20121106, embedded"
+     * "Apache Tomcat 7.0.53"
+     * "Undertow"
+     *
+     * Note that this information may not be accurate, and may return "unknown" if no information on this
+     * server type is available.
+     *
+     * @return this web server type.
+     */
+    public String getServerType();
+
     public boolean isStarted();
 }
