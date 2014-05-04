@@ -12,5 +12,6 @@ public interface RestxConfig {
     public Optional<ConfigElement> getElement(String elementKey);
     public Optional<String> getString(String elementKey);
     public Optional<Integer> getInt(String elementKey);
+    public Optional<Long> getLong(String elementKey);
     public Optional<Boolean> getBoolean(String elementKey);
 }

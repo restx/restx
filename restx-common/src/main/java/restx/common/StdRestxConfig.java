@@ -103,6 +103,21 @@ public class StdRestxConfig implements RestxConfig {
     }
 
     @Override
+    public Optional<Long> getLong(String elementKey) {
+        ConfigElement element = elements.get(elementKey);
+        if (element == null || isNullOrEmpty(element.getValue())) {
+            return Optional.absent();
+        }
+        try {
+            return Optional.of(Long.parseLong(element.getValue()));
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("can't access " + element +
+                    " as long" +
+                    " (parse exception " + e.getMessage() + ")");
+        }
+    }
+
+    @Override
     public Optional<Boolean> getBoolean(String elementKey) {
         ConfigElement element = elements.get(elementKey);
         if (element == null || isNullOrEmpty(element.getValue())) {

@@ -102,9 +102,13 @@ public class SettingsAnnotationProcessor extends RestxAbstractProcessor {
                             case "int":
                                 configAccessor = "getInt";
                                 break;
+                            case "java.lang.Long":
+                            case "long":
+                                configAccessor = "getLong";
+                                break;
                             default:
                                 error(String.format("unsupported return type %s for settings accessor method" +
-                                                " - it must be one of [String, Integer, int]",
+                                                " - it must be one of [String, Integer, int, Long, long]",
                                                 accessorReturnType), methodElem);
                                 continue;
                         }
