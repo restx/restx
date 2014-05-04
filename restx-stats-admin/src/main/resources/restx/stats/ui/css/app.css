@@ -1,0 +1,27 @@
+body {
+    padding-top: 60px;
+}
+
+#myGrid {
+    width:960px;
+    height:800px;
+    margin-left: auto;
+    margin-right: auto;
+    background: white;
+    outline: 0;
+    border: 1px solid gray;
+}
+#header {
+    width:960px; margin-bottom: 5px; margin-left: auto; margin-right: auto;
+}
+
+#myGrid {
+  background: white;
+  outline: 0;
+  border: 1px solid gray;
+}
+
+.slick-header-columns {
+    background: #333333;
+    color: #e1e1e1;
+}
