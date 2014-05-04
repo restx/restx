@@ -1,5 +1,6 @@
 package restx.stats;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -12,6 +13,7 @@ import restx.AppSettings;
 import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.common.UUIDGenerator;
+import restx.common.UUIDGenerator.DefaultUUIDGenerator;
 import restx.common.Version;
 import restx.factory.AutoStartable;
 import restx.factory.Component;
@@ -31,11 +33,11 @@ import java.util.concurrent.TimeUnit;
  * and look at this class source to see how it is collected.
  *
  * Stats are shared to stats.restx.io to contribute these anonymous usage stats to the community. You can disable
- * that with `restx.stats.share=false`. You can also get rid of the restx stats plugin altogether and stats collection
+ * that with `restx.stats.share.enable=false`. You can also get rid of the restx stats plugin altogether and stats collection
  * won't even be wired in your application.
  *
  * It tries to save stats to keep stats over time, but it needs a writable file system access for that. If writable
- * file system access is not available, or if you disable it using `restx.stats.usefilesystem=false`, the collector
+ * file system access is not available, or if you disable it using `restx.stats.storage.enable=false`, the collector
  * will try to use stats.restx.io to not only share but also as a way to store your stats between server runs.
  *
  */
@@ -43,19 +45,34 @@ import java.util.concurrent.TimeUnit;
 public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(RestxStatsCollector.class);
 
+    private final RestxStatsSettings statsSettings;
     private final UUIDGenerator uuidGenerator;
+    private final ObjectMapper objectMapper;
     private final RestxStats stats;
     private final long startupTime;
     private final long previousTotalUptime;
+    private final boolean storageEnabled;
+
+    private volatile long lastTouchTime;
+    private volatile long lastStorageTime;
 
     public RestxStatsCollector(
             @Named("restx.appName") Optional<String> appName,
             @Named("restx.server.type") Optional<String> serverType,
             @Named("restx.server.port") Optional<String> serverPort,
-            AppSettings appSettings, UUIDGenerator uuidGenerator) {
-        this.uuidGenerator = uuidGenerator;
+            AppSettings appSettings, RestxStatsSettings statsSettings,
+            ObjectMapper objectMapper) {
+        this.statsSettings = statsSettings;
+        this.objectMapper = objectMapper;
 
-        if (!getStatsStorageDir().exists()) {
+        // we don't inject it, we don't want during tests to use the playback version, it could perturb
+        // tests since the number of calls to the generation depends on the presence of machine id
+        // in the file system, which may vary from one test to another
+        this.uuidGenerator = new DefaultUUIDGenerator();
+
+        storageEnabled = statsSettings.storageEnable().equalsIgnoreCase("true");
+
+        if (storageEnabled && !getStatsStorageDir().exists()) {
             getStatsStorageDir().mkdirs();
         }
 
@@ -118,7 +135,32 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     }
 
     private void touch() {
-        stats.setTimestamp(DateTime.now());
+        long now = System.currentTimeMillis();
+        if (now - lastTouchTime > 100) {
+            // we don't update timestamp too frequently to avoid creating new DateTime object too frequently
+            stats.setTimestamp(new DateTime(now));
+            lastTouchTime = now;
+
+            maybeStoreStats(now);
+        }
+    }
+
+    private void maybeStoreStats(long now) {
+        if (storageEnabled && now - lastStorageTime > statsSettings.storagePeriod()) {
+            boolean shouldUpdate = false;
+            synchronized (this) {
+                if (now - lastStorageTime > statsSettings.storagePeriod()) {
+                    shouldUpdate = true;
+                    updateHeapSize();
+                    updateUptime();
+                    lastStorageTime = now;
+                }
+            }
+
+            if (shouldUpdate) {
+                storeStats();
+            }
+        }
     }
 
     private void updateUptime() {
@@ -131,10 +173,29 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         stats.setHeapSize(Runtime.getRuntime().totalMemory());
     }
 
-    private RestxStats loadPreviousStatsIfAvailable(RestxStats stats) {
-        // TODO
+    private synchronized void storeStats() {
+        try {
+            File statsFile = getStatsFile(stats.getStatsId());
+            objectMapper.writer().writeValue(statsFile, stats);
+        } catch (Exception e) {
+        }
+    }
 
-        return stats;
+    private RestxStats loadPreviousStatsIfAvailable(RestxStats stats) {
+        if (!storageEnabled) {
+            return stats;
+        }
+
+        try {
+            File statsFile = getStatsFile(stats.getStatsId());
+            if (statsFile.exists()) {
+                stats = objectMapper.reader(RestxStats.class).readValue(statsFile);
+                lastStorageTime = statsFile.lastModified();
+            }
+            return stats;
+        } catch (Exception e) {
+            return stats;
+        }
     }
 
     private String guessDataAccessInfo() {
@@ -152,6 +213,10 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     }
 
     private synchronized String getMachineId() {
+        if (!storageEnabled) {
+            return uuidGenerator.doGenerate();
+        }
+
         File machineIdFile = new File(getStatsStorageDir(), "machineId");
         if (machineIdFile.exists()) {
             try {
@@ -171,8 +236,6 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         return machineId;
     }
 
-
-
     private void fillPerHttpMethodRequestStats() {
         Map<String,RequestStats> requestStats = stats.getRequestStats();
         for (String httpMethod : new String[]{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE", "CONNECT"}) {
@@ -182,8 +245,14 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         }
     }
 
+
+
     private File getStatsStorageDir() {
-        return new File(System.getProperty("user.home") + "/.restx/stats");
+        return new File(statsSettings.storageDir().or(System.getProperty("user.home") + "/.restx/stats"));
+    }
+
+    private File getStatsFile(String statsId) {
+        return new File(getStatsStorageDir(), "restx-stats-" + statsId + ".json");
     }
 
     @Override
