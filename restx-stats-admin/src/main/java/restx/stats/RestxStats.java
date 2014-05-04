@@ -2,8 +2,9 @@ package restx.stats;
 
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The datastructure used to store restx stats.
@@ -71,17 +72,16 @@ public class RestxStats {
     private long currentUptime;
 
     /**
-     * the collection of collected stqts on request.
+     * the collected stats on request per HTTP method.
      */
-    private Collection<RequestStats> requestStats = new ArrayList<>();
+    private Map<String, RequestStats> requestStats = new LinkedHashMap();
 
     public String getStatsId() {
         return appNameHash + "--" + machineId + "--" + port + "--" + restxMode;
     }
 
     /**
-     * Some stats on HTTP requests handled by this server.
-     * The stats are collected on 3 axes: HTTP method, HTTP status, and wether or not they were authenticated requests.
+     * Some stats on HTTP requests handled by this server, gathered by HTTP method.
      */
     public static class RequestStats {
         /**
@@ -89,21 +89,56 @@ public class RestxStats {
          * eg GET POST PUT DELETE ...
          */
         private String httpMethod;
-        /**
-         * The HTTP status for which these stats were collected.
-         * eg 200 404 500 ...
-         */
-        private String httpStatus;
 
-        /**
-         * Wether or not the requests were authenticated.
-         */
-        private boolean authenticated;
+        private AtomicLong requestsCount = new AtomicLong();
+        private AtomicLong minDuration = new AtomicLong(Long.MAX_VALUE);
+        private AtomicLong maxDuration = new AtomicLong();
+        private AtomicLong totalDuration = new AtomicLong();
 
-        private long requestsCount;
-        private long minDuration;
-        private long maxDuration;
-        private long avgDuration;
+        public String getHttpMethod() {
+            return httpMethod;
+        }
+
+        public AtomicLong getRequestsCount() {
+            return requestsCount;
+        }
+
+        public AtomicLong getMinDuration() {
+            return minDuration;
+        }
+
+        public AtomicLong getMaxDuration() {
+            return maxDuration;
+        }
+
+        public AtomicLong getTotalDuration() {
+            return totalDuration;
+        }
+
+        public RequestStats setHttpMethod(final String httpMethod) {
+            this.httpMethod = httpMethod;
+            return this;
+        }
+
+        public RequestStats setRequestsCount(final AtomicLong requestsCount) {
+            this.requestsCount = requestsCount;
+            return this;
+        }
+
+        public RequestStats setMinDuration(final AtomicLong minDuration) {
+            this.minDuration = minDuration;
+            return this;
+        }
+
+        public RequestStats setMaxDuration(final AtomicLong maxDuration) {
+            this.maxDuration = maxDuration;
+            return this;
+        }
+
+        public RequestStats setTotalDuration(final AtomicLong totalDuration) {
+            this.totalDuration = totalDuration;
+            return this;
+        }
     }
 
     public DateTime getTimestamp() {
@@ -158,7 +193,7 @@ public class RestxStats {
         return currentUptime;
     }
 
-    public Collection<RequestStats> getRequestStats() {
+    public Map<String, RequestStats> getRequestStats() {
         return requestStats;
     }
 
@@ -227,7 +262,7 @@ public class RestxStats {
         return this;
     }
 
-    public RestxStats setRequestStats(final Collection<RequestStats> requestStats) {
+    public RestxStats setRequestStats(final Map<String, RequestStats> requestStats) {
         this.requestStats = requestStats;
         return this;
     }

@@ -2,22 +2,25 @@ package restx.stats;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
+import com.google.common.base.Stopwatch;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.AppSettings;
+import restx.RestxRequest;
+import restx.RestxResponse;
 import restx.common.UUIDGenerator;
 import restx.common.Version;
 import restx.factory.AutoStartable;
 import restx.factory.Component;
-import restx.factory.Factory;
-import restx.factory.Name;
+import restx.stats.RestxStats.RequestStats;
 
 import javax.inject.Named;
 import java.io.File;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A collector of RestxStats.
@@ -41,7 +44,6 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(RestxStatsCollector.class);
 
     private final UUIDGenerator uuidGenerator;
-    private final Factory factory;
     private final RestxStats stats;
     private final long startupTime;
     private final long previousTotalUptime;
@@ -50,10 +52,8 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
             @Named("restx.appName") Optional<String> appName,
             @Named("restx.server.type") Optional<String> serverType,
             @Named("restx.server.port") Optional<String> serverPort,
-            AppSettings appSettings, UUIDGenerator uuidGenerator,
-            Factory factory) {
+            AppSettings appSettings, UUIDGenerator uuidGenerator) {
         this.uuidGenerator = uuidGenerator;
-        this.factory = factory;
 
         if (!getStatsStorageDir().exists()) {
             getStatsStorageDir().mkdirs();
@@ -77,6 +77,7 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
                 .setDataAccessInfo(guessDataAccessInfo())
         ;
 
+        fillPerHttpMethodRequestStats();
         updateHeapSize();
         touch();
     }
@@ -91,6 +92,29 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     @Override
     public void start() {
         logger.debug("stats collection started - current stats {}", stats);
+    }
+
+    public final void notifyRequest(RestxRequest req, RestxResponse resp, Stopwatch stop) {
+        RequestStats requestStats = stats.getRequestStats().get(req.getHttpMethod());
+        if (requestStats != null) {
+            requestStats.getRequestsCount().incrementAndGet();
+
+            long duration = stop.elapsed(TimeUnit.MICROSECONDS);
+            requestStats.getTotalDuration().addAndGet(duration);
+            long minDuration;
+            while ((minDuration = requestStats.getMinDuration().get()) > duration) {
+                if (requestStats.getMinDuration().compareAndSet(minDuration, duration)) {
+                    break;
+                }
+            }
+            long maxDuration;
+            while ((maxDuration = requestStats.getMaxDuration().get()) < duration) {
+                if (requestStats.getMaxDuration().compareAndSet(maxDuration, duration)) {
+                    break;
+                }
+            }
+        }
+        touch();
     }
 
     private void touch() {
@@ -145,6 +169,17 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         }
 
         return machineId;
+    }
+
+
+
+    private void fillPerHttpMethodRequestStats() {
+        Map<String,RequestStats> requestStats = stats.getRequestStats();
+        for (String httpMethod : new String[]{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE", "CONNECT"}) {
+            if (!requestStats.containsKey(httpMethod)) {
+                requestStats.put(httpMethod, new RequestStats().setHttpMethod(httpMethod));
+            }
+        }
     }
 
     private File getStatsStorageDir() {
