@@ -45,15 +45,27 @@ import java.util.concurrent.TimeUnit;
 public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(RestxStatsCollector.class);
 
-    private final RestxStatsSettings statsSettings;
+    /** uuid generator used to generate mahcine id */
     private final UUIDGenerator uuidGenerator;
+    /** object mapper used to persist and load stats */
     private final ObjectMapper objectMapper;
+    /** the stats collected by this collector */
     private final RestxStats stats;
+    /** the rough startup time of this server */
     private final long startupTime;
+    /** the total uptime collected during previous run */
     private final long previousTotalUptime;
-    private final boolean storageEnabled;
 
+    /** should stats be stored on disk to compute stats over multiple run */
+    private final boolean storageEnabled;
+    /** min period in ms between each storage */
+    private final long storagePeriod;
+    /** directory in which stats should be stored if enabled */
+    private final File storageStatsDir;
+
+    /** the last time at which the stats have been touched */
     private volatile long lastTouchTime;
+    /** the last time at which the stats have been stored */
     private volatile long lastStorageTime;
 
     public RestxStatsCollector(
@@ -62,7 +74,6 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
             @Named("restx.server.port") Optional<String> serverPort,
             AppSettings appSettings, RestxStatsSettings statsSettings,
             ObjectMapper objectMapper) {
-        this.statsSettings = statsSettings;
         this.objectMapper = objectMapper;
 
         // we don't inject it, we don't want during tests to use the playback version, it could perturb
@@ -70,13 +81,21 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         // in the file system, which may vary from one test to another
         this.uuidGenerator = new DefaultUUIDGenerator();
 
-        storageEnabled = statsSettings.storageEnable().equalsIgnoreCase("true");
+        // load settings in private fields
+        // this avoid accessing the settings through the underlying config object
+        storageEnabled = statsSettings.storageEnable();
+        storageStatsDir = new File(statsSettings.storageDir().or(System.getProperty("user.home") + "/.restx/stats"));
+        storagePeriod = statsSettings.storagePeriod();
 
-        if (storageEnabled && !getStatsStorageDir().exists()) {
-            getStatsStorageDir().mkdirs();
+
+        if (storageEnabled && !storageStatsDir.exists()) {
+            storageStatsDir.mkdirs();
         }
 
-        stats = loadPreviousStatsIfAvailable(new RestxStats()
+        stats = loadPreviousStatsIfAvailable(
+                new RestxStats()
+
+                // we set what makes up the stats id, to be able to load previous one if any
                 .setAppNameHash(Hashing.md5().hashString(appName.or("DEFAULT"), Charsets.UTF_8).toString())
                 .setMachineId(getMachineId())
                 .setRestxMode(appSettings.mode())
@@ -99,6 +118,13 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         touch();
     }
 
+    /**
+     * Get the current stats.
+     *
+     * This also updates the stats with latest heap size and uptime information.
+     *
+     * @return current stats.
+     */
     public RestxStats getStats() {
         updateUptime();
         updateHeapSize();
@@ -108,10 +134,20 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
 
     @Override
     public void start() {
+        // making the collector auto startable ensure it is loaded only once even in DEV mode
+        // the actual initial gathering is done in the constructor to avoid storing some injected fields just between
+        // constructor and start() call
         logger.debug("stats collection started - current stats {}", stats);
     }
 
-    public final void notifyRequest(RestxRequest req, RestxResponse resp, Stopwatch stop) {
+    /**
+     * This method is called by RestxStatsCollectionFilter, to collect stats about requests.
+     *
+     * @param req the incoming request
+     * @param resp the outgoing response
+     * @param stop a stopwatch which has measured the request / response handling time
+     */
+    final void notifyRequest(RestxRequest req, RestxResponse resp, Stopwatch stop) {
         RequestStats requestStats = stats.getRequestStats().get(req.getHttpMethod());
         if (requestStats != null) {
             requestStats.getRequestsCount().incrementAndGet();
@@ -134,6 +170,13 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         touch();
     }
 
+    /**
+     * Touch is used to update the stats timestamp, and is also used to store and share the stats
+     * if they haven't been stored or shared for the period specified (if enabled).
+     *
+     * We don't use a cron for that, it would require a dedicated thread, so we prefer less accurate
+     * but also less impact on the application performance.
+     */
     private void touch() {
         long now = System.currentTimeMillis();
         if (now - lastTouchTime > 100) {
@@ -145,24 +188,34 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         }
     }
 
+    /**
+     * Stores the stats if storage is enabled and if they haven't been stored for the specified period.
+     *
+     * It also updates the heap and uptime information before saving the stats.
+     *
+     * @param now current time
+     */
     private void maybeStoreStats(long now) {
-        if (storageEnabled && now - lastStorageTime > statsSettings.storagePeriod()) {
+        if (storageEnabled && now - lastStorageTime > storagePeriod) {
             boolean shouldUpdate = false;
             synchronized (this) {
-                if (now - lastStorageTime > statsSettings.storagePeriod()) {
+                if (now - lastStorageTime > storagePeriod) {
                     shouldUpdate = true;
-                    updateHeapSize();
-                    updateUptime();
                     lastStorageTime = now;
                 }
             }
 
             if (shouldUpdate) {
+                updateHeapSize();
+                updateUptime();
                 storeStats();
             }
         }
     }
 
+    /**
+     * Updates current and total uptime
+     */
     private void updateUptime() {
         long currentUptime = System.currentTimeMillis() - startupTime;
         stats.setCurrentUptime(currentUptime);
@@ -173,6 +226,10 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         stats.setHeapSize(Runtime.getRuntime().totalMemory());
     }
 
+    /**
+     * Stores the stats on disk. Must not be called if storage is disabled.
+     * storageEnabled check is not done to prevent double checking.
+     */
     private synchronized void storeStats() {
         try {
             File statsFile = getStatsFile(stats.getStatsId());
@@ -181,6 +238,13 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         }
     }
 
+    /**
+     * Loads previous stats from disk if available and storage is enabled.
+     *
+     * @param stats the stats with same id as the one to load.
+     *
+     * @return loaded stats if available, or given stats if not loaded.
+     */
     private RestxStats loadPreviousStatsIfAvailable(RestxStats stats) {
         if (!storageEnabled) {
             return stats;
@@ -212,12 +276,21 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
                 + "; Version: " + System.getProperty("java.version") + ", " + System.getProperty("java.runtime.version");
     }
 
+    /**
+     * Returns an ID to identify this machine.
+     *
+     * Instead of making a guess based on MAC address and other related stuff, we only rely on a stored UUID to make
+     * it faster. It means that when storage is disabled, the machine id will be different at each run, preventing to
+     * consolidate information at machine level.
+     *
+     * @return the machine id, which may be different at each call.
+     */
     private synchronized String getMachineId() {
         if (!storageEnabled) {
             return uuidGenerator.doGenerate();
         }
 
-        File machineIdFile = new File(getStatsStorageDir(), "machineId");
+        File machineIdFile = new File(storageStatsDir, "machineId");
         if (machineIdFile.exists()) {
             try {
                 return Files.asCharSource(machineIdFile, Charsets.UTF_8).read();
@@ -236,6 +309,12 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         return machineId;
     }
 
+    /**
+     * Fill the structure of the map of RequestStat, so that we don't have to concurrently check for insertions
+     * when in use.
+     *
+     * Stats for HTTP methods which are not present in the map after this call won't be collected.
+     */
     private void fillPerHttpMethodRequestStats() {
         Map<String,RequestStats> requestStats = stats.getRequestStats();
         for (String httpMethod : new String[]{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "TRACE", "CONNECT"}) {
@@ -245,18 +324,17 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         }
     }
 
-
-
-    private File getStatsStorageDir() {
-        return new File(statsSettings.storageDir().or(System.getProperty("user.home") + "/.restx/stats"));
-    }
-
     private File getStatsFile(String statsId) {
-        return new File(getStatsStorageDir(), "restx-stats-" + statsId + ".json");
+        return new File(storageStatsDir, "restx-stats-" + statsId + ".json");
     }
 
     @Override
     public void close() throws Exception {
-
+        if (storageEnabled) {
+            stats.setTimestamp(DateTime.now());
+            updateHeapSize();
+            updateUptime();
+            storeStats();
+        }
     }
 }

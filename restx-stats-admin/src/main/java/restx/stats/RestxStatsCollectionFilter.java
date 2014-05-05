@@ -18,7 +18,7 @@ import java.io.IOException;
  * A filter used to notifiy the stats collector of all requests performed on the server.
  */
 @Component(priority = -1000)
-public final class RestxStatsFilter implements RestxFilter, RestxHandler {
+public final class RestxStatsCollectionFilter implements RestxFilter, RestxHandler {
     /**
      * We create a single match to minimize impact on performance,
      * we don't need to reuse any information on the match itself anyway.
@@ -27,7 +27,7 @@ public final class RestxStatsFilter implements RestxFilter, RestxHandler {
 
     private final RestxStatsCollector collector;
 
-    public RestxStatsFilter(RestxStatsCollector collector) {
+    public RestxStatsCollectionFilter(RestxStatsCollector collector) {
         this.collector = collector;
     }
 

@@ -14,7 +14,7 @@ public interface RestxStatsSettings {
             key = "restx.stats.storage.enable", defaultValue = "true",
             doc = "enable or disable the storage of restx stats on the file system, allowing" +
                     "to gather statistics over multiple run")
-    String storageEnable();
+    boolean storageEnable();
 
     @SettingsKey(
             key = "restx.stats.storage.dir",

@@ -74,7 +74,7 @@ public class RestxStats {
     /**
      * the collected stats on request per HTTP method.
      */
-    private Map<String, RequestStats> requestStats = new LinkedHashMap();
+    private Map<String, RequestStats> requestStats = new LinkedHashMap<>();
 
     public String getStatsId() {
         return appNameHash + "--" + machineId + "--" + port + "--" + restxMode;
