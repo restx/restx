@@ -8,7 +8,7 @@ import restx.factory.Component;
  * Date: 4/5/14
  * Time: 11:08
  */
-@RestxResource
+@RestxResource(group = "restx-admin")
 @Component
 public class RestxStatsResource {
     private final RestxStatsCollector collector;
