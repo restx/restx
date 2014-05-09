@@ -20,6 +20,7 @@
         <restx.version>0.33-SNAPSHOT</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
+        <http-request.version>5.5</http-request.version>
     </properties>
 
     <dependencies>
@@ -42,6 +43,11 @@
             <groupId>io.restx</groupId>
             <artifactId>restx-admin</artifactId>
             <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kevinsawicki</groupId>
+            <artifactId>http-request</artifactId>
+            <version>${http-request.version}</version>
         </dependency>
     </dependencies>
 </project>

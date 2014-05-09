@@ -1,6 +1,7 @@
 package restx.stats;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.kevinsawicki.http.HttpRequest;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -63,10 +64,19 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     /** directory in which stats should be stored if enabled */
     private final File storageStatsDir;
 
+    /** should stats be shared */
+    private final boolean shareEnabled;
+    /** min period in ms between each sharing */
+    private final long sharePeriod;
+    /** URL on which stats should be shared if enabled */
+    private final String shareURL;
+
     /** the last time at which the stats have been touched */
     private volatile long lastTouchTime;
     /** the last time at which the stats have been stored */
     private volatile long lastStorageTime;
+    /** the last time at which the stats have been shared */
+    private volatile long lastShareTime;
 
     public RestxStatsCollector(
             @Named("restx.appName") Optional<String> appName,
@@ -86,6 +96,9 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         storageEnabled = statsSettings.storageEnable();
         storageStatsDir = new File(statsSettings.storageDir().or(System.getProperty("user.home") + "/.restx/stats"));
         storagePeriod = statsSettings.storagePeriod();
+        shareEnabled = statsSettings.shareEnable();
+        shareURL = statsSettings.shareURL();
+        sharePeriod = statsSettings.sharePeriod();
 
 
         if (storageEnabled && !storageStatsDir.exists()) {
@@ -185,6 +198,7 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
             lastTouchTime = now;
 
             maybeStoreStats(now);
+            maybeShareStats(now);
         }
     }
 
@@ -214,6 +228,31 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     }
 
     /**
+     * Shares the stats if sharing is enabled and if they haven't been shared for the specified period.
+     *
+     * It also updates the heap and uptime information before sharing the stats.
+     *
+     * @param now current time
+     */
+    private void maybeShareStats(long now) {
+        if (shareEnabled && now - lastShareTime > sharePeriod) {
+            boolean shouldUpdate = false;
+            synchronized (this) {
+                if (now - lastShareTime > sharePeriod) {
+                    shouldUpdate = true;
+                    lastShareTime = now;
+                }
+            }
+
+            if (shouldUpdate) {
+                updateHeapSize();
+                updateUptime();
+                shareStats();
+            }
+        }
+    }
+
+    /**
      * Updates current and total uptime
      */
     private void updateUptime() {
@@ -228,13 +267,33 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
 
     /**
      * Stores the stats on disk. Must not be called if storage is disabled.
-     * storageEnabled check is not done to prevent double checking.
+     * storageEnabled check is not done to avoid double checking.
      */
     private synchronized void storeStats() {
+        File statsFile = getStatsFile(stats.getStatsId());
         try {
-            File statsFile = getStatsFile(stats.getStatsId());
             objectMapper.writer().writeValue(statsFile, stats);
         } catch (Exception e) {
+            logger.info("saving stats to {} failed. Exception: {}", statsFile, e.getMessage());
+        }
+    }
+
+    /**
+     * Share the stats to share URL. Must not be called if sharing is disabled.
+     * shareEnabled check is not done to avoid double checking.
+     */
+    private void shareStats() {
+        try {
+            int code = HttpRequest.post(shareURL)
+                    .connectTimeout(5000)
+                    .readTimeout(5000)
+                    .send(objectMapper.writer().writeValueAsString(stats).getBytes(Charsets.UTF_8))
+                    .code();
+            if (code >= 400) {
+                logger.info("sharing stats on {} failed. Response code: {}", shareURL, code);
+            }
+        } catch (Exception e) {
+            logger.info("sharing stats on {} failed. Exception: {}", shareURL, e.getMessage());
         }
     }
 
@@ -335,6 +394,12 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
             updateHeapSize();
             updateUptime();
             storeStats();
+        }
+        if (shareEnabled) {
+            stats.setTimestamp(DateTime.now());
+            updateHeapSize();
+            updateUptime();
+            shareStats();
         }
     }
 }
