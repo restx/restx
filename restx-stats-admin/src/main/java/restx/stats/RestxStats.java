@@ -91,7 +91,10 @@ public class RestxStats {
         private String httpMethod;
 
         private AtomicLong requestsCount = new AtomicLong();
-        private AtomicLong minDuration = new AtomicLong(Long.MAX_VALUE);
+        // we initialize min duration with a large number so that the default behavior to update min duration
+        // when it is lower than current one can be used
+        // we don't use Long.MAX_VALUE because json parsing is not optimized over 18 digits
+        private AtomicLong minDuration = new AtomicLong(999_999_999_999_999_999L);
         private AtomicLong maxDuration = new AtomicLong();
         private AtomicLong totalDuration = new AtomicLong();
 
