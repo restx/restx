@@ -150,6 +150,11 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
         // making the collector auto startable ensure it is loaded only once even in DEV mode
         // the actual initial gathering is done in the constructor to avoid storing some injected fields just between
         // constructor and start() call
+
+        if (shareEnabled) {
+            logger.info("collecting and sharing stats enabled - see http://restx.io/stats.html for details.");
+        }
+
         logger.debug("stats collection started - current stats {}", stats);
     }
 
