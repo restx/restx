@@ -22,7 +22,7 @@ public interface RestxStatsSettings {
     Optional<String> storageDir();
 
     @SettingsKey(
-            key = "restx.stats.storage.period", defaultValue = "5000",
+            key = "restx.stats.storage.period", defaultValue = "300000",
             doc = "the period, in ms, at which stats are saved to disk")
     long storagePeriod();
 }
