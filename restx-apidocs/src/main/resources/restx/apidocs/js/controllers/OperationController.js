@@ -174,7 +174,11 @@ adminApp.controller('OperationController', function OperationController(
     }
 
     function loadSpec(spec) {
-        $http.get('../../specs/' + encodeURIComponent(spec)).
+        // to encode the spec id, we replace the forward slash by a triple underscore
+        // URI encoding the forward slash causes problems on some servers.
+        // see https://github.com/restx/restx/issues/90
+        var encodedSpecId = encodeURIComponent(spec.replace(/\//g, '___'));
+        $http.get('../../specs/' + encodedSpecId).
             success(function (data) {
                 spec = { title: data.title, requests: [] };
                 data.whens.forEach(function (when) {

@@ -38,7 +38,12 @@ public class SpecsResource {
     @GET("/@/specs/{id}")
     public Optional<RestxSpec> getSpecById(String id) {
         try {
-            return repository.findSpecById(URLDecoder.decode(id, Charsets.UTF_8.name()));
+            // to decode the spec id we first URL decode it, and then we replace triple underscores by forward slashes
+            // This let the client address the spec id without having to URI encode the forward slash as %2F, which is
+            // not allowed on some servers (especially tomcat)
+            // see https://github.com/restx/restx/issues/90
+            String specId = URLDecoder.decode(id, Charsets.UTF_8.name()).replace("___", "/");
+            return repository.findSpecById(specId);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
