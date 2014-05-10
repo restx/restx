@@ -117,17 +117,20 @@ public class RestxShell implements Appendable {
         consoleReader.shutdown();
     }
 
-    public void exec(Iterable<String> commands) throws IOException {
+    public void exec(Iterable<String> commands) throws Exception {
         execMode = ExecMode.BATCH;
         banner();
 
-        for (String command : commands) {
-            printIn("> " + command, AnsiCodes.ANSI_PURPLE);
-            println("");
-            exec(command);
+        try {
+            for (String command : commands) {
+                printIn("> " + command, AnsiCodes.ANSI_PURPLE);
+                println("");
+                doExec(command);
+            }
+        } finally {
+            terminate();
         }
 
-        terminate();
     }
 
     public static void printIn(Appendable appendable, String msg, String ansiCode) throws IOException {
@@ -313,8 +316,42 @@ public class RestxShell implements Appendable {
         consoleReader.println("===============================================================================");
     }
 
+    /**
+     * Executes the given command line.
+     *
+     * Note: this won't raise an exception except in case of IOException with the console itself.
+     *
+     * @param line the command line to execute
+     * @return true if the shell should exit after this command, false otherwise.
+     * @throws IOException
+     */
     protected boolean exec(String line) throws IOException {
-        boolean found = false;
+        try {
+            doExec(line);
+            return false;
+        } catch (CommandNotFoundException e) {
+            consoleReader.println("command not found. use `help` to get the list of commands.");
+            return false;
+        } catch (ExitShell e) {
+            return true;
+        } catch (Exception e) {
+            consoleReader.println("command " + line + " raised an exception: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Executes the given command.
+     *
+     * Exception raised by command are propagated if any, including the ExitShell exception.
+     *
+     * If command is not found, it raises a CommandNotFoundException.
+     *
+     * @param line the command line to execute
+     * @throws Exception
+     */
+    protected void doExec(String line) throws Exception {
         for (ShellCommand command : commands) {
             Optional<? extends ShellCommandRunner> match = command.match(line);
             if (match.isPresent()) {
@@ -326,12 +363,6 @@ public class RestxShell implements Appendable {
 
                 try {
                     match.get().run(this);
-                    found = true;
-                } catch (ExitShell e) {
-                    return true;
-                } catch (Exception e) {
-                    consoleReader.println("command " + line + " raised an exception: " + e.getMessage());
-                    e.printStackTrace();
                 } finally {
                     for (Completer completer : ImmutableList.copyOf(consoleReader.getCompleters())) {
                         consoleReader.removeCompleter(completer);
@@ -341,13 +372,10 @@ public class RestxShell implements Appendable {
                     }
                     showPrompt(consoleReader);
                 }
-                break;
+                return;
             }
         }
-        if (!found) {
-            consoleReader.println("command not found. use `help` to get the list of commands.");
-        }
-        return false;
+        throw new CommandNotFoundException(line);
     }
 
     private void showPrompt(ConsoleReader consoleReader) {
@@ -379,7 +407,12 @@ public class RestxShell implements Appendable {
         ConsoleReader consoleReader = new ConsoleReader();
         RestxShell restxShell = new RestxShell(consoleReader);
         if (args.length > 0) {
-            restxShell.exec(Splitter.on("+").trimResults().split(Joiner.on(" ").join(args)));
+            try {
+                restxShell.exec(Splitter.on("+").trimResults().split(Joiner.on(" ").join(args)));
+            } catch (CommandNotFoundException e) {
+                System.out.println("command not found: " + e.getLine());
+                System.exit(1);
+            }
         } else {
             restxShell.start();
         }
@@ -469,5 +502,25 @@ public class RestxShell implements Appendable {
 
     public static enum ExecMode {
         INTERACTIVE, BATCH
+    }
+
+    private static class CommandNotFoundException extends RuntimeException {
+        private final String line;
+
+        public CommandNotFoundException(String line) {
+            super("command not found: " + line);
+            this.line = line;
+        }
+
+        public String getLine() {
+            return line;
+        }
+
+        @Override
+        public String toString() {
+            return "CommandNotFoundException{" +
+                    "line='" + line + '\'' +
+                    '}';
+        }
     }
 }
