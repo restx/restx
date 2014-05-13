@@ -45,8 +45,11 @@ public class HttpServletRestxResponse extends AbstractResponse<HttpServletRespon
     public RestxResponse addCookie(String cookie, String value, Duration expiration) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
-            if ("/".equals(existingCookie.getPath())) {
+            if ("/".equals(existingCookie.getPath())
+                    || existingCookie.getPath() == null // in some cases cookies set on path '/' are returned with a null path
+                    ) {
                 // update existing cookie
+                existingCookie.setPath("/");
                 existingCookie.setValue(value);
                 existingCookie.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
                 resp.addCookie(existingCookie);
