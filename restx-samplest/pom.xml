@@ -99,4 +99,22 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <source>1.7</source>
+                    <doclet>restx.apidocs.doclet.ApidocsDoclet</doclet>
+                    <docletArtifact>
+                        <groupId>io.restx</groupId>
+                        <artifactId>restx-apidocs-doclet</artifactId>
+                        <version>${restx.version}</version>
+                    </docletArtifact>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
