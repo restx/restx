@@ -1,12 +1,11 @@
 package restx.security;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.Duration;
 import restx.factory.Component;
 import restx.security.RestxSession.Definition;
-
-import java.util.function.Supplier;
 
 /**
  * A component able to provide an empty session.
