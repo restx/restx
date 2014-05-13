@@ -92,7 +92,11 @@
                 <executions>
                     <execution>
                         <id>attach-docs</id>
-                        <phase>post-integration-test</phase>
+                        <!--
+                            we generate javadoc before packaging the jar to let a chance to apidocs doclet
+                            to generate comments dictionary to be packaged inside the jar as a resource
+                            -->
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
@@ -118,6 +122,7 @@
         <module>restx-i18n</module>
         <module>restx-i18n-admin</module>
         <module>restx-apidocs</module>
+        <module>restx-apidocs-doclet</module>
         <module>restx-monitor-admin</module>
         <module>restx-monitor-codahale</module>
         <module>restx-factory-admin</module>

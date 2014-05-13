@@ -1,0 +1,18 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-apidocs-doclet:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-factory:${restx.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.assertj:assertj-core:${assertj-core.version}"
+        ]
+    }
+}
