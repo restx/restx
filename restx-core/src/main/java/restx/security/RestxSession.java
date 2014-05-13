@@ -182,4 +182,25 @@ public class RestxSession {
     ImmutableMap<String, String> valueidsByKeyMap() {
         return valueidsByKey;
     }
+
+    /**
+     * Executes a runnable with this session set as current session.
+     *
+     * Inside the runnable, the current session can be accessed with RestxSession.current().
+     *
+     * This method takes care of restoring the current session after the call. So if the current session
+     * is altered inside the runnable it won't have effect on the caller.
+     *
+     * @param runnable the runnable to execute.
+     */
+    public void runIn(Runnable runnable) {
+        RestxSession current = current();
+
+        setCurrent(this);
+        try {
+            runnable.run();
+        } finally {
+            setCurrent(current);
+        }
+    }
 }
