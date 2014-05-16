@@ -26,15 +26,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.sun.tools</groupId>
-            <artifactId>tools</artifactId>
-            <version>${java.version}</version>
-            <scope>system</scope>
-            <systemPath>${java.home}/../lib/tools.jar</systemPath>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-factory</artifactId>
+            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-factory</artifactId>
+            <artifactId>restx-core</artifactId>
             <version>${restx.version}</version>
         </dependency>
         <dependency>

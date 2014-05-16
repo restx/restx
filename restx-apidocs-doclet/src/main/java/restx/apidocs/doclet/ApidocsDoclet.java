@@ -9,7 +9,6 @@ import com.sun.javadoc.Doclet;
 import com.sun.javadoc.LanguageVersion;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ParamTag;
-import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
 import com.sun.javadoc.Tag;
 import com.sun.tools.doclets.standard.Standard;
@@ -25,6 +24,38 @@ import static java.util.Arrays.asList;
  * Extracts javadoc of RESTX endpoints to provide them in API DOCS.
  */
 public class ApidocsDoclet extends Doclet {
+    static enum Options {
+        DISABLE_STANDARD_DOCLET("-disable-standard-doclet", 1)
+        ;
+
+        private final String optionName;
+        private final int optionLength;
+
+        Options(String name, int optionLength) {
+            this.optionName = name;
+            this.optionLength = optionLength;
+        }
+
+        public String getOptionName() {
+            return optionName;
+        }
+
+        public int getOptionLength() {
+            return optionLength;
+        }
+
+        public boolean isSet(String[][] options) {
+            for (String[] option : options) {
+                if (options.length > 0 && optionName.equals(option[0])) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+
     /**
      * The starting point of Javadoc render.
      *
@@ -57,6 +88,10 @@ public class ApidocsDoclet extends Doclet {
             }
         }
 
+        if (Options.DISABLE_STANDARD_DOCLET.isSet(rootDoc.options())) {
+            return true;
+        }
+
         return Standard.start(rootDoc);
     }
 
@@ -82,7 +117,7 @@ public class ApidocsDoclet extends Doclet {
 
     /**
      * Sets the option length to the standard Javadoc option length.
-     *
+     * <p/>
      * _Javadoc spec requirement._
      *
      * @param option input option
@@ -90,6 +125,12 @@ public class ApidocsDoclet extends Doclet {
      */
     @SuppressWarnings("UnusedDeclaration")
     public static int optionLength(String option) {
+        for (Options opt : Options.values()) {
+            if (opt.getOptionName().equalsIgnoreCase(option)) {
+                return opt.getOptionLength();
+            }
+        }
+
         return Standard.optionLength(option);
     }
 
