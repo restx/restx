@@ -17,28 +17,50 @@ public class ApidocsDocletTest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test
-    public void should_generate_doc() throws Exception {
+    public void should_generate_standard_doc_by_default() throws Exception {
         File dir = testFolder.newFolder();
         String[] javadocargs = {
                 "-d", dir.getAbsolutePath(),
                 "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
+                "-restx-target-dir", dir.getAbsolutePath(),
                 "src/test/resources/test/DocletTestResource.java" };
         com.sun.tools.javadoc.Main.execute(javadocargs);
 
+        // should have generated standard javadoc
         assertThat(new File(dir, "index.html")).exists();
     }
 
     @Test
-    public void should_generate_doc_without_standard_doclet() throws Exception {
+    public void should_be_able_to_disable_standard_doclet() throws Exception {
         File dir = testFolder.newFolder();
         String[] javadocargs = {
                 "-d", dir.getAbsolutePath(),
                 "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
+                "-restx-target-dir", dir.getAbsolutePath(),
                 "-disable-standard-doclet",
                 "src/test/resources/test/DocletTestResource.java"
         };
         com.sun.tools.javadoc.Main.execute(javadocargs);
 
+        // should not have generated standard javadoc
         assertThat(new File(dir, "index.html")).doesNotExist();
+        assertThat(new File(dir, "apidoclet.trace")).doesNotExist();
+    }
+
+    @Test
+    public void should_trace_in_file_when_enabled() throws Exception {
+        File dir = testFolder.newFolder();
+        File target = testFolder.newFolder();
+        String[] javadocargs = {
+                "-d", dir.getAbsolutePath(),
+                "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
+                "-restx-target-dir", target.getAbsolutePath(),
+                "-restx-enable-trace",
+                "-disable-standard-doclet",
+                "src/test/resources/test/DocletTestResource.java"
+        };
+        com.sun.tools.javadoc.Main.execute(javadocargs);
+
+        assertThat(new File(target, "apidoclet.trace")).exists();
     }
 }
