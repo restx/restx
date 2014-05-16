@@ -1,5 +1,9 @@
 package restx.apidocs.doclet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+import org.assertj.core.groups.Tuple;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -7,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 /**
  * Date: 16/5/14
@@ -15,6 +20,40 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApidocsDocletTest {
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
+
+    @Test
+    public void should_generate_notes() throws Exception {
+        File target = testFolder.newFolder();
+        String[] javadocargs = {
+                "-d", testFolder.newFolder().getAbsolutePath(),
+                "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
+                "-restx-target-dir", target.getAbsolutePath(),
+                "-disable-standard-doclet",
+                "src/test/resources/test/DocletTestResource.java"
+        };
+        com.sun.tools.javadoc.Main.execute(javadocargs);
+
+        // should not have generated standard javadoc
+        assertThat(new File(target, "apidocs/test.DocletTestResource.notes.json"))
+                .exists();
+
+        ApiEntryNotes api = new ObjectMapper().reader(ApiEntryNotes.class)
+                .readValue(new File(target, "apidocs/test.DocletTestResource.notes.json"));
+
+        assertThat(api.getName()).isEqualTo("test.DocletTestResource");
+        assertThat(api.getOperations()).hasSize(1)
+                .extracting("httpMethod", "path", "notes")
+                .containsExactly(tuple("GET", "/test/:param1", "Test"));
+
+        assertThat(api.getOperations().get(0).getParameters())
+                .hasSize(3)
+                .extracting("name", "notes")
+                .containsExactly(
+                        tuple("param1", "param number one"),
+                        tuple("param2", "param number two"),
+                        tuple("response", "my return value")
+                );
+    }
 
     @Test
     public void should_generate_standard_doc_by_default() throws Exception {
