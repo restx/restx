@@ -17,7 +17,7 @@ adminApp.filter('encodePath', function() {
 });
 
 adminApp.controller('OperationController', function OperationController(
-        $rootScope, $scope, $routeParams, $http, $filter, $location, ApiDoc, Api) {
+        $rootScope, $scope, $routeParams, $http, $filter, $location, ApiDoc, Api, ApiNotes) {
     var path = $routeParams.path.replace(/___/g, '/');
     $scope.doc = ApiDoc.get();
     $scope.su = $rootScope.su;
@@ -204,6 +204,15 @@ adminApp.controller('OperationController', function OperationController(
         var findOpByHttpMethod = function(op) { return op.httpMethod ===  $routeParams.httpMethod}
         $scope.opApi = _.find($scope.api.apis, function(o) { return o.path === path && _.any(o.operations, findOpByHttpMethod)}) || { operations: []};
         $scope.operation = _.find($scope.opApi.operations, findOpByHttpMethod) || {};
+        $scope.notes = ApiNotes.get({name: $scope.api.name}, function() {
+            $scope.opNotes = _.find($scope.notes.operations, function(opNote) {
+                return opNote.path === path && opNote.httpMethod ===  $routeParams.httpMethod;
+            })
+            $scope.opNotes.getParam = function(name) {
+                return _.find($scope.opNotes.parameters, function(p) {return p.name === name});
+            }
+            $scope.opNotes.responseNotes = ($scope.opNotes.getParam('response') || {}).notes;
+        });
 
         if ($rootScope.contextData) {
             try {
