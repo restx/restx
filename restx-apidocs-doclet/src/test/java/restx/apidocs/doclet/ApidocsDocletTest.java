@@ -33,9 +33,7 @@ public class ApidocsDocletTest {
         };
         com.sun.tools.javadoc.Main.execute(javadocargs);
 
-        // should not have generated standard javadoc
-        assertThat(new File(target, "apidocs/test.DocletTestResource.notes.json"))
-                .exists();
+        assertThat(new File(target, "apidocs/test.DocletTestResource.notes.json")).exists();
 
         ApiEntryNotes api = new ObjectMapper().reader(ApiEntryNotes.class)
                 .readValue(new File(target, "apidocs/test.DocletTestResource.notes.json"));
