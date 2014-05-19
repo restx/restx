@@ -31,6 +31,7 @@ import static java.util.Arrays.asList;
  * Extracts javadoc of RESTX endpoints to provide them in API DOCS.
  */
 public class ApidocsDoclet extends Doclet {
+
     /**
      * The starting point of Javadoc render.
      *
