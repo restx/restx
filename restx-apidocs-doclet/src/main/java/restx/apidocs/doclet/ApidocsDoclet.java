@@ -18,7 +18,6 @@ import com.sun.tools.doclets.standard.Standard;
 import org.joda.time.DateTime;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +43,7 @@ public class ApidocsDoclet extends Doclet {
     public static boolean start(RootDoc rootDoc) {
         Path targetDir = Paths.get(Options.TARGET_DIR.getOption(rootDoc.options()).or(""));
 
-        System.out.println("generating RESTX apidocs notes in: " + targetDir + " ...");
+        rootDoc.printNotice("generating RESTX apidocs notes in: " + targetDir + " ...");
 
         Path apidocsTarget = targetDir.resolve("apidocs");
         if (!apidocsTarget.toFile().exists()) {
@@ -107,13 +106,13 @@ public class ApidocsDoclet extends Doclet {
 
             if (!entryNotes.getOperations().isEmpty()) {
                 Path doc = apidocsTarget.resolve(classDoc.qualifiedName() + ".notes.json");
-                System.out.println("generating RESTX API entry notes for " + classDoc.qualifiedName() + " ...");
+                rootDoc.printNotice("generating RESTX API entry notes for " + classDoc.qualifiedName() + " ...");
                 trace.trace("generating notes in " + doc.toAbsolutePath());
                 try {
                     mapper.writeValue(doc.toFile(), entryNotes);
                 } catch (IOException e) {
                     trace.trace("can't write to api doc file " + doc.toFile() + ": " + e);
-                    System.err.println("can't write to api doc file " + doc.toFile() + ": " + e);
+                    rootDoc.printError("can't write to api doc file " + doc.toFile() + ": " + e);
                 }
             } else {
                 trace.trace("no operations found on " + entryNotes.getName());

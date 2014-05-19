@@ -31,7 +31,8 @@ public class ApidocsDocletRunner {
                 "-d", targetDir.toAbsolutePath().toString(),
                 "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
                 "-restx-target-dir", targetDir.toAbsolutePath().toString(),
-                "-disable-standard-doclet"
+                "-disable-standard-doclet",
+                "-quiet"
         }));
 
         for (Path source : sources) {
