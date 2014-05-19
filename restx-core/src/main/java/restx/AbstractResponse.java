@@ -13,6 +13,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Date: 1/3/14
@@ -30,6 +33,9 @@ public abstract class AbstractResponse<R> implements RestxResponse {
     private OutputStream outputStream;
     private RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
     private boolean closed;
+
+    // used to store headers set to be able to return them in getHeader()
+    private final Map<String, String> headers = new LinkedHashMap<>();
 
     protected AbstractResponse(Class<R> responseClass, R response) {
         this.responseClass = responseClass;
@@ -127,6 +133,20 @@ public abstract class AbstractResponse<R> implements RestxResponse {
     public RestxResponse addCookie(String cookie, String value) {
         addCookie(cookie, value, Duration.ZERO);
         return this;
+    }
+
+    @Override
+    public final RestxResponse setHeader(String headerName, String header) {
+        doSetHeader(headerName, header);
+        headers.put(headerName.toLowerCase(Locale.ENGLISH), header);
+        return this;
+    }
+
+    protected abstract void doSetHeader(String headerName, String header);
+
+    @Override
+    public Optional<String> getHeader(String headerName) {
+        return Optional.fromNullable(headers.get(headerName.toLowerCase(Locale.ENGLISH)));
     }
 
     @Override

@@ -63,6 +63,14 @@ public interface RestxResponse extends AutoCloseable {
     RestxResponse setHeader(String headerName, String header);
 
     /**
+     * Returns the value of a header previously set with setHeader().
+     *
+     * @param headerName the name of the header to get.
+     * @return the header value.
+     */
+    Optional<String> getHeader(String headerName);
+
+    /**
      * Sets the log level of this response.
      *
      * @param level the new level

@@ -41,9 +41,8 @@ public class SimpleRestxResponse extends AbstractResponse<Response> {
     }
 
     @Override
-    public RestxResponse setHeader(String headerName, String header) {
+    public void doSetHeader(String headerName, String header) {
         response.setValue(headerName, header);
-        return this;
     }
 
     @Override

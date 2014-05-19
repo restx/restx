@@ -89,6 +89,11 @@ public class RestxResponseWrapper implements RestxResponse {
         return this;
     }
 
+    @Override
+    public Optional<String> getHeader(String headerName) {
+        return restxResponse.getHeader(headerName);
+    }
+
     public RestxResponse addCookie(String cookie, String value) {
         restxResponse.addCookie(cookie, value);
         return this;

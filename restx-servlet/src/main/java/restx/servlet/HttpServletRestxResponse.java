@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -86,9 +88,8 @@ public class HttpServletRestxResponse extends AbstractResponse<HttpServletRespon
     }
 
     @Override
-    public RestxResponse setHeader(String headerName, String header) {
+    public void doSetHeader(String headerName, String header) {
         resp.setHeader(headerName, header);
-        return this;
     }
 
     @Override
