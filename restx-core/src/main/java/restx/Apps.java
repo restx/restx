@@ -4,7 +4,10 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.io.ByteStreams;
+import restx.apidocs.doclet.ApidocsDocletRunner;
+import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
 import restx.classloader.CompilationSettings;
 import restx.common.MoreFiles;
@@ -34,6 +37,17 @@ public class Apps {
     }
 
     public CompilationManager newAppCompilationManager(EventBus eventBus, CompilationSettings compilationSettings) {
+        eventBus.register(new Object() {
+            @Subscribe
+            public void onCompilationFinished(
+                    CompilationFinishedEvent event) {
+                new ApidocsDocletRunner()
+                        .setTargetDir(getTargetClasses())
+                        .addSources(event.getSources())
+                        .run();
+                ;
+            }
+        });
         return new CompilationManager(eventBus, getSourceRoots(), getTargetClasses(), compilationSettings);
     }
 

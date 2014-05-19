@@ -7,6 +7,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.nio.file.Paths;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -24,6 +25,18 @@ public class ApidocsDocletRunnerTest {
         new ApidocsDocletRunner()
                 .setTargetDir(target.toPath())
                 .addSources(Paths.get("src/test/resources/test/DocletTestResource.java"))
+                .run();
+
+        assertThat(new File(target, "apidocs/test.DocletTestResource.notes.json")).exists();
+    }
+
+    @Test
+    public void should_generate_notes_with_collection() throws Exception {
+        File target = testFolder.newFolder();
+
+        new ApidocsDocletRunner()
+                .setTargetDir(target.toPath())
+                .addSources(asList(Paths.get("src/test/resources/test/DocletTestResource.java")))
                 .run();
 
         assertThat(new File(target, "apidocs/test.DocletTestResource.notes.json")).exists();

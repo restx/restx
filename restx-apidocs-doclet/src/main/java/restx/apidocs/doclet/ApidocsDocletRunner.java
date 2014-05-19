@@ -42,4 +42,8 @@ public class ApidocsDocletRunner {
         com.sun.tools.javadoc.Main.execute(javadocargs.toArray(new String[javadocargs.size()]));
     }
 
+    public ApidocsDocletRunner addSources(Collection<Path> sources) {
+        this.sources.addAll(sources);
+        return this;
+    }
 }

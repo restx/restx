@@ -1,6 +1,9 @@
 package restx.classloader;
 
+import com.google.common.collect.ImmutableCollection;
 import org.joda.time.DateTime;
+
+import java.nio.file.Path;
 
 /**
 * User: xavierhanin
@@ -10,10 +13,12 @@ import org.joda.time.DateTime;
 public class CompilationFinishedEvent {
     private final CompilationManager compilationManager;
     private final DateTime endTime;
+    private final ImmutableCollection<Path> sources;
 
-    public CompilationFinishedEvent(CompilationManager compilationManager, DateTime endTime) {
+    public CompilationFinishedEvent(CompilationManager compilationManager, DateTime endTime, ImmutableCollection<Path> sources) {
         this.compilationManager = compilationManager;
         this.endTime = endTime;
+        this.sources = sources;
     }
 
     public CompilationManager getCompilationManager() {
@@ -22,5 +27,9 @@ public class CompilationFinishedEvent {
 
     public DateTime getEndTime() {
         return endTime;
+    }
+
+    public ImmutableCollection<Path> getSources() {
+        return sources;
     }
 }
