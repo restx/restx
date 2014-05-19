@@ -13,12 +13,16 @@ import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * Date: 25/1/14
@@ -57,6 +61,22 @@ public class DefaultMessages extends AbstractMessages implements Messages {
     }
 
     @Override
+    public Iterable<Entry<String, String>> entries(Locale locale) {
+        Optional<ResourceBundle> rootBundle = getBundle(Locale.ROOT);
+        Optional<ResourceBundle> bundle = getBundle(locale);
+        if (rootBundle.isPresent()) {
+            Set<String> keys = rootBundle.get().keySet();
+            List<Entry<String, String>> entries = new ArrayList<>(keys.size());
+            for (String key : Ordering.natural().sortedCopy(keys)) {
+                entries.add(new SimpleEntry<>(key, getTemplateString(key, locale, bundle)));
+            }
+            return entries;
+        } else {
+            return Collections.emptySet();
+        }
+    }
+
+    @Override
     public String getMessageTemplate(String key, Locale locale) {
         return getTemplateString(key, locale);
     }
@@ -66,7 +86,10 @@ public class DefaultMessages extends AbstractMessages implements Messages {
     }
 
     protected String getTemplateString(String key, Locale locale) {
-        Optional<ResourceBundle> bundle = getBundle(locale);
+        return getTemplateString(key, locale, getBundle(locale));
+    }
+
+    private String getTemplateString(String key, Locale locale, Optional<ResourceBundle> bundle) {
         if (!bundle.isPresent()) {
             return key + "-[" + locale + "]";
         }

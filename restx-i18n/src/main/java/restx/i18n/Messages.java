@@ -1,6 +1,7 @@
 package restx.i18n;
 
 import java.util.Locale;
+import java.util.Map.Entry;
 
 /**
  * Messages allow to access to internationalized messages, similar to what a ResourceBundle do, but with
@@ -13,6 +14,16 @@ public interface Messages {
      * @return the list of keys, as an Iterable
      */
     Iterable<String> keys();
+    /**
+     * Return the list of message entries, i.e. association between a key and message template in the given locale.
+     *
+     * Note that the keys are obtained from the ROOT bundle, so if a key is defined in the ROOT message bundle but not
+     * in the given locale it will appear in the list of entries.
+     *
+     * @param locale the locale in which the message templates should be returned.
+     * @return the list of message entries, as an Iterable
+     */
+    Iterable<Entry<String, String>> entries(Locale locale);
 
     /**
      * Returns the message template associated to the given key in the given locale.

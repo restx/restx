@@ -8,6 +8,7 @@ import javax.inject.Named;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Locale;
+import java.util.Map.Entry;
 
 /**
  * Date: 2/2/14
@@ -75,13 +76,13 @@ public class MessagesRouter extends RestxRouter {
         writer.println("{");
 
         boolean firstKey = true;
-        for (String key : msgs.keys()) {
+        for (Entry<String, String> entry : msgs.entries(locale)) {
             if (firstKey) {
                 firstKey = false;
             } else {
                 writer.print(",\n");
             }
-            writer.print("  \"" + key + "\" : \"" + escape(msgs.getMessageTemplate(key, locale)) + "\"");
+            writer.print(String.format("  \"%s\" : \"%s\"", entry.getKey(), escape(entry.getValue())));
         }
 
         writer.print("\n}");
