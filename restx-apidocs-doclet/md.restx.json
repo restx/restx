@@ -8,8 +8,11 @@
 
     "dependencies": {
         "compile": [
-            "io.restx:restx-factory:${restx.version}",
-            "io.restx:restx-core:${restx.version}"
+            "com.fasterxml.jackson.core:jackson-core:${jackson.version}",
+            "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
+            "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
+            "com.google.guava:guava:${guava.version}",
+            "joda-time:joda-time:${joda-time.version}"
         ],
         "test": [
             "junit:junit:${junit.version}",
