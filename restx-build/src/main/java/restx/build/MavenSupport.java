@@ -6,10 +6,12 @@ import restx.build.org.json.XML;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * User: xavierhanin
@@ -72,6 +74,8 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
         }
     }
     static class Generator {
+        private static final Pattern PLUGIN_PATTERN = Pattern.compile("^\\s*\\Q<plugin>\\E.+\\Q</plugin>\\E\\s*$", Pattern.DOTALL);
+
         public void generate(ModuleDescriptor md, Writer w) throws IOException {
             w.write(HEADER);
 
@@ -115,8 +119,25 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             }
             w.write("    </dependencies>\n");
 
+            StringWriter plugins = new StringWriter();
+            StringWriter others = new StringWriter();
             for (ModuleFragment fragment : md.getFragments("maven")) {
-                fragment.write(md, w);
+                if (fragment.matches(PLUGIN_PATTERN)) {
+                    fragment.write(md, plugins);
+                } else {
+                    fragment.write(md, others);
+                }
+            }
+
+            if (plugins.toString().length() > 0) {
+                w.write("    <build>\n");
+                w.write("        <plugins>\n");
+                w.write(plugins.toString());
+                w.write("        </plugins>\n");
+                w.write("    </build>\n");
+            }
+            if (others.toString().length() > 0) {
+                w.write(others.toString());
             }
 
             w.write(FOOTER);

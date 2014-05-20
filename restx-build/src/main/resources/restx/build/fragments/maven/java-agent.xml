@@ -1,18 +1,14 @@
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <configuration>
-                <archive>
-                    <manifestEntries>
-                        <Premain-Class>${project.premain.classname}</Premain-Class>
-                        <Can-Redefine-Classes>${project.agent.can-redefine-classes}</Can-Redefine-Classes>
-                        <Can-Retransform-Classes>${project.agent.can-retransform-classes}</Can-Retransform-Classes>
-                        <Can-Set-Native-Method-Prefix>${project.agent.can-set-native-method-prefix}</Can-Set-Native-Method-Prefix>
-                    </manifestEntries>
-                </archive>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Premain-Class>${project.premain.classname}</Premain-Class>
+                            <Can-Redefine-Classes>${project.agent.can-redefine-classes}</Can-Redefine-Classes>
+                            <Can-Retransform-Classes>${project.agent.can-retransform-classes}</Can-Retransform-Classes>
+                            <Can-Set-Native-Method-Prefix>${project.agent.can-set-native-method-prefix}</Can-Set-Native-Method-Prefix>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
