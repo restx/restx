@@ -114,6 +114,12 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                     if (!"compile".equals(scope)) {
                         writeXmlTag(w, "            ", "scope", scope);
                     }
+                    if ("system".equals(scope)) {
+                        if (dependency.getGav().getGroupId().equals("com.sun.tools")
+                                && dependency.getGav().getArtifactId().equals("tools")) {
+                            writeXmlTag(w, "            ", "systemPath", "${java.home}/../lib/tools.jar");
+                        }
+                    }
                     w.write("        </dependency>\n");
                 }
             }

@@ -81,6 +81,11 @@ public class RestxBuildTest {
         shouldGenerate(json, "Module7.restx.json", maven, "Module7.pom.xml");
     }
 
+    @Test
+    public void should_generate_pom_with_tools_dependency() throws Exception {
+        shouldGenerate(json, "Module8.restx.json", maven, "Module8.pom.xml");
+    }
+
 
     private void shouldGenerate(RestxBuild.Parser parser, String module, RestxBuild.Generator generator, String expected) throws IOException {
         URL resource = getClass().getResource(module);
