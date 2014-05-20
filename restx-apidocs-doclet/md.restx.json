@@ -7,6 +7,9 @@
     },
 
     "dependencies": {
+        "system": [
+            "com.sun.tools:tools:${java.version}"
+        ],
         "compile": [
             "com.fasterxml.jackson.core:jackson-core:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",

@@ -14,6 +14,7 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
+        <dependency org="com.sun.tools" name="tools" rev="1.7" conf="system->default" />
         <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.3.3" conf="default" />
         <dependency org="com.fasterxml.jackson.core" name="jackson-annotations" rev="2.3.3" conf="default" />
         <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.3.3" conf="default" />
