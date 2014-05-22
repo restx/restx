@@ -1,26 +1,19 @@
 package restx.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.common.base.Optional;
-import restx.RestxLogLevel;
-import restx.RestxRequest;
-import restx.RestxRequestMatch;
-import restx.RestxRequestMatcher;
-import restx.entity.*;
-import restx.http.HttpStatus;
+import restx.entity.StdEntityRoute;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 
 public class JsonEntityRouteBuilder<I,O> extends StdEntityRoute.Builder<I,O> {
-    public JsonEntityRouteBuilder<I,O> withObjectWriter(ObjectWriter writer) {
-        entityResponseWriter(JsonEntityResponseWriter.<O>using(writer));
+    public JsonEntityRouteBuilder<I,O> withObjectWriter(Type type, ObjectWriter writer) {
+        entityResponseWriter(JsonEntityResponseWriter.<O>using(type, writer));
         return this;
     }
 
-    public JsonEntityRouteBuilder<I,O> withObjectReader(ObjectReader reader) {
-        entityRequestBodyReader(JsonEntityRequestBodyReader.<I>using(reader));
+    public JsonEntityRouteBuilder<I,O> withObjectReader(Type type, ObjectReader reader) {
+        entityRequestBodyReader(JsonEntityRequestBodyReader.<I>using(type, reader));
         return this;
     }
 

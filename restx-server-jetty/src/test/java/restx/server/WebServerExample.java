@@ -9,6 +9,7 @@ import restx.entity.MatchedEntityRoute;
 import restx.servlet.AbstractRestxMainRouterServlet;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -22,19 +23,19 @@ public class WebServerExample {
     private static final RestxMainRouter ROUTER = StdRestxMainRouter.builder()
             .addRouter(RestxRouter.builder()
                     .withMapper(mapper)
-                    .GET("/route1/{id}", new MatchedEntityOutputRoute() {
+                    .GET("/route1/{id}", Map.class, new MatchedEntityOutputRoute() {
                         @Override
                         public Optional route(RestxRequest restxRequest, RestxRequestMatch match) {
                             return Optional.of(ImmutableMap.of("id", match.getPathParam("id")));
                         }
                     })
-                    .GET("/route2", new MatchedEntityOutputRoute() {
+                    .GET("/route2", Map.class, new MatchedEntityOutputRoute() {
                         @Override
                         public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                             return Optional.of(ImmutableMap.of("path", "route2"));
                         }
                     })
-                    .GET("/route3", new MatchedEntityOutputRoute() {
+                    .GET("/route3", Map.class, new MatchedEntityOutputRoute() {
                         @Override
                         public Optional<?> route(RestxRequest restxRequest, RestxRequestMatch match) throws IOException {
                             return Optional.of(ImmutableMap.of("path", "route3"));

@@ -51,6 +51,7 @@ public class JsonContentTypeModule {
                 Class<?> clazz = getCTJacksonViewClass(valueType, contentType, Views.Transient.class);
                 return Optional.of(
                         JsonEntityRequestBodyReader.<T>using(
+                                valueType,
                                 reader.withView(clazz)
                                         .withType(TypeFactory.defaultInstance().constructType(valueType))))
                         ;
@@ -78,7 +79,7 @@ public class JsonContentTypeModule {
                      */
                     writer = writer.withType(TypeFactory.defaultInstance().constructType(valueType));
                 }
-                return Optional.of(JsonEntityResponseWriter.<T>using(writer));
+                return Optional.of(JsonEntityResponseWriter.<T>using(valueType, writer));
             }
         };
     }

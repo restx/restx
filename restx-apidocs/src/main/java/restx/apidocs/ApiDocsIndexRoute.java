@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -43,7 +44,7 @@ public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
 
     @Inject
     public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer, Factory factory) {
-        super("ApiDocsIndexRoute", writer, new StdRestxRequestMatcher("GET", "/@/api-docs"));
+        super("ApiDocsIndexRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs"));
         this.factory = factory;
     }
 

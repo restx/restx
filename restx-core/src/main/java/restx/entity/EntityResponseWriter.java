@@ -13,5 +13,22 @@ import java.lang.reflect.Type;
  * Time: 08:59
  */
 public interface EntityResponseWriter<T> {
+    /**
+     * The type of T that this reader is handling.
+     *
+     * @return type of T that this reader is handling.
+     */
+    Type getType();
+
+    /**
+     * Writes a T into a RestxResponse.
+     *
+     * @param status the HttpStatus of the current response
+     * @param value the T value to write to the response
+     * @param req the original request
+     * @param resp the repsonse to write to
+     * @param ctx the current context
+     * @throws IOException in case of IO error
+     */
     void sendResponse(HttpStatus status, T value, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException;
 }

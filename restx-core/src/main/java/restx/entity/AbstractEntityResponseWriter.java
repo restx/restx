@@ -6,16 +6,24 @@ import restx.RestxResponse;
 import restx.http.HttpStatus;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 /**
  * Date: 23/10/13
  * Time: 11:39
  */
 public abstract class AbstractEntityResponseWriter<T> implements EntityResponseWriter<T> {
+    private final Type type;
     private final String contentType;
 
-    protected AbstractEntityResponseWriter(String contentType) {
+    protected AbstractEntityResponseWriter(Type type, String contentType) {
+        this.type = type;
         this.contentType = contentType;
+    }
+
+    @Override
+    public Type getType() {
+        return type;
     }
 
     @Override

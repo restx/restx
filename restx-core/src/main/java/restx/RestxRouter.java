@@ -11,6 +11,7 @@ import restx.jackson.JsonEntityRouteBuilder;
 import restx.jackson.StdJsonProducerEntityRoute;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -67,28 +68,28 @@ public class RestxRouter {
             return this;
         }
 
-        public <O> Builder GET(String path, final MatchedEntityRoute<Void, O> route) {
-            return addRoute("GET", path, route);
+        public <O> Builder GET(String path, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("GET", path, outputType, route);
         }
 
-        public <O> Builder DELETE(String path, final MatchedEntityRoute<Void, O> route) {
-            return addRoute("DELETE", path, route);
+        public <O> Builder DELETE(String path, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("DELETE", path, outputType, route);
         }
 
-        public <O> Builder HEAD(String path, final MatchedEntityRoute<Void, O> route) {
-            return addRoute("HEAD", path, route);
+        public <O> Builder HEAD(String path, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("HEAD", path, outputType, route);
         }
 
-        public <O> Builder OPTIONS(String path, final MatchedEntityRoute<Void, O> route) {
-            return addRoute("OPTIONS", path, route);
+        public <O> Builder OPTIONS(String path, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            return addRoute("OPTIONS", path, outputType, route);
         }
 
-        public <O> Builder addRoute(String method, String path, final MatchedEntityRoute<Void, O> route) {
-            return addRoute(path, new StdRestxRequestMatcher(method, path), route);
+        public <O> Builder addRoute(String method, String path, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            return addRoute(path, new StdRestxRequestMatcher(method, path), outputType, route);
         }
 
-        public <O> Builder addRoute(String name, RestxRequestMatcher matcher, final MatchedEntityRoute<Void, O> route) {
-            routes.add(new StdJsonProducerEntityRoute<O>(name, writer, matcher) {
+        public <O> Builder addRoute(String name, RestxRequestMatcher matcher, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            routes.add(new StdJsonProducerEntityRoute<O>(name, outputType, writer.withType(outputType), matcher) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Void i) throws IOException {
                     return route.route(restxRequest, match, i);
@@ -97,22 +98,23 @@ public class RestxRouter {
             return this;
         }
 
-        public <I,O> Builder PUT(String path, Class<I> inputType, MatchedEntityRoute<I, O> route) {
-            return addRoute("PUT", path, inputType, route);
+        public <I,O> Builder PUT(String path, Class<I> inputType, Class<O> outputType, MatchedEntityRoute<I, O> route) {
+            return addRoute("PUT", path, inputType, outputType, route);
         }
 
-        public <I,O> Builder POST(String path, Class<I> inputType, MatchedEntityRoute<I, O> route) {
-            return addRoute("POST", path, inputType, route);
+        public <I,O> Builder POST(String path, Class<I> inputType, Class<O> outputType, MatchedEntityRoute<I, O> route) {
+            return addRoute("POST", path, inputType, outputType, route);
         }
 
-        public <I,O> Builder addRoute(String method, String path, Class<I> inputType, MatchedEntityRoute<I, O> route) {
-            return addRoute(path, new StdRestxRequestMatcher(method, path), inputType, route);
+        public <I,O> Builder addRoute(String method, String path, Class<I> inputType, Class<O> outputType, MatchedEntityRoute<I, O> route) {
+            return addRoute(path, new StdRestxRequestMatcher(method, path), inputType, outputType, route);
         }
 
-        public <I, O> Builder addRoute(String name, StdRestxRequestMatcher matcher, Class<I> inputType, MatchedEntityRoute<I, O> route) {
+        public <I, O> Builder addRoute(String name, StdRestxRequestMatcher matcher,
+                                       Class<I> inputType, Class<O> outputType, MatchedEntityRoute<I, O> route) {
             routes.add(new JsonEntityRouteBuilder<I, O>()
-                    .withObjectWriter(writer)
-                    .withObjectReader(reader.withType(inputType))
+                    .withObjectWriter(outputType, writer)
+                    .withObjectReader(inputType, reader.withType(inputType))
                     .name(name)
                     .matcher(matcher)
                     .matchedEntityRoute(route)

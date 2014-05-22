@@ -1,28 +1,33 @@
 package restx.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.collect.Lists;
 import restx.RestxContext;
 import restx.RestxRequest;
-import restx.RestxResponse;
 import restx.entity.EntityRequestBodyReader;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 /**
  * Date: 23/10/13
  * Time: 09:07
  */
 public class JsonEntityRequestBodyReader<T> implements EntityRequestBodyReader<T> {
-    public static <T> JsonEntityRequestBodyReader<T> using(ObjectReader reader) {
-        return new JsonEntityRequestBodyReader<>(reader);
+    public static <T> JsonEntityRequestBodyReader<T> using(Type type, ObjectReader reader) {
+        return new JsonEntityRequestBodyReader<>(type, reader);
     }
 
+    private final Type type;
     protected final ObjectReader reader;
 
-    private JsonEntityRequestBodyReader(ObjectReader reader) {
+    private JsonEntityRequestBodyReader(Type type, ObjectReader reader) {
+        this.type = type;
         this.reader = reader;
+    }
+
+    @Override
+    public Type getType() {
+        return type;
     }
 
     @Override

@@ -32,13 +32,13 @@ public class SimpleWebServerTest {
         SimpleWebServer server = SimpleWebServer.builder().setRouter(StdRestxMainRouter.builder()
                 .addRouter(RestxRouter.builder()
                         .withMapper(mapper)
-                        .GET("/route1/{id}", new MatchedEntityOutputRoute() {
+                        .GET("/route1/{id}", Map.class, new MatchedEntityOutputRoute() {
                             @Override
                             public Optional route(RestxRequest restxRequest, RestxRequestMatch match) {
                                 return Optional.of(ImmutableMap.of("id", match.getPathParam("id")));
                             }
                         })
-                        .PUT("/route4", Map.class, new MatchedEntityRoute<Map, Map>() {
+                        .PUT("/route4", Map.class, Map.class, new MatchedEntityRoute<Map, Map>() {
                             @Override
                             public Optional<Map> route(RestxRequest restxRequest, RestxRequestMatch match, Map input) throws IOException {
                                 input.put("size", input.size());

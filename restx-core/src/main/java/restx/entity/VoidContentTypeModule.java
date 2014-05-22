@@ -63,6 +63,11 @@ public class VoidContentTypeModule {
 
                 return Optional.of(new EntityResponseWriter<T>() {
                     @Override
+                    public Type getType() {
+                        return Void.TYPE;
+                    }
+
+                    @Override
                     public void sendResponse(HttpStatus status, T value, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         resp.setStatus(status == HttpStatus.OK ? HttpStatus.NO_CONTENT : status);
                         ctx.getLifecycleListener().onBeforeWriteContent(req, resp);
@@ -75,6 +80,11 @@ public class VoidContentTypeModule {
 
     public static class VoidEntityRequestBodyReader implements EntityRequestBodyReader<Void> {
         public static final VoidEntityRequestBodyReader INSTANCE = new VoidEntityRequestBodyReader();
+
+        @Override
+        public Type getType() {
+            return Void.TYPE;
+        }
 
         @Override
         public Void readBody(RestxRequest req, RestxContext ctx) throws IOException {

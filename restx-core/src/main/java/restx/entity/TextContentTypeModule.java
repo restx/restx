@@ -4,10 +4,6 @@ import com.google.common.base.Optional;
 import restx.RestxContext;
 import restx.RestxRequest;
 import restx.RestxResponse;
-import restx.entity.AbstractEntityResponseWriter;
-import restx.entity.EntityDefaultContentTypeProvider;
-import restx.entity.EntityResponseWriter;
-import restx.entity.EntityResponseWriterFactory;
 import restx.factory.Module;
 import restx.factory.Provides;
 
@@ -50,7 +46,7 @@ public class TextContentTypeModule {
                     return Optional.absent();
                 }
 
-                return Optional.of(new AbstractEntityResponseWriter<T>("text/plain") {
+                return Optional.of(new AbstractEntityResponseWriter<T>(valueType, "text/plain") {
                     @Override
                     protected void write(T value, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                         resp.getWriter().append(value.toString());
