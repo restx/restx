@@ -1,15 +1,18 @@
 package restx.entity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
-import restx.*;
-import restx.entity.EntityResponseWriter;
+import restx.RestxContext;
+import restx.RestxLogLevel;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxRequestMatcher;
+import restx.RestxResponse;
+import restx.RouteLifecycleListener;
+import restx.StdRoute;
 import restx.http.HttpStatus;
-import restx.jackson.JsonEntityRequestBodyReader;
-import restx.jackson.JsonEntityResponseWriter;
-import restx.jackson.Views;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -104,6 +107,24 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         this.entityRequestBodyReader = checkNotNull(entityRequestBodyReader);
         this.entityResponseWriter = checkNotNull(entityResponseWriter);
         this.logLevel = checkNotNull(logLevel);
+    }
+
+    /**
+     * The Java type of I, the entity into which request body will be unmarshalled.
+     *
+     * @return I type
+     */
+    public Type getEntityRequestBodyType() {
+        return entityRequestBodyReader.getType();
+    }
+
+    /**
+     * The Java type of O, the entity from which response body will be marshalled.
+     *
+     * @return O type
+     */
+    public Type getEntityResponseType() {
+        return entityResponseWriter.getType();
     }
 
     @Override
