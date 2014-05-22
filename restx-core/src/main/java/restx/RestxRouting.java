@@ -1,9 +1,14 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableMultimap.Builder;
 import com.google.common.collect.Lists;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -13,10 +18,24 @@ import java.util.List;
  */
 public class RestxRouting {
     private final ImmutableList<RestxFilter> filters;
+    private final ImmutableMultimap<RestxRoute, RestxHandlerMatch> routeFilters;
     private final ImmutableList<RestxRoute> routes;
 
-    public RestxRouting(ImmutableList<RestxFilter> filters, ImmutableList<RestxRoute> routes) {
+    public RestxRouting(ImmutableList<RestxFilter> filters,
+                        ImmutableList<RestxRouteFilter> routeFilters,
+                        ImmutableList<RestxRoute> routes) {
         this.filters = filters;
+        Builder<RestxRoute, RestxHandlerMatch> builder = ImmutableMultimap.builder();
+        for (RestxRoute route : routes) {
+            for (RestxRouteFilter routeFilter : routeFilters) {
+                Optional<RestxHandlerMatch> m = routeFilter.match(route);
+                if (m.isPresent()) {
+                    RestxHandlerMatch restxHandlerMatch = m.get();
+                    builder.put(route, restxHandlerMatch);
+                }
+            }
+        }
+        this.routeFilters = builder.build();
         this.routes = routes;
     }
 
@@ -39,11 +58,16 @@ public class RestxRouting {
         for (RestxRoute route : routes) {
             Optional<? extends RestxHandlerMatch> match = route.match(restxRequest);
             if (match.isPresent()) {
+                matches.addAll(getRouteFilters(route));
                 matches.add(match.get());
                 return Optional.of(new Match(matches, match));
             }
         }
         return Optional.absent();
+    }
+
+    private ImmutableCollection<? extends RestxHandlerMatch> getRouteFilters(RestxRoute route) {
+        return routeFilters.get(route);
     }
 
     public static class Match {

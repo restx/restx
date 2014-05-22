@@ -39,6 +39,7 @@ public class StdRestxMainRouter implements RestxMainRouter {
         private MetricRegistry metrics;
         private String mode = RestxContext.Modes.PROD;
         private List<RestxFilter> filters = Lists.newArrayList();
+        private List<RestxRouteFilter> routeFilters = Lists.newArrayList();
         private List<RestxRoute> routes = Lists.newArrayList();
 
         public Builder withMetrics(MetricRegistry metrics) {
@@ -56,6 +57,11 @@ public class StdRestxMainRouter implements RestxMainRouter {
             return this;
         }
 
+        public Builder addFilter(RestxRouteFilter filter) {
+            routeFilters.add(filter);
+            return this;
+        }
+
         public Builder addRouter(RestxRouter router) {
             routes.addAll(router.getRoutes());
             return this;
@@ -69,7 +75,10 @@ public class StdRestxMainRouter implements RestxMainRouter {
         public RestxMainRouter build() {
             return new StdRestxMainRouter(
                     metrics == null ? getMetricsRegistryComponent() : metrics,
-                    new RestxRouting(ImmutableList.copyOf(filters), ImmutableList.copyOf(routes)),
+                    new RestxRouting(
+                            ImmutableList.copyOf(filters),
+                            ImmutableList.copyOf(routeFilters),
+                            ImmutableList.copyOf(routes)),
                     mode);
         }
     }
