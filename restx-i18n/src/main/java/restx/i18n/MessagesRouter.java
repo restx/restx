@@ -1,7 +1,13 @@
 package restx.i18n;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import restx.*;
 import restx.factory.Component;
+import restx.http.CacheControl;
+import restx.http.ETag;
 import restx.http.HttpStatus;
 
 import javax.inject.Named;
@@ -31,12 +37,13 @@ public class MessagesRouter extends RestxRouter {
 
         @Override
         public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+            Iterable<Entry<String, String>> entries = messages.entries(req.getLocale());
+            handleETagFor(req, resp, entries);
             resp.setStatus(HttpStatus.OK);
             resp.setContentType("application/json");
-            Locale locale = req.getLocale();
 
             PrintWriter writer = resp.getWriter();
-            writeLabelsJson(locale, writer, messages);
+            writeLabelsJson(writer, entries);
         }
 
     }
@@ -60,23 +67,33 @@ public class MessagesRouter extends RestxRouter {
 
         @Override
         public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+            Iterable<Entry<String, String>> entries = messages.entries(req.getLocale());
+            handleETagFor(req, resp, entries);
+
             resp.setStatus(HttpStatus.OK);
             resp.setContentType("application/javascript");
-            Locale locale = req.getLocale();
 
             PrintWriter writer = resp.getWriter();
 
             writer.print(labelsJsBefore);
-            writeLabelsJson(locale, writer, messages);
+            writeLabelsJson(writer, entries);
             writer.print(labelsJsAfter);
         }
     }
 
-    protected static void writeLabelsJson(Locale locale, PrintWriter writer, Messages msgs) {
+    protected static void handleETagFor(RestxRequest req, RestxResponse resp, Iterable<Entry<String, String>> entries) {
+        Hasher hasher = Hashing.sha1().newHasher();
+        for (Entry<String, String> entry : entries) {
+            hasher.putString(entry.getKey(), Charsets.UTF_8).putString(entry.getValue(), Charsets.UTF_8);
+        }
+        new ETag(hasher.hash().toString(), CacheControl.MUST_REVALIDATE).handleIn(req, resp);
+    }
+
+    protected static void writeLabelsJson(PrintWriter writer, Iterable<Entry<String, String>> labels) {
         writer.println("{");
 
         boolean firstKey = true;
-        for (Entry<String, String> entry : msgs.entries(locale)) {
+        for (Entry<String, String> entry : labels) {
             if (firstKey) {
                 firstKey = false;
             } else {
