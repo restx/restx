@@ -1166,7 +1166,7 @@ public class Factory implements AutoCloseable {
                 buildingBox.satisfiedBOM = new SatisfiedBOM(buildingBox.engine.getBillOfMaterial(),
                         ImmutableMultimap.<Query<?>, NamedComponent<?>>of());
             } else {
-                ImmutableMultimap.Builder<Query<?>, NamedComponent<?>> materials = ImmutableMultimap.builder();
+                ImmutableMultimap.Builder<Query<?>, NamedComponent<?>> materials = ImmutableListMultimap.builder();
                 for (Query<?> key : buildingBox.engine.getBillOfMaterial().getQueries()) {
                     Collection<Name<?>> names = buildingBox.names.get(key);
                     for (Name<?> name : names) {
