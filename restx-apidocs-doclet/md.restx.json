@@ -1,0 +1,25 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-apidocs-doclet:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "system": [
+            "com.sun.tools:tools:${java.version}"
+        ],
+        "compile": [
+            "com.fasterxml.jackson.core:jackson-core:${jackson.version}",
+            "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
+            "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
+            "com.google.guava:guava:${guava.version}",
+            "joda-time:joda-time:${joda-time.version}"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.assertj:assertj-core:${assertj-core.version}"
+        ]
+    }
+}

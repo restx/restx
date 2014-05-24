@@ -1,6 +1,7 @@
 package restx.classloader;
 
 import com.google.common.base.*;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -490,7 +491,7 @@ public class CompilationManager {
                 saveHashes();
 
                 logger.info("compilation finished: {} sources compiled in {}", sources.size(), stopwatch.stop());
-                eventBus.post(new CompilationFinishedEvent(this, DateTime.now()));
+                eventBus.post(new CompilationFinishedEvent(this, DateTime.now(), ImmutableList.copyOf(sources)));
                 for (Diagnostic<?> d : diagnostics.getDiagnostics()) {
                     logger.debug("{}", d);
                 }

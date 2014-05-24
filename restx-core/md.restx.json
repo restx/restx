@@ -15,6 +15,7 @@
             "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jackson.version}",
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-classloader:${restx.version}",
+            "io.restx:restx-apidocs-doclet:${restx.version}",
             "javax.inject:javax.inject:${javax.inject.version}",
             "com.google.guava:guava:${guava.version}",
             "joda-time:joda-time:${joda-time.version}",

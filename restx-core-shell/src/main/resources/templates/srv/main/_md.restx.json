@@ -8,13 +8,13 @@
         "project.war.overlay.groupId": "{{groupId}}",
         "project.war.overlay.artifactId": "{{artifactId}}"{{/useSrvuiLayout}}
     },
-{{#useSrvuiLayout}}
     "fragments": {
         "maven": [
+            "classpath:///restx/build/fragments/maven/javadoc-apidoclet.xml"{{#useSrvuiLayout}},
             "classpath:///restx/build/fragments/maven/war-overlay-resources.xml"
+{{/useSrvuiLayout}}
         ]
     },
-{{/useSrvuiLayout}}
     "dependencies": {
         "compile": [
 {{#useSrvuiLayout}}

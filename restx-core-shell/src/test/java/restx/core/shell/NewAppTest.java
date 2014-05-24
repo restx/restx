@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import restx.CoreModule;
 import restx.build.RestxJsonSupport;
+import restx.common.OSUtils;
 import restx.factory.Factory;
 import restx.shell.RestxShell;
 
@@ -74,6 +75,17 @@ public class NewAppTest {
         Path appPath = appCommandRunner.generateApp(descriptor, shell);
 
         Verifier mavenVerifier = new Verifier(appPath.toString());
+
+        if (OSUtils.isMacOSX()) {
+            // on MacOSX, when using the verifier JAVA_HOME is not always properly detected
+            // sometimes it points to JRE, making javadoc call fail.
+            // Here is a workaround for that problem
+            String javaHome = System.getProperty("java.home");
+            if (javaHome.endsWith("jre")) {
+                javaHome = new File(javaHome).getParentFile().getCanonicalPath();
+                mavenVerifier.setEnvironmentVariable("JAVA_HOME", javaHome);
+            }
+        }
         mavenVerifier.executeGoal("package");
         mavenVerifier.verifyErrorFreeLog();
     }

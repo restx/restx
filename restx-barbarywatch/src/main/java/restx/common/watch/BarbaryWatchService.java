@@ -4,6 +4,7 @@ import com.barbarysoftware.watchservice.*;
 import com.barbarysoftware.watchservice.WatchKey;
 import com.barbarysoftware.watchservice.WatchService;
 import com.google.common.eventbus.EventBus;
+import restx.common.OSUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -41,8 +42,7 @@ public class BarbaryWatchService implements WatcherService {
 
     @Override
     public boolean isEnabled() {
-        String osName = System.getProperty("os.name");
-        return osName.startsWith("Mac OS X") || osName.startsWith("Darwin");
+        return OSUtils.isMacOSX();
     }
 
     private static class WatchDir implements Closeable{

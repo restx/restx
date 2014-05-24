@@ -31,6 +31,12 @@ public class CoreResource {
         }
     }
 
+    /**
+     * Says hello to the given person.
+     *
+     * @param who the person to whom we say hello
+     * @return hello message
+     */
     @GET("/hello")
     public String hello(String who) {
         return "hello " + who;

@@ -4,7 +4,9 @@
         <div class="clearfix">
             <h2>Description</h2>
             <button ng-click="toggleTry()" class="btn pull-right try-btn" ng-class="{'btn-success': !try, 'btn-warning': try}">{{tryButtonLabel}}</button>
+            <p><label>Notes:</label> {{opNotes.notes}}</p>
             <p><label>Nick name:</label> {{operation.nickname}}</p>
+            <p><label>Response:</label> {{opNotes.responseNotes}} </p>
             <p><label>Response class:</label>
                 <a ng-show="operation.outEntitySchemaKey" href="#/entity/{{operation.outEntitySchemaKey}}">{{operation.responseClass}}</a>
                 <span ng-hide="operation.outEntitySchemaKey">{{operation.responseClass}}</span>
@@ -30,6 +32,7 @@
                 <thead>
                     <th class="name">Name</th>
                     <th class="value" ng-show="try">Value</th>
+                    <th class="notes">Notes</th>
                     <th class="paramType">Param Type</th>
                     <th class="dataType">Data Type</th>
                     <th class="required">Required</th>
@@ -40,6 +43,7 @@
                         <textarea ng-switch-when="body" ng-model="param.value"></textarea>
                         <input ng-switch-default type="text" ng-model="param.value">
                     </td>
+                    <td class="paramType">{{opNotes.getParam(param.name).notes}}</td>
                     <td class="paramType">{{param.paramType}}</td>
                     <td class="dataType">
                         <a ng-show="param.schemaKey" href="#/entity/{{param.schemaKey}}">{{param.dataType}}</a>

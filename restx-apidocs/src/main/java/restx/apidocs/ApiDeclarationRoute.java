@@ -71,6 +71,7 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
                 .put("apiVersion", "0.1") // TODO
                 .put("swaggerVersion", "1.1")
                 .put("basePath", restxRequest.getBaseNetworkPath())
+                .put("name", router.get().getComponent().getClass().getName().replaceAll("Router$", ""))
                 .put("apis", apis)
                 .build());
     }
