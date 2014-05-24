@@ -14,12 +14,12 @@ import java.io.IOException;
  * may want to write to response, and RESTX main router does also.
  */
 @Component(priority = 10000)
-public class ResponseCloserFilter implements RestxFilter, RestxHandler {
+public class ResponseCloserFilter implements RestxRouteFilter, RestxHandler {
     private static final Logger logger = LoggerFactory.getLogger(ResponseCloserFilter.class);
 
     @Override
-    public Optional<RestxHandlerMatch> match(RestxRequest req) {
-        return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch(req.getRestxPath()), this));
+    public Optional<RestxHandlerMatch> match(RestxRoute route) {
+        return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("/*"), this));
     }
 
     @Override

@@ -26,6 +26,8 @@ import restx.RestxHandlerMatch;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
 import restx.RestxResponse;
+import restx.RestxRoute;
+import restx.RestxRouteFilter;
 import restx.RouteLifecycleListener;
 import restx.StdRestxRequestMatch;
 import restx.WebException;
@@ -40,7 +42,7 @@ import restx.jackson.FrontObjectMapperFactory;
  * Time: 8:59 PM
  */
 @Component(priority = -200)
-public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
+public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler {
     public static final Name<RestxSessionCookieFilter> NAME = Name.of(RestxSessionCookieFilter.class, "RestxSessionCookieFilter");
 	public static final String COOKIE_SIGNER_NAME = "CookieSigner";
 
@@ -68,11 +70,9 @@ public class RestxSessionCookieFilter implements RestxFilter, RestxHandler {
 				Optional.<RestxPrincipal>absent(), Duration.ZERO);
 	}
 
-	@Override
-    public Optional<RestxHandlerMatch> match(RestxRequest req) {
-        return Optional.of(new RestxHandlerMatch(
-                new StdRestxRequestMatch("*", req.getRestxPath()),
-                this));
+    @Override
+    public Optional<RestxHandlerMatch> match(RestxRoute route) {
+        return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("/*"), this));
     }
 
     @Override

@@ -13,7 +13,7 @@ import java.io.IOException;
  * Used only when RestxSessionCookieFilter is deactivated.
  */
 @Component(priority = -199)
-public class RestxSessionBareFilter implements RestxFilter, RestxHandler {
+public class RestxSessionBareFilter implements RestxRouteFilter, RestxHandler {
     private final RestxSession.Definition definition;
 
     public RestxSessionBareFilter(RestxSession.Definition definition) {
@@ -21,10 +21,8 @@ public class RestxSessionBareFilter implements RestxFilter, RestxHandler {
     }
 
     @Override
-    public Optional<RestxHandlerMatch> match(RestxRequest req) {
-        return Optional.of(new RestxHandlerMatch(
-                new StdRestxRequestMatch("*", req.getRestxPath()),
-                this));
+    public Optional<RestxHandlerMatch> match(RestxRoute route) {
+        return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("/*"), this));
     }
 
     @Override

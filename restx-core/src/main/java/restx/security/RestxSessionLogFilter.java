@@ -17,7 +17,7 @@ import java.io.IOException;
  * and -110 to be logged.
  */
 @Component(priority = -110)
-public class RestxSessionLogFilter implements RestxFilter, RestxHandler {
+public class RestxSessionLogFilter implements RestxRouteFilter, RestxHandler {
     private final Sessions sessions;
 
     public RestxSessionLogFilter(Sessions sessions) {
@@ -25,10 +25,8 @@ public class RestxSessionLogFilter implements RestxFilter, RestxHandler {
     }
 
     @Override
-    public Optional<RestxHandlerMatch> match(RestxRequest req) {
-        return Optional.of(new RestxHandlerMatch(
-                new StdRestxRequestMatch("*", req.getRestxPath()),
-                this));
+    public Optional<RestxHandlerMatch> match(RestxRoute route) {
+        return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("/*"), this));
     }
 
     @Override

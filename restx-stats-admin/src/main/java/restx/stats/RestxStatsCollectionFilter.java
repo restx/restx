@@ -9,6 +9,8 @@ import restx.RestxHandlerMatch;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
 import restx.RestxResponse;
+import restx.RestxRoute;
+import restx.RestxRouteFilter;
 import restx.StdRestxRequestMatch;
 import restx.factory.Component;
 
@@ -18,13 +20,7 @@ import java.io.IOException;
  * A filter used to notifiy the stats collector of all requests performed on the server.
  */
 @Component(priority = -1000)
-public final class RestxStatsCollectionFilter implements RestxFilter, RestxHandler {
-    /**
-     * We create a single match to minimize impact on performance,
-     * we don't need to reuse any information on the match itself anyway.
-     */
-    private final Optional<RestxHandlerMatch> match = Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("/*"), this));
-
+public final class RestxStatsCollectionFilter implements RestxRouteFilter, RestxHandler {
     private final RestxStatsCollector collector;
 
     public RestxStatsCollectionFilter(RestxStatsCollector collector) {
@@ -32,8 +28,8 @@ public final class RestxStatsCollectionFilter implements RestxFilter, RestxHandl
     }
 
     @Override
-    public Optional<RestxHandlerMatch> match(RestxRequest req) {
-        return match;
+    public Optional<RestxHandlerMatch> match(RestxRoute route) {
+        return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("/*"), this));
     }
 
     @Override
