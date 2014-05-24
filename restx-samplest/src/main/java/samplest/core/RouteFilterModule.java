@@ -39,7 +39,7 @@ public class RouteFilterModule {
         return new ExampleRoute();
     }
 
-    @Provides
+    @Provides(priority = 12000) // we set a priority higher than ResponseCloseFilter, so that response is not closed after the handle
     public RestxRouteFilter routeFilterExample() {
         return new RestxRouteFilter() {
             @Override
