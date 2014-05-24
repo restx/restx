@@ -35,7 +35,7 @@ public final class Name<T> {
     }
 
     public String asId() {
-        return name; // + "[" + clazz.getName() + "]";
+        return "[" + clazz.getName() + "]" + name;
     }
 
     public String getName() {
