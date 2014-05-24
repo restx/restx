@@ -18,6 +18,22 @@ import static restx.factory.Factory.LocalMachines.threadLocal;
 public class FactoryTest {
 
     @Test
+    public void should_compare_named_component() throws Exception {
+        assertThat(Factory.NAMED_COMPONENT_COMPARATOR.compare(
+                NamedComponent.of(String.class, "test1", 0, "A"),
+                NamedComponent.of(String.class, "test2", 0, "A")
+        )).isLessThan(0);
+        assertThat(Factory.NAMED_COMPONENT_COMPARATOR.compare(
+                NamedComponent.of(String.class, "test", 0, "A"),
+                NamedComponent.of(String.class, "test2", 0, "A")
+        )).isLessThan(0);
+        assertThat(Factory.NAMED_COMPONENT_COMPARATOR.compare(
+                NamedComponent.of(String.class, "test2", -10, "A"),
+                NamedComponent.of(String.class, "test1", 0, "A")
+        )).isLessThan(0);
+    }
+
+    @Test
     public void should_build_new_component_from_single_machine() throws Exception {
         Factory factory = Factory.builder().addMachine(testMachine()).build();
 
