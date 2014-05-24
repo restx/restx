@@ -39,6 +39,22 @@ public class FactoryTest {
                 .containsExactly(tuple(0, "B"), tuple(0, "C"), tuple(1, "A"));
     }
 
+    @Test
+    public void should_inject_named_component() {
+        Factory factory = Factory.builder().addFromServiceLoader().build();
+
+        assertThat(factory.queryByName(Name.of(String.class, "NCB")).findOneAsComponent())
+                .isEqualTo(Optional.of("NCA -10 NamedComponentA"));
+    }
+
+    @Test
+    public void should_inject_multiple_named_components() {
+        Factory factory = Factory.builder().addFromServiceLoader().build();
+
+        assertThat(factory.queryByName(Name.of(String.class, "NCMB")).findOneAsComponent())
+                .isEqualTo(Optional.of("NCMA2 -10 NamedComponentA2;NCMA1 0 NamedComponentA1"));
+    }
+
     @Test(expected = IllegalStateException.class)
     public void should_missing_mandatory_named_dependency_throws_an_exception(){
         // check that we don't get a stack overflow error due to box closing the factory

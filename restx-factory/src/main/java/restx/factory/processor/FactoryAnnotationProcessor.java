@@ -409,8 +409,8 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         public String getQueryDeclarationCode() {
-            TypeMirror targetType = targetType();
-            String optionalOrNotQueryQualifier = isGuavaOptionalType() || isJava8OptionalType() || isMultiType() ? "optional()" : "mandatory()";
+            TypeMirror targetType = targetType(baseType);
+            String optionalOrNotQueryQualifier = isGuavaOptionalType(baseType) || isJava8OptionalType(baseType) || isMultiType(baseType) ? "optional()" : "mandatory()";
 
             if (injectionName.isPresent()) {
                 return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).%s;",
@@ -422,12 +422,20 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         public String getFromSatisfiedBomCode() {
-            if (isGuavaOptionalType()) {
+            if (isGuavaOptionalType(baseType)) {
                 return String.format("satisfiedBOM.getOneAsComponent(%s)", name);
-            } else if (isJava8OptionalType()) {
+            } else if (isJava8OptionalType(baseType)) {
                 return String.format("java.util.Optional.ofNullable(satisfiedBOM.getOneAsComponent(%s).orNull())", name);
-            } else if (isMultiType()) {
-                String code = String.format("satisfiedBOM.getAsComponents(%s)", name);
+            } else if (isNamedComponentType(baseType)) {
+                return String.format("satisfiedBOM.getOne(%s).get()", name);
+            } else if (isMultiType(baseType)) {
+                TypeMirror pType = parameterType(baseType).get();
+                String code;
+                if (isNamedComponentType(pType)) {
+                    code = String.format("satisfiedBOM.get(%s)", name);
+                } else {
+                    code = String.format("satisfiedBOM.getAsComponents(%s)", name);
+                }
                 if (baseType.toString().startsWith(Collection.class.getCanonicalName())
                         || baseType.toString().startsWith(List.class.getCanonicalName())) {
                     code = String.format("com.google.common.collect.Lists.newArrayList(%s)", code);
@@ -444,29 +452,46 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             }
         }
 
-        private TypeMirror targetType() {
-            if (isGuavaOptionalType() || isJava8OptionalType() || isMultiType()) {
-                DeclaredType declaredBaseType = (DeclaredType) baseType;
-                if(declaredBaseType.getTypeArguments().isEmpty()){
-                    throw new RuntimeException("Optional | Collection type for parameter " + name + " needs" +
-                            " parameterized type (generics) to be processed correctly !");
+        private TypeMirror targetType(TypeMirror type) {
+            if (isGuavaOptionalType(type) || isJava8OptionalType(type)
+                    || isMultiType(type) || isNamedComponentType(type)) {
+                Optional<TypeMirror> pType = parameterType(type);
+                if (!pType.isPresent()){
+                    throw new RuntimeException(
+                            "Optional | Collection | NamedComponent type for parameter " + name + " needs" +
+                            " parameterized type (generics) to be processed correctly");
                 }
-                return declaredBaseType.getTypeArguments().get(0);
+                return targetType(pType.get());
             } else {
-                return baseType;
+                return type;
             }
         }
 
-        private boolean isGuavaOptionalType() {
-            return baseType.toString().startsWith(Optional.class.getCanonicalName());
-        }
-        private boolean isJava8OptionalType() {
-            return baseType.toString().startsWith("java.util.Optional");
+        private Optional<TypeMirror> parameterType(TypeMirror type) {
+            if (type instanceof DeclaredType) {
+                DeclaredType declaredBaseType = (DeclaredType) type;
+                if(declaredBaseType.getTypeArguments().isEmpty()){
+                    return Optional.absent();
+                }
+                return Optional.of(declaredBaseType.getTypeArguments().get(0));
+            } else {
+                return Optional.absent();
+            }
         }
 
-        private boolean isMultiType() {
+        private boolean isGuavaOptionalType(TypeMirror type) {
+            return type.toString().startsWith(Optional.class.getCanonicalName());
+        }
+        private boolean isJava8OptionalType(TypeMirror type) {
+            return type.toString().startsWith("java.util.Optional");
+        }
+        private boolean isNamedComponentType(TypeMirror type) {
+            return type.toString().startsWith(NamedComponent.class.getCanonicalName());
+        }
+
+        private boolean isMultiType(TypeMirror type) {
             for (Class it : iterableClasses) {
-                if (baseType.toString().startsWith(it.getCanonicalName())) {
+                if (type.toString().startsWith(it.getCanonicalName())) {
                     return true;
                 }
             }
