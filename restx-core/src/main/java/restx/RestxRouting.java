@@ -48,17 +48,23 @@ public class RestxRouting {
     }
 
     public Optional<Match> match(RestxRequest restxRequest) {
-        List<RestxHandlerMatch> matches = Lists.newArrayListWithCapacity(filters.size() + 1);
-        for (RestxFilter filter : filters) {
-            Optional<? extends RestxHandlerMatch> match = filter.match(restxRequest);
-            if (match.isPresent()) {
-                matches.add(match.get());
-            }
-        }
         for (RestxRoute route : routes) {
             Optional<? extends RestxHandlerMatch> match = route.match(restxRequest);
             if (match.isPresent()) {
-                matches.addAll(getRouteFilters(route));
+                ImmutableCollection<? extends RestxHandlerMatch> routeFilters = getRouteFilters(route);
+
+                List<RestxHandlerMatch> matches = Lists.newArrayListWithCapacity(
+                        filters.size() + routeFilters.size() + 1);
+
+                for (RestxFilter filter : filters) {
+                    Optional<? extends RestxHandlerMatch> filterMatch = filter.match(restxRequest);
+                    if (filterMatch.isPresent()) {
+                        matches.add(filterMatch.get());
+                    }
+                }
+
+                matches.addAll(routeFilters);
+
                 matches.add(match.get());
                 return Optional.of(new Match(matches, match));
             }
