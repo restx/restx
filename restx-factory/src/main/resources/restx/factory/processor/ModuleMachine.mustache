@@ -12,7 +12,7 @@ public class {{machine}} extends DefaultFactoryMachine {
     public {{machine}}() {
         super({{priority}}, new MachineEngine[] {
 {{#engines}}
-            new StdMachineEngine<{{type}}>(Name.of({{type}}.class, "{{injectionName}}"), BoundlessComponentBox.FACTORY) {
+            new StdMachineEngine<{{type}}>(Name.of({{type}}.class, "{{injectionName}}"), {{enginePriority}}, BoundlessComponentBox.FACTORY) {
         {{queriesDeclarations}}
                 @Override
                 public BillOfMaterials getBillOfMaterial() {

@@ -84,14 +84,16 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
                 ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
                 for (Element element : typeElem.getEnclosedElements()) {
+                    Provides provides = element.getAnnotation(Provides.class);
                     if (element instanceof ExecutableElement
                             && element.getKind() == ElementKind.METHOD
-                            && element.getAnnotation(Provides.class) != null) {
+                            && provides != null) {
                         ExecutableElement exec = (ExecutableElement) element;
 
                         ProviderMethod m = new ProviderMethod(
                                 exec.getReturnType().toString(),
                                 exec.getSimpleName().toString(),
+                                provides.priority() == 0 ? mod.priority() : provides.priority(),
                                 getInjectionName(exec.getAnnotation(Named.class)),
                                 exec);
 
@@ -259,6 +261,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             engines.add(ImmutableMap.<String, Object>builder()
                     .put("type", method.type)
                     .put("name", method.name)
+                    .put("enginePriority", method.priority)
                     .put("injectionName", method.injectionName.isPresent() ?
                             method.injectionName.get() : method.name)
                     .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
@@ -493,13 +496,15 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final Element originatingElement;
         final String type;
         final String name;
+        final int priority;
         final Optional<String> injectionName;
         final List<InjectableParameter> parameters = Lists.newArrayList();
         final List<String> exceptions = Lists.newArrayList();
 
-        ProviderMethod(String type, String name, Optional<String> injectionName, Element originatingElement) {
+        ProviderMethod(String type, String name, int priority, Optional<String> injectionName, Element originatingElement) {
             this.type = type;
             this.name = name;
+            this.priority = priority;
             this.injectionName = injectionName;
             this.originatingElement = originatingElement;
         }

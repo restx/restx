@@ -16,6 +16,11 @@ public class MachineEngineWrapper<T> implements MachineEngine<T> {
         return original.getName();
     }
 
+    @Override
+    public int getPriority() {
+        return original.getPriority();
+    }
+
     public BillOfMaterials getBillOfMaterial() {
         return original.getBillOfMaterial();
     }

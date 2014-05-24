@@ -2,8 +2,10 @@ package restx.factory;
 
 import com.google.common.base.Optional;
 import org.junit.Test;
+import restx.factory.TestComponentPriorities.V;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * @author fcamblor
@@ -26,6 +28,15 @@ public class FactoryTest {
         assertThat(result2NamedComp.get().getComponent()).isEqualTo("absent");
 
         factory.close();
+    }
+
+    @Test
+    public void should_respect_provided_priorities_order() {
+        Factory factory = Factory.builder().addFromServiceLoader().build();
+
+        assertThat(factory.queryByClass(V.class).find())
+                .extracting("priority", "component.val")
+                .containsExactly(tuple(0, "B"), tuple(0, "C"), tuple(1, "A"));
     }
 
     @Test(expected = IllegalStateException.class)

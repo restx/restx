@@ -20,10 +20,14 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
         super(0,
             // add recorder route only if spec recorder is available
             new MachineEngine<SpecRecorderRoute>() {
-
                 @Override
                 public Name<SpecRecorderRoute> getName() {
                     return RECORDER_ROUTE_NAME;
+                }
+
+                @Override
+                public int getPriority() {
+                    return 0;
                 }
 
                 @Override
@@ -53,6 +57,11 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
                 @Override
                 public Name<AdminPage> getName() {
                     return ADMIN_PAGE_NAME;
+                }
+
+                @Override
+                public int getPriority() {
+                    return 0;
                 }
 
                 @Override

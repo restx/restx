@@ -176,9 +176,9 @@ public class FactoryTest {
                             " Please select which one you want with a more specific query,\n" +
                             " or by deactivating one of the available components.\n" +
                             " Available components:\n" +
-                            " - NamedComponent{name=Name{name='test', clazz=java.lang.String[]}, component=value1}\n" +
+                            " - NamedComponent{name=Name{name='test', clazz=java.lang.String[]}, priority=0, component=value1}\n" +
                             "         [Activation key: 'restx.activation::java.lang.String::test']\n" +
-                            " - NamedComponent{name=Name{name='test2', clazz=java.lang.String[]}, component=value1}\n" +
+                            " - NamedComponent{name=Name{name='test2', clazz=java.lang.String[]}, priority=0, component=value1}\n" +
                             "         [Activation key: 'restx.activation::java.lang.String::test2']\n")
             ;
         }
@@ -408,6 +408,33 @@ public class FactoryTest {
         assertThat(components).containsExactly(
                 NamedComponent.of(String.class, "test 1", "value 1"),
                 NamedComponent.of(String.class, "test 2", "value 2"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void should_respect_component_priorities() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(new SingleNameFactoryMachine<>(
+                        0, new NoDepsMachineEngine<String>(Name.of(String.class, "test 1"), 1, BoundlessComponentBox.FACTORY) {
+                    @Override
+                    protected String doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        return "value 1";
+                    }
+                }))
+                .addMachine(new SingleNameFactoryMachine<>(
+                        0, new NoDepsMachineEngine<String>(Name.of(String.class, "test 2"), 0, BoundlessComponentBox.FACTORY) {
+                    @Override
+                    protected String doNewComponent(SatisfiedBOM satisfiedBOM) {
+                        return "value 2";
+                    }
+                }))
+                .build();
+
+        Set<NamedComponent<String>> components = factory.queryByClass(String.class).find();
+
+        assertThat(components).containsExactly(
+                NamedComponent.of(String.class, "test 2", "value 2"),
+                NamedComponent.of(String.class, "test 1", "value 1"));
     }
 
     @Test

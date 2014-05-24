@@ -7,6 +7,7 @@ package restx.factory;
  */
 public interface MachineEngine<T> {
     Name<T> getName();
+    int getPriority();
     BillOfMaterials getBillOfMaterial();
     ComponentBox<T> newComponent(SatisfiedBOM satisfiedBOM);
 }

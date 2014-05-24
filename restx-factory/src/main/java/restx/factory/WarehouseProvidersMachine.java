@@ -49,6 +49,11 @@ public class WarehouseProvidersMachine implements FactoryMachine {
             }
 
             @Override
+            public int getPriority() {
+                return component.get().getPriority();
+            }
+
+            @Override
             public BillOfMaterials getBillOfMaterial() {
                 return bom;
             }

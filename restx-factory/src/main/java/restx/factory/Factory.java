@@ -1,5 +1,6 @@
 package restx.factory;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -45,9 +46,29 @@ public class Factory implements AutoCloseable {
     private static final Comparator<ComponentCustomizer> customizerComparator = new Comparator<ComponentCustomizer>() {
         @Override
         public int compare(ComponentCustomizer o1, ComponentCustomizer o2) {
-            return Ordering.natural().compare(o1.priority(), o2.priority());
+            return o1.priority() - o2.priority();
         }
     };
+    private static final Comparator<MachineEngine<?>> ENGINE_COMPARATOR = new Comparator<MachineEngine<?>>() {
+        @Override
+        public int compare(MachineEngine<?> o1, MachineEngine<?> o2) {
+            return compareByPriorityAndName(o1.getPriority(), o1.getName(), o2.getPriority(), o2.getName());
+        }
+    };
+    private static final Comparator<NamedComponent<?>> NAMED_COMPONENT_COMPARATOR = new Comparator<NamedComponent<?>>() {
+        @Override
+        public int compare(NamedComponent<?> o1, NamedComponent<?> o2) {
+            return compareByPriorityAndName(o1.getPriority(), o1.getName(), o2.getPriority(), o2.getName());
+        }
+    };
+    private static int compareByPriorityAndName(int p1, Name<?> n1, int p2, Name<?> n2) {
+        int c = p1 - p2;
+        if (c == 0) {
+            return n1.asId().compareTo(n2.asId());
+        } else {
+            return c;
+        }
+    }
     private static final AtomicLong ID = new AtomicLong();
 
     private static final ConcurrentMap<String, Factory> factories = Maps.newConcurrentMap();
@@ -578,8 +599,8 @@ public class Factory implements AutoCloseable {
                 return component;
             }
 
-            for (FactoryMachine machine : factory().findAllMachinesFor(name)) {
-                Optional<NamedComponent<T>> namedComponent = factory().buildAndStore(this, machine.getEngine(name));
+            for (MachineEngine<T> engine : factory().findAllEnginesFor(name)) {
+                Optional<NamedComponent<T>> namedComponent = factory().buildAndStore(this, engine);
                 if (namedComponent.isPresent()) {
                     return namedComponent;
                 }
@@ -634,26 +655,10 @@ public class Factory implements AutoCloseable {
 
         @Override
         protected Set<NamedComponent<T>> doFind() {
-            Set<NamedComponent<T>> components = Sets.newLinkedHashSet();
-            Set<Name<T>> builtNames = Sets.newHashSet();
+            Set<NamedComponent<T>> components = Sets.newTreeSet(NAMED_COMPONENT_COMPARATOR);
             Factory factory = factory();
-            for (FactoryMachine machine : factory.machines) {
-                Set<Name<T>> names = factory.nameBuildableComponents(machine, componentClass);
-                for (Name<T> name : names) {
-                    if (!builtNames.contains(name)) {
-                        Optional<NamedComponent<T>> component = factory.warehouse.checkOut(name);
-                        if (component.isPresent()) {
-                            components.add(component.get());
-                            builtNames.add(name);
-                        } else {
-                            Optional<NamedComponent<T>> namedComponent = factory.buildAndStore(this, machine.getEngine(name));
-                            if (namedComponent.isPresent()) {
-                                components.add(namedComponent.get());
-                                builtNames.add(name);
-                            }
-                        }
-                    }
-                }
+            for (Name<T> tName : factory.collectAllBuildableNames(componentClass)) {
+                components.addAll(factory.queryByName(tName).optional().find());
             }
 
             return components;
@@ -1012,11 +1017,33 @@ public class Factory implements AutoCloseable {
         return Iterables.filter(machines, new CanBuildPredicate(name));
     }
 
-    private Optional<FactoryMachine> findMachineFor(Name<?> name) {
+    private <T> Iterable<MachineEngine<T>> findAllEnginesFor(final Name<T> name) {
         if (!checkActive(name)) {
-            return Optional.absent();
+            return Collections.emptyList();
         }
-        return Optional.fromNullable(Iterables.find(machines, new CanBuildPredicate(name), null));
+        return Ordering.from(ENGINE_COMPARATOR).sortedCopy(
+                Iterables.transform(
+                    Iterables.filter(machines, new CanBuildPredicate(name)),
+                new Function<FactoryMachine, MachineEngine<T>>() {
+                    @Override
+                    public MachineEngine<T> apply(FactoryMachine input) {
+                        return input.getEngine(name);
+                    }
+                }
+        ));
+    }
+
+    private <T> Optional<MachineEngine<T>> findMachineEngineFor(Name<T> name) {
+        return Optional.fromNullable(Iterables.getFirst(findAllEnginesFor(name), null));
+    }
+
+    private <T> MachineEngine<T> getMachineEngineFor(Name<T> name) {
+        Optional<MachineEngine<T>> engineFor = findMachineEngineFor(name);
+        if (!engineFor.isPresent()) {
+            throw UnsatisfiedDependency.on(Query.byName(name)).causedBy(machineNotFoundMessage(name)).raise();
+        }
+
+        return engineFor.get();
     }
 
     private <T> Set<Name<T>> collectAllBuildableNames(Class<T> componentClass) {
@@ -1098,7 +1125,7 @@ public class Factory implements AutoCloseable {
                 // already in dependencies, but we have to add it to box dependencies
                 buildingBox.addName(query, n, buildingBox2);
             } else {
-                Optional<FactoryMachine> machineFor = findMachineFor(n);
+                Optional<MachineEngine<D>> machineFor = findMachineEngineFor(n);
                 if (!machineFor.isPresent()) {
                     if (query.isMandatory() && names.size() == 1) {
                         throw UnsatisfiedDependency.on(
@@ -1109,7 +1136,7 @@ public class Factory implements AutoCloseable {
                             ImmutableList.<SatisfiedQuery<?>>builder()
                                     .addAll(buildingBox.hierarchy)
                                     .add(SatisfiedQuery.of(query, n)).build(),
-                            machineFor.get().getEngine(n));
+                            machineFor.get());
                     dependenciesToSatisfy.add(buildingBox2);
                     buildingBox.addName(query, n, buildingBox2);
                     dependenciesByName.put(n, buildingBox2);
@@ -1240,15 +1267,6 @@ public class Factory implements AutoCloseable {
 
     private <T> BillOfMaterials getBillOfMaterialsFor(Name<T> name) {
         return getMachineEngineFor(name).getBillOfMaterial();
-    }
-
-    private <T> MachineEngine<T> getMachineEngineFor(Name<T> name) {
-        Optional<FactoryMachine> machineFor = findMachineFor(name);
-        if (!machineFor.isPresent()) {
-            throw UnsatisfiedDependency.on(Query.byName(name)).causedBy(machineNotFoundMessage(name)).raise();
-        }
-
-        return machineFor.get().getEngine(name);
     }
 
     private <T> Set<Name<T>> nameBuildableComponents(FactoryMachine machine, Class<T> componentClass) {

@@ -32,16 +32,30 @@ public final class NamedComponent<T> {
         return new NamedComponent<>(new Name<>(clazz, name), component);
     }
 
+    public static <T> NamedComponent<T> of(Class<T> clazz, String name, int priority, T component) {
+        return new NamedComponent<>(new Name<>(clazz, name), priority, component);
+    }
+
     private final Name<T> name;
+    private final int priority;
     private final T component;
 
     public NamedComponent(Name<T> name, T component) {
+        this(name, 0, component);
+    }
+
+    public NamedComponent(Name<T> name, int priority, T component) {
         this.name = checkNotNull(name);
+        this.priority = priority;
         this.component = checkNotNull(component);
     }
 
     public Name<T> getName() {
         return name;
+    }
+
+    public int getPriority() {
+        return priority;
     }
 
     public T getComponent() {
@@ -52,6 +66,7 @@ public final class NamedComponent<T> {
     public String toString() {
         return "NamedComponent{" +
                 "name=" + name +
+                ", priority=" + priority +
                 ", component=" + component +
                 '}';
     }
