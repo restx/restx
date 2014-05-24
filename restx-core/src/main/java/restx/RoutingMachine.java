@@ -42,8 +42,8 @@ public class RoutingMachine extends SingleNameFactoryMachine<RestxRouting> {
                 Iterables.addAll(r, satisfiedBOM.getAsComponents(routes));
 
                 return new RestxRouting(
-                        ImmutableList.copyOf(satisfiedBOM.getAsComponents(filters)),
-                        ImmutableList.copyOf(satisfiedBOM.getAsComponents(routeFilters)),
+                        ImmutableList.copyOf(satisfiedBOM.get(filters)),
+                        ImmutableList.copyOf(satisfiedBOM.get(routeFilters)),
                         ImmutableList.copyOf(r));
             }
         });

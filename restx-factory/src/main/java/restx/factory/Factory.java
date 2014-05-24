@@ -39,6 +39,19 @@ public class Factory implements AutoCloseable {
     public static final String METRICS_REGISTRY = "MetricRegistry";
     public static final String HEALTH_CHECK_REGISTRY = "HealthChekcRegistry";
 
+    public static final Comparator<MachineEngine<?>> ENGINE_COMPARATOR = new Comparator<MachineEngine<?>>() {
+        @Override
+        public int compare(MachineEngine<?> o1, MachineEngine<?> o2) {
+            return compareByPriorityAndName(o1.getPriority(), o1.getName(), o2.getPriority(), o2.getName());
+        }
+    };
+    public static final Comparator<NamedComponent<?>> NAMED_COMPONENT_COMPARATOR = new Comparator<NamedComponent<?>>() {
+        @Override
+        public int compare(NamedComponent<?> o1, NamedComponent<?> o2) {
+            return compareByPriorityAndName(o1.getPriority(), o1.getName(), o2.getPriority(), o2.getName());
+        }
+    };
+
     private static final String SERVICE_LOADER = "ServiceLoader";
     private static final Logger logger = LoggerFactory.getLogger(Factory.class);
     private static final Name<Factory> FACTORY_NAME = Name.of(Factory.class, "FACTORY");
@@ -47,18 +60,6 @@ public class Factory implements AutoCloseable {
         @Override
         public int compare(ComponentCustomizer o1, ComponentCustomizer o2) {
             return o1.priority() - o2.priority();
-        }
-    };
-    private static final Comparator<MachineEngine<?>> ENGINE_COMPARATOR = new Comparator<MachineEngine<?>>() {
-        @Override
-        public int compare(MachineEngine<?> o1, MachineEngine<?> o2) {
-            return compareByPriorityAndName(o1.getPriority(), o1.getName(), o2.getPriority(), o2.getName());
-        }
-    };
-    private static final Comparator<NamedComponent<?>> NAMED_COMPONENT_COMPARATOR = new Comparator<NamedComponent<?>>() {
-        @Override
-        public int compare(NamedComponent<?> o1, NamedComponent<?> o2) {
-            return compareByPriorityAndName(o1.getPriority(), o1.getName(), o2.getPriority(), o2.getName());
         }
     };
     private static int compareByPriorityAndName(int p1, Name<?> n1, int p2, Name<?> n2) {

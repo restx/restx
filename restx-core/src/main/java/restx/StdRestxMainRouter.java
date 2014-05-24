@@ -14,6 +14,7 @@ import restx.common.metrics.api.Monitor;
 import restx.common.metrics.dummy.DummyMetricRegistry;
 import restx.exceptions.RestxError;
 import restx.factory.Factory;
+import restx.factory.NamedComponent;
 import restx.http.HttpStatus;
 
 import java.io.BufferedInputStream;
@@ -38,8 +39,9 @@ public class StdRestxMainRouter implements RestxMainRouter {
     public static class Builder {
         private MetricRegistry metrics;
         private String mode = RestxContext.Modes.PROD;
-        private List<RestxFilter> filters = Lists.newArrayList();
-        private List<RestxRouteFilter> routeFilters = Lists.newArrayList();
+        private int priority = 0;
+        private List<NamedComponent<RestxFilter>> filters = Lists.newArrayList();
+        private List<NamedComponent<RestxRouteFilter>> routeFilters = Lists.newArrayList();
         private List<RestxRoute> routes = Lists.newArrayList();
 
         public Builder withMetrics(MetricRegistry metrics) {
@@ -53,12 +55,15 @@ public class StdRestxMainRouter implements RestxMainRouter {
         }
 
         public Builder addFilter(RestxFilter filter) {
-            filters.add(filter);
+            int filterPriority = priority++;
+            filters.add(NamedComponent.of(RestxFilter.class, "Filter" + filterPriority, filterPriority, filter));
             return this;
         }
 
         public Builder addFilter(RestxRouteFilter filter) {
-            routeFilters.add(filter);
+            int filterPriority = priority++;
+            routeFilters.add(NamedComponent.of(
+                    RestxRouteFilter.class, "RouteFilter" + filterPriority, filterPriority, filter));
             return this;
         }
 
