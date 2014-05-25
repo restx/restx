@@ -27,6 +27,8 @@
             "io.restx:restx-factory-admin:${restx.version}",
             "io.restx:restx-monitor-codahale:${restx.version}",
             "io.restx:restx-monitor-admin:${restx.version}",
+            "io.restx:restx-log-admin:${restx.version}",
+            "io.restx:restx-i18n-admin:${restx.version}",
 {{#includeStatsModule}}
             "io.restx:restx-stats-admin:${restx.version}",
 {{/includeStatsModule}}
