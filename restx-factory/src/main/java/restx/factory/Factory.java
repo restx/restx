@@ -1170,9 +1170,11 @@ public class Factory implements AutoCloseable {
                 ImmutableMultimap.Builder<Query<?>, NamedComponent<?>> materials = ImmutableListMultimap.builder();
                 for (Query<?> key : buildingBox.engine.getBillOfMaterial().getQueries()) {
                     Collection<Name<?>> names = buildingBox.names.get(key);
+                    Set<NamedComponent<?>> components = Sets.newTreeSet(NAMED_COMPONENT_COMPARATOR);
                     for (Name<?> name : names) {
-                        uncheckedPutIfPresent(materials, key, buildAndStore(getDependencyBuildingBox(buildingBox.deps, name)));
+                        uncheckedAddIfPresent(components, buildAndStore(getDependencyBuildingBox(buildingBox.deps, name)));
                     }
+                    materials.putAll(key, components);
                 }
                 buildingBox.satisfiedBOM = new SatisfiedBOM(buildingBox.engine.getBillOfMaterial(), materials.build());
             }
@@ -1325,9 +1327,9 @@ public class Factory implements AutoCloseable {
 
 
     @SuppressWarnings("unchecked")
-    private static void uncheckedPutIfPresent(ImmutableMultimap.Builder map, Object key, Optional o) {
-        if (o.isPresent()) {
-            map.put(key, o.get());
+    private void uncheckedAddIfPresent(Set components, Optional c) {
+        if (c.isPresent()) {
+            components.add(c.get());
         }
     }
 
