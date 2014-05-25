@@ -151,7 +151,7 @@ public class ApidocsDoclet extends Doclet {
 
     /**
      * Sets the option length to the standard Javadoc option length.
-     * <p/>
+     *
      * _Javadoc spec requirement._
      *
      * @param option input option
