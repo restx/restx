@@ -117,6 +117,7 @@ public class AppShellCommand extends StdShellCommand {
         String javaVersion;
         String restxVersion;
         boolean generateHelloResource;
+        boolean includeStatsModule;
         boolean useSrvuiLayout;
         String boostrapUIOption;
         String boostrapUITemplate;
@@ -237,6 +238,11 @@ public class AppShellCommand extends StdShellCommand {
                             "this example resource.\n" +
                             "If you already know RESTX by heart you shouldn't be reading this message anyway :)");
 
+            descriptor.includeStatsModule = shell.askBoolean("include stats module and share anonymous stats on your app [Y/n]? ", "y",
+                    "This will include the restx-stats-admin module which collects anonymous stats on your app\n" +
+                            "and share them with the community.\n" +
+                            "See http://restx.io/stats.html for more details.");
+
             descriptor.useSrvuiLayout = shell.askBoolean("do you want to use srv/ui layout [y/N]?", "n",
                     "This will organize your app in 2 modules:\n" +
                             "  - `srv`: for the server part, using RESTX to serve the REST API.\n" +
@@ -320,6 +326,7 @@ public class AppShellCommand extends StdShellCommand {
                     .put("baseAPIPath", descriptor.baseAPIPath)
                     .put("javaVersion", descriptor.javaVersion)
                     .put("restxVersion", descriptor.restxVersion)
+                    .put("includeStatsModule", descriptor.includeStatsModule)
                     .put("useSrvuiLayout", descriptor.useSrvuiLayout)
                     .build();
 
