@@ -69,6 +69,14 @@
                     <artifactId>maven-processor-plugin</artifactId>
                     <version>2.2.1</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.17</version>
+                    <configuration>
+                        <argLine>-Duser.timezone=UTC</argLine>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
