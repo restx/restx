@@ -16,7 +16,8 @@ import java.util.*;
  * Date: 25/1/14
  * Time: 16:34
  */
-@RestxResource @Component
+@RestxResource(group = "restx-admin")
+@Component
 public class MessagesAdminResource {
     private final Messages messages;
     private final Collection<SupportedLocale> supportedLocales;
