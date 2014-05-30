@@ -106,11 +106,17 @@ public class Apps {
 
     public Process run(File workingDirectory, Path targetClasses, Path dependenciesDir, List<String> vmOptions,
                               String mainClassName, List<String> args, boolean quiet) throws IOException {
+        String classpath = targetClasses.toString() + ":" + dependenciesDir.toString() + "/*";
+        File toolsJar = new File(System.getenv("JAVA_HOME") + "/lib/tools.jar");
+        if (toolsJar.exists()) {
+            classpath += ":" + toolsJar.getAbsolutePath();
+        }
+
         final Process process = new ProcessBuilder(
                 ImmutableList.<String>builder()
                         .add("java",
                                 "-cp",
-                                targetClasses.toString() + ":" + dependenciesDir.toString() + "/*")
+                                classpath)
                         .addAll(vmOptions)
                         .add(mainClassName)
                         .addAll(args)
