@@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.ByteStreams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import restx.apidocs.doclet.ApidocsDocletRunner;
 import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
@@ -26,6 +28,8 @@ import static com.google.common.collect.Iterables.transform;
  * Time: 8:16 AM
  */
 public class Apps {
+    private static final Logger logger = LoggerFactory.getLogger(Apps.class);
+
     public static Apps with(AppSettings appSettings) {
         return new Apps(appSettings);
     }
@@ -37,17 +41,21 @@ public class Apps {
     }
 
     public CompilationManager newAppCompilationManager(EventBus eventBus, CompilationSettings compilationSettings) {
-        eventBus.register(new Object() {
-            @Subscribe
-            public void onCompilationFinished(
-                    CompilationFinishedEvent event) {
-                new ApidocsDocletRunner()
-                        .setTargetDir(getTargetClasses())
-                        .addSources(event.getSources())
-                        .run();
-                ;
-            }
-        });
+        if (hasJavadocTools()) {
+            eventBus.register(new Object() {
+                @Subscribe
+                public void onCompilationFinished(
+                        CompilationFinishedEvent event) {
+                    new ApidocsDocletRunner()
+                            .setTargetDir(getTargetClasses())
+                            .addSources(event.getSources())
+                            .run();
+                    ;
+                }
+            });
+        } else {
+            logger.info("can't enable Apidocs doclet: make sure tools.jar is in your classpath");
+        }
         return new CompilationManager(eventBus, getSourceRoots(), getTargetClasses(), compilationSettings);
     }
 
@@ -126,5 +134,14 @@ public class Apps {
             }).start();
         }
         return process;
+    }
+
+    private boolean hasJavadocTools() {
+        try {
+            Class.forName("com.sun.tools.javadoc.Main");
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
