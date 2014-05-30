@@ -42,7 +42,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
 
     public ResourcesRoute(String name, String baseRestPath, String baseResourcePath, ImmutableMap<String, String> aliases) {
         this.name = checkNotNull(name);
-        this.baseRestPath = "/" + checkNotNull(baseRestPath).replaceAll("^/", "").replaceAll("/$", "") + "/";
+        this.baseRestPath = ("/" + checkNotNull(baseRestPath) + "/").replaceAll("/+", "/");
         this.baseResourcePath = checkNotNull(baseResourcePath)
                 .replace('.', '/').replaceAll("^/", "").replaceAll("/$", "") + "/";
         this.aliases = checkNotNull(aliases);
