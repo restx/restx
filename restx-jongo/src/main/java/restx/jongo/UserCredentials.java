@@ -2,11 +2,13 @@ package restx.jongo;
 
 import org.joda.time.DateTime;
 import org.jongo.marshall.jackson.oid.Id;
+import org.jongo.marshall.jackson.oid.ObjectId;
 
 /**
  */
 public class UserCredentials {
     @Id
+    @ObjectId
     private String userRef;
 
     private String passwordHash;
