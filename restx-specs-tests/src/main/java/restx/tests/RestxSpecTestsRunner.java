@@ -53,7 +53,7 @@ public class RestxSpecTestsRunner extends ParentRunner<RestxSpec> {
             Object o = getTestClass().getOnlyConstructor().newInstance();
             if (!(o instanceof RestxSpecTests)) {
                 throw new IllegalArgumentException(
-                        format("Test class %s must either be annotated with FindSoecsIn" +
+                        format("Test class %s must either be annotated with FindSpecsIn" +
                         " or extend RestxSpecTests " +
                         "to be run with RestxSpecTestsRunner.", 
                                 getTestClass().getJavaClass().getName()));
