@@ -1,8 +1,6 @@
 package restx.jongo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
-import org.bson.types.ObjectId;
 import restx.annotations.GET;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
@@ -16,33 +14,34 @@ import javax.inject.Named;
  * Time: 16:21
  */
 @Component
-@RestxResource("/api")
+@RestxResource("/api/credentials")
 @PermitAll
 public class UserCredentialsTestResource {
-    public static class Pojo {
-        @JsonProperty("_id")
-        private final String id;
-
-        public Pojo(@JsonProperty("_id") String id) {
-            this.id = id;
-        }
-    }
-
-    private final JongoCollection users;
-
     private final JongoCollection credentials;
 
-    public UserCredentialsTestResource(@Named("users") JongoCollection users,
-                                       @Named("credentials") JongoCollection credentials) {
-        this.users = users;
+    private final MyUserRepository repository;
+
+    public UserCredentialsTestResource(@Named("credentials") JongoCollection credentials, MyUserRepository repository) {
         this.credentials = credentials;
+        this.repository = repository;
     }
 
-    @GET("/newcredentials")
-    public UserCredentials getNewCredentials() {
-        String id = ObjectId.get().toString();
-        UserCredentials userCredentials = new UserCredentials().setUserRef(id);
-        credentials.get().save(userCredentials);
-        return userCredentials;
+    @GET("/new")
+    public Optional<String> getNewCredentials() {
+        JongoUser user = repository.createUser(new JongoUser(null, "user", "USER"));
+        repository.setCredentials(user.getId(), "bad password");
+        return repository.findCredentialByUserName(user.getName());
+    }
+
+    @GET("/{username}")
+    public Optional<String> updateCredentials(String username) {
+        JongoUser user = repository.findUserByName(username).get();
+        repository.setCredentials(user.getId(), "new password");
+        return repository.findCredentialByUserName(user.getName());
+    }
+
+    @GET("")
+    public Iterable<UserCredentials> getAllCredentials() {
+        return credentials.get().find().as(UserCredentials.class);
     }
 }

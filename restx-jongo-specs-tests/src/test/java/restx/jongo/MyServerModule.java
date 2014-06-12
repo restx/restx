@@ -5,7 +5,10 @@ import com.google.common.collect.ImmutableMap;
 import restx.factory.Module;
 import restx.factory.Provides;
 import restx.mongo.MongoModule;
-import restx.security.*;
+import restx.security.BCryptCredentialsStrategy;
+import restx.security.BasicPrincipalAuthenticator;
+import restx.security.CredentialsStrategy;
+import restx.security.RestxPrincipal;
 import restx.server.JettyServerModule;
 
 import javax.inject.Named;
@@ -20,7 +23,7 @@ public class MyServerModule extends JettyServerModule {
     @Provides
     @Named("restx.server.jetty.webxml.default.location")
     public String restxServerJettyWebXmlDefaultLocation(@Named("restx.server.jetty.appbase.default.location") String appBase) {
-        return appBase+"/WEB-INF/web.xml";
+        return appBase + "/WEB-INF/web.xml";
     }
 
 
@@ -34,6 +37,28 @@ public class MyServerModule extends JettyServerModule {
     @Named(MongoModule.MONGO_DB_NAME)
     public String dbName() {
         return "usercredentials-test";
+    }
+
+    @Provides
+    public MyUserRepository jongoUserRepository(@Named("users") JongoCollection users,
+                                                @Named("credentials") JongoCollection credentials,
+                                                CredentialsStrategy credentialsStrategy) {
+        return new MyUserRepository(users,
+                credentials,
+                new JongoUserRepository.RefUserByKeyStrategy<JongoUser>() {
+                    @Override
+                    protected String getId(JongoUser user) {
+                        return user.getId();
+                    }
+                },
+                credentialsStrategy,
+                new JongoUser(null, "restx-admin", "*")
+        );
+    }
+
+    @Provides
+    public CredentialsStrategy credentialsStrategy() {
+        return new BCryptCredentialsStrategy();
     }
 
     @Provides
