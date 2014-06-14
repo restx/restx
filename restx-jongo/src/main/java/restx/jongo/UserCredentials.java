@@ -17,12 +17,13 @@ public class UserCredentials {
         return lastUpdated;
     }
 
-    public String getUserRef() {
-        return userRef;
+    public UserCredentials setLastUpdated(final DateTime lastUpdated) {
+        this.lastUpdated = lastUpdated;
+        return this;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+    public String getUserRef() {
+        return userRef;
     }
 
     public UserCredentials setUserRef(final String userRef) {
@@ -30,13 +31,12 @@ public class UserCredentials {
         return this;
     }
 
-    public UserCredentials setPasswordHash(final String passwordHash) {
-        this.passwordHash = passwordHash;
-        return this;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public UserCredentials setLastUpdated(final DateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
+    public UserCredentials setPasswordHash(final String passwordHash) {
+        this.passwordHash = passwordHash;
         return this;
     }
 

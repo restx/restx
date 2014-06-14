@@ -2,11 +2,15 @@ package restx.jongo;
 
 import com.google.common.base.Optional;
 import restx.annotations.GET;
+import restx.annotations.POST;
+import restx.annotations.PUT;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.security.PermitAll;
 
 import javax.inject.Named;
+
+import static restx.common.MorePreconditions.checkEquals;
 
 /**
  * User: Christophe Labouisse
@@ -26,17 +30,18 @@ public class UserCredentialsTestResource {
         this.repository = repository;
     }
 
-    @GET("/new")
-    public Optional<String> getNewCredentials() {
-        JongoUser user = repository.createUser(new JongoUser(null, "user", "USER"));
-        repository.setCredentials(user.getId(), "bad password");
+    @POST("")
+    public Optional<String> getNewCredentials(UserAndPass userAndPass) {
+        JongoUser user = repository.createUser(new JongoUser(null, userAndPass.getUsername(), "USER"));
+        repository.setCredentials(user.getId(), userAndPass.getPassword());
         return repository.findCredentialByUserName(user.getName());
     }
 
-    @GET("/{username}")
-    public Optional<String> updateCredentials(String username) {
+    @PUT("/{username}")
+    public Optional<String> updateCredentials(String username, UserAndPass userAndPass) {
+        checkEquals("username", username, "userAndPass.username", userAndPass.getUsername());
         JongoUser user = repository.findUserByName(username).get();
-        repository.setCredentials(user.getId(), "new password");
+        repository.setCredentials(user.getId(), userAndPass.getPassword());
         return repository.findCredentialByUserName(user.getName());
     }
 
