@@ -50,6 +50,11 @@ public class UserCredentialsTestResource {
         return repositoryById.findCredentialByUserName(user.getName());
     }
 
+    @GET("/byId")
+    public Iterable<UserCredentialsByKey> getAllCredentials() {
+        return credentials.get().find().as(UserCredentialsByKey.class);
+    }
+
     @POST("/byName")
     public Optional<String> getNewCredentialsFromRepoByName(UserAndPass userAndPass) {
         JongoUserByName user = repositoryByName.createUser(new JongoUserByName(userAndPass.getUsername(), "USER"));
@@ -64,8 +69,8 @@ public class UserCredentialsTestResource {
         return repositoryByName.findCredentialByUserName(username);
     }
 
-    @GET("")
-    public Iterable<UserCredentials> getAllCredentials() {
-        return credentials.get().find().as(UserCredentials.class);
+    @GET("/byName")
+    public Iterable<UserCredentialsByName> getAllCredentialsFromRepoByName() {
+        return credentials.get().find().as(UserCredentialsByName.class);
     }
 }

@@ -1,50 +1,22 @@
 package restx.jongo;
 
 import org.joda.time.DateTime;
-import org.jongo.marshall.jackson.oid.Id;
 
 /**
+ * User: Christophe Labouisse
+ * Date: 14/06/2014
+ * Time: 12:25
  */
-public class UserCredentials {
-    @Id
-    private String userRef;
+public interface UserCredentials {
+    DateTime getLastUpdated();
 
-    private String passwordHash;
+    UserCredentials setLastUpdated(DateTime lastUpdated);
 
-    private DateTime lastUpdated;
+    String getUserRef();
 
-    public DateTime getLastUpdated() {
-        return lastUpdated;
-    }
+    UserCredentials setUserRef(String userRef);
 
-    public UserCredentials setLastUpdated(final DateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
-        return this;
-    }
+    String getPasswordHash();
 
-    public String getUserRef() {
-        return userRef;
-    }
-
-    public UserCredentials setUserRef(final String userRef) {
-        this.userRef = userRef;
-        return this;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public UserCredentials setPasswordHash(final String passwordHash) {
-        this.passwordHash = passwordHash;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "UserCredentials{" +
-                "userRef='" + userRef + '\'' +
-                ", passwordHash='XXXXXXXXXXXX'" +
-                '}';
-    }
+    UserCredentials setPasswordHash(String passwordHash);
 }
