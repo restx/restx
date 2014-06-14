@@ -40,19 +40,22 @@ public class MyServerModule extends JettyServerModule {
     }
 
     @Provides
-    public MyUserRepository jongoUserRepository(@Named("users") JongoCollection users,
-                                                @Named("credentials") JongoCollection credentials,
-                                                CredentialsStrategy credentialsStrategy) {
-        return new MyUserRepository(users,
+    public UserRepositoryById jongoUserRepository(@Named("users") JongoCollection users,
+                                                  @Named("credentials") JongoCollection credentials,
+                                                  CredentialsStrategy credentialsStrategy) {
+        return new UserRepositoryById(users,
                 credentials,
-                new JongoUserRepository.RefUserByKeyStrategy<JongoUser>() {
-                    @Override
-                    protected String getId(JongoUser user) {
-                        return user.getId();
-                    }
-                },
-                credentialsStrategy,
-                new JongoUser(null, "restx-admin", "*")
+                credentialsStrategy
+        );
+    }
+
+    @Provides
+    public UserRepositoryByName jongoUserRepositoryByName(@Named("users") JongoCollection users,
+                                                          @Named("credentials") JongoCollection credentials,
+                                                          CredentialsStrategy credentialsStrategy) {
+        return new UserRepositoryByName(users,
+                credentials,
+                credentialsStrategy
         );
     }
 

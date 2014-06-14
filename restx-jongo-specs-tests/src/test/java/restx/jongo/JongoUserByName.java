@@ -10,25 +10,17 @@ import restx.security.RestxPrincipal;
  * Date: 12/06/2014
  * Time: 11:19
  */
-public class JongoUser implements RestxPrincipal {
+public class JongoUserByName implements RestxPrincipal {
     @JsonProperty("_id")
-    private final String id;
-
     private final String name;
 
     private final ImmutableSet<String> principalRoles;
 
     @JsonCreator
-    public JongoUser(@JsonProperty("_id") String id,
-                     @JsonProperty("name") String name,
-                     @JsonProperty("principalRoles") String... principalRoles) {
-        this.id = id;
+    public JongoUserByName(@JsonProperty("_id") String name,
+                           @JsonProperty("principalRoles") String... principalRoles) {
         this.name = name;
         this.principalRoles = ImmutableSet.copyOf(principalRoles);
-    }
-
-    public String getId() {
-        return id;
     }
 
     @Override

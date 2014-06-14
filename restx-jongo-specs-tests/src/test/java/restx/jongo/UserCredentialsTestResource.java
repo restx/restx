@@ -23,26 +23,45 @@ import static restx.common.MorePreconditions.checkEquals;
 public class UserCredentialsTestResource {
     private final JongoCollection credentials;
 
-    private final MyUserRepository repository;
+    private final UserRepositoryById repositoryById;
 
-    public UserCredentialsTestResource(@Named("credentials") JongoCollection credentials, MyUserRepository repository) {
+    private final UserRepositoryByName repositoryByName;
+
+    public UserCredentialsTestResource(@Named("credentials") JongoCollection credentials,
+                                       UserRepositoryById repositoryById,
+                                       UserRepositoryByName repositoryByName) {
         this.credentials = credentials;
-        this.repository = repository;
+        this.repositoryById = repositoryById;
+        this.repositoryByName = repositoryByName;
     }
 
-    @POST("")
+    @POST("/byId")
     public Optional<String> getNewCredentials(UserAndPass userAndPass) {
-        JongoUser user = repository.createUser(new JongoUser(null, userAndPass.getUsername(), "USER"));
-        repository.setCredentials(user.getId(), userAndPass.getPassword());
-        return repository.findCredentialByUserName(user.getName());
+        JongoUserById user = repositoryById.createUser(new JongoUserById(null, userAndPass.getUsername(), "USER"));
+        repositoryById.setCredentials(user.getId(), userAndPass.getPassword());
+        return repositoryById.findCredentialByUserName(user.getName());
     }
 
-    @PUT("/{username}")
+    @PUT("/byId/{username}")
     public Optional<String> updateCredentials(String username, UserAndPass userAndPass) {
         checkEquals("username", username, "userAndPass.username", userAndPass.getUsername());
-        JongoUser user = repository.findUserByName(username).get();
-        repository.setCredentials(user.getId(), userAndPass.getPassword());
-        return repository.findCredentialByUserName(user.getName());
+        JongoUserById user = repositoryById.findUserByName(username).get();
+        repositoryById.setCredentials(user.getId(), userAndPass.getPassword());
+        return repositoryById.findCredentialByUserName(user.getName());
+    }
+
+    @POST("/byName")
+    public Optional<String> getNewCredentialsFromRepoByName(UserAndPass userAndPass) {
+        JongoUserByName user = repositoryByName.createUser(new JongoUserByName(userAndPass.getUsername(), "USER"));
+        repositoryByName.setCredentials(user.getName(), userAndPass.getPassword());
+        return repositoryByName.findCredentialByUserName(user.getName());
+    }
+
+    @PUT("/byName/{username}")
+    public Optional<String> updateCredentialsFromRepoByName(String username, UserAndPass userAndPass) {
+        checkEquals("username", username, "userAndPass.username", userAndPass.getUsername());
+        repositoryByName.setCredentials(username, userAndPass.getPassword());
+        return repositoryByName.findCredentialByUserName(username);
     }
 
     @GET("")
