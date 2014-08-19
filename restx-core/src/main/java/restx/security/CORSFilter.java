@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.*;
 import restx.factory.Component;
-import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -34,7 +33,7 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
     @Override
     public Optional<RestxHandlerMatch> match(RestxRequest req) {
         Optional<String> origin = req.getHeader("Origin");
-        if (origin.isPresent()) {
+        if (origin.isPresent() && !isSameOrigin(req, origin.get()) && !isPreflightRequest(req)) {
             CORS cors = CORS.check(authorizers, req, origin.get(), req.getHttpMethod(), req.getRestxPath());
             if (cors.isAccepted()) {
                 return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("*", req.getRestxPath(),
@@ -54,6 +53,12 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
         return Optional.absent();
     }
 
+    private boolean isPreflightRequest(RestxRequest req) {
+        return req.getHeader("Origin").isPresent()
+                && req.getHeader("Access-Control-Request-Method").isPresent()
+                && "OPTIONS".equals(req.getHttpMethod());
+    }
+
     protected boolean isSimpleCORSRequest(RestxRequest req) {
         // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
         if  (!SIMPLE_METHODS.contains(req.getHttpMethod())) {
@@ -69,18 +74,23 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
                 return false;
             }
         }
+        return true;
+
+    }
+
+    private boolean isSameOrigin(RestxRequest req, String origin) {
         // same origin check.
         // see http://stackoverflow.com/questions/15512331/chrome-adding-origin-header-to-same-origin-request
         Optional<String> host = req.getHeader("Host");
         if (!host.isPresent()) {
             // no host header, can't check same origin
-            return true;
-        }
-        if (origin.get().endsWith(host.get())) {
-            logger.debug("Same Origin request not considered as CORS Request: {}", req);
             return false;
-        } else {
+        }
+        if (origin.endsWith(host.get())) {
+            logger.debug("Same Origin request not considered as CORS Request: {}", req);
             return true;
+        } else {
+            return false;
         }
     }
 
