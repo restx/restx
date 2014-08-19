@@ -34,13 +34,20 @@ public class CORSFilter extends CORSHandler implements RestxFilter, RestxHandler
     @Override
     public Optional<RestxHandlerMatch> match(RestxRequest req) {
         Optional<String> origin = req.getHeader("Origin");
-        if (origin.isPresent() && isSimpleCORSRequest(req)) {
+        if (origin.isPresent()) {
             CORS cors = CORS.check(authorizers, req, origin.get(), req.getHttpMethod(), req.getRestxPath());
             if (cors.isAccepted()) {
                 return Optional.of(new RestxHandlerMatch(new StdRestxRequestMatch("*", req.getRestxPath(),
                         ImmutableMap.<String, String>of(), ImmutableMap.of("cors", cors)), this));
             } else {
-                logger.info("Unauthorized CORS request; Origin={}; Method={}", origin.get(), req.getHttpMethod());
+                if (isSimpleCORSRequest(req)) {
+                    logger.info("Unauthorized simple CORS request; Origin={}; Method={}", origin.get(), req.getHttpMethod());
+                } else {
+                    // the check should already have been done by the preflight request, so we shouldn't get to that point
+                    // but we never know how the client is actually implemented
+                    logger.info("Unauthorized CORS request (not captured by pre flight); Origin={}; Method={}",
+                            origin.get(), req.getHttpMethod());
+                }
                 return unauthorized(req);
             }
         }
