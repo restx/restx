@@ -19,14 +19,19 @@ public class TypeHelper {
         Matcher matcher = PARAMETERIZED_TYPE_PATTERN.matcher(type);
         if (matcher.matches()) {
             String rawType = matcher.group(1);
-            List<String> pTypes = new ArrayList<>();
-            for (String pType : Splitter.on(",").trimResults().split(matcher.group(2))) {
-                pTypes.add(getTypeExpressionFor(pType));
+
+            return "Types.newParameterizedType(" + rawType + ".class, " + getTypeExpressionFor(matcher.group(2)) + ")";
+        } else {
+            if (type.contains(",")) {
+                List<String> pTypes = new ArrayList<>();
+                for (String pType : Splitter.on(",").trimResults().split(type)) {
+                    pTypes.add(getTypeExpressionFor(pType));
+                }
+                return Joiner.on(", ").join(pTypes);
+            } else {
+                return type + ".class";
             }
 
-            return "Types.newParameterizedType(" + rawType + ".class, " + Joiner.on(", ").join(pTypes) + ")";
-        } else {
-            return type + ".class";
         }
     }
 }
