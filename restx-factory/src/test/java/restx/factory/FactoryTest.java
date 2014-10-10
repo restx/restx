@@ -81,6 +81,31 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_start_auto_startable_in_order() throws Exception {
+        final LifecycleComponent lifecycleComponent1 = new LifecycleComponent();
+        final boolean[] l2Started = new boolean[1];
+        final boolean[] wasL1Started = new boolean[1];
+        Factory factory = Factory.builder()
+                .addMachine(new SingletonFactoryMachine<>(10, NamedComponent.of(
+                        AutoStartable.class, "t0", new AutoStartable() {
+                            @Override
+                            public void start() {
+                                wasL1Started[0] = lifecycleComponent1.started;
+                                l2Started[0] = true;
+                            }
+                        }
+                )))
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(
+                        AutoStartable.class, "t1", lifecycleComponent1)))
+                .build();
+        factory.start();
+
+        assertThat(lifecycleComponent1.started).isTrue();
+        assertThat(l2Started[0]).isTrue();
+        assertThat(wasL1Started[0]).isTrue();
+    }
+
+    @Test
     public void should_prepare_auto_preparable() throws Exception {
         LifecycleComponent lifecycleComponent = new LifecycleComponent();
         Factory factory = Factory.builder().addMachine(new SingletonFactoryMachine<>(0,

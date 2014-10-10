@@ -13,7 +13,7 @@ public class SingletonFactoryMachine<C> extends SingleNameFactoryMachine<C> {
     private final NamedComponent<C> component;
 
     public SingletonFactoryMachine(int priority, final NamedComponent<C> component) {
-        super(priority, new NoDepsMachineEngine<C>(component.getName(), BoundlessComponentBox.FACTORY) {
+        super(priority, new NoDepsMachineEngine<C>(component.getName(), priority, BoundlessComponentBox.FACTORY) {
             @Override
             public C doNewComponent(SatisfiedBOM satisfiedBOM) {
                 return component.getComponent();

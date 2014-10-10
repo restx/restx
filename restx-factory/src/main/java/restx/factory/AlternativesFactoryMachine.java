@@ -8,7 +8,7 @@ public class AlternativesFactoryMachine<T> extends SingleNameFactoryMachine<Fact
                                       final ImmutableMap<T, ? extends FactoryMachine> alternatives,
                                       ComponentBox.BoxFactory boxFactory) {
         super(priority, new StdMachineEngine<FactoryMachine>(
-                Name.of(FactoryMachine.class, name.getName() + "Alternatives"), boxFactory) {
+                Name.of(FactoryMachine.class, name.getName() + "Alternatives"), priority, boxFactory) {
             private Factory.Query<T> query = Factory.Query.byName(name);
 
             @Override

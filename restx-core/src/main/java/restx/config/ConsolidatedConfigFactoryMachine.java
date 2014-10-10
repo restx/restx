@@ -29,7 +29,7 @@ public class ConsolidatedConfigFactoryMachine implements FactoryMachine {
         if (!canBuild(name)) {
             throw new IllegalArgumentException("unsuported name " + name);
         }
-        return (MachineEngine<T>) new StdMachineEngine<RestxConfig>((Name<RestxConfig>) name, BoundlessComponentBox.FACTORY) {
+        return (MachineEngine<T>) new StdMachineEngine<RestxConfig>((Name<RestxConfig>) name, priority(), BoundlessComponentBox.FACTORY) {
 
             private final Factory.Query<ConfigSupplier> configSupplierQuery = Factory.Query.byClass(ConfigSupplier.class);
             private final Factory.Query<String> stringsQuery = Factory.Query.byClass(String.class);

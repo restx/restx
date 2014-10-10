@@ -18,7 +18,7 @@ public class SystemPropertyFactoryMachine implements FactoryMachine {
     @Override
     @SuppressWarnings("unchecked")
     public <T> MachineEngine<T> getEngine(final Name<T> name) {
-        return new NoDepsMachineEngine<T>(name, BoundlessComponentBox.FACTORY) {
+        return new NoDepsMachineEngine<T>(name, priority(), BoundlessComponentBox.FACTORY) {
             @Override
             protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
                 // in case the system property has been nullified, we return an empty string as value, rather than null

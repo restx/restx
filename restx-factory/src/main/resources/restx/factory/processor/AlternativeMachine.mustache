@@ -19,7 +19,7 @@ public class {{machine}} extends SingleNameFactoryMachine<FactoryMachine> {
                     if (satisfiedBOM.getOne(query).isPresent()
                             && satisfiedBOM.getOne(query).get().getComponent().equals("{{whenValue}}")) {
                         return new SingleNameFactoryMachine<{{alternativeToComponentType}}>({{priority}},
-                                        new StdMachineEngine<{{alternativeToComponentType}}>(NAME, 0, BoundlessComponentBox.FACTORY) {
+                                        new StdMachineEngine<{{alternativeToComponentType}}>(NAME, {{priority}}, BoundlessComponentBox.FACTORY) {
 {{queriesDeclarations}}
 
                                             @Override
