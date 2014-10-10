@@ -448,7 +448,7 @@ public class Factory implements AutoCloseable {
             return doFind();
         }
         public final Set<T> findAsComponents() {
-            return Sets.newLinkedHashSet(
+            return ImmutableSet.copyOf(
                         Iterables.transform(find(), NamedComponent.<T>toComponent()));
         }
         public abstract Set<Name<T>> findNames();
@@ -719,7 +719,7 @@ public class Factory implements AutoCloseable {
                 // define a Machine to provide a default provider for MetricRegistry
                 // this won't be used if a MetricsRegistry is provided through a higher priority machine
                 .put("MetricRegistryMachine", new SingleNameFactoryMachine<>(10000,
-                        new NoDepsMachineEngine<MetricRegistry>(METRICS_NAME, BoundlessComponentBox.FACTORY) {
+                        new NoDepsMachineEngine<MetricRegistry>(METRICS_NAME, 10000, BoundlessComponentBox.FACTORY) {
                             @Override
                             protected MetricRegistry doNewComponent(SatisfiedBOM satisfiedBOM) {
                                 return new DummyMetricRegistry();
