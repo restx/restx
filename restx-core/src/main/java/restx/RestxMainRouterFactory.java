@@ -70,6 +70,7 @@ public class RestxMainRouterFactory {
         routers.remove(serverId);
         Optional<Factory> factory = Factory.getFactory(serverId);
         if (factory.isPresent()) {
+            factory.get().close();
             Factory.unregister(serverId, factory.get());
         }
     }
