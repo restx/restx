@@ -1,8 +1,6 @@
 package restx.server;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.eventbus.EventBus;
 import org.eclipse.jetty.security.DefaultIdentityService;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.Handler;
@@ -17,10 +15,8 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.common.MoreFiles;
 import restx.common.Version;
 
-import java.io.File;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -136,21 +132,21 @@ public class JettyWebServer implements WebServer {
         return server != null;
     }
 
-    private ThreadPool createThreadPool() {
+    protected ThreadPool createThreadPool() {
         QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setMinThreads(1);
         threadPool.setMaxThreads(Math.max(10, Runtime.getRuntime().availableProcessors()));
         return threadPool;
     }
 
-    private SelectChannelConnector createConnector() {
+    protected SelectChannelConnector createConnector() {
         SelectChannelConnector connector = new SelectChannelConnector();
         connector.setPort(port);
         connector.setHost(bindInterface);
         return connector;
     }
 
-    private HandlerCollection createHandlers(WebAppContext webAppContext) {
+    protected HandlerCollection createHandlers(WebAppContext webAppContext) {
 
         HandlerList contexts = new HandlerList();
         contexts.setHandlers(new Handler[]{webAppContext});
@@ -161,7 +157,7 @@ public class JettyWebServer implements WebServer {
         return result;
     }
 
-    private WebAppContext createContext() {
+    protected WebAppContext createContext() {
         final WebAppContext ctx = new WebAppContext();
         ctx.setContextPath("/");
         ctx.setWar(appBase);
