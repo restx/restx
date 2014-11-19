@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.math.BigDecimal;
@@ -43,7 +44,7 @@ public class FixedPrecisionSerializer extends StdSerializer<BigDecimal> implemen
     public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) throws JsonMappingException {
         Member member = property.getMember().getMember();
         if (member instanceof Field) {
-            FixedPrecision fixedPrecision = ((Field) member).getAnnotation(FixedPrecision.class);
+            FixedPrecision fixedPrecision = ((AnnotatedElement) member).getAnnotation(FixedPrecision.class);
             if (fixedPrecision != null) {
                 return new FixedPrecisionSerializer(fixedPrecision.value());
             }
