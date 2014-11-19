@@ -46,7 +46,11 @@ public class ConsolidatedConfigFactoryMachine implements FactoryMachine {
                  * RestxConfig at all.
                  */
                 for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
-                    elements.add(ConfigElement.of("system", "", (String) entry.getKey(), (String) entry.getValue()));
+                    // System properties are a Map which is not protected against adding non String entries
+                    // we simply ignore them
+                    if (entry.getKey() instanceof String && entry.getValue() instanceof String) {
+                        elements.add(ConfigElement.of("system", "", (String) entry.getKey(), (String) entry.getValue()));
+                    }
                 }
 
                 // now fetch elements coming from ConfigSuppliers
