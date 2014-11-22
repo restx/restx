@@ -31,10 +31,10 @@ public class WarehouseRoute extends StdRoute {
         List<String> nodesCode = Lists.newArrayList();
         List<String> linksCode = Lists.newArrayList();
         for (Name<?> name : warehouse.listNames()) {
-            nodesCode.add(String.format("{ \"id\": \"%s\", \"name\": \"%s\", \"type\": \"%s\" }", name.getName(), name.getSimpleName(), getType(name)));
+            nodesCode.add(String.format("{ \"id\": \"%s\", \"name\": \"%s\", \"type\": \"%s\" }", name.asId(), name.getSimpleName(), getType(name)));
             Iterable<Name<?>> deps = warehouse.listDependencies(name);
             for (Name<?> dep : deps) {
-                linksCode.add(String.format("{ \"origin\": \"%s\", \"target\": \"%s\" }", name.getName(), dep.asId()));
+                linksCode.add(String.format("{ \"origin\": \"%s\", \"target\": \"%s\" }", name.asId(), dep.asId()));
             }
         }
 

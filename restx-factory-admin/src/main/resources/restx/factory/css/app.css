@@ -13,3 +13,8 @@ body {
     height: 700px;
     background: #f7f7f7;
 }
+
+#warehouse .graph svg {
+    width: 700px;
+    height: 700px;
+}
