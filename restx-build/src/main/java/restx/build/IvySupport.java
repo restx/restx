@@ -13,15 +13,7 @@ public class IvySupport implements RestxBuild.Generator {
     private String eaVersion = "0.9";
 
     public void generate(ModuleDescriptor md, Writer w) throws IOException {
-    	boolean hasClassifier = false;
-        for (String scope : md.getDependencyScopes()) {
-            for (ModuleDependency dependency : md.getDependencies(scope)) {
-                if (dependency.getGav().getClassifier()!=null) {
-                	hasClassifier = true;
-                }
-            }
-        }
-        if (hasClassifier) {
+        if (md.hasClassifier()) {
         	w.write("<ivy-module version=\"2.0\" xmlns:ea=\"http://www.easyant.org\" xmlns:e=\"http://ant.apache.org/ivy/extra\">\n");
         } else {
         	w.write("<ivy-module version=\"2.0\" xmlns:ea=\"http://www.easyant.org\">\n");        	

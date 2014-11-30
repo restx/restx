@@ -67,4 +67,15 @@ public class ModuleDescriptor {
 
         return new ModuleDescriptor(parent, gav, packaging, properties, fragments, newDeps);
     }
+    
+    public boolean hasClassifier() {
+        for (String scope : this.getDependencyScopes()) {
+            for (ModuleDependency dependency : this.getDependencies(scope)) {
+                if (dependency.getGav().getClassifier()!=null) {
+                	return true;
+                }
+            }
+        }
+        return false;
+    }
 }
