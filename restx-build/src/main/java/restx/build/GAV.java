@@ -8,30 +8,39 @@ package restx.build;
 public class GAV {
     public static GAV parse(String gav) {
         String[] parts = gav.split(":");
-        if (parts.length < 3 || parts.length > 4) {
+        if (parts.length < 3 || parts.length > 5) {
             throw new IllegalArgumentException("can't parse '" + gav + "' as a module coordinates (GAV). " +
-                    "It must have at least 3 parts separated by columns. (4th is optional and correspond to artifact type)");
+                    "It must have at least 3 parts separated by columns. (4th and 5th are optional and correspond to artifact type and classifier)");
         }
         if(parts.length == 3) {
             return new GAV(parts[0], parts[1], parts[2]);
         }
-        return new GAV(parts[0], parts[1], parts[2], parts[3]);
+        if(parts.length == 4) {
+        	return new GAV(parts[0], parts[1], parts[2], parts[3]);
+        }
+    	return new GAV(parts[0], parts[1], parts[2], parts[3], parts[4]);
     }
 
     private final String groupId;
     private final String artifactId;
     private final String version;
     private final String type;
+    private final String classifier;
 
     public GAV(String groupId, String artifactId, String version) {
-        this(groupId, artifactId, version, null);
+        this(groupId, artifactId, version, null, null);
     }
 
-    public GAV(final String groupId, final String artifactId, final String version, final String type) {
+    public GAV(String groupId, String artifactId, String version, String type) {
+        this(groupId, artifactId, version, type, null);
+    }
+    
+    public GAV(final String groupId, final String artifactId, final String version, final String type, final String classifier) {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.version = version;
         this.type = type;
+        this.classifier = classifier;
     }
 
     public String getGroupId() {
@@ -50,6 +59,10 @@ public class GAV {
         return type;
     }
 
+    public String getClassifier() {
+    	return classifier;
+    }
+    
     @Override
     public String toString() {
         if (type == null){
