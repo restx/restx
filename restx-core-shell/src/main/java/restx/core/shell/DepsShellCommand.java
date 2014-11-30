@@ -92,7 +92,7 @@ public class DepsShellCommand extends StdShellCommand {
                 ivy.retrieve(resolveReport.getModuleDescriptor().getModuleRevisionId(),
                         new RetrieveOptions()
                                 .setDestArtifactPattern(
-                                        shell.currentLocation().toAbsolutePath() + "/target/dependency/[artifact]-[revision].[ext]")
+                                        shell.currentLocation().toAbsolutePath() + "/target/dependency/[artifact]-[revision](-[classifier]).[ext]")
                         .setSync(true)
                 );
 

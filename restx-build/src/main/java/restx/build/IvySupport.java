@@ -13,8 +13,11 @@ public class IvySupport implements RestxBuild.Generator {
     private String eaVersion = "0.9";
 
     public void generate(ModuleDescriptor md, Writer w) throws IOException {
-        w.write("<ivy-module version=\"2.0\" xmlns:ea=\"http://www.easyant.org\">\n");
-
+        if (md.hasClassifier()) {
+        	w.write("<ivy-module version=\"2.0\" xmlns:ea=\"http://www.easyant.org\" xmlns:e=\"http://ant.apache.org/ivy/extra\">\n");
+        } else {
+        	w.write("<ivy-module version=\"2.0\" xmlns:ea=\"http://www.easyant.org\">\n");        	
+        }
 
         w.write("    <info organisation=\"" + md.getGav().getGroupId() +
                 "\" module=\"" + md.getGav().getArtifactId() +
@@ -56,10 +59,18 @@ public class IvySupport implements RestxBuild.Generator {
                 if (expandedVersion.endsWith("-SNAPSHOT")) {
                     expandedVersion = "latest.integration";
                 }
-                w.write(String.format("        <dependency org=\"%s\" name=\"%s\" rev=\"%s\" conf=\"%s\" />\n",
+                if (dependency.getGav().getClassifier() == null) {
+	                w.write(String.format("        <dependency org=\"%s\" name=\"%s\" rev=\"%s\" conf=\"%s\" />\n",
+	                            groupId, dependency.getGav().getArtifactId(),
+	                            expandedVersion,
+	                            "compile".equals(scope) ? "default" : scope +"->default"));
+                } else {
+	                w.write(String.format("        <dependency org=\"%s\" name=\"%s\" rev=\"%s\" conf=\"%s\">\n                <artifact name=\"%s\" e:classifier=\"%s\" />\n        </dependency>\n",
                             groupId, dependency.getGav().getArtifactId(),
                             expandedVersion,
-                            "compile".equals(scope) ? "default" : scope +"->default"));
+                            "compile".equals(scope) ? "default" : scope +"->default",
+                            dependency.getGav().getArtifactId(), dependency.getGav().getClassifier()));                	
+                }
             }
         }
         w.write("    </dependencies>\n");
