@@ -20,4 +20,7 @@ public interface GraphiteSettings {
     Optional<Integer> getFrequency();
     @SettingsKey(key = "graphite.reporter.frequency.unit", doc = "the unit in which frequency is expressed", defaultValue = "MINUTES")
     Optional<String> getFrequencyUnit();
+
+    @SettingsKey(key = "graphite.prefix", doc = "the value prepended to all metrics names which are sent to graphite")
+    Optional<String> getPrefix();
 }
