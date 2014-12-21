@@ -550,6 +550,23 @@ public class FactoryTest {
         assertThat(factory.queryByName(Name.of(Object.class, "name2")).findOne().isPresent()).isFalse();
     }
 
+    @Test
+    public void should_allow_to_deactivate_components_from_provided_warehouse() throws Exception {
+        Factory factory = Factory.builder().addMachine(
+                new SingletonFactoryMachine<>(0, NamedComponent.of(A.class, "a", new A("v1")))).build();
+
+        Set<A> components = factory.getComponents(A.class);
+        assertThat(components).hasSize(1).extracting("a").containsExactly("v1");
+
+        Factory newFactory = Factory.builder().addWarehouseProvider(factory.getWarehouse())
+                .addMachine(new SingletonFactoryMachine<>(0,
+                        NamedComponent.of(String.class, Factory.activationKey(A.class, "a"), "false")))
+                .addMachine(new SingletonFactoryMachine<>(0, NamedComponent.of(A.class, "b", new A("v2")))).build();
+
+        components = newFactory.getComponents(A.class);
+        assertThat(components).hasSize(1).extracting("a").containsExactly("v2");
+    }
+
     @After
     public void teardown() {
         threadLocal().clear();
