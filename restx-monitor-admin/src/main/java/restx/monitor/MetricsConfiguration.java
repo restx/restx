@@ -80,7 +80,16 @@ public class MetricsConfiguration implements AutoStartable {
             InetSocketAddress address = new InetSocketAddress(
                     graphiteSettings.getGraphiteHost().get(), graphiteSettings.getGraphitePort().or(2003));
             logger.info("Initializing Metrics Graphite reporting to {}", address);
-            GraphiteReporter graphiteReporter = GraphiteReporter.forRegistry(metrics)
+
+            GraphiteReporter.Builder builder = GraphiteReporter.forRegistry(metrics);
+
+            if (graphiteSettings.getPrefix().isPresent()) {
+                String prefix = graphiteSettings.getPrefix().get();
+                builder.prefixedWith(prefix);
+                logger.info("Metrics Graphite prefix is set to '{}'", prefix);
+            }
+
+            GraphiteReporter graphiteReporter = builder
                     .convertRatesTo(TimeUnit.SECONDS)
                     .convertDurationsTo(TimeUnit.MILLISECONDS)
                     .build(new Graphite(address));
