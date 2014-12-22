@@ -158,6 +158,7 @@
         <module>restx-shell-manager</module>
         <module>restx-build-shell</module>
         <module>restx-specs-shell</module>
+        <module>restx-validation</module>
     </modules>
 
 
