@@ -32,7 +32,7 @@ public class {{router}} extends RestxRouter {
                     final EntityRequestBodyReaderRegistry readerRegistry,
                     final EntityResponseWriterRegistry writerRegistry,
                     final MainStringConverter converter,
-                    final Validator validator,
+                    final Optional<Validator> validator,
                     final RestxSecurityManager securityManager) {
         super(
             "{{routerGroup}}", "{{router}}", new RestxRoute[] {
