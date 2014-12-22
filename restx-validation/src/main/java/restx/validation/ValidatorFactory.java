@@ -16,7 +16,7 @@ import javax.validation.Validator;
  */
 @Module
 public class ValidatorFactory {
-    public static final String VALIDATOR_NAME = "validator";
+    public static final String VALIDATOR_NAME = "hibernate.validator";
     public static final Name<Validator> VALIDATOR = Name.of(Validator.class, VALIDATOR_NAME);
 
     @Provides @Named(VALIDATOR_NAME)
