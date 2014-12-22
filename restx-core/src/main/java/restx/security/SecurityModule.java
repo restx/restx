@@ -2,7 +2,6 @@ package restx.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.common.RestxConfig;
 import restx.config.Settings;
 import restx.config.SettingsKey;
 import restx.factory.AutoStartable;
@@ -31,17 +30,6 @@ public class SecurityModule {
     @Named("restx.activation::restx.security.RestxSessionBareFilter::RestxSessionBareFilter")
     public String disableBareFilter() {
         return "false";
-    }
-
-    // @Settings is not processed as long as this is part of core itself
-    @Provides
-    public SecuritySettings securitySettings(final RestxConfig config) {
-        return new SecuritySettings() {
-            @Override
-            public int sessionsLimit() {
-                return config.getInt("restx.sessions.stats.limit").or(100);
-            }
-        };
     }
 
     @Provides @Named("Sessions")
