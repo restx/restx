@@ -32,6 +32,11 @@
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
+            <artifactId>restx-validation</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
             <version>${restx.version}</version>
         </dependency>
