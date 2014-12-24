@@ -176,7 +176,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
             String[] validationGroups = new String[0];
             if(validatedFor != null) {
-                validationGroups = Collections2.transform(Arrays.asList(validatedFor.value()), FQN_EXTRACTOR).toArray(new String[0]);
+                validationGroups = Annotations.getAnnotationClassValuesAsFQCN(p, ValidatedFor.class, "value");
             }
 
             resourceMethod.parameters.add(new ResourceMethodParameter(
