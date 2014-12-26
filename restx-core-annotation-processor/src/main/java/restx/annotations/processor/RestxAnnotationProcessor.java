@@ -15,6 +15,7 @@ import restx.factory.When;
 import restx.http.HttpStatus;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
+import restx.validation.ValidatedFor;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -38,6 +39,13 @@ import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 @SupportedOptions({ "debug" })
 public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     final Template routerTpl;
+
+    private static final Function<Class,String> FQN_EXTRACTOR = new Function<Class,String>(){
+        @Override
+        public String apply(Class clazz) {
+            return clazz.getCanonicalName();
+        }
+    };
 
     public RestxAnnotationProcessor() {
         routerTpl = Mustaches.compile(RestxAnnotationProcessor.class, "RestxRouter.mustache");
@@ -164,12 +172,19 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 }
             }
 
+            ValidatedFor validatedFor = p.getAnnotation(ValidatedFor.class);
+
+            String[] validationGroups = new String[0];
+            if(validatedFor != null) {
+                validationGroups = Collections2.transform(Arrays.asList(validatedFor.value()), FQN_EXTRACTOR).toArray(new String[0]);
+            }
+
             resourceMethod.parameters.add(new ResourceMethodParameter(
                 p.asType().toString(),
                 paramName,
                 reqParamName,
                 parameterKind,
-                new String[0]));
+                validationGroups));
         }
         if (!pathParamNamesToMatch.isEmpty()) {
             error(
