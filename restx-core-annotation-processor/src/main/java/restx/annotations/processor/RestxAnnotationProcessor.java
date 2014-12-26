@@ -1,6 +1,7 @@
 package restx.annotations.processor;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
@@ -167,7 +168,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 p.asType().toString(),
                 paramName,
                 reqParamName,
-                parameterKind));
+                parameterKind,
+                new String[0]));
         }
         if (!pathParamNamesToMatch.isEmpty()) {
             error(
@@ -492,8 +494,16 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String name;
         final String reqParamName;
         final ResourceMethodParameterKind kind;
+        final List<String> validationGroupsFQNs;
 
-        private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind) {
+        private static final Function<String, String> CLASS_APPENDER_FCT = new Function<String, String>() {
+            @Override
+            public String apply(String fqn) {
+                return fqn+".class";
+            }
+        };
+
+        private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
             Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(type);
             Matcher java8OptionalMatcher = java8OptionalPattern.matcher(type);
             this.realType = type;
@@ -513,6 +523,15 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.name = name;
             this.reqParamName = reqParamName;
             this.kind = kind;
+            this.validationGroupsFQNs = Arrays.asList(validationGroupsFQNs);
+        }
+
+        public Optional<String> joinedValidationGroupFQNExpression(){
+            if(this.validationGroupsFQNs == null || this.validationGroupsFQNs.isEmpty()) {
+                return Optional.absent();
+            } else {
+                return Optional.of(Joiner.on(", ").join(Iterables.transform(this.validationGroupsFQNs, CLASS_APPENDER_FCT)));
+            }
         }
     }
 
@@ -539,7 +558,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         },
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                return String.format("checkValid(validator, body)", parameter.type);
+                Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
+                return String.format("checkValid(validator, body%s)", validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():"");
             }
         },
         CONTEXT {
