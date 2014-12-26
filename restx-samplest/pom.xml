@@ -133,6 +133,20 @@
                     <additionalparam>-restx-target-dir ${project.basedir}/target/classes</additionalparam>
                 </configuration>
             </plugin>
+            <!-- Uncomment to debug annotation processing on samplest...
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <verbose>true</verbose>
+                    <fork>true</fork>
+                    <compilerArgs>
+                        <arg>-J-Xdebug</arg>
+                        <arg>-J-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            -->
         </plugins>
     </build>
 </project>
