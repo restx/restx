@@ -1,7 +1,9 @@
 package restx.monitor;
 
+import com.codahale.metrics.DefaultObjectNameFactory;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ObjectNameFactory;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -16,9 +18,11 @@ import restx.factory.Component;
 import restx.metrics.codahale.CodahaleMetricRegistry;
 import restx.metrics.codahale.health.CodahaleHealthCheckRegistry;
 
+import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * Date: 17/11/13
@@ -68,14 +72,30 @@ public class MetricsConfiguration implements AutoStartable {
     }
 
     protected void setupReporters() {
-        logger.info("Initializing Metrics JMX Reporter");
-        final JmxReporter jmxReporter = JmxReporter.forRegistry(metrics).build();
-        jmxReporter.start();
+        setupJmxReporter();
 
         setupGraphiteReporter();
     }
 
-    private void setupGraphiteReporter() {
+    protected void setupJmxReporter() {
+        logger.info("Initializing Metrics JMX Reporter");
+        final JmxReporter jmxReporter = JmxReporter.forRegistry(metrics)
+                .createsObjectNamesWith(new DefaultObjectNameFactory() {
+                    Pattern wildcards = Pattern.compile("[\\*\\?]");
+
+                    @Override
+                    public ObjectName createName(String type, String domain, String name) {
+                        if (wildcards.matcher(name).find()) {
+                            name = ObjectName.quote(name);
+                        }
+
+                        return super.createName(type, domain, name);
+                    }
+                }).build();
+        jmxReporter.start();
+    }
+
+    protected void setupGraphiteReporter() {
         if (graphiteSettings.getGraphiteHost().isPresent()) {
             InetSocketAddress address = new InetSocketAddress(
                     graphiteSettings.getGraphiteHost().get(), graphiteSettings.getGraphitePort().or(2003));
