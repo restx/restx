@@ -41,21 +41,37 @@ The main modules are `restx-core` and `restx-factory`.
 
 Here is a brief summary of each module:
 
-Main modules:
+### Main modules:
 
 - `restx-common`: Some shared utilities, only few ones, relying on Guava we already get a lot of nice utilities from there.
-- `restx-factory`: RESTX Dependency Injection (DI) container.
-- `restx-factory-testing`: A module dedicated to test `restx-factory` features involving annotation processing.
+- `restx-factory`: RESTX Dependency Injection (DI) container. Brought as transitive dependency from restx-core.
 - `restx-classloader`: Hot reload / hot compile support
-- `restx-build`: The very simple tool which generates POM / Ivy files from `md.restx.json` files
+- `restx-apidocs-doclet`: Some javadoc doclets used when generating apidocs
 - `restx-core`: Core module, includes the REST framework, base security, JSON support, Validation, ...
-- `restx-core-annotation-processor`: Annotation processing to generate routers based on RESTX core annotations. Needed at build time only.
-- `restx-security-basic`: A basic implementation of security, still enough in many cases.
-- `restx-specs-tests`: Enables using RESTX specs as JUnit tests.
-- `restx-specs-server`: Enables using RESTX specs as HTTP mocks.
-- `restx-i18n`: I18n Support
 
-Admin console modules:
+*By relying on `restx-core` module, every of modules described above will be retrieved as transitive dependencies*
+
+- `restx-core-annotation-processor`: Annotation processing to generate routers based on RESTX core annotations. Needed at compile/build time only.
+
+
+### Optional dependencies providing specific features
+
+- `restx-i18n`: I18n Support
+- `restx-security-basic`: A basic implementation of security, still enough in many cases but you can remove it at will
+- `restx-core-java8`: Java 8 support (like Optional) for restx
+- `restx-specs-tests`: Enables using RESTX specs as JUnit tests.
+- `restx-specs-tests-java8`: Support for java 8 time API during specs tests
+- `restx-specs-server`: Enables using RESTX specs as HTTP mocks (running a server serving spec files responses given spec files requests).
+- `restx-factory-testing`: A module dedicated to test `restx-factory` features involving annotation processing.
+
+
+#### MongoDB support through Jongo API:
+
+- `restx-jongo`: Main MongoDB support through Jongo API.
+- `restx-jongo-specs-tests`: Support of Jongo in your specs (recording and running).
+
+
+#### Admin console modules (these are not required modules and are intended only for administration/monitoring) :
 
 - `restx-admin`: The pluggable RESTX admin web console.
 - `restx-apidocs`: The famous API Docs web console, as a plugin for `restx-admin`.
@@ -64,13 +80,10 @@ Admin console modules:
 - `restx-log-admin`: Easy configuration of logback logging from admin console, plugin for `restx-admin`.
 - `restx-specs-admin`: RESTX Specs recording and running web console, plugin for `restx-admin`.
 - `restx-i18n-admin`: Easy setting of your i18n translations from the web console, plugin for `restx-admin`.
+- `restx-stats-admin`: Used to collect stats as explained [here](http://restx.io/stats.html)
 
-MongoDB support through Jongo API:
 
-- `restx-jongo`: Main MongoDB support through Jongo API.
-- `restx-jongo-specs-tests`: Support of Jongo in your specs (recording and running).
-
-Servers support:
+### Servers support:
 
 - `restx-servlet`: Servlet 2.5+ adapter for RESTX, allowing to embed RESTX in any servlet 2.5+ container.
 - `restx-server-jetty`: Embedded Jetty support.
@@ -78,22 +91,30 @@ Servers support:
 - `restx-server-simple`: SimpleFramework adapter for RESTX, this is the lightest and fastest solution.
 - `restx-server-testing`: JUnit tests for all the supported embedded servers.
 
-Shell modules:
+*`restx-server-*` are needed only if you want to be able to run restx as a standalone app rather than deploying it
+If you want to deploy in a web server, you will `restx-servlet`*
+
+
+### Shell modules:
 
 - `restx-shell`: The pluggable shell.
 - `restx-shell-manager`: Plugin to manage the shell: install plugins, upgrade shell version.
+- `restx-build`: The very simple tool which generates POM / Ivy files from `md.restx.json` files
 - `restx-core-shell`: Plugin providing RESTX core support in the shell: app comilation and running, ...
 - `restx-build-shell`: Plugin prodividing build support in the shell, especially to generate POM/Ivy files from `md.restx.json` files.
 - `restx-specs-shell`: Plugin providing RESTX specs based HTTP mock server.
+- `restx-package`: assembly module to package the shell
 
-Metrics:
+
+### Metrics:
 
 - `restx-monitor-codahale`: Codahale metrics for monitor module. Not compatible with Google App Engine.
 
-Others:
+
+### Others:
 
 - `restx-samplest`: both a sample of individual features and JUnit tests of them
-- `restx-package`: assembly module to package the shell
+- `restx-samplest-java8`: Same as `restx-samplest` but for demo-ing restx java8 support
 - `restx-annotation-processors-package`: assembly module for annotation processor only, if you prefer to setup annotation processing manually with `-proc` javac option
 - `restx-barbarywatch`: MacOSX filesystem watching that actually works. Only module with GPL license, but no other module depend on it, it's detected at runtime, and used only during development
 
