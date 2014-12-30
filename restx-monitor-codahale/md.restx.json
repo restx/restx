@@ -11,10 +11,10 @@
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}",
-            "com.codahale.metrics:metrics-core:${metrics.version}",
-            "com.codahale.metrics:metrics-healthchecks:${metrics.version}",
-            "com.codahale.metrics:metrics-jvm:${metrics.version}",
-            "com.codahale.metrics:metrics-graphite:${metrics.version}",
+            "io.dropwizard.metrics:metrics-core:${metrics.version}",
+            "io.dropwizard.metrics:metrics-healthchecks:${metrics.version}",
+            "io.dropwizard.metrics:metrics-jvm:${metrics.version}",
+            "io.dropwizard.metrics:metrics-graphite:${metrics.version}",
             "io.restx:restx-admin:${restx.version}"
         ]
     }
