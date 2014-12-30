@@ -49,7 +49,7 @@ Here is a brief summary of each module:
 - `restx-apidocs-doclet`: Some javadoc doclets used when generating apidocs
 - `restx-core`: Core module, includes the REST framework, base security, JSON support, Validation, ...
 
-*By relying on `restx-core` module, every of modules described above will be retrieved as transitive dependencies*
+*By relying on `restx-core` module, every modules described above will be retrieved as transitive dependencies*
 
 - `restx-core-annotation-processor`: Annotation processing to generate routers based on RESTX core annotations. Needed at compile/build time only.
 
@@ -91,8 +91,8 @@ Here is a brief summary of each module:
 - `restx-server-simple`: SimpleFramework adapter for RESTX, this is the lightest and fastest solution.
 - `restx-server-testing`: JUnit tests for all the supported embedded servers.
 
-*`restx-server-*` are needed only if you want to be able to run restx as a standalone app rather than deploying it
-If you want to deploy in a web server, you will `restx-servlet`*
+`restx-server-*` are needed only if you want to be able to run restx as a standalone app rather than deploying it
+If you want to deploy in a web server, you will ` restx-servlet `
 
 
 ### Shell modules:
