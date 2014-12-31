@@ -119,6 +119,11 @@ public class CompilationManager {
         this.settings = settings;
 
         javaCompiler = ToolProvider.getSystemJavaCompiler();
+        if (javaCompiler == null) {
+            throw new IllegalStateException(
+                    "trying to setup a compilation manager while no system compiler is available." +
+                            " This should be prevented by checking the system java compiler first.");
+        }
         fileManager = javaCompiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), Locale.ENGLISH, Charsets.UTF_8);
         try {
             if (!destination.toFile().exists()) {

@@ -43,6 +43,12 @@ public class Apps {
     }
 
     public CompilationManager newAppCompilationManager(EventBus eventBus, CompilationSettings compilationSettings) {
+        if (!hasSystemJavaCompiler()) {
+            throw new IllegalStateException(
+                    "trying to setup a compilation manager while no system compiler is available. " +
+                            "This should be prevented by checking the system java compiler first. " +
+                            "Use hasSystemJavaCompiler() to check that before calling this method.");
+        }
         if (hasJavadocTools()) {
             eventBus.register(new Object() {
                 @Subscribe
@@ -144,7 +150,7 @@ public class Apps {
         return process;
     }
 
-    private boolean hasJavadocTools() {
+    public static boolean hasJavadocTools() {
         try {
             Class.forName("com.sun.tools.javadoc.Main");
             return true;
@@ -152,4 +158,14 @@ public class Apps {
             return false;
         }
     }
+
+    public static boolean hasSystemJavaCompiler() {
+        try {
+            Class<?> tp = Class.forName("javax.tools.ToolProvider");
+            return tp.getMethod("getSystemJavaCompiler").invoke(null) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
