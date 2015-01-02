@@ -2,6 +2,8 @@ package restx.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import restx.common.RestxConfig;
 import restx.config.Settings;
 import restx.config.SettingsKey;
 import restx.factory.AutoStartable;
@@ -18,7 +20,6 @@ import javax.inject.Named;
 public class SecurityModule {
     private static final Logger logger = LoggerFactory.getLogger(SecurityModule.class);
 
-    @Settings
     public static interface SecuritySettings {
         @SettingsKey(key = "restx.sessions.stats.limit", defaultValue = "100",
                 doc = "The maximum number of sessions data to keep in memory for statistics in the monitor view")
@@ -44,6 +45,18 @@ public class SecurityModule {
             @Override
             public void start() {
                 logger.debug("starting sessions statistics");
+            }
+        };
+    }
+
+    // provides Settings instead of annotating the interface, otherwise it will
+    // hide the other restx.security.SecuritySettingsConfig classes
+    @Provides
+    public SecuritySettings securitySettings(final RestxConfig config) {
+        return new SecuritySettings() {
+            @Override
+            public int sessionsLimit() {
+                return config.getInt("restx.sessions.stats.limit").or(100);
             }
         };
     }
