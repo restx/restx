@@ -1,0 +1,19 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-validation:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-factory:${restx.version}",
+            "org.hibernate:hibernate-validator:${hibernate-validator.version}",
+            "javax.el:el-api:${el.api.version}"
+        ],
+        "runtime": [
+            "org.glassfish.web:el-impl:${el.api.version}"
+        ]
+    }
+}
