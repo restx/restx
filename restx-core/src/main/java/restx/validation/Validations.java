@@ -14,6 +14,15 @@ import java.util.Set;
  * Time: 9:57 PM
  */
 public class Validations {
+
+    /**
+     * @deprecated Kept for backward compat. Use checkValid(Optional&lt;Validator&gt;, T, Class...) instead
+     */
+    @Deprecated
+    public static <T> T checkValid(Validator validator, T o) {
+        return checkValid(Optional.of(validator), o);
+    }
+
     public static <T> T checkValid(Optional<Validator> validator, T o, Class... groups) {
         if(validator.isPresent()) {
             if(groups == null || groups.length==0) {
