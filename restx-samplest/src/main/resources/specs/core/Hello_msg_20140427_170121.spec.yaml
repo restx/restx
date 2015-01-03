@@ -1,0 +1,11 @@
+title: Hello msg 20140427 170121
+given:
+  - time: 2014-04-27T17:01:21.795+02:00
+wts:
+  - when: |
+       GET core/hellomsg?who=xavier
+       Cookie: RestxSession={"_expires":"2014-05-27T17:01:21.795+02:00","principal":"admin","sessionKey":"81b92e9b-49eb-4c54-9c78-79a4a79feae5"}; RestxSessionSignature=g3KnRfPE2SAaoXbR3Iq7XHv5L3M=
+    then: |
+        {
+          "msg" : "hello xavier"
+        }

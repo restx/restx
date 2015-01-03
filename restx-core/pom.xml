@@ -25,7 +25,7 @@
         <joda-time.version>2.3</joda-time.version>
         <jackson.version>2.3.3</jackson.version>
         <snakeyaml.version>1.13</snakeyaml.version>
-        <hibernate-validator.version>5.0.1.Final</hibernate-validator.version>
+        <validation-api.version>1.1.0.Final</validation-api.version>
         <reflections.version>0.9.9-RC1</reflections.version>
         <javax.inject.version>1</javax.inject.version>
         <junit.version>4.11</junit.version>
@@ -94,9 +94,9 @@
             <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate-validator.version}</version>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${validation-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.restx</groupId>
+        <artifactId>restx-parent</artifactId>
+        <version>0.34-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.restx</groupId>
+    <artifactId>restx-validation</artifactId>
+    <version>0.34-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>restx-validation</name>
+
+    <properties>
+        <restx.version>0.34-SNAPSHOT</restx.version>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <hibernate-validator.version>5.0.1.Final</hibernate-validator.version>
+        <el.api.version>2.2</el.api.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-factory</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-validator.version}</version>
+            <!--
+            Using compile scope here, and not runtime, because we may need to use some
+             hibernate-validator specific annotations (like @Email)
+            -->
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.el</groupId>
+            <artifactId>el-api</artifactId>
+            <version>${el.api.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.glassfish.web</groupId>
+          <artifactId>el-impl</artifactId>
+          <version>${el.api.version}</version>
+          <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+</project>
