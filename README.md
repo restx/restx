@@ -48,12 +48,13 @@ Main modules:
 - `restx-factory-testing`: A module dedicated to test `restx-factory` features involving annotation processing.
 - `restx-classloader`: Hot reload / hot compile support
 - `restx-build`: The very simple tool which generates POM / Ivy files from `md.restx.json` files
-- `restx-core`: Core module, includes the REST framework, base security, JSON support, Validation, ...
+- `restx-core`: Core module, includes the REST framework, base security, JSON support, ...
 - `restx-core-annotation-processor`: Annotation processing to generate routers based on RESTX core annotations. Needed at build time only.
 - `restx-security-basic`: A basic implementation of security, still enough in many cases.
 - `restx-specs-tests`: Enables using RESTX specs as JUnit tests.
 - `restx-specs-server`: Enables using RESTX specs as HTTP mocks.
 - `restx-i18n`: I18n Support
+- `restx-validation`: Bean validation support (based on `hibernate-validator` implementation) for POJOs BODY parameters & query parameters
 
 Admin console modules:
 
