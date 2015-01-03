@@ -45,27 +45,36 @@ public class RestxServerRule implements TestRule {
         return this;
     }
 
+    public void setup() throws Exception {
+        System.out.println("starting server");
+        server = webServerSupplier.newWebServer(WebServers.findAvailablePort());
+        contextLocal(server.getServerId()).set("restx.mode", getMode());
+        afterServerCreated();
+        server.start();
+        afterServerStarted();
+
+        System.out.println("server started");
+    }
+
+    public void tearDown() throws Exception {
+        beforeServerStop();
+        System.out.println("stopping server");
+        server.stop();
+        afterServerStop();
+        System.out.println("DONE");
+    }
+
     @Override
     public Statement apply(final Statement statement, Description description) {
         return new Statement() {
                     @Override
                     public void evaluate() throws Throwable {
-                        System.out.println("starting server");
-                        server = webServerSupplier.newWebServer(WebServers.findAvailablePort());
-                        contextLocal(server.getServerId()).set("restx.mode", getMode());
-                        afterServerCreated();
-                        server.start();
-                        afterServerStarted();
+                        setup();
 
-                        System.out.println("server started");
                         try {
                             statement.evaluate();
                         } finally {
-                            beforeServerStop();
-                            System.out.println("stopping server");
-                            server.stop();
-                            afterServerStop();
-                            System.out.println("DONE");
+                            tearDown();
                         }
                     }
                 };
