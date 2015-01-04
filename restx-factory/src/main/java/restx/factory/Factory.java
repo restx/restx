@@ -259,7 +259,7 @@ public class Factory implements AutoCloseable {
     public static class Builder {
         private boolean usedServiceLoader;
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
-        private List<Warehouse> providers = new ArrayList<>();
+        private List<StdWarehouse> providers = new ArrayList<>();
         public Builder addFromServiceLoader() {
             machines.putAll(SERVICE_LOADER, FactoryMachinesServiceLoader.getMachines());
 
@@ -279,7 +279,7 @@ public class Factory implements AutoCloseable {
             return this;
         }
 
-        public Builder addWarehouseProvider(Warehouse warehouse) {
+        public Builder addWarehouseProvider(StdWarehouse warehouse) {
             providers.add(warehouse);
             return this;
         }
@@ -307,18 +307,18 @@ public class Factory implements AutoCloseable {
              */
             Factory factory = new Factory(
                     usedServiceLoader, machines, ImmutableList.<ComponentCustomizerEngine>of(),
-                    new Warehouse(ImmutableList.copyOf(providers)));
+                    new StdWarehouse(ImmutableList.copyOf(providers)));
 
             Map<Name<FactoryMachine>, MachineEngine<FactoryMachine>> toBuild = new LinkedHashMap<>();
             ImmutableList<FactoryMachine> factoryMachines = buildFactoryMachines(factory, factory.machines, toBuild);
             while (!factoryMachines.isEmpty()) {
                 machines.putAll("FactoryMachines", factoryMachines);
                 factory = new Factory(usedServiceLoader, machines,
-                        ImmutableList.<ComponentCustomizerEngine>of(), new Warehouse());
+                        ImmutableList.<ComponentCustomizerEngine>of(), new StdWarehouse());
                 factoryMachines = buildFactoryMachines(factory, factoryMachines, toBuild);
             }
             factory = new Factory(usedServiceLoader, machines,
-                    buildCustomizerEngines(factory), new Warehouse(ImmutableList.copyOf(providers)));
+                    buildCustomizerEngines(factory), new StdWarehouse(ImmutableList.copyOf(providers)));
             return factory;
         }
 
@@ -698,7 +698,7 @@ public class Factory implements AutoCloseable {
     private final boolean usedServiceLoader;
     private final ImmutableList<FactoryMachine> machines;
     private final ImmutableMultimap<String, FactoryMachine> machinesByBuilder;
-    private final Warehouse warehouse;
+    private final StdWarehouse warehouse;
     private final ImmutableList<ComponentCustomizerEngine> customizerEngines;
     private final String id;
     private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
@@ -709,7 +709,7 @@ public class Factory implements AutoCloseable {
     private MetricRegistry metrics;
 
     private Factory(boolean usedServiceLoader, Multimap<String, FactoryMachine> machines,
-                    ImmutableList<ComponentCustomizerEngine> customizerEngines, Warehouse warehouse) {
+                    ImmutableList<ComponentCustomizerEngine> customizerEngines, StdWarehouse warehouse) {
         this.usedServiceLoader = usedServiceLoader;
         this.customizerEngines = customizerEngines;
 
@@ -760,14 +760,14 @@ public class Factory implements AutoCloseable {
         machines.removeAll("WarehouseProvidersMachine");
         machines.put("IndividualMachines", machine);
         return new Factory(usedServiceLoader, machines, customizerEngines,
-                new Warehouse(warehouse.getProviders()));
+                new StdWarehouse(warehouse.getProviders()));
     }
 
     public String getId() {
         return id;
     }
 
-    public Warehouse getWarehouse() {
+    public StdWarehouse getWarehouse() {
         return warehouse;
     }
 
