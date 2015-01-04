@@ -259,7 +259,7 @@ public class Factory implements AutoCloseable {
     public static class Builder {
         private boolean usedServiceLoader;
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
-        private List<StdWarehouse> providers = new ArrayList<>();
+        private List<Warehouse> providers = new ArrayList<>();
         public Builder addFromServiceLoader() {
             machines.putAll(SERVICE_LOADER, FactoryMachinesServiceLoader.getMachines());
 
@@ -279,7 +279,7 @@ public class Factory implements AutoCloseable {
             return this;
         }
 
-        public Builder addWarehouseProvider(StdWarehouse warehouse) {
+        public Builder addWarehouseProvider(Warehouse warehouse) {
             providers.add(warehouse);
             return this;
         }
@@ -698,7 +698,7 @@ public class Factory implements AutoCloseable {
     private final boolean usedServiceLoader;
     private final ImmutableList<FactoryMachine> machines;
     private final ImmutableMultimap<String, FactoryMachine> machinesByBuilder;
-    private final StdWarehouse warehouse;
+    private final Warehouse warehouse;
     private final ImmutableList<ComponentCustomizerEngine> customizerEngines;
     private final String id;
     private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
@@ -709,7 +709,7 @@ public class Factory implements AutoCloseable {
     private MetricRegistry metrics;
 
     private Factory(boolean usedServiceLoader, Multimap<String, FactoryMachine> machines,
-                    ImmutableList<ComponentCustomizerEngine> customizerEngines, StdWarehouse warehouse) {
+                    ImmutableList<ComponentCustomizerEngine> customizerEngines, Warehouse warehouse) {
         this.usedServiceLoader = usedServiceLoader;
         this.customizerEngines = customizerEngines;
 
@@ -767,7 +767,7 @@ public class Factory implements AutoCloseable {
         return id;
     }
 
-    public StdWarehouse getWarehouse() {
+    public Warehouse getWarehouse() {
         return warehouse;
     }
 

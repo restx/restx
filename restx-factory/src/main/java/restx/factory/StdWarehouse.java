@@ -22,68 +22,45 @@ import java.util.concurrent.atomic.AtomicLong;
  * Date: 1/31/13
  * Time: 5:47 PM
  */
-public class StdWarehouse implements AutoCloseable {
+public class StdWarehouse implements Warehouse {
     private static final AtomicLong ID = new AtomicLong();
 
     public StdWarehouse() {
-        this(ImmutableList.<StdWarehouse>of());
+        this(ImmutableList.<Warehouse>of());
     }
 
-    public StdWarehouse(ImmutableList<StdWarehouse> providers) {
+    public StdWarehouse(ImmutableList<Warehouse> providers) {
         this.providers = providers;
         StringBuilder sb = new StringBuilder();
-        for (StdWarehouse provider : providers) {
+        for (Warehouse provider : providers) {
             sb.append("<<").append(provider.getId());
         }
         this.id = String.format("%03d%s", ID.incrementAndGet(), sb.toString());
     }
 
-    public ImmutableList<StdWarehouse> getProviders() {
+    @Override
+    public ImmutableList<Warehouse> getProviders() {
         return providers;
-    }
-
-    public static class StoredBox<T> {
-        private final ComponentBox<T> box;
-        private final SatisfiedBOM satisfiedBOM;
-
-        private StoredBox(ComponentBox<T> box, SatisfiedBOM satisfiedBOM) {
-            this.box = box;
-            this.satisfiedBOM = satisfiedBOM;
-        }
-
-        public ComponentBox<T> getBox() {
-            return box;
-        }
-
-        public SatisfiedBOM getSatisfiedBOM() {
-            return satisfiedBOM;
-        }
-
-
-        @Override
-        public String toString() {
-            return "StoredBox{" +
-                    "box=" + box +
-                    ", satisfiedBOM=" + satisfiedBOM +
-                    '}';
-        }
     }
 
     private static final Logger logger = LoggerFactory.getLogger(StdWarehouse.class);
 
     private final String id;
     private final ConcurrentMap<Name<?>, StoredBox<?>> boxes = new ConcurrentHashMap<>();
-    private final ImmutableList<StdWarehouse> providers;
+    private final ImmutableList<Warehouse> providers;
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> Optional<StoredBox<T>> getStoredBox(Name<T> name) {
         return Optional.fromNullable((StoredBox<T>) boxes.get(name));
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> Optional<NamedComponent<T>> checkOut(Name<T> name) {
         StoredBox<T> storedBox = (StoredBox<T>) boxes.get(name);
@@ -91,7 +68,7 @@ public class StdWarehouse implements AutoCloseable {
             return storedBox.box.pick();
         }
 
-        for (StdWarehouse provider : providers) {
+        for (Warehouse provider : providers) {
             Optional<NamedComponent<T>> component = provider.checkOut(name);
             if (component.isPresent()) {
                 return component;
@@ -101,6 +78,7 @@ public class StdWarehouse implements AutoCloseable {
         return Optional.absent();
     }
 
+    @Override
     public <T> void checkIn(ComponentBox<T> componentBox, SatisfiedBOM satisfiedBOM) {
         StoredBox<?> previousBox = boxes.put(componentBox.getName(), new StoredBox<>(componentBox, satisfiedBOM));
         if (previousBox != null) {
@@ -112,6 +90,7 @@ public class StdWarehouse implements AutoCloseable {
         }
     }
 
+    @Override
     public void close() {
         Collection<Exception> exceptions = Lists.newArrayList();
         for (StoredBox<?> storedBox : boxes.values()) {
@@ -134,16 +113,18 @@ public class StdWarehouse implements AutoCloseable {
     }
 
 
+    @Override
     public Iterable<Name<?>> listNames() {
         Set<Name<?>> names = new LinkedHashSet<>();
         names.addAll(boxes.keySet());
-        for (StdWarehouse provider : providers) {
+        for (Warehouse provider : providers) {
             Iterables.addAll(names, provider.listNames());
         }
 
         return ImmutableSet.copyOf(names);
     }
 
+    @Override
     public Iterable<Name<?>> listDependencies(Name name) {
         StoredBox storedBox = boxes.get(name);
         if (storedBox != null) {
@@ -153,7 +134,7 @@ public class StdWarehouse implements AutoCloseable {
             }
             return deps;
         } else {
-            for (StdWarehouse provider : providers) {
+            for (Warehouse provider : providers) {
                 Iterable<Name<?>> deps = provider.listDependencies(name);
                 if (!Iterables.isEmpty(deps)) {
                     return deps;

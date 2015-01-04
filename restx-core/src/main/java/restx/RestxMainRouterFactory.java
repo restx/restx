@@ -23,6 +23,7 @@ import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.factory.SingletonFactoryMachine;
 import restx.factory.StdWarehouse;
+import restx.factory.Warehouse;
 import restx.http.HttpStatus;
 import restx.security.RestxSessionCookieFilter;
 import restx.server.WebServer;
@@ -188,9 +189,9 @@ public class RestxMainRouterFactory {
 
     private class PerRequestFactoryLoader implements RestxMainRouter {
         private final String serverId;
-        private final StdWarehouse warehouse;
+        private final Warehouse warehouse;
 
-        public PerRequestFactoryLoader(String serverId, StdWarehouse warehouse) {
+        public PerRequestFactoryLoader(String serverId, Warehouse warehouse) {
             this.serverId = serverId;
             this.warehouse = warehouse;
         }
@@ -409,7 +410,7 @@ public class RestxMainRouterFactory {
                 Thread.currentThread().setContextClassLoader(previous);
             }
 
-            StdWarehouse warehouse = getLoadFactoryMode().equals("cleanrequest") ? new StdWarehouse() : factory.getWarehouse();
+            Warehouse warehouse = getLoadFactoryMode().equals("cleanrequest") ? new StdWarehouse() : factory.getWarehouse();
 
             RestxMainRouter router = new PerRequestFactoryLoader(serverId, warehouse);
 

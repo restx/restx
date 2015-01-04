@@ -14,16 +14,16 @@ import java.util.Set;
  * Time: 21:24
  */
 public class WarehouseProvidersMachine implements FactoryMachine {
-    private final ImmutableList<StdWarehouse> providers;
+    private final ImmutableList<Warehouse> providers;
 
-    public WarehouseProvidersMachine(ImmutableList<StdWarehouse> providers) {
+    public WarehouseProvidersMachine(ImmutableList<Warehouse> providers) {
         this.providers = providers;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public boolean canBuild(Name<?> name) {
-        for (StdWarehouse provider : providers) {
+        for (Warehouse provider : providers) {
             if (Iterables.tryFind(provider.listNames(),
                     (Predicate<? super Name<?>>) Predicates.equalTo(name)).isPresent()) {
                 return true;
@@ -73,8 +73,8 @@ public class WarehouseProvidersMachine implements FactoryMachine {
     }
 
     private <T> BillOfMaterials findBomFor(Name<T> name) {
-        for (StdWarehouse provider : providers) {
-            Optional<StdWarehouse.StoredBox<T>> storedBox = provider.getStoredBox(name);
+        for (Warehouse provider : providers) {
+            Optional<Warehouse.StoredBox<T>> storedBox = provider.getStoredBox(name);
             if (storedBox.isPresent()) {
                 return storedBox.get().getSatisfiedBOM().getBom();
             }
@@ -84,7 +84,7 @@ public class WarehouseProvidersMachine implements FactoryMachine {
     }
 
     private <T> Optional<NamedComponent<T>> findComponent(Name<T> name) {
-        for (StdWarehouse provider : providers) {
+        for (Warehouse provider : providers) {
             Optional<NamedComponent<T>> componentOptional = provider.checkOut(name);
             if (componentOptional.isPresent()) {
                 return componentOptional;
@@ -97,7 +97,7 @@ public class WarehouseProvidersMachine implements FactoryMachine {
     @SuppressWarnings("unchecked")
     public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
         Set<Name<T>> names = new LinkedHashSet<>();
-        for (StdWarehouse provider : providers) {
+        for (Warehouse provider : providers) {
             for (Name<?> name : provider.listNames()) {
                 if (componentClass.isAssignableFrom(name.getClazz())) {
                     names.add((Name<T>) name);

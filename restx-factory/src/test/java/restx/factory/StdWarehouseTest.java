@@ -15,7 +15,7 @@ public class StdWarehouseTest {
 
     @Test
     public void should_checkin_and_checkout_from_disposable_box() throws Exception {
-        StdWarehouse warehouse = new StdWarehouse();
+        Warehouse warehouse = new StdWarehouse();
 
         warehouse.checkIn(new DisposableComponentBox<>(NamedComponent.of(String.class, "name", "test")),
                 new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
@@ -32,7 +32,7 @@ public class StdWarehouseTest {
 
     @Test
     public void should_checkin_and_checkout_from_boundless_box() throws Exception {
-        StdWarehouse warehouse = new StdWarehouse();
+        Warehouse warehouse = new StdWarehouse();
 
         warehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")),
                 new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));

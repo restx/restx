@@ -12,14 +12,14 @@ import java.util.List;
 
 @Component
 public class WarehouseRoute extends StdRoute {
-    private final StdWarehouse warehouse;
+    private final Warehouse warehouse;
 
     @Inject
     public WarehouseRoute(Factory factory) {
         this(factory.getWarehouse());
     }
 
-    public WarehouseRoute(StdWarehouse warehouse) {
+    public WarehouseRoute(Warehouse warehouse) {
         super("WarehouseRoute", new StdRestxRequestMatcher("GET", "/@/warehouse"));
         this.warehouse = warehouse;
     }
