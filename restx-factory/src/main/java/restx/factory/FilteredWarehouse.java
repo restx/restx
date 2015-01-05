@@ -1,14 +1,17 @@
 package restx.factory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Wrap a warehouse in order to filter components by classes or names.
@@ -22,25 +25,35 @@ import java.util.Set;
 public class FilteredWarehouse implements Warehouse {
 
 	public static FilteredWarehouse forClasses(Warehouse original, Class<?>... classes) {
-		return new FilteredWarehouse(original, ImmutableSet.copyOf(classes), ImmutableSet.<Name<?>>of());
+		FilteredWarehouseBuilder builder = builder(original);
+		for (Class<?> clazz : classes) {
+			builder.addFilteredClass(clazz);
+		}
+		return builder.build();
 	}
 
 	public static FilteredWarehouse forNames(Warehouse original, Name<?>... names) {
-		return new FilteredWarehouse(original, ImmutableSet.<Class<?>>of(), ImmutableSet.copyOf(names));
+		FilteredWarehouseBuilder builder = builder(original);
+		for (Name<?> name : names) {
+			builder.addFilteredName(name);
+		}
+		return builder.build();
+	}
+
+	public static FilteredWarehouse forPredicate(Warehouse original, Predicate<Name<?>> filter) {
+		return new FilteredWarehouse(original, filter);
 	}
 
 	public static FilteredWarehouseBuilder builder(Warehouse original) {
 		return new FilteredWarehouseBuilder(original);
 	}
 
-	private final ImmutableSet<Class<?>> filteredClasses;
-	private final ImmutableSet<Name<?>> filteredNames;
+	private final Predicate<Name<?>> filter;
 	private final Warehouse original;
 
-	private FilteredWarehouse(Warehouse original, Iterable<Class<?>> filteredClasses, Iterable<Name<?>> filteredNames) {
-		this.filteredClasses = ImmutableSet.copyOf(filteredClasses);
-		this.filteredNames = ImmutableSet.copyOf(filteredNames);
-		this.original = original;
+	private FilteredWarehouse(Warehouse original, Predicate<Name<?>> filter) {
+		this.original = checkNotNull(original);
+		this.filter = checkNotNull(filter);
 	}
 
 	@Override
@@ -101,7 +114,7 @@ public class FilteredWarehouse implements Warehouse {
 	 * checks if the specified Name is filtered
 	 */
 	private boolean isFiltered(Name<?> name) {
-		return filteredNames.contains(name) || filteredClasses.contains(name.getClazz());
+		return filter.apply(name);
 	}
 
 	/**
@@ -109,25 +122,45 @@ public class FilteredWarehouse implements Warehouse {
 	 */
 	public static class FilteredWarehouseBuilder {
 		private final Warehouse original;
-		private final Set<Class<?>> filteredClasses = new HashSet<>();
-		private final Set<Name<?>> filteredNames = new HashSet<>();
+		private final ImmutableSet.Builder<Class<?>> filteredClassesBuilder = ImmutableSet.builder();
+		private final ImmutableSet.Builder<Name<?>> filteredNamesBuilder = ImmutableSet.builder();
+		private final ImmutableList.Builder<Predicate<Name<?>>> predicatesBuilder = ImmutableList.builder();
 
 		private FilteredWarehouseBuilder(Warehouse original) {
 			this.original = original;
 		}
 
 		public FilteredWarehouseBuilder addFilteredClass(Class<?> clazz) {
-			filteredClasses.add(clazz);
+			filteredClassesBuilder.add(clazz);
 			return this;
 		}
 
 		public FilteredWarehouseBuilder addFilteredName(Name<?> name) {
-			filteredNames.add(name);
+			filteredNamesBuilder.add(name);
+			return this;
+		}
+
+		public FilteredWarehouseBuilder addPredicate(Predicate<Name<?>> predicate) {
+			predicatesBuilder.add(predicate);
 			return this;
 		}
 
 		public FilteredWarehouse build() {
-			return new FilteredWarehouse(original, filteredClasses, filteredNames);
+			final ImmutableSet<Class<?>> filteredClasses = filteredClassesBuilder.build();
+			final ImmutableSet<Name<?>> filteredNames = filteredNamesBuilder.build();
+			final ImmutableList<Predicate<Name<?>>> predicates = predicatesBuilder.build();
+
+			return new FilteredWarehouse(
+					original,
+					new Predicate<Name<?>>() {
+						@Override
+						public boolean apply(Name<?> name) {
+							return filteredClasses.contains(name.getClazz()) ||
+									filteredNames.contains(name) ||
+									Predicates.or(predicates).apply(name);
+						}
+					}
+			);
 		}
 	}
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMultimap;
 import org.junit.Test;
 
@@ -182,7 +183,7 @@ public class FilteredWarehouseTest {
 	}
 
 	@Test
-	public void should_filter_by_classes_and_names_for_checkOut() {
+	public void should_filter_by_custom_filters_for_checkOut() {
 		// create a warehouse
 		Warehouse originalWarehouse = new StdWarehouse();
 
@@ -190,6 +191,10 @@ public class FilteredWarehouseTest {
 		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")),
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name2", "test2")),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "hello world", 1)),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "foo", 2)),
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "answer", 42)),
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
@@ -200,21 +205,37 @@ public class FilteredWarehouseTest {
 		FilteredWarehouse filteredWarehouse = FilteredWarehouse.builder(originalWarehouse)
 				.addFilteredClass(String.class)
 				.addFilteredName(Name.of(Integer.class, "answer"))
+				.addPredicate(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return name.getName().contains("hello");
+					}
+				})
+				.addPredicate(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return name.getName().startsWith("f");
+					}
+				})
 				.build();
 
 		assertThat(originalWarehouse.checkOut(Name.of(String.class, "name")).isPresent()).isTrue();
 		assertThat(originalWarehouse.checkOut(Name.of(String.class, "name2")).isPresent()).isTrue();
+		assertThat(originalWarehouse.checkOut(Name.of(Integer.class, "hello world")).isPresent()).isTrue();
+		assertThat(originalWarehouse.checkOut(Name.of(Integer.class, "foo")).isPresent()).isTrue();
 		assertThat(originalWarehouse.checkOut(Name.of(Integer.class, "answer")).isPresent()).isTrue();
 		assertThat(originalWarehouse.checkOut(Name.of(Integer.class, "devil")).isPresent()).isTrue();
 
 		assertThat(filteredWarehouse.checkOut(Name.of(String.class, "name")).isPresent()).isFalse();
 		assertThat(filteredWarehouse.checkOut(Name.of(String.class, "name2")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.checkOut(Name.of(Integer.class, "hello world")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.checkOut(Name.of(Integer.class, "foo")).isPresent()).isFalse();
 		assertThat(filteredWarehouse.checkOut(Name.of(Integer.class, "answer")).isPresent()).isFalse();
 		assertThat(filteredWarehouse.checkOut(Name.of(Integer.class, "devil")).isPresent()).isTrue();
 	}
 
 	@Test
-	public void should_filter_by_classes_and_names_for_listNames() {
+	public void should_filter_by_custom_filters_for_listNames() {
 		// create a warehouse
 		Warehouse originalWarehouse = new StdWarehouse();
 
@@ -222,6 +243,10 @@ public class FilteredWarehouseTest {
 		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")),
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name2", "test2")),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "hello world", 1)),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "foo", 2)),
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "answer", 42)),
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
@@ -232,11 +257,25 @@ public class FilteredWarehouseTest {
 		FilteredWarehouse filteredWarehouse = FilteredWarehouse.builder(originalWarehouse)
 				.addFilteredClass(String.class)
 				.addFilteredName(Name.of(Integer.class, "answer"))
+				.addPredicate(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return name.getName().contains("hello");
+					}
+				})
+				.addPredicate(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return name.getName().startsWith("f");
+					}
+				})
 				.build();
 
 		assertThat(originalWarehouse.listNames()).containsOnly(
 				Name.of(String.class, "name"),
 				Name.of(String.class, "name2"),
+				Name.of(Integer.class, "hello world"),
+				Name.of(Integer.class, "foo"),
 				Name.of(Integer.class, "answer"),
 				Name.of(Integer.class, "devil")
 		);
@@ -247,7 +286,59 @@ public class FilteredWarehouseTest {
 	}
 
 	@Test
-	public void should_filter_by_classes_and_names_for_getStoredBox() {
+	public void should_filter_by_custom_filters_for_getStoredBox() {
+		// create a warehouse
+		Warehouse originalWarehouse = new StdWarehouse();
+
+		// check in some components
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name", "test")),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(String.class, "name2", "test2")),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "hello world", 1)),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "foo", 2)),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "answer", 42)),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+		originalWarehouse.checkIn(new BoundlessComponentBox<>(NamedComponent.of(Integer.class, "devil", 666)),
+				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
+
+		// filter strings and answer, only devil will not be filtered
+		FilteredWarehouse filteredWarehouse = FilteredWarehouse.builder(originalWarehouse)
+				.addFilteredClass(String.class)
+				.addFilteredName(Name.of(Integer.class, "answer"))
+				.addPredicate(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return name.getName().contains("hello");
+					}
+				})
+				.addPredicate(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return name.getName().startsWith("f");
+					}
+				})
+				.build();
+
+		assertThat(originalWarehouse.getStoredBox(Name.of(String.class, "name")).isPresent()).isTrue();
+		assertThat(originalWarehouse.getStoredBox(Name.of(String.class, "name2")).isPresent()).isTrue();
+		assertThat(originalWarehouse.getStoredBox(Name.of(Integer.class, "hello world")).isPresent()).isTrue();
+		assertThat(originalWarehouse.getStoredBox(Name.of(Integer.class, "foo")).isPresent()).isTrue();
+		assertThat(originalWarehouse.getStoredBox(Name.of(Integer.class, "answer")).isPresent()).isTrue();
+		assertThat(originalWarehouse.getStoredBox(Name.of(Integer.class, "devil")).isPresent()).isTrue();
+
+		assertThat(filteredWarehouse.getStoredBox(Name.of(String.class, "name")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(String.class, "name2")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "hello world")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "foo")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "answer")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "devil")).isPresent()).isTrue();
+	}
+
+	@Test
+	public void should_filter_by_predicate_for_checkout() {
 		// create a warehouse
 		Warehouse originalWarehouse = new StdWarehouse();
 
@@ -262,19 +353,25 @@ public class FilteredWarehouseTest {
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
 		// filter strings and answer, only devil will not be filtered
-		FilteredWarehouse filteredWarehouse = FilteredWarehouse.builder(originalWarehouse)
-				.addFilteredClass(String.class)
-				.addFilteredName(Name.of(Integer.class, "answer"))
-				.build();
+		FilteredWarehouse filteredWarehouse = FilteredWarehouse.forPredicate(
+				originalWarehouse,
+				new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return name.getName().length() == 5;
+					}
+				}
+		);
 
 		assertThat(originalWarehouse.getStoredBox(Name.of(String.class, "name")).isPresent()).isTrue();
 		assertThat(originalWarehouse.getStoredBox(Name.of(String.class, "name2")).isPresent()).isTrue();
 		assertThat(originalWarehouse.getStoredBox(Name.of(Integer.class, "answer")).isPresent()).isTrue();
 		assertThat(originalWarehouse.getStoredBox(Name.of(Integer.class, "devil")).isPresent()).isTrue();
 
-		assertThat(filteredWarehouse.getStoredBox(Name.of(String.class, "name")).isPresent()).isFalse();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(String.class, "name")).isPresent()).isTrue();
 		assertThat(filteredWarehouse.getStoredBox(Name.of(String.class, "name2")).isPresent()).isFalse();
-		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "answer")).isPresent()).isFalse();
-		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "devil")).isPresent()).isTrue();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "answer")).isPresent()).isTrue();
+		assertThat(filteredWarehouse.getStoredBox(Name.of(Integer.class, "devil")).isPresent()).isFalse();
+
 	}
 }
