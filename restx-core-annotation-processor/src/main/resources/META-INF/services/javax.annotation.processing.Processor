@@ -1,3 +1,2 @@
 restx.annotations.processor.RestxAnnotationProcessor
 restx.exceptions.processor.ErrorAnnotationProcessor
-restx.config.processor.SettingsAnnotationProcessor

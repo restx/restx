@@ -5,12 +5,22 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import restx.common.ConfigElement;
-import restx.common.RestxConfig;
-import restx.factory.*;
 
 import java.util.Collections;
 import java.util.Set;
+import restx.common.ConfigElement;
+import restx.common.RestxConfig;
+import restx.factory.BillOfMaterials;
+import restx.factory.BoundlessComponentBox;
+import restx.factory.DefaultFactoryMachine;
+import restx.factory.Factory;
+import restx.factory.FactoryMachine;
+import restx.factory.Machine;
+import restx.factory.MachineEngine;
+import restx.factory.Name;
+import restx.factory.NoDepsMachineEngine;
+import restx.factory.SatisfiedBOM;
+import restx.factory.StdMachineEngine;
 
 /**
  * User: xavierhanin

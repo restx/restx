@@ -1,1 +1,4 @@
 restx.factory.SystemPropertyFactoryMachine
+restx.config.ConfigLoaderFactoryMachine
+restx.config.ConsolidatedConfigFactoryMachine
+restx.config.ElementsFromConfigFactoryMachine

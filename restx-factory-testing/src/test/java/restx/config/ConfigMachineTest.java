@@ -1,6 +1,7 @@
 package restx.config;
 
 import com.google.common.base.Optional;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import restx.common.ConfigElement;
 import restx.common.RestxConfig;
@@ -19,6 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Time: 10:05 PM
  */
 public class ConfigMachineTest {
+    @BeforeClass
+    public static void deactivateElementsFromConfig() {
+        System.setProperty("restx.activation::java.lang.String::mandatory.dep.result1", "false");
+        System.setProperty("restx.activation::java.lang.String::mandatory.dep.result2", "false");
+    }
+
     @Test
     public void should_load_configs_from_system_properties() throws Exception {
         System.setProperty("restx.test.system.property", "v1");

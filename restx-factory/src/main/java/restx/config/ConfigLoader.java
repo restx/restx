@@ -6,29 +6,26 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.common.ConfigElement;
-import restx.common.RestxConfig;
-import restx.common.StdRestxConfig;
-import restx.factory.Component;
 
-import javax.inject.Named;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import restx.common.ConfigElement;
+import restx.common.RestxConfig;
+import restx.common.StdRestxConfig;
 
 /**
  * User: xavierhanin
  * Date: 9/24/13
  * Time: 11:54 PM
  */
-@Component
 public class ConfigLoader {
     private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
 
     private final String env;
 
-    public ConfigLoader(@Named("env") Optional<String> env) {
+    public ConfigLoader(Optional<String> env) {
         this.env = env.or("default");
     }
 
