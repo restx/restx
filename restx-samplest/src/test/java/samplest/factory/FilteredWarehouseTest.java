@@ -93,7 +93,7 @@ public class FilteredWarehouseTest {
 		Factory subFactory = Factory.builder()
 				.addFromServiceLoader()
 				.addWarehouseProvider(
-						FilteredWarehouse.forClasses(mainFactory.getWarehouse(),
+						FilteredWarehouse.excludingClasses(mainFactory.getWarehouse(),
 								RestxConfig.class, String.class, TestSettingsFooConfig.class, TestSettingsBarConfig.class))
 				.build();
 

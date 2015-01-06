@@ -35,7 +35,7 @@ public class FilteredWarehouseTest {
 		assertThat(component.get().getComponent()).isEqualTo("test2");
 
 		// create a filtered warehouse
-		Warehouse filteredWarehouse = FilteredWarehouse.forNames(originalWarehouse, Name.of(String.class, "name"));
+		Warehouse filteredWarehouse = FilteredWarehouse.excludingNames(originalWarehouse, Name.of(String.class, "name"));
 
 		// try to checkout from filtered warehouse, the filtered component must not be present
 		component = filteredWarehouse.checkOut(Name.of(String.class, "name"));
@@ -58,7 +58,7 @@ public class FilteredWarehouseTest {
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
 		// create a filtered warehouse
-		Warehouse filteredWarehouse = FilteredWarehouse.forNames(originalWarehouse, Name.of(String.class, "name"));
+		Warehouse filteredWarehouse = FilteredWarehouse.excludingNames(originalWarehouse, Name.of(String.class, "name"));
 
 		// try to list available names in the warehouse
 		assertThat(originalWarehouse.listNames()).containsOnly(Name.of(String.class, "name"), Name.of(String.class, "name2"));
@@ -77,7 +77,7 @@ public class FilteredWarehouseTest {
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
 		// create a filtered warehouse
-		Warehouse filteredWarehouse = FilteredWarehouse.forNames(originalWarehouse, Name.of(String.class, "name"));
+		Warehouse filteredWarehouse = FilteredWarehouse.excludingNames(originalWarehouse, Name.of(String.class, "name"));
 
 		// try to get the box for the filtered component
 		assertThat(originalWarehouse.getStoredBox(Name.of(String.class, "name")).isPresent()).isTrue();
@@ -117,7 +117,7 @@ public class FilteredWarehouseTest {
 		assertThat(answer.get().getComponent()).isEqualTo(42);
 
 		// create a filtered warehouse
-		Warehouse filteredWarehouse = FilteredWarehouse.forClasses(originalWarehouse, String.class);
+		Warehouse filteredWarehouse = FilteredWarehouse.excludingClasses(originalWarehouse, String.class);
 
 		// try to checkout from filtered warehouse, no component must be present
 		component = filteredWarehouse.checkOut(Name.of(String.class, "name"));
@@ -144,7 +144,7 @@ public class FilteredWarehouseTest {
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
 		// create a filtered warehouse
-		Warehouse filteredWarehouse = FilteredWarehouse.forClasses(originalWarehouse, String.class);
+		Warehouse filteredWarehouse = FilteredWarehouse.excludingClasses(originalWarehouse, String.class);
 
 		// try to list available names in the warehouse
 		assertThat(originalWarehouse.listNames()).containsOnly(
@@ -169,7 +169,7 @@ public class FilteredWarehouseTest {
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
 		// create a filtered warehouse
-		Warehouse filteredWarehouse = FilteredWarehouse.forClasses(originalWarehouse, String.class);
+		Warehouse filteredWarehouse = FilteredWarehouse.excludingClasses(originalWarehouse, String.class);
 
 		// both boxes for string component must not be available from the filtered warehouse
 		assertThat(originalWarehouse.getStoredBox(Name.of(String.class, "name")).isPresent()).isTrue();
@@ -203,15 +203,15 @@ public class FilteredWarehouseTest {
 
 		// filter strings and answer, only devil will not be filtered
 		FilteredWarehouse filteredWarehouse = FilteredWarehouse.builder(originalWarehouse)
-				.addFilteredClass(String.class)
-				.addFilteredName(Name.of(Integer.class, "answer"))
-				.addPredicate(new Predicate<Name<?>>() {
+				.excludingClasses(String.class)
+				.excludingNames(Name.of(Integer.class, "answer"))
+				.excluding(new Predicate<Name<?>>() {
 					@Override
 					public boolean apply(Name<?> name) {
 						return name.getName().contains("hello");
 					}
 				})
-				.addPredicate(new Predicate<Name<?>>() {
+				.excluding(new Predicate<Name<?>>() {
 					@Override
 					public boolean apply(Name<?> name) {
 						return name.getName().startsWith("f");
@@ -255,15 +255,15 @@ public class FilteredWarehouseTest {
 
 		// filter strings and answer, only devil will not be filtered
 		FilteredWarehouse filteredWarehouse = FilteredWarehouse.builder(originalWarehouse)
-				.addFilteredClass(String.class)
-				.addFilteredName(Name.of(Integer.class, "answer"))
-				.addPredicate(new Predicate<Name<?>>() {
+				.excludingClasses(String.class)
+				.excludingNames(Name.of(Integer.class, "answer"))
+				.excluding(new Predicate<Name<?>>() {
 					@Override
 					public boolean apply(Name<?> name) {
 						return name.getName().contains("hello");
 					}
 				})
-				.addPredicate(new Predicate<Name<?>>() {
+				.excluding(new Predicate<Name<?>>() {
 					@Override
 					public boolean apply(Name<?> name) {
 						return name.getName().startsWith("f");
@@ -306,15 +306,15 @@ public class FilteredWarehouseTest {
 
 		// filter strings and answer, only devil will not be filtered
 		FilteredWarehouse filteredWarehouse = FilteredWarehouse.builder(originalWarehouse)
-				.addFilteredClass(String.class)
-				.addFilteredName(Name.of(Integer.class, "answer"))
-				.addPredicate(new Predicate<Name<?>>() {
+				.excludingClasses(String.class)
+				.excludingNames(Name.of(Integer.class, "answer"))
+				.excluding(new Predicate<Name<?>>() {
 					@Override
 					public boolean apply(Name<?> name) {
 						return name.getName().contains("hello");
 					}
 				})
-				.addPredicate(new Predicate<Name<?>>() {
+				.excluding(new Predicate<Name<?>>() {
 					@Override
 					public boolean apply(Name<?> name) {
 						return name.getName().startsWith("f");
@@ -353,7 +353,7 @@ public class FilteredWarehouseTest {
 				new SatisfiedBOM(BillOfMaterials.EMPTY, ImmutableMultimap.<Factory.Query<?>, NamedComponent<?>>of()));
 
 		// filter strings and answer, only devil will not be filtered
-		FilteredWarehouse filteredWarehouse = FilteredWarehouse.forPredicate(
+		FilteredWarehouse filteredWarehouse = FilteredWarehouse.excluding(
 				originalWarehouse,
 				new Predicate<Name<?>>() {
 					@Override

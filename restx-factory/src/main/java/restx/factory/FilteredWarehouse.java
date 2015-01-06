@@ -10,7 +10,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -24,24 +23,30 @@ import java.util.Collections;
  */
 public class FilteredWarehouse implements Warehouse {
 
-	public static FilteredWarehouse forClasses(Warehouse original, Class<?>... classes) {
-		FilteredWarehouseBuilder builder = builder(original);
-		for (Class<?> clazz : classes) {
-			builder.addFilteredClass(clazz);
-		}
-		return builder.build();
+	public static FilteredWarehouse excludingClasses(Warehouse original, Class<?>... classes) {
+		return builder(original).excludingClasses(classes).build();
 	}
 
-	public static FilteredWarehouse forNames(Warehouse original, Name<?>... names) {
-		FilteredWarehouseBuilder builder = builder(original);
-		for (Name<?> name : names) {
-			builder.addFilteredName(name);
-		}
-		return builder.build();
+	public static FilteredWarehouse excludingClasses(Warehouse original, Iterable<Class<?>> classes) {
+		return builder(original).excludingClasses(classes).build();
 	}
 
-	public static FilteredWarehouse forPredicate(Warehouse original, Predicate<Name<?>> filter) {
-		return new FilteredWarehouse(original, filter);
+
+	public static FilteredWarehouse excludingNames(Warehouse original, Name<?>... names) {
+		return builder(original).excludingNames(names).build();
+	}
+
+	public static FilteredWarehouse excludingNames(Warehouse original, Iterable<Name<?>> names) {
+		return builder(original).excludingNames(names).build();
+	}
+
+	@SafeVarargs
+	public static FilteredWarehouse excluding(Warehouse original, Predicate<Name<?>>... filters) {
+		return builder(original).excluding(filters).build();
+	}
+
+	public static FilteredWarehouse excluding(Warehouse original, Iterable<Predicate<Name<?>>> filters) {
+		return builder(original).excluding(filters).build();
 	}
 
 	public static FilteredWarehouseBuilder builder(Warehouse original) {
@@ -122,32 +127,58 @@ public class FilteredWarehouse implements Warehouse {
 	 */
 	public static class FilteredWarehouseBuilder {
 		private final Warehouse original;
-		private final ImmutableSet.Builder<Class<?>> filteredClassesBuilder = ImmutableSet.builder();
-		private final ImmutableSet.Builder<Name<?>> filteredNamesBuilder = ImmutableSet.builder();
 		private final ImmutableList.Builder<Predicate<Name<?>>> predicatesBuilder = ImmutableList.builder();
 
 		private FilteredWarehouseBuilder(Warehouse original) {
 			this.original = original;
 		}
 
-		public FilteredWarehouseBuilder addFilteredClass(Class<?> clazz) {
-			filteredClassesBuilder.add(clazz);
+		public FilteredWarehouseBuilder excludingClasses(Class<?>... classes) {
+			return excludingClasses(ImmutableSet.copyOf(classes));
+		}
+
+		public FilteredWarehouseBuilder excludingClasses(Iterable<Class<?>> classes) {
+			final ImmutableSet<Class<?>> classesSet = ImmutableSet.copyOf(classes);
+			if (!classesSet.isEmpty()) {
+				predicatesBuilder.add(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return classesSet.contains(name.getClazz());
+					}
+				});
+			}
 			return this;
 		}
 
-		public FilteredWarehouseBuilder addFilteredName(Name<?> name) {
-			filteredNamesBuilder.add(name);
+		public FilteredWarehouseBuilder excludingNames(Name<?>... names) {
+			return excludingNames(ImmutableSet.copyOf(names));
+		}
+
+		public FilteredWarehouseBuilder excludingNames(Iterable<Name<?>> names) {
+			final ImmutableSet<Name<?>> namesSet = ImmutableSet.copyOf(names);
+			if (!namesSet.isEmpty()) {
+				predicatesBuilder.add(new Predicate<Name<?>>() {
+					@Override
+					public boolean apply(Name<?> name) {
+						return namesSet.contains(name);
+					}
+				});
+			}
 			return this;
 		}
 
-		public FilteredWarehouseBuilder addPredicate(Predicate<Name<?>> predicate) {
-			predicatesBuilder.add(predicate);
+		@SafeVarargs
+		public final FilteredWarehouseBuilder excluding(Predicate<Name<?>>... predicates) {
+			predicatesBuilder.add(predicates);
+			return this;
+		}
+
+		public FilteredWarehouseBuilder excluding(Iterable<Predicate<Name<?>>> predicates) {
+			predicatesBuilder.addAll(predicates);
 			return this;
 		}
 
 		public FilteredWarehouse build() {
-			final ImmutableSet<Class<?>> filteredClasses = filteredClassesBuilder.build();
-			final ImmutableSet<Name<?>> filteredNames = filteredNamesBuilder.build();
 			final ImmutableList<Predicate<Name<?>>> predicates = predicatesBuilder.build();
 
 			return new FilteredWarehouse(
@@ -155,9 +186,7 @@ public class FilteredWarehouse implements Warehouse {
 					new Predicate<Name<?>>() {
 						@Override
 						public boolean apply(Name<?> name) {
-							return filteredClasses.contains(name.getClazz()) ||
-									filteredNames.contains(name) ||
-									Predicates.or(predicates).apply(name);
+							return Predicates.or(predicates).apply(name);
 						}
 					}
 			);
