@@ -1,1 +1,2 @@
 restx.factory.processor.FactoryAnnotationProcessor
+restx.config.processor.SettingsAnnotationProcessor

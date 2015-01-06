@@ -1,16 +1,29 @@
 package restx.factory;
 
-import com.google.common.base.Optional;
-import org.junit.Test;
-import restx.factory.TestComponentPriorities.V;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+
+
+import com.google.common.base.Optional;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import restx.factory.TestComponentPriorities.V;
 
 /**
  * @author fcamblor
  */
 public class FactoryTest {
+
+    /**
+     * ElementsFromConfig component can not be build, because of module TestMandatoryDependency
+     * which use a missing dependency.
+     */
+    @BeforeClass
+    public static void deactivateElementsFromConfig() {
+        System.setProperty("restx.activation::restx.factory.FactoryMachine::ElementsFromConfig", "false");
+    }
+
     @Test
     public void should_optional_dependency_works_and_not_be_injected_when_absent(){
         // check that we don't get a stack overflow error due to box closing the factory
