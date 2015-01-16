@@ -2,6 +2,8 @@ package restx.common.watch;
 
 import com.google.common.eventbus.EventBus;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -20,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  *     Other similar events occuring within the period are simply not discarded.
  * </p>
  */
-public class EventCoalescor {
+public class EventCoalescor implements Closeable {
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final EventBus eventBus;
     private final long coalescePeriod;
@@ -49,5 +51,10 @@ public class EventCoalescor {
                 }, coalescePeriod, TimeUnit.MILLISECONDS);
             }
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        executor.shutdownNow();
     }
 }

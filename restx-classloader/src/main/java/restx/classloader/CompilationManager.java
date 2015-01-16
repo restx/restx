@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -47,7 +48,7 @@ import static java.util.Collections.unmodifiableCollection;
  *
  * It also trigger events whenever a compilation ends.
  */
-public class CompilationManager {
+public class CompilationManager implements Closeable {
     private static final Runnable NO_OP = new Runnable() {
         @Override
         public void run() {
@@ -98,6 +99,7 @@ public class CompilationManager {
     private final Map<Path, SourceHash> hashes = new HashMap<>();
 
     private ExecutorService watcherExecutor;
+    private final List<Closeable> closeableWatchers = new ArrayList<>();
 
     private volatile boolean compiling;
 
@@ -111,7 +113,7 @@ public class CompilationManager {
         this(eventBus, sourceRoots, destination, DEFAULT_SETTINGS);
     }
 
-    public CompilationManager(EventBus eventBus, Iterable<Path> sourceRoots, Path destination, CompilationSettings settings) {
+    public CompilationManager(EventBus eventBus, final Iterable<Path> sourceRoots, Path destination, CompilationSettings settings) {
         this.eventBus = checkNotNull(eventBus);
         this.sourceRoots = checkNotNull(sourceRoots);
         this.destination = checkNotNull(destination);
@@ -254,7 +256,7 @@ public class CompilationManager {
                 for (Path sourceRoot : sourceRoots) {
                     if (sourceRoot.toFile().exists()) {
                         watched.add(sourceRoot);
-                        MoreFiles.watch(sourceRoot, eventBus, watcherExecutor, new WatcherSettings() {
+                        closeableWatchers.add(MoreFiles.watch(sourceRoot, eventBus, watcherExecutor, new WatcherSettings() {
                             @Override
                             public int coalescePeriod() {
                                 return settings.autoCompileCoalescePeriod();
@@ -264,7 +266,7 @@ public class CompilationManager {
                             public boolean recurse() {
                                 return true;
                             }
-                        });
+                        }));
                     } else {
                         logger.info("source root {} does not exist - IGNORED", sourceRoot);
                     }
@@ -280,6 +282,14 @@ public class CompilationManager {
             if (watcherExecutor != null) {
                 watcherExecutor.shutdownNow();
                 watcherExecutor = null;
+            }
+            if (closeableWatchers.size() > 0) {
+                for (Closeable closeableWatcher : closeableWatchers) {
+                    try {
+                        closeableWatcher.close();
+                    } catch (IOException ignored) { }
+                }
+                closeableWatchers.clear();
             }
         }
     }
@@ -701,5 +711,11 @@ public class CompilationManager {
                 parts.next(),
                 Long.parseLong(parts.next())
         );
+    }
+
+    @Override
+    public void close() throws IOException {
+        stopAutoCompile(); // in case ato-compile was started, stop it
+        compileExecutor.shutdownNow();
     }
 }

@@ -6,6 +6,7 @@ import com.google.common.io.ByteStreams;
 import restx.common.watch.WatcherServiceLoader;
 import restx.common.watch.WatcherSettings;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -69,9 +70,9 @@ public class MoreFiles {
         }
     }
 
-    public static void watch(Path dir, EventBus eventBus,
+    public static Closeable watch(Path dir, EventBus eventBus,
                              ExecutorService executor, WatcherSettings watcherSettings) {
-        WatcherServiceLoader.getWatcherService().watch(eventBus, executor, dir, watcherSettings);
+        return WatcherServiceLoader.getWatcherService().watch(eventBus, executor, dir, watcherSettings);
     }
 
     public static void copyDir(final Path sourceDir, final Path targetDir) throws IOException {
