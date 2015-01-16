@@ -79,7 +79,7 @@ public class RestxStatsCollector implements AutoStartable, AutoCloseable {
     private volatile long lastShareTime;
 
     public RestxStatsCollector(
-            @Named("restx.appName") Optional<String> appName,
+            @Named("app.name") Optional<String> appName,
             @Named("restx.server.type") Optional<String> serverType,
             @Named("restx.server.port") Optional<String> serverPort,
             AppSettings appSettings, RestxStatsSettings statsSettings,
