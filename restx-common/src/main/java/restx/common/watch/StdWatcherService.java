@@ -171,6 +171,7 @@ public class StdWatcherService implements WatcherService {
         @Override
         public void close() throws IOException {
             watcher.close();
+            coalescor.close();
         }
     }
 }
