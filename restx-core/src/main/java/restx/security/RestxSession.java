@@ -1,36 +1,31 @@
 package restx.security;
 
 import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.joda.time.Duration;
 import restx.factory.Component;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.Map.Entry;
 
 /**
  * RestxSession is used to store information which can be used across several HTTP requests from the same client.
  *
  * It is organized as a Map, information is stored by keys.
  *
- * It doesn't use the JEE Session mechanism, but a more lightweight system relying on a signed session cookie
- * (therefore it cannot be tampered by the client).
+ * It doesn't use the JEE Session mechanism, but a more lightweight system relying on signed session data stored
+ * on the client (being signed, it cannot be tampered by the client).
  *
- * The session cookie doesn't store the whole values (which could put a high load on the network and even cause
- * problems related to cookie size limit), but rather stores a a value id for each session key.
+ * The session data doesn't store the whole values (which could put a high load on the network and even cause
+ * problems related to data storage limit on the client), but rather stores a a value id for each session key.
  *
  * A value id MUST identify uniquely a value when used for a given session key, and the session MUST be configured
  * with a CacheLoader per key, able to load the value corresponding to the value id for a particular key.
  *
  * Therefore on the server the session enables to access arbitrary large objects, it will only put pressure on a
- * server cache, and on cache loaders if requests are heavily distributed. Indeed the cache is not distributed,
- * so a in a large clustered environment cache miss will be very likely and cache loaders will often be called.
- * Hence in such environment you should be careful to use very efficient cache loaders if you rely heavily on
- * session.
+ * server cache, and on cache loaders if requests are heavily distributed and depending on cache implementation.
  *
  * An example (using an arbitrary json like notation):
  * <pre>
@@ -39,7 +34,7 @@ import java.util.concurrent.ExecutionException;
  *              "USER": (valueId) -&gt; { return db.findOne("{_id: #}", valueId).as(User.class); }
  *          }
  *          "valueIdsByKeys": {
- *              "USER": "johndoe@acme.com" // valued from session cookie
+ *              "USER": "johndoe@acme.com" // valued from client session data
  *          }
  *     }
  * </pre>
@@ -50,31 +45,75 @@ import java.util.concurrent.ExecutionException;
 public class RestxSession {
     @Component
     public static class Definition {
-        public static class Entry<T> {
-            private final Class<T> clazz;
-            private final String key;
-            private final CacheLoader<String, T> loader;
+        /**
+         * A session definition entry is responsible for loading session values by session value id, for a
+         * particular definition key.
+         *
+         * It most of the time rely on a Cache to perform that efficiently, and therefore also offers
+         * minimalistic cache related APIs to allow to invalidate it.
+         *
+         * @param <T> the type of values this Entry handles.
+         */
+        public static interface Entry<T> {
+            /**
+             * Returns the definition key that this entry handles.
+             * @return the definition key that this entry handles.
+             */
+            String getKey();
 
-            public Entry(Class<T> clazz, String key, CacheLoader<String, T> loader) {
-                this.clazz = clazz;
-                this.key = key;
-                this.loader = loader;
-            }
+            /**
+             * Gives the value corresponding to the given valueId.
+             * This value may come from a cache, so its freshness depends on configuration and implementation.
+             *
+             * @param valueId the id of the value to get.
+             *
+             * @return the value, or absent if not found.
+             */
+            Optional<T> getValueForId(String valueId);
+
+            /**
+             * Invalidates the cache for a single value id.
+             *
+             * @param valueId the value id for which cache should be invalidated.
+             */
+            void invalidateCacheFor(String valueId);
+
+            /**
+             * Invalidates the full cache of this entry.
+             *
+             * This may impact more than this single entry if this entry cache is backed by a broader cache.
+             */
+            void invalidateCache();
         }
-        private final ImmutableMap<String, LoadingCache<String, ?>> caches;
+
+        private final ImmutableMap<String, Entry<?>> entries;
 
         @SuppressWarnings("unchecked") // can't use Iterable<Entry<?> as parameter in injectable constructor ATM
         public Definition(Iterable<Entry> entries) {
-            ImmutableMap.Builder<String, LoadingCache<String, ?>> builder = ImmutableMap.builder();
+            ImmutableMap.Builder<String, Entry<?>> builder = ImmutableMap.builder();
             for (Entry<?> entry : entries) {
-                builder.put(entry.key, CacheBuilder.newBuilder().maximumSize(1000).build(entry.loader));
+                builder.put(entry.getKey(), entry);
             }
-            caches = builder.build();
+            this.entries = builder.build();
+        }
+
+        public ImmutableSet<String> entriesKeySet() {
+            return entries.keySet();
+        }
+
+        public boolean hasEntryForKey(String key) {
+            return entries.containsKey(key);
         }
 
         @SuppressWarnings("unchecked")
-        public <T> LoadingCache<String, T> getCache(Class<T> clazz, String key) {
-            return (LoadingCache<String, T>) caches.get(key);
+        public <T> Optional<Entry<T>> getEntry(String key) {
+            return Optional.fromNullable((Entry<T>) entries.get(key));
+        }
+
+        public void invalidateAllCaches() {
+            for (Entry<?> entry : entries.values()) {
+                entry.invalidateCache();
+            }
         }
     }
 
@@ -105,33 +144,24 @@ public class RestxSession {
         this.expires = expires;
     }
 
-    public RestxSession cleanUpCaches() {
-        for (LoadingCache<String, ?> cache : definition.caches.values()) {
-            cache.cleanUp();
+    public RestxSession invalidateCaches() {
+        for (Entry<String, String> entry : valueidsByKey.entrySet()) {
+            definition.getEntry(entry.getKey()).get().invalidateCacheFor(entry.getValue());
         }
         return this;
     }
-
 
     public <T> Optional<T> get(Class<T> clazz, String key) {
         return getValue(definition, clazz, key, valueidsByKey.get(key));
     }
 
+    @SuppressWarnings("unchecked")
     static <T> Optional<T> getValue(Definition definition, Class<T> clazz, String key, String valueid) {
         if (valueid == null) {
             return Optional.absent();
         }
 
-        try {
-            return Optional.fromNullable(definition.getCache(clazz, key).get(valueid));
-        } catch (CacheLoader.InvalidCacheLoadException e) {
-            // this exception is raised when cache loader returns null, which may happen if the object behind the key
-            // is deleted. Therefore we just return an absent value
-            return Optional.absent();
-        } catch (ExecutionException e) {
-            throw new RuntimeException(
-                    "impossible to load object from cache using valueid " + valueid + " for " + key + ": " + e.getMessage(), e);
-        }
+        return (Optional<T>) definition.getEntry(key).get().getValueForId(valueid);
     }
 
     public RestxSession expires(Duration duration) {
@@ -143,9 +173,9 @@ public class RestxSession {
     }
 
     public <T> RestxSession define(Class<T> clazz, String key, String valueid) {
-        if (!definition.caches.containsKey(key)) {
+        if (!definition.hasEntryForKey(key)) {
             throw new IllegalArgumentException("undefined context key: " + key + "." +
-                    " Keys defined are: " + definition.caches.keySet());
+                    " Keys defined are: " + definition.entriesKeySet());
         }
         // create new map by using a mutable map, not a builder, in case the the given entry overrides a previous one
         Map<String,String> newValueidsByKey = Maps.newHashMap();

@@ -20,7 +20,6 @@ import com.google.common.collect.Maps;
 
 import restx.AbstractRouteLifecycleListener;
 import restx.RestxContext;
-import restx.RestxFilter;
 import restx.RestxHandler;
 import restx.RestxHandlerMatch;
 import restx.RestxRequest;
@@ -37,9 +36,7 @@ import restx.http.HttpStatus;
 import restx.jackson.FrontObjectMapperFactory;
 
 /**
- * User: xavierhanin
- * Date: 2/8/13
- * Time: 8:59 PM
+ * This filter is used to store and get a RestxSession in Cookies (one for data, one for signature).
  */
 @Component(priority = -200)
 public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler {
@@ -79,11 +76,11 @@ public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler 
     public void handle(RestxRequestMatch match, RestxRequest req, final RestxResponse resp, RestxContext ctx) throws IOException {
         final RestxSession session = buildContextFromRequest(req);
         if (RestxContext.Modes.RECORDING.equals(ctx.getMode())) {
-            // we clean up caches in recording mode so that each request records the cache loading
+            // we invalidate caches in recording mode so that each request records the cache loading
             // Note: having this piece of code here is not a very nice isolation of responsibilities
             // we could put it in a separate filter, but then it's not easy to be sure it's called right after this
             // filter. Until such a feature is introduced, the easy solution to put it here is used.
-            session.cleanUpCaches();
+            sessionDefinition.invalidateAllCaches();
         }
         RestxSession.setCurrent(session);
         try {
