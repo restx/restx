@@ -511,24 +511,17 @@ public class AppShellCommand extends StdShellCommand {
             }
 
 
-
-            String command = "java" +
-                    " -cp \"" + appSettings.targetClasses() + ":" + appSettings.targetDependency() + "/*\"" +
-                    " -Drestx.app.package=" + pack.get() +
-                    " -Drestx.mode=prod"
-                    ;
-
             File startSh = shell.currentLocation().resolve("start.sh").toFile();
             Files.write(
                     "#!/bin/sh\n\n" +
-                            command + " $VM_OPTIONS " +
+                            getCommand(appSettings, pack, ":") + " $VM_OPTIONS " +
                             " " + appClassName + "\n",
                     startSh, Charsets.UTF_8);
             startSh.setExecutable(true);
 
             File startBat = shell.currentLocation().resolve("start.bat").toFile();
             Files.write(
-                    command + " %VM_OPTIONS% " +
+                    getCommand(appSettings, pack, ";") + " %VM_OPTIONS% " +
                     " " + appClassName + "\r\n",
                     startBat, Charsets.ISO_8859_1);
 
@@ -536,6 +529,13 @@ public class AppShellCommand extends StdShellCommand {
                     "\t" + startSh.getAbsolutePath() + "\n" +
                     "\t" + startBat.getAbsolutePath() + "\n",
                     RestxShell.AnsiCodes.ANSI_GREEN);
+        }
+
+        protected String getCommand(AppSettings appSettings, Optional<String> pack, String pathSeparator) {
+            return "java" +
+                    " -cp \"" + appSettings.targetClasses() + pathSeparator + appSettings.targetDependency() + "/*\"" +
+                    " -Drestx.app.package=" + pack.get() +
+                    " -Drestx.mode=prod";
         }
     }
 
