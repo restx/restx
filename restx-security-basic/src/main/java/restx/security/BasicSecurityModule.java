@@ -1,6 +1,7 @@
 package restx.security;
 
-import com.google.common.cache.CacheLoader;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import restx.factory.Module;
 import restx.factory.Provides;
 
@@ -13,23 +14,24 @@ public class BasicSecurityModule {
     @Provides
     @Named(RestxPrincipal.SESSION_DEF_KEY)
     public RestxSession.Definition.Entry principalSessionEntry(final BasicPrincipalAuthenticator authenticator) {
-        return new RestxSession.Definition.Entry<>(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY,
-                new CacheLoader<String, RestxPrincipal>() {
-            @Override
-            public RestxPrincipal load(String key) throws Exception {
-                return authenticator.findByName(key).orNull();
-            }
+        return new DefaultSessionDefinitionEntry<>(RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY,
+                new Function<String, Optional<? extends RestxPrincipal>>() {
+                    @Override
+                    public Optional<? extends RestxPrincipal> apply(String key) {
+                        return authenticator.findByName(key);
+                    }
         });
     }
 
     @Provides
+    @Named(Session.SESSION_DEF_KEY)
     public RestxSession.Definition.Entry sessionKeySessionEntry() {
-        return new RestxSession.Definition.Entry<>(String.class, Session.SESSION_DEF_KEY,
-                new CacheLoader<String, String>() {
-            @Override
-            public String load(String key) throws Exception {
-                return key;
-            }
-        });
+        return new DefaultSessionDefinitionEntry<>(String.class, Session.SESSION_DEF_KEY,
+                new Function<String, Optional<? extends String>>() {
+                    @Override
+                    public Optional<? extends String> apply(String key) {
+                        return Optional.fromNullable(key);
+                    }
+                });
     }
 }

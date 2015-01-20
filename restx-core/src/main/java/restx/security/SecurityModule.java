@@ -2,13 +2,12 @@ package restx.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import restx.common.RestxConfig;
-import restx.config.Settings;
 import restx.config.SettingsKey;
 import restx.factory.AutoStartable;
 import restx.factory.Module;
 import restx.factory.Provides;
+import restx.security.RestxSession.Definition.EntryCacheManager;
 
 import javax.inject.Named;
 
@@ -19,6 +18,7 @@ import javax.inject.Named;
 @Module(priority = 100)
 public class SecurityModule {
     private static final Logger logger = LoggerFactory.getLogger(SecurityModule.class);
+    public static final String ENTRY_CACHE_MANAGER = "EntryCacheManager";
 
     public static interface SecuritySettings {
         @SettingsKey(key = "restx.sessions.stats.limit", defaultValue = "100",
@@ -59,5 +59,10 @@ public class SecurityModule {
                 return config.getInt("restx.sessions.stats.limit").or(100);
             }
         };
+    }
+
+    @Provides @Named(ENTRY_CACHE_MANAGER)
+    public EntryCacheManager guavaCacheManager() {
+        return new GuavaEntryCacheManager();
     }
 }
