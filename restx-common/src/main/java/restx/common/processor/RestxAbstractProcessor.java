@@ -51,6 +51,10 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, element);
     }
 
+    protected void warn(String msg, Element element) {
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, msg, element);
+    }
+
     protected void error(String msg, Element element, AnnotationMirror annotation) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, element, annotation);
     }

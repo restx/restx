@@ -7,6 +7,7 @@ import com.google.common.io.CharStreams;
 import com.samskivert.mustache.Template;
 import restx.common.processor.RestxAbstractProcessor;
 import restx.factory.*;
+import restx.factory.Name;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -184,6 +185,18 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                     }
                 }
 
+                // generate the name for the alternative, could be:
+                // - the "named" value if defined
+                // - the value of @Named of the referenced component if defined
+                // - the referenced component simple name class, if none of the above
+                String namedAttribute = alternative.named();
+                Optional<String> injectionName;
+                if (!namedAttribute.isEmpty()) {
+                    injectionName = Optional.of(namedAttribute);
+                } else {
+                    injectionName = getInjectionName(alternativeTo.getAnnotation(Named.class));
+                }
+
                 ComponentClass componentClass = new ComponentClass(
                         component.getQualifiedName().toString(),
                         getPackage(component).getQualifiedName().toString(),
@@ -196,7 +209,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                         alternativeTo.getQualifiedName().toString(),
                         getPackage(alternativeTo).getQualifiedName().toString(),
                         alternativeTo.getSimpleName().toString(),
-                        getInjectionName(alternativeTo.getAnnotation(Named.class)),
+                        injectionName,
                         alternative.priority(),
                         alternativeTo);
 
@@ -204,6 +217,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 if (when == null) {
                     error("an Alternative MUST be annotated with @When to tell when it must be activated", elem);
                     continue;
+                }
+
+                Named named = component.getAnnotation(Named.class);
+                if (named != null) {
+                    warn("to specify a 'name' for an Alternative use 'named' attribute, Named annotation will be ignored", elem);
                 }
 
                 buildInjectableParams(exec, componentClass.parameters);
