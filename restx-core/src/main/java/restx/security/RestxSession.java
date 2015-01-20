@@ -41,6 +41,10 @@ import java.util.Map.Entry;
  * With such a restx session, when you call a #get(User.class, "USER"), the session will first check its
  * valueIdsByKeys map to find the corresponding valueId ("johndoe@acme.com"). Then it will check the cache for
  * this valueId, and in case of cache miss will use the provided cache loader which will load the user from db.
+ *
+ * If you want to define your own session keys, you should define a Definition.Entry component for it allowing
+ * to load values based on their ids. You don't have to take care of caching in the Entry, caching is performed
+ * by EntryCacheManager.
  */
 public class RestxSession {
     @Component
@@ -49,12 +53,39 @@ public class RestxSession {
          * A session definition entry is responsible for loading session values by session value id, for a
          * particular definition key.
          *
-         * It most of the time rely on a Cache to perform that efficiently, and therefore also offers
-         * minimalistic cache related APIs to allow to invalidate it.
+         * They don't implement caching themselves, see CachedEntry for entries supporting caching.
          *
          * @param <T> the type of values this Entry handles.
          */
         public static interface Entry<T> {
+            /**
+             * Returns the definition key that this entry handles.
+             * @return the definition key that this entry handles.
+             */
+            String getKey();
+
+            /**
+             * Gives the value corresponding to the given valueId.
+             *
+             * @param valueId the id of the value to get.
+             *
+             * @return the value, or absent if not found.
+             */
+            Optional<? extends T> getValueForId(String valueId);
+        }
+
+        /**
+         * A cached version of session definition entry.
+         *
+         * This does not derive from Entry, because its its getting method does not have the same semantic as the
+         * original one: here it returns a value which may not be the freshest one, while an Entry should always
+         * return current one.
+         *
+         * CachedEntry instances are usually created from a Entry instance using a EntryCacheManager.
+         *
+         * @param <T> the type of values this CachedEntry handles.
+         */
+        public static interface CachedEntry<T> {
             /**
              * Returns the definition key that this entry handles.
              * @return the definition key that this entry handles.
@@ -69,7 +100,7 @@ public class RestxSession {
              *
              * @return the value, or absent if not found.
              */
-            Optional<T> getValueForId(String valueId);
+            Optional<? extends T> getValueForId(String valueId);
 
             /**
              * Invalidates the cache for a single value id.
@@ -86,13 +117,22 @@ public class RestxSession {
             void invalidateCache();
         }
 
-        private final ImmutableMap<String, Entry<?>> entries;
+        /**
+         * A cache manager for session definition entry.
+         *
+         * It transforms Entry into CachedEntry
+         */
+        public static interface EntryCacheManager {
+            <T> CachedEntry<T> getCachedEntry(Entry<T> entry);
+        }
+
+        private final ImmutableMap<String, CachedEntry<?>> entries;
 
         @SuppressWarnings("unchecked") // can't use Iterable<Entry<?> as parameter in injectable constructor ATM
-        public Definition(Iterable<Entry> entries) {
-            ImmutableMap.Builder<String, Entry<?>> builder = ImmutableMap.builder();
+        public Definition(EntryCacheManager cacheManager, Iterable<Entry> entries) {
+            ImmutableMap.Builder<String, CachedEntry<?>> builder = ImmutableMap.builder();
             for (Entry<?> entry : entries) {
-                builder.put(entry.getKey(), entry);
+                builder.put(entry.getKey(), cacheManager.getCachedEntry(entry));
             }
             this.entries = builder.build();
         }
@@ -106,12 +146,12 @@ public class RestxSession {
         }
 
         @SuppressWarnings("unchecked")
-        public <T> Optional<Entry<T>> getEntry(String key) {
-            return Optional.fromNullable((Entry<T>) entries.get(key));
+        public <T> Optional<CachedEntry<T>> getEntry(String key) {
+            return Optional.fromNullable((CachedEntry<T>) entries.get(key));
         }
 
         public void invalidateAllCaches() {
-            for (Entry<?> entry : entries.values()) {
+            for (CachedEntry<?> entry : entries.values()) {
                 entry.invalidateCache();
             }
         }
