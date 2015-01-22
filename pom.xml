@@ -159,6 +159,7 @@
         <module>restx-build-shell</module>
         <module>restx-specs-shell</module>
         <module>restx-validation</module>
+        <module>restx-webjars</module>
     </modules>
 
 
