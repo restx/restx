@@ -1,0 +1,14 @@
+title: Create Validation POJO - OK
+given:
+  - time: 2014-12-24T17:01:21.795+02:00
+wts:
+  - when: |
+       POST valid/pojos
+       {"name": "blah", "email": "toto@acme.com", "subPOJO": { "label": "a very long label" }}
+    then: |
+       204
+  - when: |
+       POST valid/pojos2
+       {"name": "blah", "email": "toto@acme.com", "subPOJO": { "label": "a very long label" }}
+    then: |
+       204

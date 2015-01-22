@@ -1,0 +1,24 @@
+title: Update Validation POJO - KO
+given:
+  - time: 2014-12-24T17:01:21.795+02:00
+wts:
+  - when: |
+       PUT valid/pojos/123
+       {"name": "a very long name", "email": "toto@acme.com", "subPOJO": { "label": "a very long label" }}
+    then: |
+       400
+  - when: |
+       PUT valid/pojos/123
+       {"id": 123, "name": "a name", "email": "toto@acme.com", "subPOJO": { "label": "a very long label" }}
+    then: |
+       400
+  - when: |
+       PUT valid/pojos/123
+       {"id": 123, "name": "a very long name", "email": "toto", "subPOJO": { "label": "a very long label" }}
+    then: |
+       400
+  - when: |
+       PUT valid/pojos/123
+       {"id": 123, "name": "a very long name", "email": "toto@acme.com", "subPOJO": { "label": "a label" }}
+    then: |
+       400

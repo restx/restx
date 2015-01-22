@@ -1,6 +1,7 @@
 package restx.annotations.processor;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
@@ -14,6 +15,7 @@ import restx.factory.When;
 import restx.http.HttpStatus;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
+import restx.validation.ValidatedFor;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -37,6 +39,13 @@ import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 @SupportedOptions({ "debug" })
 public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     final Template routerTpl;
+
+    private static final Function<Class,String> FQN_EXTRACTOR = new Function<Class,String>(){
+        @Override
+        public String apply(Class clazz) {
+            return clazz.getCanonicalName();
+        }
+    };
 
     public RestxAnnotationProcessor() {
         routerTpl = Mustaches.compile(RestxAnnotationProcessor.class, "RestxRouter.mustache");
@@ -163,11 +172,19 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 }
             }
 
+            ValidatedFor validatedFor = p.getAnnotation(ValidatedFor.class);
+
+            String[] validationGroups = new String[0];
+            if(validatedFor != null) {
+                validationGroups = Annotations.getAnnotationClassValuesAsFQCN(p, ValidatedFor.class, "value");
+            }
+
             resourceMethod.parameters.add(new ResourceMethodParameter(
                 p.asType().toString(),
                 paramName,
                 reqParamName,
-                parameterKind));
+                parameterKind,
+                validationGroups));
         }
         if (!pathParamNamesToMatch.isEmpty()) {
             error(
@@ -492,8 +509,16 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String name;
         final String reqParamName;
         final ResourceMethodParameterKind kind;
+        final List<String> validationGroupsFQNs;
 
-        private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind) {
+        private static final Function<String, String> CLASS_APPENDER_FCT = new Function<String, String>() {
+            @Override
+            public String apply(String fqn) {
+                return fqn+".class";
+            }
+        };
+
+        private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
             Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(type);
             Matcher java8OptionalMatcher = java8OptionalPattern.matcher(type);
             this.realType = type;
@@ -513,6 +538,15 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.name = name;
             this.reqParamName = reqParamName;
             this.kind = kind;
+            this.validationGroupsFQNs = Arrays.asList(validationGroupsFQNs);
+        }
+
+        public Optional<String> joinedValidationGroupFQNExpression(){
+            if(this.validationGroupsFQNs == null || this.validationGroupsFQNs.isEmpty()) {
+                return Optional.absent();
+            } else {
+                return Optional.of(Joiner.on(", ").join(Iterables.transform(this.validationGroupsFQNs, CLASS_APPENDER_FCT)));
+            }
         }
     }
 
@@ -539,7 +573,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         },
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                return String.format("checkValid(validator, body)", parameter.type);
+                Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
+                return String.format("checkValid(validator, body%s)", validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():"");
             }
         },
         CONTEXT {

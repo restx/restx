@@ -47,7 +47,7 @@ Here is a brief summary of each module:
 - `restx-factory`: RESTX Dependency Injection (DI) container. Brought as transitive dependency from restx-core.
 - `restx-classloader`: Hot reload / hot compile support
 - `restx-apidocs-doclet`: Some javadoc doclets used when generating apidocs
-- `restx-core`: Core module, includes the REST framework, base security, JSON support, Validation, ...
+- `restx-core`: Core module, includes the REST framework, base security, JSON support, ...
 
 *By relying on `restx-core` module, every modules described above will be retrieved as transitive dependencies*
 
@@ -63,6 +63,7 @@ Here is a brief summary of each module:
 - `restx-specs-tests-java8`: Support for java 8 time API during specs tests
 - `restx-specs-server`: Enables using RESTX specs as HTTP mocks (running a server serving spec files responses given spec files requests).
 - `restx-factory-testing`: A module dedicated to test `restx-factory` features involving annotation processing.
+- `restx-validation`: Bean validation support (based on `hibernate-validator` implementation) for POJOs BODY parameters
 
 
 #### MongoDB support through Jongo API:
