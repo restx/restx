@@ -1,0 +1,4 @@
+[webjars]
+- Identifier si des libs sont utilisées uniquement sur un seul des projets et, si c'est le cas
+  le dégager des webjars pour le positionner sur le projet en question
+- Supprimer les doublons d'angularjs
