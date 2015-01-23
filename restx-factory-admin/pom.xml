@@ -38,5 +38,10 @@
             <artifactId>restx-admin</artifactId>
             <version>${restx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-webjars</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
     </dependencies>
 </project>
