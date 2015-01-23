@@ -49,5 +49,10 @@
             <artifactId>http-request</artifactId>
             <version>${http-request.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-webjars</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
     </dependencies>
 </project>

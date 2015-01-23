@@ -68,5 +68,10 @@
             <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-webjars</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
     </dependencies>
 </project>
