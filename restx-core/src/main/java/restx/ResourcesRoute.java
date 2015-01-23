@@ -2,6 +2,7 @@ package restx;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
@@ -38,11 +39,11 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
      */
     private final String baseResourcePath;
     private final ImmutableMap<String, String> aliases;
-    private final List<CachedResourcePolicy> cachedResourcePolicies;
+    private final ImmutableList<CachedResourcePolicy> cachedResourcePolicies;
 
     public static class ResourceInfo {
-        String contentType;
-        String path;
+        final String contentType;
+        final String path;
 
         public ResourceInfo(String contentType, String path) {
             this.contentType = contentType;
@@ -59,8 +60,8 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
     }
 
     public static class CachedResourcePolicy {
-        Predicate<ResourceInfo> matcher;
-        String cacheValue;
+        final Predicate<ResourceInfo> matcher;
+        final String cacheValue;
 
         public CachedResourcePolicy(Predicate<ResourceInfo> matcher, String cacheValue) {
             this.matcher = matcher;
@@ -91,7 +92,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
         this.baseResourcePath = checkNotNull(baseResourcePath)
                 .replace('.', '/').replaceAll("^/", "").replaceAll("/$", "") + "/";
         this.aliases = checkNotNull(aliases);
-        this.cachedResourcePolicies = cachedResourcePolicies;
+        this.cachedResourcePolicies = ImmutableList.copyOf(cachedResourcePolicies);
     }
 
     @Override
