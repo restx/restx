@@ -64,6 +64,7 @@ Here is a brief summary of each module:
 - `restx-specs-server`: Enables using RESTX specs as HTTP mocks (running a server serving spec files responses given spec files requests).
 - `restx-factory-testing`: A module dedicated to test `restx-factory` features involving annotation processing.
 - `restx-validation`: Bean validation support (based on `hibernate-validator` implementation) for POJOs BODY parameters
+- `restx-webjars`: Webjars support through urls like `/@/webjars/*`
 
 
 #### MongoDB support through Jongo API:

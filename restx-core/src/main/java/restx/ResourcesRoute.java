@@ -1,6 +1,8 @@
 package restx;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
@@ -10,6 +12,8 @@ import restx.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,17 +39,60 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
      */
     private final String baseResourcePath;
     private final ImmutableMap<String, String> aliases;
+    private final ImmutableList<CachedResourcePolicy> cachedResourcePolicies;
+
+    public static class ResourceInfo {
+        final String contentType;
+        final String path;
+
+        public ResourceInfo(String contentType, String path) {
+            this.contentType = contentType;
+            this.path = path;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public String getPath() {
+            return path;
+        }
+    }
+
+    public static class CachedResourcePolicy {
+        final Predicate<ResourceInfo> matcher;
+        final String cacheValue;
+
+        public CachedResourcePolicy(Predicate<ResourceInfo> matcher, String cacheValue) {
+            this.matcher = matcher;
+            this.cacheValue = cacheValue;
+        }
+
+        public boolean matches(String contentType, String path) {
+            return matcher.apply(new ResourceInfo(contentType, path));
+        }
+
+        public String getCacheValue() {
+            return cacheValue;
+        }
+    }
+
 
     public ResourcesRoute(String name, String baseRestPath, String baseResourcePath) {
         this(name, baseRestPath, baseResourcePath, ImmutableMap.<String, String>of());
     }
 
     public ResourcesRoute(String name, String baseRestPath, String baseResourcePath, ImmutableMap<String, String> aliases) {
+        this(name, baseRestPath, baseResourcePath, aliases, Collections.<CachedResourcePolicy>emptyList());
+    }
+
+    public ResourcesRoute(String name, String baseRestPath, String baseResourcePath, ImmutableMap<String, String> aliases, List<CachedResourcePolicy> cachedResourcePolicies) {
         this.name = checkNotNull(name);
         this.baseRestPath = ("/" + checkNotNull(baseRestPath) + "/").replaceAll("/+", "/");
         this.baseResourcePath = checkNotNull(baseResourcePath)
                 .replace('.', '/').replaceAll("^/", "").replaceAll("/$", "") + "/";
         this.aliases = checkNotNull(aliases);
+        this.cachedResourcePolicies = ImmutableList.copyOf(cachedResourcePolicies);
     }
 
     @Override
@@ -71,11 +118,25 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
             );
             resp.setLogLevel(RestxLogLevel.QUIET);
             resp.setStatus(HttpStatus.OK);
-            resp.setContentType(HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream"));
+            String contentType = HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream");
+            Optional<CachedResourcePolicy> cachedResourcePolicy = cachePolicyMatching(contentType, relativePath);
+            if(cachedResourcePolicy.isPresent()) {
+                resp.setHeader("Cache-Control", cachedResourcePolicy.get().getCacheValue());
+            }
+            resp.setContentType(contentType);
             Resources.asByteSource(resource).copyTo(resp.getOutputStream());
         } catch (IllegalArgumentException e) {
             notFound(resp, relativePath);
         }
+    }
+
+    private Optional<CachedResourcePolicy> cachePolicyMatching(String contentType, String path) {
+        for(CachedResourcePolicy cachedResourcePolicy : cachedResourcePolicies){
+            if(cachedResourcePolicy.matches(contentType, path)){
+                return Optional.of(cachedResourcePolicy);
+            }
+        }
+        return Optional.absent();
     }
 
     private void notFound(RestxResponse resp, String relativePath) throws IOException {

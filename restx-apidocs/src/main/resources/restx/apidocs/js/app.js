@@ -3,7 +3,7 @@
 $.ScrollTo.config.duration = 200;
 $.ScrollTo.config.offsetTop = 40;
 
-var adminApp = angular.module('admin', ['ngResource', 'ui.bootstrap']);
+var adminApp = angular.module('admin', ['ngResource']);
 
 adminApp.config(function($routeProvider) {
   $routeProvider.
