@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import restx.factory.TestComponentPriorities.V;
+import restx.factory.TestInnerComponent.A;
 
 /**
  * @author fcamblor
@@ -86,5 +87,12 @@ public class FactoryTest {
                 .build();
 
         factory.queryByName(Name.of(String.class, "mandatory.dep.result2")).findOne();
+    }
+
+    @Test
+    public void should_get_component_declared_as_inner_class() throws Exception {
+        Factory factory = Factory.builder().addFromServiceLoader().build();
+
+        assertThat(factory.queryByClass(A.class).findOne().isPresent()).isTrue();
     }
 }
