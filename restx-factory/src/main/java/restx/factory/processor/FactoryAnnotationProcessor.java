@@ -84,24 +84,61 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
                 ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
                 for (Element element : typeElem.getEnclosedElements()) {
+                    // look for Provides or Alternative elements
                     Provides provides = element.getAnnotation(Provides.class);
+                    Alternative alternative = element.getAnnotation(Alternative.class);
                     if (element instanceof ExecutableElement
-                            && element.getKind() == ElementKind.METHOD
-                            && provides != null) {
-                        ExecutableElement exec = (ExecutableElement) element;
+                            && element.getKind() == ElementKind.METHOD) {
+                        if (provides != null) {
+                            ExecutableElement exec = (ExecutableElement) element;
 
-                        ProviderMethod m = new ProviderMethod(
-                                exec.getReturnType().toString(),
-                                exec.getSimpleName().toString(),
-                                provides.priority() == 0 ? mod.priority() : provides.priority(),
-                                getInjectionName(exec.getAnnotation(Named.class)),
-                                exec);
+                            ProviderMethod m = new ProviderMethod(
+                                    exec.getReturnType().toString(),
+                                    exec.getSimpleName().toString(),
+                                    provides.priority() == 0 ? mod.priority() : provides.priority(),
+                                    getInjectionName(exec.getAnnotation(Named.class)),
+                                    exec);
 
-                        buildInjectableParams(exec, m.parameters);
+                            buildInjectableParams(exec, m.parameters);
 
-                        buildCheckedExceptions(exec, m.exceptions);
+                            buildCheckedExceptions(exec, m.exceptions);
 
-                        module.providerMethods.add(m);
+                            module.providerMethods.add(m);
+                        } else if (alternative != null) {
+                            ExecutableElement exec = (ExecutableElement) element;
+
+                            When when = exec.getAnnotation(When.class);
+                            if (when == null) {
+                                error("an Alternative MUST be annotated with @When to tell when it must be activated", exec);
+                                continue;
+                            }
+
+                            TypeElement alternativeTo = null;
+                            if (alternative != null) {
+                                try {
+                                    alternative.to();
+                                } catch (MirroredTypeException mte) {
+                                    alternativeTo = asTypeElement(mte.getTypeMirror());
+                                }
+                            }
+
+                            AlternativeMethod m = new AlternativeMethod(
+                                    exec.getReturnType().toString(),
+                                    alternativeTo.getQualifiedName().toString(),
+                                    alternativeTo.getSimpleName().toString(),
+                                    exec.getSimpleName().toString(),
+                                    alternative.priority(),
+                                    !alternative.named().isEmpty() ? Optional.of(alternative.named()) : Optional.<String>absent(),
+                                    when.name(),
+                                    when.value(),
+                                    exec);
+
+                            buildInjectableParams(exec, m.parameters);
+
+                            buildCheckedExceptions(exec, m.exceptions);
+
+                            module.alternativeMethods.add(m);
+                        }
                     }
                 }
 
@@ -165,6 +202,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     private void processAlternatives(RoundEnvironment roundEnv) throws IOException {
         for (Element elem : roundEnv.getElementsAnnotatedWith(Alternative.class)) {
             try {
+                if (elem instanceof ExecutableElement && elem.getKind() == ElementKind.METHOD) {
+                    // skip this annotation, if it is in a module, it will been managed by processModules
+                    continue;
+                }
+
                 if (!(elem instanceof TypeElement)) {
                     error("annotating element " + elem + " of type " + elem.getKind().name()
                                     + " with @Alternative is not supported", elem);
@@ -184,6 +226,18 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                     }
                 }
 
+                // generate the name for the alternative, could be:
+                // - the "named" value if defined
+                // - the value of @Named of the referenced component if defined
+                // - the referenced component simple name class, if none of the above
+                String namedAttribute = alternative.named();
+                Optional<String> injectionName;
+                if (!namedAttribute.isEmpty()) {
+                    injectionName = Optional.of(namedAttribute);
+                } else {
+                    injectionName = getInjectionName(alternativeTo.getAnnotation(Named.class));
+                }
+
                 ComponentClass componentClass = new ComponentClass(
                         component.getQualifiedName().toString(),
                         getPackage(component).getQualifiedName().toString(),
@@ -196,7 +250,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                         alternativeTo.getQualifiedName().toString(),
                         getPackage(alternativeTo).getQualifiedName().toString(),
                         alternativeTo.getSimpleName().toString(),
-                        getInjectionName(alternativeTo.getAnnotation(Named.class)),
+                        injectionName,
                         alternative.priority(),
                         alternativeTo);
 
@@ -204,6 +258,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 if (when == null) {
                     error("an Alternative MUST be annotated with @When to tell when it must be activated", elem);
                     continue;
+                }
+
+                Named named = component.getAnnotation(Named.class);
+                if (named != null) {
+                    warn("to specify a 'name' for an Alternative use 'named' attribute, Named annotation will be ignored", elem);
                 }
 
                 buildInjectableParams(exec, componentClass.parameters);
@@ -256,6 +315,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
     private void generateMachineFile(ModuleClass moduleClass) throws IOException {
         List<ImmutableMap<String, Object>> engines = Lists.newArrayList();
+        List<ImmutableMap<String, Object>> alternativesEngines = Lists.newArrayList();
 
         for (ProviderMethod method : moduleClass.providerMethods) {
             engines.add(ImmutableMap.<String, Object>builder()
@@ -271,6 +331,23 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                     .build());
         }
 
+        for (AlternativeMethod method : moduleClass.alternativeMethods) {
+            alternativesEngines.add(ImmutableMap.<String, Object>builder()
+                    .put("componentType", method.componentType)
+                    .put("alternativeToComponentType", method.alternativeType)
+                    .put("alternativeToComponentName", method.injectionName.or(method.alternativeName))
+                    .put("alternativeToComponentSimpleName", method.alternativeName)
+                    .put("whenName", method.whenName)
+                    .put("whenValue", method.whenValue)
+                    .put("priority", method.priority)
+                    .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
+                    .put("methodName", method.methodName)
+                    .put("queries", Joiner.on(",\n").join(buildQueriesNames(method.parameters)))
+                    .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(method.parameters)))
+                    .put("exceptions", method.exceptions.isEmpty() ? false : Joiner.on("|").join(method.exceptions))
+                    .build());
+        }
+
         ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                 .put("package", moduleClass.pack)
                 .put("machine", moduleClass.name + "FactoryMachine")
@@ -278,12 +355,12 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 .put("moduleType", moduleClass.name)
                 .put("priority", moduleClass.priority)
                 .put("engines", engines)
+                .put("alternativesEngines", alternativesEngines)
                 .build();
 
         generateJavaClass(moduleClass.fqcn + "FactoryMachine", moduleMachineTpl, ctx,
                 Collections.singleton(moduleClass.originatingElement));
     }
-
 
     private void generateMachineFile(ComponentClass componentClass, ComponentClass alternativeTo, When when) throws IOException {
         ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
@@ -503,6 +580,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final String fqcn;
 
         final List<ProviderMethod> providerMethods = Lists.newArrayList();
+        final List<AlternativeMethod> alternativeMethods = Lists.newArrayList();
         final Element originatingElement;
         final String pack;
         final String name;
@@ -531,6 +609,34 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             this.name = name;
             this.priority = priority;
             this.injectionName = injectionName;
+            this.originatingElement = originatingElement;
+        }
+    }
+
+    private static class AlternativeMethod {
+        final Element originatingElement;
+        final String componentType;
+        final String alternativeType;
+        final String alternativeName;
+        final String methodName;
+        final int priority;
+        final Optional<String> injectionName;
+        final String whenName;
+        final String whenValue;
+        final List<InjectableParameter> parameters = Lists.newArrayList();
+        final List<String> exceptions = Lists.newArrayList();
+
+        AlternativeMethod(String componentType, String alternativeType,
+                String alternativeName, String methodName, int priority, Optional<String> injectionName,
+                String whenName, String whenValue, Element originatingElement) {
+            this.componentType = componentType;
+            this.alternativeType = alternativeType;
+            this.alternativeName = alternativeName;
+            this.methodName = methodName;
+            this.priority = priority;
+            this.injectionName = injectionName;
+            this.whenName = whenName;
+            this.whenValue = whenValue;
             this.originatingElement = originatingElement;
         }
     }
