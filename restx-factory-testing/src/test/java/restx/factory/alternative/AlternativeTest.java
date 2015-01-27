@@ -10,6 +10,7 @@ import org.junit.Test;
 import java.util.Properties;
 import restx.factory.Factory;
 import restx.factory.Name;
+import restx.factory.alternative.components.TestAlternativesFromModule;
 import restx.factory.alternative.components.TestComponentInterface;
 import restx.factory.alternative.components.TestComponentNamed;
 import restx.factory.alternative.components.TestComponentSimple;
@@ -129,5 +130,53 @@ public class AlternativeTest {
 		factory = Factory.builder().addFromServiceLoader().build();
 		component = factory.getComponent(Name.of(TestComponentsFromModule.SomeOtherInterface.class, "restx.test.component.productionNamed"));
 		assertThat(component.mode()).isEqualTo("dev");
+	}
+
+	/*
+		This test uses an alternative defined in a module.
+	 */
+	@Test
+	public void should_use_alternative_defined_in_modules() {
+		Factory factory = Factory.builder().addFromServiceLoader().build();
+		TestAlternativesFromModule.Calculation component = factory.getComponent(TestAlternativesFromModule.Calculation.class);
+		assertThat(component.calculate(2, 3)).isEqualTo(5);
+
+		System.setProperty("restx.test.alternatives", "true");
+
+		factory = Factory.builder().addFromServiceLoader().build();
+		component = factory.getComponent(TestAlternativesFromModule.Calculation.class);
+		assertThat(component.calculate(2, 3)).isEqualTo(6);
+	}
+
+	/*
+		This test uses an alternative defined in a module, and the referenced component use a Named annotation
+	 */
+	@Test
+	public void should_use_alternative_defined_in_modules_for_named_components() {
+		Factory factory = Factory.builder().addFromServiceLoader().build();
+		TestAlternativesFromModule.Flag component = factory.getComponent(TestAlternativesFromModule.Flag.class);
+		assertThat(component.value()).isEqualTo(true);
+
+		System.setProperty("restx.test.alternatives", "true");
+
+		factory = Factory.builder().addFromServiceLoader().build();
+		component = factory.getComponent(TestAlternativesFromModule.Flag.class);
+		assertThat(component.value()).isEqualTo(false);
+	}
+
+	/*
+		This test defines two alternatives, with different priorities, check that the higher is used.
+	 */
+	@Test
+	public void should_use_alternative_with_higher_priority() {
+		Factory factory = Factory.builder().addFromServiceLoader().build();
+		TestAlternativesFromModule.Priority component = factory.getComponent(TestAlternativesFromModule.Priority.class);
+		assertThat(component.value()).isEqualTo(Integer.MAX_VALUE);
+
+		System.setProperty("restx.test.alternatives", "true");
+
+		factory = Factory.builder().addFromServiceLoader().build();
+		component = factory.getComponent(TestAlternativesFromModule.Priority.class);
+		assertThat(component.value()).isEqualTo(Integer.MIN_VALUE);
 	}
 }

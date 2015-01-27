@@ -37,6 +37,55 @@ public class {{machine}} extends DefaultFactoryMachine {
                 }
             },
 {{/engines}}
+
+{{#alternativesEngines}}
+            new StdMachineEngine<FactoryMachine>(
+                    Name.of(FactoryMachine.class, "{{methodName}}{{alternativeToComponentSimpleName}}Alternative"), 0, BoundlessComponentBox.FACTORY) {
+                private Factory.Query<String> query = Factory.Query.byName(Name.of(String.class, "{{whenName}}")).optional();
+
+                @Override
+                protected FactoryMachine doNewComponent(SatisfiedBOM satisfiedBOM) {
+                    if (satisfiedBOM.getOne(query).isPresent()
+                            && satisfiedBOM.getOne(query).get().getComponent().equals("{{whenValue}}")) {
+                        return new SingleNameFactoryMachine<{{alternativeToComponentType}}>({{priority}},
+                                        new StdMachineEngine<{{alternativeToComponentType}}>(
+                                                Name.of({{alternativeToComponentType}}.class, "{{alternativeToComponentName}}"),
+                                                {{priority}}, BoundlessComponentBox.FACTORY) {
+                                            {{queriesDeclarations}}
+
+                                            @Override
+                                            public BillOfMaterials getBillOfMaterial() {
+                                                return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(
+                                                    {{queries}}
+                                                ));
+                                            }
+
+                                            @Override
+                                            protected {{alternativeToComponentType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
+                                                {{#exceptions}}
+                                                try {
+                                                {{/exceptions}}
+                                                    return module.{{methodName}}(
+                                                {{parameters}}
+                                                    );
+                                                {{#exceptions}}
+                                                } catch ({{exceptions}} e) {
+                                                    throw new ProvisionException("Could not create component {{alternativeToComponentName}}", e);
+                                                }
+                                                {{/exceptions}}
+                                            }
+                                        });
+                    } else {
+                        return NoopFactoryMachine.INSTANCE;
+                    }
+                }
+
+                @Override
+                public BillOfMaterials getBillOfMaterial() {
+                    return BillOfMaterials.of(query);
+                }
+            },
+{{/alternativesEngines}}
         });
-}
+    }
 }
