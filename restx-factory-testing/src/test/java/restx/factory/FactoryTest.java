@@ -95,4 +95,16 @@ public class FactoryTest {
 
         assertThat(factory.queryByClass(A.class).findOne().isPresent()).isTrue();
     }
+
+    @Test
+    public void should_permit_to_force_component_produced_class() {
+        Factory factory = Factory.builder().addFromServiceLoader().build();
+
+        TestGreeting component = factory.getComponent(TestGreeting.class);
+        assertThat(component.greet()).isEqualTo("hello");
+
+        Optional<NamedComponent<TestGreeting>> one = factory.queryByClass(TestGreeting.class).findOne();
+        assertThat(one.isPresent());
+        assertThat(one.get().getName().getClazz()).isEqualTo(TestGreeting.class);
+    }
 }
