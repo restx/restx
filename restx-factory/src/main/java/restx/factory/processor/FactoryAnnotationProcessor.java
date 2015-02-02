@@ -247,7 +247,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 } catch (MirroredTypeException mte) {
                     asClass = asTypeElement(mte.getTypeMirror());
                 }
-                if (asClass.getQualifiedName().toString().equals(Component.class.getName())) {
+                if (asClass == null) {
                     // no class as been forced, so use the annotated class
                     asClass = component;
                 }

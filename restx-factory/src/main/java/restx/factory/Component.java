@@ -10,7 +10,7 @@ public @interface Component {
 
     /**
      * @return the class to use for the name of this component,
-     * if not defined the annotated class will be used
+     * if not defined, the annotated class will be used
      */
-    Class<?> asClass() default Component.class; // trick to mark default value, as null is not permitted
+    Class<?> asClass() default void.class; // trick to mark default value, as null is not permitted
 }
