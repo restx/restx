@@ -155,6 +155,7 @@ public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler 
             resp.clearCookie(restxSessionCookieDescriptor.getCookieSignatureName());
         } else {
             for (Map.Entry<String, String> cookie : cookiesMap.entrySet()) {
+                logger.debug("setting cookie: {} {}", cookie.getKey(), cookie.getValue());
                 resp.addCookie(cookie.getKey(), cookie.getValue(), session.getExpires());
             }
         }
