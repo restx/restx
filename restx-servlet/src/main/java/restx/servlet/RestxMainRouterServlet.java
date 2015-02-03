@@ -53,9 +53,16 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
             }
         }
         if (!baseUri.isPresent()) {
-            logger.info("MINOR: baseUri cannot be found. Define it in restx.baseUri system property, or use Servlet 3+ API\n" +
-                    "Note that is has no effect on restx behavior, it's just that it won't be able" +
-                    " to properly display the startup banner.");
+            if (baseServer == null) {
+                // restx.baseServerUri is not set, we are most probably deployed on a server, not in embedded mode.
+                logger.debug("MINOR: baseUri cannot be found. Define it in restx.baseUri system property\n" +
+                        "Note that is has no effect on restx behavior, it's just that it won't be able" +
+                        " to properly display the startup banner.");
+            } else {
+                logger.info("MINOR: baseUri cannot be found. Define it in restx.baseUri system property, or use Servlet 3+ API\n" +
+                        "Note that is has no effect on restx behavior, it's just that it won't be able" +
+                        " to properly display the startup banner.");
+            }
         }
 
         serverId = Optional.fromNullable(
