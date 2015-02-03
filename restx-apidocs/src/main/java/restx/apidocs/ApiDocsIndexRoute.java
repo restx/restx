@@ -63,11 +63,15 @@ public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
         List<ImmutableMap<String, String>> apis = Lists.newArrayList();
         for (NamedComponent<RestxRouter> router : routers) {
             String routerApiPath = getRouterApiPath(router.getName().getName());
-            apis.add(ImmutableMap.of(
-                    "path", "/@/api-docs/" + routerApiPath,
-                    "name", routerApiPath,
-                    "group", router.getComponent().getGroupName(),
-                    "description", ""));
+            if (ApiDeclarationRoute.getRouterByName(factory, routerApiPath).isPresent()) {
+                // we add the api only if we can find back the router from the name, otherwise it will trigger
+                // 404 errors in API-DOCS
+                apis.add(ImmutableMap.of(
+                        "path", "/@/api-docs/" + routerApiPath,
+                        "name", routerApiPath,
+                        "group", router.getComponent().getGroupName(),
+                        "description", ""));
+            }
         }
         return apis;
     }

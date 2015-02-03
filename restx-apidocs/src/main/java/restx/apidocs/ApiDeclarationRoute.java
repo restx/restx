@@ -1,10 +1,8 @@
 package restx.apidocs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.*;
 import restx.*;
 import restx.description.*;
@@ -54,13 +52,7 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object body) throws IOException {
         String routerName = match.getPathParam("router");
-        routerName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, routerName);
-
-        Optional<NamedComponent<RestxRouter>> router = Optional.absent();
-        ImmutableList<String> suffixes = ImmutableList.of("ResourceRouter", "", "Resource", "Router");
-        for (int i = 0; i < suffixes.size() && !router.isPresent(); i++) {
-            router = factory.queryByName(Name.of(RestxRouter.class, routerName + suffixes.get(i))).optional().findOne();
-        }
+        Optional<NamedComponent<RestxRouter>> router = getRouterByName(factory, routerName);
 
         if (!router.isPresent()) {
             return Optional.absent();
@@ -74,6 +66,17 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
                 .put("name", router.get().getComponent().getClass().getName().replaceAll("Router$", ""))
                 .put("apis", apis)
                 .build());
+    }
+
+    static Optional<NamedComponent<RestxRouter>> getRouterByName(Factory f, String routerName) {
+        routerName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, routerName);
+
+        Optional<NamedComponent<RestxRouter>> router = Optional.absent();
+        ImmutableList<String> suffixes = ImmutableList.of("ResourceRouter", "", "Resource", "Router");
+        for (int i = 0; i < suffixes.size() && !router.isPresent(); i++) {
+            router = f.queryByName(Name.of(RestxRouter.class, routerName + suffixes.get(i))).optional().findOne();
+        }
+        return router;
     }
 
     private List<ResourceDescription> buildApis(NamedComponent<RestxRouter> router) {
