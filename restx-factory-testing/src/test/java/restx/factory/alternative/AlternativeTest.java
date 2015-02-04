@@ -1,13 +1,15 @@
 package restx.factory.alternative;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static restx.factory.Factory.LocalMachines.overrideComponents;
+import static restx.factory.Factory.LocalMachines.threadLocal;
 
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Properties;
 import restx.factory.Factory;
 import restx.factory.Name;
 import restx.factory.alternative.components.TestAlternativesFromModule;
@@ -33,17 +35,19 @@ public class AlternativeTest {
 	}
 
 	/**
-	 * Removes all the system properties beginning with "restx.test.", in order to
-	 * start every test methods with a clean state.
+	 * cleanup state before each test method
 	 */
 	@Before
-	public void resetProperties() {
-		Properties properties = System.getProperties();
-		for (String propertyName : properties.stringPropertyNames()) {
-			if (propertyName.startsWith("restx.test.")) {
-				properties.remove(propertyName);
-			}
-		}
+	public void cleanupBefore() {
+		threadLocal().clear();
+	}
+
+	/**
+	 * cleanup state after this test class execution
+	 */
+	@AfterClass
+	public static void cleanupAfterClass() {
+		threadLocal().clear();
 	}
 
 	/*
@@ -52,13 +56,13 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_for_basic_components() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestComponentSimple component = factory.getComponent(TestComponentSimple.class);
 		assertThat(component.greet()).isEqualTo("hello");
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(TestComponentSimple.class);
 		assertThat(component.greet()).isEqualTo("bonjour");
 	}
@@ -69,13 +73,13 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_for_named_components() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestComponentNamed component = factory.getComponent(Name.of(TestComponentNamed.class, "restx.test.component.speed"));
 		assertThat(component.speed()).isEqualTo("slow");
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(Name.of(TestComponentNamed.class, "restx.test.component.speed"));
 		assertThat(component.speed()).isEqualTo("fast");
 	}
@@ -86,13 +90,13 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_referencing_an_interface() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestComponentInterface component = factory.getComponent(Name.of(TestComponentInterface.class, "restx.test.component.name"));
 		assertThat(component.name()).isEqualTo("original");
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(Name.of(TestComponentInterface.class, "restx.test.component.name"));
 		assertThat(component.name()).isEqualTo("alternative");
 	}
@@ -103,13 +107,13 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_for_provided_component_using_the_method_as_name() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestComponentsFromModule.SomeInterface component = factory.getComponent(TestComponentsFromModule.SomeInterface.class);
 		assertThat(component.mode()).isEqualTo("production");
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(TestComponentsFromModule.SomeInterface.class);
 		assertThat(component.mode()).isEqualTo("dev");
 	}
@@ -120,14 +124,14 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_for_provided_named_component_using_same_name() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestComponentsFromModule.SomeOtherInterface component = factory.getComponent(
 				Name.of(TestComponentsFromModule.SomeOtherInterface.class, "restx.test.component.productionNamed"));
 		assertThat(component.mode()).isEqualTo("production");
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(Name.of(TestComponentsFromModule.SomeOtherInterface.class, "restx.test.component.productionNamed"));
 		assertThat(component.mode()).isEqualTo("dev");
 	}
@@ -137,13 +141,13 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_defined_in_modules() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestAlternativesFromModule.Calculation component = factory.getComponent(TestAlternativesFromModule.Calculation.class);
 		assertThat(component.calculate(2, 3)).isEqualTo(5);
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(TestAlternativesFromModule.Calculation.class);
 		assertThat(component.calculate(2, 3)).isEqualTo(6);
 	}
@@ -153,13 +157,13 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_defined_in_modules_for_named_components() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestAlternativesFromModule.Flag component = factory.getComponent(TestAlternativesFromModule.Flag.class);
 		assertThat(component.value()).isEqualTo(true);
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(TestAlternativesFromModule.Flag.class);
 		assertThat(component.value()).isEqualTo(false);
 	}
@@ -169,13 +173,13 @@ public class AlternativeTest {
 	 */
 	@Test
 	public void should_use_alternative_with_higher_priority() {
-		Factory factory = Factory.builder().addFromServiceLoader().build();
+		Factory factory = Factory.newInstance();
 		TestAlternativesFromModule.Priority component = factory.getComponent(TestAlternativesFromModule.Priority.class);
 		assertThat(component.value()).isEqualTo(Integer.MAX_VALUE);
 
-		System.setProperty("restx.test.alternatives", "true");
+		overrideComponents().set("restx.test.alternatives", "true");
 
-		factory = Factory.builder().addFromServiceLoader().build();
+		factory = Factory.newInstance();
 		component = factory.getComponent(TestAlternativesFromModule.Priority.class);
 		assertThat(component.value()).isEqualTo(Integer.MIN_VALUE);
 	}
