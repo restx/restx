@@ -10,6 +10,7 @@ import restx.common.Types;
 import restx.*;
 import restx.entity.*;
 import restx.http.*;
+import restx.endpoint.*;
 import restx.factory.*;
 import restx.security.*;
 import restx.security.PermissionFactory;
@@ -41,7 +42,7 @@ public class {{router}} extends RestxRouter {
         new StdEntityRoute<{{inEntity}}, {{outEntity}}>("{{routeId}}",
                 readerRegistry.<{{inEntity}}>build({{inEntityType}}, {{inContentType}}),
                 writerRegistry.<{{outEntity}}>build({{outEntityType}}, {{outContentType}}),
-                new StdRestxRequestMatcher("{{method}}", "{{path}}"),
+                new StdRestxRequestMatcher(Endpoint.of("{{method}}", "{{path}}")),
                 HttpStatus.{{successStatusName}}, RestxLogLevel.{{logLevelName}}, pf) {
             @Override
             protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {
@@ -52,7 +53,7 @@ public class {{router}} extends RestxRouter {
             @Override
             protected void describeOperation(OperationDescription operation) {
                 super.describeOperation(operation);
-                {{parametersDescription}}
+{{parametersDescription}}
 
                 operation.responseClass = "{{responseClass}}";
                 operation.inEntitySchemaKey = "{{inEntitySchemaKey}}";

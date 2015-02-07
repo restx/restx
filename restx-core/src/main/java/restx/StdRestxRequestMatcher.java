@@ -3,8 +3,8 @@ package restx;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import restx.endpoint.Endpoint;
 
-import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,18 +16,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Time: 7:55 AM
  */
 public class StdRestxRequestMatcher implements RestxRequestMatcher {
-    private final String method;
-    private final String pathPattern;
+    private final Endpoint endpoint;
     private final String stdPathPattern;
 
     private final Pattern pattern;
     private final ImmutableList<String> groupNames;
 
-    public StdRestxRequestMatcher(String method, String pathPattern) {
-        this.method = checkNotNull(method);
-        this.pathPattern = checkNotNull(pathPattern);
+    public StdRestxRequestMatcher(Endpoint endpoint) {
+        this.endpoint = endpoint;
 
-        PathPatternParser s = new PathPatternParser(pathPattern);
+        PathPatternParser s = new PathPatternParser(endpoint.getPathPattern());
         s.parse();
 
         pattern = Pattern.compile(s.patternBuilder.toString());
@@ -35,9 +33,13 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
         groupNames = s.groupNamesBuilder.build();
     }
 
+    public StdRestxRequestMatcher(String method, String pathPattern) {
+        this(new Endpoint(method, pathPattern));
+    }
+
     @Override
     public Optional<? extends RestxRequestMatch> match(String method, String path) {
-        if (!this.method.equals(method)) {
+        if (!this.endpoint.getMethod().equals(method)) {
             return Optional.absent();
         }
         Matcher m = pattern.matcher(path);
@@ -50,20 +52,20 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
              params.put(groupNames.get(i), m.group(i + 1));
         }
 
-        return Optional.of(new StdRestxRequestMatch(pathPattern, path, params.build()));
+        return Optional.of(new StdRestxRequestMatch(this.endpoint.getPathPattern(), path, params.build()));
     }
 
     @Override
     public String toString() {
-        return method + " " + pathPattern;
+        return endpoint.toString();
     }
 
     public String getMethod() {
-        return method;
+        return endpoint.getMethod();
     }
 
     public String getPathPattern() {
-        return pathPattern;
+        return endpoint.getPathPattern();
     }
 
     public String getStdPathPattern() {
