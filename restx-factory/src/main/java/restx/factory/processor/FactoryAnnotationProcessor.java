@@ -122,22 +122,24 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                                 }
                             }
 
-                            AlternativeMethod m = new AlternativeMethod(
-                                    exec.getReturnType().toString(),
+                            // the conditional component name, is the one specified in @Alternative annotation or the simple name of the produced class
+                            String componentName = !alternative.named().isEmpty() ? alternative.named() : alternativeTo.getSimpleName().toString();
+
+                            ConditionalProviderMethod m = new ConditionalProviderMethod(
                                     alternativeTo.getQualifiedName().toString(),
-                                    alternativeTo.getSimpleName().toString(),
+                                    componentName,
                                     exec.getSimpleName().toString(),
                                     alternative.priority(),
-                                    !alternative.named().isEmpty() ? Optional.of(alternative.named()) : Optional.<String>absent(),
                                     when.name(),
                                     when.value(),
+                                    "Alternative",
                                     exec);
 
                             buildInjectableParams(exec, m.parameters);
 
                             buildCheckedExceptions(exec, m.exceptions);
 
-                            module.alternativeMethods.add(m);
+                            module.conditionalProviderMethods.add(m);
                         }
                     }
                 }
@@ -315,7 +317,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
     private void generateMachineFile(ModuleClass moduleClass) throws IOException {
         List<ImmutableMap<String, Object>> engines = Lists.newArrayList();
-        List<ImmutableMap<String, Object>> alternativesEngines = Lists.newArrayList();
+        List<ImmutableMap<String, Object>> conditionalsEngines = Lists.newArrayList();
 
         for (ProviderMethod method : moduleClass.providerMethods) {
             engines.add(ImmutableMap.<String, Object>builder()
@@ -331,12 +333,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                     .build());
         }
 
-        for (AlternativeMethod method : moduleClass.alternativeMethods) {
-            alternativesEngines.add(ImmutableMap.<String, Object>builder()
+        for (ConditionalProviderMethod method : moduleClass.conditionalProviderMethods) {
+            conditionalsEngines.add(ImmutableMap.<String, Object>builder()
                     .put("componentType", method.componentType)
-                    .put("alternativeToComponentType", method.alternativeType)
-                    .put("alternativeToComponentName", method.injectionName.or(method.alternativeName))
-                    .put("alternativeToComponentSimpleName", method.alternativeName)
+                    .put("componentName", method.componentName)
+                    .put("conditionalFactoryMachineName", method.methodName + method.componentName + method.factoryMachineNameSuffix)
                     .put("whenName", method.whenName)
                     .put("whenValue", method.whenValue)
                     .put("priority", method.priority)
@@ -355,7 +356,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 .put("moduleType", moduleClass.name)
                 .put("priority", moduleClass.priority)
                 .put("engines", engines)
-                .put("alternativesEngines", alternativesEngines)
+                .put("conditionalsEngines", conditionalsEngines)
                 .build();
 
         generateJavaClass(moduleClass.fqcn + "FactoryMachine", moduleMachineTpl, ctx,
@@ -580,7 +581,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final String fqcn;
 
         final List<ProviderMethod> providerMethods = Lists.newArrayList();
-        final List<AlternativeMethod> alternativeMethods = Lists.newArrayList();
+        final List<ConditionalProviderMethod> conditionalProviderMethods = Lists.newArrayList();
         final Element originatingElement;
         final String pack;
         final String name;
@@ -613,31 +614,29 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private static class AlternativeMethod {
+    private static class ConditionalProviderMethod {
         final Element originatingElement;
         final String componentType;
-        final String alternativeType;
-        final String alternativeName;
+        final String componentName;
         final String methodName;
         final int priority;
-        final Optional<String> injectionName;
         final String whenName;
         final String whenValue;
+        final String factoryMachineNameSuffix;
         final List<InjectableParameter> parameters = Lists.newArrayList();
         final List<String> exceptions = Lists.newArrayList();
 
-        AlternativeMethod(String componentType, String alternativeType,
-                String alternativeName, String methodName, int priority, Optional<String> injectionName,
-                String whenName, String whenValue, Element originatingElement) {
+        ConditionalProviderMethod(String componentType,
+                String componentName, String methodName, int priority,
+                String whenName, String whenValue, String factoryMachineNameSuffix, Element originatingElement) {
             this.componentType = componentType;
-            this.alternativeType = alternativeType;
-            this.alternativeName = alternativeName;
+            this.componentName = componentName;
             this.methodName = methodName;
             this.priority = priority;
-            this.injectionName = injectionName;
             this.whenName = whenName;
             this.whenValue = whenValue;
             this.originatingElement = originatingElement;
+            this.factoryMachineNameSuffix = factoryMachineNameSuffix;
         }
     }
 
