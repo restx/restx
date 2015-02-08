@@ -16,6 +16,7 @@ import org.junit.Test;
 import java.util.Set;
 import restx.factory.Factory;
 import restx.factory.Name;
+import restx.factory.conditional.components.TestConditionalComponent;
 import restx.factory.conditional.components.TestInterfaces;
 import restx.factory.conditional.components.TestModuleWithConditional;
 
@@ -108,5 +109,19 @@ public class ConditionalTest {
 		assertThat(workspace.isPresent()).isTrue();
 		dbType = factory.getComponent(Name.of(String.class, "db.type"));
 		assertThat(dbType).isEqualTo("derby");
+	}
+
+	@Test
+	public void should_find_conditional_component_when_condition_is_satisfied() {
+		Factory factory = Factory.newInstance();
+		Optional<TestConditionalComponent> conditional = factory.queryByName(Name.of(TestConditionalComponent.class, "conditional"))
+				.findOneAsComponent();
+		assertThat(conditional.isPresent()).isFalse();
+
+		overrideComponents().set("conditional.component", "allowed");
+
+		factory = Factory.newInstance();
+		conditional = factory.queryByName(Name.of(TestConditionalComponent.class, "conditional")).findOneAsComponent();
+		assertThat(conditional.isPresent()).isTrue();
 	}
 }

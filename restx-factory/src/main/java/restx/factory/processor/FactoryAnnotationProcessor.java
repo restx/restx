@@ -42,14 +42,12 @@ import static restx.common.Mustaches.compile;
 @SupportedOptions({ "debug" })
 public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     final Template componentMachineTpl;
-    final Template alternativeMachineTpl;
     final Template conditionalMachineTpl;
     final Template moduleMachineTpl;
     private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
         componentMachineTpl = compile(FactoryAnnotationProcessor.class, "ComponentMachine.mustache");
-        alternativeMachineTpl = compile(FactoryAnnotationProcessor.class, "AlternativeMachine.mustache");
         conditionalMachineTpl = compile(FactoryAnnotationProcessor.class, "ConditionalMachine.mustache");
         moduleMachineTpl = compile(FactoryAnnotationProcessor.class, "ModuleMachine.mustache");
         machinesDeclaration = new ServicesDeclaration("restx.factory.FactoryMachine");
@@ -426,38 +424,39 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     private void generateMachineFile(ComponentClass componentClass, ComponentClass alternativeTo, When when) throws IOException {
-        ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
+        ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                 .put("package", componentClass.pack)
                 .put("machine", componentClass.name + "FactoryMachine")
-                .put("componentFqcn", componentClass.fqcn)
+                .put("imports", ImmutableList.of(componentClass.fqcn, alternativeTo.fqcn))
                 .put("componentType", componentClass.name)
+                .put("componentInjectionType", alternativeTo.name)
                 .put("priority", String.valueOf(componentClass.priority))
                 .put("whenName", when.name())
                 .put("whenValue", when.value())
-                .put("componentInjectionName", componentClass.injectionName.or(componentClass.name))
-                .put("alternativeToComponentFqcn", alternativeTo.fqcn)
-                .put("alternativeToComponentType", alternativeTo.name)
-                .put("alternativeToComponentName", alternativeTo.injectionName.or(alternativeTo.name))
+                .put("componentInjectionName", alternativeTo.injectionName.or(alternativeTo.name))
+                .put("conditionalFactoryMachineName", componentClass.name + alternativeTo.name + "Alternative")
                 .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(componentClass.parameters)))
                 .put("queries", Joiner.on(",\n").join(buildQueriesNames(componentClass.parameters)))
                 .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
                 .build();
 
-        generateJavaClass(componentClass.pack + "." + componentClass.name + "FactoryMachine", alternativeMachineTpl, ctx,
+        generateJavaClass(componentClass.pack + "." + componentClass.name + "FactoryMachine", conditionalMachineTpl, ctx,
                 Collections.singleton(componentClass.originatingElement));
     }
 
     private void generateMachineFile(ComponentClass componentClass, When when) throws IOException {
-        ImmutableMap<String, String> ctx = ImmutableMap.<String, String>builder()
+        ImmutableMap<String, Object> ctx = ImmutableMap.<String, Object>builder()
                 .put("package", componentClass.pack)
                 .put("machine", componentClass.name + "FactoryMachine")
-                .put("componentFqcn", componentClass.fqcn)
+                .put("imports", ImmutableList.of(componentClass.fqcn))
                 .put("componentType", componentClass.name)
+                .put("componentInjectionType", componentClass.name)
                 .put("priority", String.valueOf(componentClass.priority))
                 .put("whenName", when.name())
                 .put("whenValue", when.value())
                 .put("componentInjectionName", componentClass.injectionName.isPresent() ?
                         componentClass.injectionName.get() : componentClass.name)
+                .put("conditionalFactoryMachineName", componentClass.name + componentClass.name + "Conditional")
                 .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(componentClass.parameters)))
                 .put("queries", Joiner.on(",\n").join(buildQueriesNames(componentClass.parameters)))
                 .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(componentClass.parameters)))
