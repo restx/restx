@@ -6,6 +6,7 @@ import static restx.factory.Factory.LocalMachines.threadLocal;
 
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import java.util.Set;
 import restx.factory.Factory;
 import restx.factory.Name;
+import restx.factory.conditional.components.TestInterfaces;
 import restx.factory.conditional.components.TestModuleWithConditional;
 
 /**
@@ -85,5 +87,26 @@ public class ConditionalTest {
 		factory = Factory.newInstance();
 		pioneer = factory.getComponent(Name.of(TestModuleWithConditional.Pioneer.class, "physics"));
 		assertThat(pioneer.name()).isEqualTo("Pierre Currie");
+	}
+
+	@Test
+	public void should_use_modules_condition_on_all_its_components() {
+		Factory factory = Factory.newInstance();
+		TestInterfaces.Resolver resolver = factory.getComponent(TestInterfaces.Resolver.class);
+		assertThat(resolver.resolve("foo")).isEqualTo("prod:foo");
+		Optional<TestInterfaces.Workspace> workspace = factory.queryByClass(TestInterfaces.Workspace.class).findOneAsComponent();
+		assertThat(workspace.isPresent()).isFalse();
+		String dbType = factory.getComponent(Name.of(String.class, "db.type"));
+		assertThat(dbType).isEqualTo("postgres");
+
+		overrideComponents().set("my-mode", "dev");
+
+		factory = Factory.newInstance();
+		resolver = factory.getComponent(TestInterfaces.Resolver.class);
+		assertThat(resolver.resolve("foo")).isEqualTo("dev:foo");
+		workspace = factory.queryByClass(TestInterfaces.Workspace.class).findOneAsComponent();
+		assertThat(workspace.isPresent()).isTrue();
+		dbType = factory.getComponent(Name.of(String.class, "db.type"));
+		assertThat(dbType).isEqualTo("derby");
 	}
 }

@@ -81,6 +81,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 }
                 TypeElement typeElem = (TypeElement) annotation;
                 Module mod = typeElem.getAnnotation(Module.class);
+                When classWhen = typeElem.getAnnotation(When.class);
 
                 ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
                 for (Element element : typeElem.getEnclosedElements()) {
@@ -93,64 +94,79 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                             && element.getKind() == ElementKind.METHOD) {
 
                         ExecutableElement exec = (ExecutableElement) element;
-                        When when = exec.getAnnotation(When.class);
+                        When methodWhen = exec.getAnnotation(When.class);
 
                         // multiple cases, provides only, provides with when, and alternative
 
-                        if (provides != null && when == null) {
+                        if (provides != null && methodWhen == null && classWhen == null) {
                             // add a provider method to the module
                             processProviderMethod(mod, module, provides, exec);
-                        } else if (provides != null) {
-                            // we need to create a conditional provider method
-                            processConditionalProviderMethod(
-                                    mod,
-                                    module,
-                                    exec.getReturnType().toString(),
-                                    getInjectionName(exec.getAnnotation(Named.class)).or(exec.getSimpleName().toString()),
-                                    provides.priority() == 0 ? mod.priority() : provides.priority(),
-                                    when,
-                                    "Conditional",
-                                    exec
-                            );
-                        } else if (alternative != null) {
-                            // when annotation is required with alternative
-                            if (when == null) {
-                                error("an Alternative MUST be annotated with @When to tell when it must be activated", exec);
-                                continue;
-                            }
+                        } else {
 
-                            TypeElement alternativeTo = null;
-                            try {
-                                alternative.to();
-                            } catch (MirroredTypeException mte) {
-                                alternativeTo = asTypeElement(mte.getTypeMirror());
-                            }
-
-                            String namedAttribute = alternative.named();
-                            Optional<String> injectionName = getInjectionName(alternativeTo.getAnnotation(Named.class));
-                            String componentName;
-                            if (!namedAttribute.isEmpty()) {
-                                // the conditional component name is the one specified in @Alternative annotation
-                                componentName = namedAttribute;
-                            } else if (injectionName.isPresent()) {
-                                //  or the Name of the reference class
-                                componentName = injectionName.get();
+                            // When can be either defined at class level, or on the method. But both are not allowed.
+                            When whenToUse;
+                            if (classWhen != null) {
+                                if (methodWhen != null) {
+                                    error("the module class is annotated with @When, so methods are not allowed to be annotated with @When", exec);
+                                    continue;
+                                }
+                                whenToUse = classWhen;
                             } else {
-                                // or the simple name of the produced class
-                                componentName = alternativeTo.getSimpleName().toString();
+                                whenToUse = methodWhen;
                             }
 
-                            // add a conditional provider method to the module
-                            processConditionalProviderMethod(
-                                    mod,
-                                    module,
-                                    alternativeTo.getQualifiedName().toString(),
-                                    componentName,
-                                    alternative.priority(),
-                                    when,
-                                    "Alternative",
-                                    exec
-                            );
+                            if (provides != null) {
+                                // we need to create a conditional provider method
+                                processConditionalProviderMethod(
+                                        mod,
+                                        module,
+                                        exec.getReturnType().toString(),
+                                        getInjectionName(exec.getAnnotation(Named.class)).or(exec.getSimpleName().toString()),
+                                        provides.priority() == 0 ? mod.priority() : provides.priority(),
+                                        whenToUse,
+                                        "Conditional",
+                                        exec
+                                );
+                            } else if (alternative != null) {
+                                // when annotation is required with alternative
+                                if (whenToUse == null) {
+                                    error("an Alternative MUST be annotated with @When to tell when it must be activated, or the whole module must be annotated with @When", exec);
+                                    continue;
+                                }
+
+                                TypeElement alternativeTo = null;
+                                try {
+                                    alternative.to();
+                                } catch (MirroredTypeException mte) {
+                                    alternativeTo = asTypeElement(mte.getTypeMirror());
+                                }
+
+                                String namedAttribute = alternative.named();
+                                Optional<String> injectionName = getInjectionName(alternativeTo.getAnnotation(Named.class));
+                                String componentName;
+                                if (!namedAttribute.isEmpty()) {
+                                    // the conditional component name is the one specified in @Alternative annotation
+                                    componentName = namedAttribute;
+                                } else if (injectionName.isPresent()) {
+                                    //  or the Name of the reference class
+                                    componentName = injectionName.get();
+                                } else {
+                                    // or the simple name of the produced class
+                                    componentName = alternativeTo.getSimpleName().toString();
+                                }
+
+                                // add a conditional provider method to the module
+                                processConditionalProviderMethod(
+                                        mod,
+                                        module,
+                                        alternativeTo.getQualifiedName().toString(),
+                                        componentName,
+                                        alternative.priority(),
+                                        whenToUse,
+                                        "Alternative",
+                                        exec
+                                );
+                            }
                         }
                     }
                 }
