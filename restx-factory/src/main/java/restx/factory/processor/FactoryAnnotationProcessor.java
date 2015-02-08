@@ -84,71 +84,117 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
                 ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
                 for (Element element : typeElem.getEnclosedElements()) {
+
                     // look for Provides or Alternative elements
                     Provides provides = element.getAnnotation(Provides.class);
                     Alternative alternative = element.getAnnotation(Alternative.class);
+
                     if (element instanceof ExecutableElement
                             && element.getKind() == ElementKind.METHOD) {
-                        if (provides != null) {
-                            ExecutableElement exec = (ExecutableElement) element;
 
-                            ProviderMethod m = new ProviderMethod(
+                        ExecutableElement exec = (ExecutableElement) element;
+                        When when = exec.getAnnotation(When.class);
+
+                        // multiple cases, provides only, provides with when, and alternative
+
+                        if (provides != null && when == null) {
+                            // add a provider method to the module
+                            processProviderMethod(mod, module, provides, exec);
+                        } else if (provides != null) {
+                            // we need to create a conditional provider method
+                            processConditionalProviderMethod(
+                                    mod,
+                                    module,
                                     exec.getReturnType().toString(),
-                                    exec.getSimpleName().toString(),
+                                    getInjectionName(exec.getAnnotation(Named.class)).or(exec.getSimpleName().toString()),
                                     provides.priority() == 0 ? mod.priority() : provides.priority(),
-                                    getInjectionName(exec.getAnnotation(Named.class)),
-                                    exec);
-
-                            buildInjectableParams(exec, m.parameters);
-
-                            buildCheckedExceptions(exec, m.exceptions);
-
-                            module.providerMethods.add(m);
+                                    when,
+                                    "Conditional",
+                                    exec
+                            );
                         } else if (alternative != null) {
-                            ExecutableElement exec = (ExecutableElement) element;
-
-                            When when = exec.getAnnotation(When.class);
+                            // when annotation is required with alternative
                             if (when == null) {
                                 error("an Alternative MUST be annotated with @When to tell when it must be activated", exec);
                                 continue;
                             }
 
                             TypeElement alternativeTo = null;
-                            if (alternative != null) {
-                                try {
-                                    alternative.to();
-                                } catch (MirroredTypeException mte) {
-                                    alternativeTo = asTypeElement(mte.getTypeMirror());
-                                }
+                            try {
+                                alternative.to();
+                            } catch (MirroredTypeException mte) {
+                                alternativeTo = asTypeElement(mte.getTypeMirror());
                             }
 
-                            // the conditional component name, is the one specified in @Alternative annotation or the simple name of the produced class
-                            String componentName = !alternative.named().isEmpty() ? alternative.named() : alternativeTo.getSimpleName().toString();
+                            String namedAttribute = alternative.named();
+                            Optional<String> injectionName = getInjectionName(alternativeTo.getAnnotation(Named.class));
+                            String componentName;
+                            if (!namedAttribute.isEmpty()) {
+                                // the conditional component name is the one specified in @Alternative annotation
+                                componentName = namedAttribute;
+                            } else if (injectionName.isPresent()) {
+                                //  or the Name of the reference class
+                                componentName = injectionName.get();
+                            } else {
+                                // or the simple name of the produced class
+                                componentName = alternativeTo.getSimpleName().toString();
+                            }
 
-                            ConditionalProviderMethod m = new ConditionalProviderMethod(
+                            // add a conditional provider method to the module
+                            processConditionalProviderMethod(
+                                    mod,
+                                    module,
                                     alternativeTo.getQualifiedName().toString(),
                                     componentName,
-                                    exec.getSimpleName().toString(),
                                     alternative.priority(),
-                                    when.name(),
-                                    when.value(),
+                                    when,
                                     "Alternative",
-                                    exec);
-
-                            buildInjectableParams(exec, m.parameters);
-
-                            buildCheckedExceptions(exec, m.exceptions);
-
-                            module.conditionalProviderMethods.add(m);
+                                    exec
+                            );
                         }
                     }
                 }
 
+                // finally generate the machine with all methods found
                 generateMachineFile(module);
             } catch (IOException e) {
                 fatalError("error when processing " + annotation, e, annotation);
             }
         }
+    }
+
+    private void processProviderMethod(Module mod, ModuleClass module, Provides provides, ExecutableElement exec) {
+        ProviderMethod m = new ProviderMethod(
+				exec.getReturnType().toString(),
+				exec.getSimpleName().toString(),
+				provides.priority() == 0 ? mod.priority() : provides.priority(),
+				getInjectionName(exec.getAnnotation(Named.class)),
+				exec);
+
+        buildInjectableParams(exec, m.parameters);
+
+        buildCheckedExceptions(exec, m.exceptions);
+
+        module.providerMethods.add(m);
+    }
+
+    private void processConditionalProviderMethod(Module mod, ModuleClass module, String componentType,
+            String componentName, int priority, When when, String factoryMachineNameSuffix, ExecutableElement exec) {
+        ConditionalProviderMethod m = new ConditionalProviderMethod(
+                componentType,
+                componentName,
+                exec.getSimpleName().toString(),
+                priority == 0 ? mod.priority() : priority,
+                when.name(),
+                when.value(),
+                factoryMachineNameSuffix,
+                exec);
+
+        buildInjectableParams(exec, m.parameters);
+
+        buildCheckedExceptions(exec, m.exceptions);
+
+        module.conditionalProviderMethods.add(m);
     }
 
     private void processMachines(RoundEnvironment roundEnv) throws IOException {
@@ -295,7 +341,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
     private void buildCheckedExceptions(ExecutableElement executableElement, List<String> exceptions) {
     	for (TypeMirror e : executableElement.getThrownTypes()) {
-    		// Assuming Exceptions never have type arguments. Qualified names include type arguments.
+            // Assuming Exceptions never have type arguments. Qualified names include type arguments.
     		String exception = ((TypeElement) ((DeclaredType) e).asElement()).getQualifiedName().toString();
     		exceptions.add(exception);
     	}
