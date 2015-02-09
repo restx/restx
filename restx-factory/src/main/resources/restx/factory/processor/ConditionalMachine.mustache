@@ -2,23 +2,25 @@ package {{package}};
 
 import com.google.common.collect.ImmutableSet;
 import restx.factory.*;
-import {{componentFqcn}};
+{{#imports}}
+import {{.}};
+{{/imports}}
 
 @Machine
 public class {{machine}} extends SingleNameFactoryMachine<FactoryMachine> {
-    public static final Name<{{componentType}}> NAME = Name.of({{componentType}}.class, "{{componentInjectionName}}");
+    public static final Name<{{componentInjectionType}}> NAME = Name.of({{componentInjectionType}}.class, "{{componentInjectionName}}");
 
     public {{machine}}() {
         super(0, new StdMachineEngine<FactoryMachine>(
-                    Name.of(FactoryMachine.class, "{{componentType}}{{componentInjectionName}}Conditional"), BoundlessComponentBox.FACTORY) {
+                    Name.of(FactoryMachine.class, "{{conditionalFactoryMachineName}}"), BoundlessComponentBox.FACTORY) {
                 private Factory.Query<String> query = Factory.Query.byName(Name.of(String.class, "{{whenName}}")).optional();
 
                 @Override
                 protected FactoryMachine doNewComponent(SatisfiedBOM satisfiedBOM) {
                     if (satisfiedBOM.getOne(query).isPresent()
                             && satisfiedBOM.getOne(query).get().getComponent().equals("{{whenValue}}")) {
-                        return new SingleNameFactoryMachine<{{componentType}}>({{priority}},
-                                        new StdMachineEngine<{{componentType}}>(NAME, {{priority}}, BoundlessComponentBox.FACTORY) {
+                        return new SingleNameFactoryMachine<{{componentInjectionType}}>({{priority}},
+                                        new StdMachineEngine<{{componentInjectionType}}>(NAME, {{priority}}, BoundlessComponentBox.FACTORY) {
 {{queriesDeclarations}}
 
                                             @Override
@@ -29,7 +31,7 @@ public class {{machine}} extends SingleNameFactoryMachine<FactoryMachine> {
                                             }
 
                                             @Override
-                                            protected {{componentType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
+                                            protected {{componentInjectionType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
                                                 return new {{componentType}}(
 {{parameters}}
                                                 );
