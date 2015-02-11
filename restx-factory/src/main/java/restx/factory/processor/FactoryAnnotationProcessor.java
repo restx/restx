@@ -464,7 +464,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 .put("machine", componentClass.name + "FactoryMachine")
                 .put("imports", ImmutableList.of(componentClass.fqcn))
                 .put("componentType", componentClass.name)
-                .put("componentInjectionType", componentClass.name)
+                .put("componentInjectionType", componentClass.producedName)
                 .put("priority", String.valueOf(componentClass.priority))
                 .put("whenName", when.name())
                 .put("whenValue", when.value())
