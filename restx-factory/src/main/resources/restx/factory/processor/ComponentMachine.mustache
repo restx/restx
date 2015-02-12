@@ -5,11 +5,11 @@ import restx.factory.*;
 import {{componentFqcn}};
 
 @Machine
-public class {{machine}} extends SingleNameFactoryMachine<{{componentType}}> {
-    public static final Name<{{componentType}}> NAME = Name.of({{componentType}}.class, "{{componentInjectionName}}");
+public class {{machine}} extends SingleNameFactoryMachine<{{componentProducedType}}> {
+    public static final Name<{{componentProducedType}}> NAME = Name.of({{componentProducedType}}.class, "{{componentInjectionName}}");
 
     public {{machine}}() {
-        super({{priority}}, new StdMachineEngine<{{componentType}}>(NAME, {{priority}}, BoundlessComponentBox.FACTORY) {
+        super({{priority}}, new StdMachineEngine<{{componentProducedType}}>(NAME, {{priority}}, BoundlessComponentBox.FACTORY) {
 {{queriesDeclarations}}
 
             @Override
@@ -20,7 +20,7 @@ public class {{machine}} extends SingleNameFactoryMachine<{{componentType}}> {
             }
 
             @Override
-            protected {{componentType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
+            protected {{componentProducedType}} doNewComponent(SatisfiedBOM satisfiedBOM) {
                 return new {{componentType}}(
 {{parameters}}
                 );

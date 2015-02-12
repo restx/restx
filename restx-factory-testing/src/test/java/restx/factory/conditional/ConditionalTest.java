@@ -13,9 +13,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Comparator;
 import java.util.Set;
 import restx.factory.Factory;
 import restx.factory.Name;
+import restx.factory.NamedComponent;
+import restx.factory.TestGreeting;
 import restx.factory.conditional.components.TestConditionalComponent;
 import restx.factory.conditional.components.TestInterfaces;
 import restx.factory.conditional.components.TestModuleWithConditional;
@@ -123,5 +126,15 @@ public class ConditionalTest {
 		factory = Factory.newInstance();
 		conditional = factory.queryByName(Name.of(TestConditionalComponent.class, "conditional")).findOneAsComponent();
 		assertThat(conditional.isPresent()).isTrue();
+	}
+
+	@Test
+	public void should_use_asClass_parameter_for_conditional_components() {
+		overrideComponents().set("allow.comparator", "true");
+
+		Factory factory = Factory.newInstance();
+		Optional<NamedComponent<Comparator>> one = factory.queryByClass(Comparator.class).findOne();
+		assertThat(one.isPresent());
+		assertThat(one.get().getName().getClazz()).isEqualTo(Comparator.class);
 	}
 }

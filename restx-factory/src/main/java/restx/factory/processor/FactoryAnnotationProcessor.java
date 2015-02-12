@@ -239,12 +239,26 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
                 ExecutableElement exec = findInjectableConstructor(component);
 
+                Component componentAnnotation = component.getAnnotation(Component.class);
+
+                TypeElement asClass = null;
+                try {
+                    componentAnnotation.asClass();
+                } catch (MirroredTypeException mte) {
+                    asClass = asTypeElement(mte.getTypeMirror());
+                }
+                if (asClass == null) {
+                    // no class as been forced, so use the annotated class
+                    asClass = component;
+                }
+
                 ComponentClass componentClass = new ComponentClass(
                         component.getQualifiedName().toString(),
                         getPackage(component).getQualifiedName().toString(),
                         component.getSimpleName().toString(),
+                        asClass.getQualifiedName().toString(),
                         getInjectionName(component.getAnnotation(Named.class)),
-                        component.getAnnotation(Component.class).priority(),
+                        componentAnnotation.priority(),
                         component);
 
                 buildInjectableParams(exec, componentClass.parameters);
@@ -450,7 +464,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 .put("machine", componentClass.name + "FactoryMachine")
                 .put("imports", ImmutableList.of(componentClass.fqcn))
                 .put("componentType", componentClass.name)
-                .put("componentInjectionType", componentClass.name)
+                .put("componentInjectionType", componentClass.producedName)
                 .put("priority", String.valueOf(componentClass.priority))
                 .put("whenName", when.name())
                 .put("whenValue", when.value())
@@ -472,6 +486,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 .put("machine", componentClass.name + "FactoryMachine")
                 .put("componentFqcn", componentClass.fqcn)
                 .put("componentType", componentClass.name)
+                .put("componentProducedType", componentClass.producedName)
                 .put("priority", String.valueOf(componentClass.priority))
                 .put("componentInjectionName", componentClass.injectionName.isPresent() ?
                         componentClass.injectionName.get() : componentClass.name)
@@ -516,11 +531,18 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final Element originatingElement;
         final String pack;
         final String name;
+        final String producedName;
         final int priority;
         final Optional<String> injectionName;
 
         ComponentClass(String fqcn,
-                       String pack, String name,
+                String pack, String name,
+                Optional<String> injectionName, int priority, Element originatingElement) {
+            this(fqcn, pack, name, name, injectionName, priority, originatingElement);
+        }
+
+        ComponentClass(String fqcn,
+                       String pack, String name, String producedName,
                        Optional<String> injectionName, int priority, Element originatingElement) {
             this.fqcn = fqcn;
             this.injectionName = injectionName;
@@ -528,8 +550,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
             this.pack = pack;
             this.name = name;
+            this.producedName = producedName;
             this.originatingElement = originatingElement;
         }
+
+
     }
 
     private static class InjectableParameter {
