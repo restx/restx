@@ -18,7 +18,7 @@ public class JongoCollectionFactory implements FactoryMachine {
 
     @Override
     public boolean canBuild(Name<?> name) {
-        return JongoCollection.class.isAssignableFrom(name.getClazz());
+        return JongoCollection.class == name.getClazz();
     }
 
     @Override
