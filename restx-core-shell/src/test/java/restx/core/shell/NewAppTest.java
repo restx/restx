@@ -113,7 +113,7 @@ public class NewAppTest {
         desc.baseAPIPath = "/api";
         desc.javaVersion = "1.7";
         desc.restxVersion = resolveCurrentModuleVersion();
-        desc.includeStatsModule = true;
+        desc.includeStatsModule = false;
         desc.generateHelloResource = generateHelloResource;
         return desc;
     }
