@@ -91,7 +91,7 @@ public class RestxRouter {
         public <O> Builder addRoute(String name, RestxRequestMatcher matcher, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
             routes.add(new StdJsonProducerEntityRoute<O>(name, outputType, writer.withType(outputType), matcher) {
                 @Override
-                protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Void i) throws IOException {
+                protected Optional<O> doRoute(RestxRequest restxRequest, RestxResponse restxResponse, RestxRequestMatch match, Void i) throws IOException {
                     return route.route(restxRequest, match, i);
                 }
             });

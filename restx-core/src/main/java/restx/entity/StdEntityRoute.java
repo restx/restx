@@ -73,7 +73,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
                     entityResponseWriter,
                     matcher, successStatus, logLevel) {
                 @Override
-                protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException {
+                protected Optional<O> doRoute(RestxRequest restxRequest, RestxResponse response, RestxRequestMatch match, I i) throws IOException {
                     return matchedEntityRoute.route(restxRequest, match, i);
                 }
             };
@@ -136,7 +136,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         I input = entityRequestBodyReader.readBody(req, ctx);
         Optional<I> optionalInput = Optional.fromNullable(input);
         lifecycleListener.onEntityInput(this, req, resp, optionalInput);
-        Optional<O> result = doRoute(req, match, input);
+        Optional<O> result = doRoute(req, resp,match, input);
         lifecycleListener.onEntityOutput(this, req, resp, optionalInput, result);
         if (result.isPresent()) {
             entityResponseWriter.sendResponse(getSuccessStatus(), result.get(), req, resp, ctx);
@@ -145,5 +145,5 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         }
     }
 
-    protected abstract Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException;
+    protected abstract Optional<O> doRoute(RestxRequest restxRequest, RestxResponse response, RestxRequestMatch match, I i) throws IOException;
 }
