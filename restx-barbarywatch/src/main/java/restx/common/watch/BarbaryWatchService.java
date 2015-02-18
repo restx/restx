@@ -49,7 +49,7 @@ public class BarbaryWatchService implements WatcherService {
         private final WatchService watcher;
         private final Map<WatchKey, Path> keys;
         private final boolean recursive;
-        private final EventCoalescor<Object> coalescor;
+        private final EventCoalescor<FileWatchEvent> coalescor;
         private final Path root;
         private boolean trace = false;
 
@@ -98,7 +98,7 @@ public class BarbaryWatchService implements WatcherService {
             this.keys = new HashMap<>();
             this.recursive = settings.recurse();
             this.root = dir;
-            this.coalescor = EventCoalescor.generic(eventBus, settings.coalescePeriod());
+            this.coalescor = FileWatchEventCoalescor.create(eventBus, settings.coalescePeriod());
 
             if (recursive) {
                 registerAll(dir);
