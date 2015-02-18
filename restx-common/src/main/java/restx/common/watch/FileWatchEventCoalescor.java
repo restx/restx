@@ -23,9 +23,20 @@ import java.util.concurrent.TimeUnit;
  */
 public class FileWatchEventCoalescor extends EventCoalescor<FileWatchEvent> {
 
+	/**
+	 * Create a new {@link EventCoalescor} to coalesce {@link FileWatchEvent}.
+	 *
+	 * @param eventBus the event bus where to post processed events
+	 * @param coalescePeriod the coalesce period
+	 * @return the generic event coalescor
+	 */
+	public static FileWatchEventCoalescor create(EventBus eventBus, long coalescePeriod) {
+		return new FileWatchEventCoalescor(eventBus, coalescePeriod);
+	}
+
 	private final HashMap<FileWatchEventKey, Deque<EventReference>> queue = new HashMap<>();
 
-	public FileWatchEventCoalescor(EventBus eventBus, long coalescePeriod) {
+	FileWatchEventCoalescor(EventBus eventBus, long coalescePeriod) {
 		super(eventBus, coalescePeriod);
 	}
 
