@@ -2,15 +2,11 @@ package restx.common.watch;
 
 import com.google.common.eventbus.EventBus;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,17 +21,12 @@ import java.util.concurrent.TimeUnit;
  *
  * @author apeyrard
  */
-public class FileWatchEventCoalescor implements Closeable {
-
-	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private final EventBus eventBus;
-	private final long coalescePeriod;
+public class FileWatchEventCoalescor extends EventCoalescor<FileWatchEvent> {
 
 	private final HashMap<FileWatchEventKey, Deque<EventReference>> queue = new HashMap<>();
 
 	public FileWatchEventCoalescor(EventBus eventBus, long coalescePeriod) {
-		this.eventBus = eventBus;
-		this.coalescePeriod = coalescePeriod;
+		super(eventBus, coalescePeriod);
 	}
 
 	/**
@@ -155,11 +146,6 @@ public class FileWatchEventCoalescor implements Closeable {
 		synchronized (queue) {
 			queue.clear();
 		}
-	}
-
-	@Override
-	public void close() throws IOException {
-		executor.shutdownNow();
 	}
 
 	/**
