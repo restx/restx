@@ -1,13 +1,14 @@
 package restx.common.watch;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * User: xavierhanin
@@ -27,7 +28,7 @@ public class EventCoalescorTest {
             }
         });
 
-        EventCoalescor coalescor = new EventCoalescor(eventBus, 30);
+        EventCoalescor coalescor = EventCoalescor.generic(eventBus, 30);
 
         coalescor.post("test1");
         coalescor.post("test2");

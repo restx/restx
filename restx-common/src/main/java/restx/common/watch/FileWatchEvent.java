@@ -13,6 +13,16 @@ public class FileWatchEvent {
         return new FileWatchEvent(root, normalizePath(root, dir.resolve(normalizePath(dir, path))), kind, count);
     }
 
+    /**
+     * Create a new {@link FileWatchEvent} from a reference, and apply the new specified kind.
+     * @param ref the reference
+     * @param newKind the new kind
+     * @return the created event
+     */
+    public static FileWatchEvent fromWithKind(FileWatchEvent ref, WatchEvent.Kind<?> newKind) {
+        return new FileWatchEvent(ref.dir, ref.path, newKind, ref.count);
+    }
+
     private final Path dir;
     private final Path path;
     private final WatchEvent.Kind<?> kind;
