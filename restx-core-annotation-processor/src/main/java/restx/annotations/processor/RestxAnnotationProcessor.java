@@ -443,9 +443,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         return methodAnnotations;
     }
 
-    static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
-    static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
-
     private static class ResourceMethodAnnotation {
         final String httpMethod;
         final ExecutableElement methodElem;
@@ -517,18 +514,22 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.sourceLocation = sourceLocation;
             this.inContentType = inContentType;
             this.outContentType = outContentType;
-            Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(returnType);
-            Matcher java8OptionalMatcher = java8OptionalPattern.matcher(returnType);
+
             this.realReturnType = returnType;
-            this.returnTypeGuavaOptional = guavaOptionalMatcher.matches();
-            this.returnTypeJava8Optional = java8OptionalMatcher.matches();
-            if (returnTypeGuavaOptional) {
-                this.returnType = guavaOptionalMatcher.group(1);
-            } else if (returnTypeJava8Optional) {
-                this.returnType = java8OptionalMatcher.group(1);
+
+            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(returnType);
+            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
+                this.returnTypeGuavaOptional = true;
+                this.returnTypeJava8Optional = false;
+            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
+                this.returnTypeGuavaOptional = false;
+                this.returnTypeJava8Optional = true;
             } else {
-                this.returnType = returnType;
+                this.returnTypeGuavaOptional = false;
+                this.returnTypeJava8Optional = false;
             }
+            this.returnType = optionalMatchingReturnType.getUnderlyingType();
+
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             this.successStatus = successStatus;
             StdRestxRequestMatcher requestMatcher = new StdRestxRequestMatcher(httpMethod, path);
@@ -554,22 +555,20 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         };
 
         private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
-            Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(type);
-            Matcher java8OptionalMatcher = java8OptionalPattern.matcher(type);
-            this.realType = type;
-            if (guavaOptionalMatcher.matches()) {
+            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(type);
+            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
                 this.guavaOptional = true;
                 this.java8Optional = false;
-                this.type = guavaOptionalMatcher.group(1);
-            } else if (java8OptionalMatcher.matches()) {
+            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
                 this.guavaOptional = false;
                 this.java8Optional = true;
-                this.type = java8OptionalMatcher.group(1);
             } else {
                 this.guavaOptional = false;
                 this.java8Optional = false;
-                this.type = type;
             }
+            this.type = optionalMatchingReturnType.getUnderlyingType();
+            this.realType = type;
+
             this.name = name;
             this.reqParamName = reqParamName;
             this.kind = kind;
@@ -609,7 +608,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
                 Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
-                return String.format("checkValid(validator, body%s)", validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():"");
+                return String.format("checkValid(validator, body%s)", validationGroupsExpr.isPresent() ? "," + validationGroupsExpr.get() : "");
             }
         },
         CONTEXT {
