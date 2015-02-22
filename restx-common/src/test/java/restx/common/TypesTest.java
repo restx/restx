@@ -3,12 +3,16 @@ package restx.common;
 import static restx.common.Types.isAssignableFrom;
 
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.lang.reflect.Type;
+import java.util.AbstractList;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,26 +66,71 @@ public class TypesTest {
 	}
 
 	@Test
-	public void isAssignableFrom_should_return_true_if_first_type_is_a_super_type_of_second_type() {
-		softly.assertThat(isAssignableFrom(CharSequence.class, String.class));
+	public void isAssignableFrom_should_work_with_raw_types() {
+		softly.assertThat(isAssignableFrom(CharSequence.class, String.class)).isTrue();
+		softly.assertThat(isAssignableFrom(Number.class, Integer.class)).isTrue();
+		softly.assertThat(isAssignableFrom(List.class, ArrayList.class)).isTrue();
 
-		Type list = List.class;
-		Type listOfString = new TypeReference<List<String>>() {}.getType();
-		Type arrayListOfString = new TypeReference<ArrayList<String>>() {}.getType();
+		softly.assertThat(isAssignableFrom(Map.class, ArrayList.class)).isFalse();
+		softly.assertThat(isAssignableFrom(Integer.class, Number.class)).isFalse();
+	}
 
-		softly.assertThat(isAssignableFrom(list, listOfString)).isTrue();
-		softly.assertThat(isAssignableFrom(list, arrayListOfString)).isTrue();
-		softly.assertThat(isAssignableFrom(listOfString, arrayListOfString)).isTrue();
+	@Test
+	public void isAssignableFrom_should_return_true_for_a_reifiable_type_and_any_of_the_same_type_parameterized() {
+		softly.assertThat(isAssignableFrom(
+				List.class,
+				new TypeReference<List<String>>() {}.getType()
+		)).isTrue();
 
-		softly.assertThat(isAssignableFrom(listOfString, list)).isFalse();
-		softly.assertThat(isAssignableFrom(arrayListOfString, listOfString)).isFalse();
+		softly.assertThat(isAssignableFrom(
+				List.class,
+				new TypeReference<List<Integer>>() {}.getType()
+		)).isTrue();
 
-		softly.assertThat(isAssignableFrom(String.class, CharSequence.class)).isFalse();
+		softly.assertThat(isAssignableFrom(
+				Map.class,
+				new TypeReference<List<String>>() {}.getType()
+		)).isFalse();
 
+		softly.assertThat(isAssignableFrom(
+				Map.class,
+				new TypeReference<Map<String, Integer>>() {}.getType()
+		)).isTrue();
+	}
 
-		// now lets play with some more complex cases
+	@Test
+	public void isAssignableFrom_should_return_true_for_a_reifiable_type_and_any_sub_parameterized_type() {
+		softly.assertThat(isAssignableFrom(
+				List.class,
+				new TypeReference<ArrayList<String>>() {}.getType()
+		)).isTrue();
 
-		// UnTypedImpl
+		softly.assertThat(isAssignableFrom(
+				List.class,
+				new TypeReference<AbstractList<Integer>>() {}.getType()
+		)).isTrue();
+
+		softly.assertThat(isAssignableFrom(
+				Map.class,
+				new TypeReference<ImmutableList<String>>() {}.getType()
+		)).isFalse();
+
+		softly.assertThat(isAssignableFrom(
+				Map.class,
+				new TypeReference<ImmutableMap<String, Integer>>() {}.getType()
+		)).isTrue();
+	}
+
+	@Test
+	public void isAssignableFrom_should_work_for_parameterized_interfaces_and_a_direct_implementation() {
+		// List and AbstractList
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<List<String>>() {}.getType(),
+				new TypeReference<AbstractList<String>>() {}.getType()
+		)).isTrue();
+
+		// GenericInterface and UnTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
@@ -93,17 +142,39 @@ public class TypesTest {
 				new TypeReference<UnTypedImpl<Integer>>() {}.getType()
 		)).isFalse();
 
-		// MoreUnTypedImpl
+		// Map and AbstractMap
 
 		softly.assertThat(isAssignableFrom(
-				new TypeReference<GenericInterface<String>>() {}.getType(),
-				new TypeReference<MoreUnTypedImpl<String>>() {}.getType()
+				new TypeReference<Map<String, Number>>() {}.getType(),
+				new TypeReference<AbstractMap<String, Number>>() {}.getType()
 		)).isTrue();
 
 		softly.assertThat(isAssignableFrom(
-				new TypeReference<GenericInterface<String>>() {}.getType(),
-				new TypeReference<MoreUnTypedImpl<Integer>>() {}.getType()
+				new TypeReference<Map<String, Number>>() {}.getType(),
+				new TypeReference<AbstractMap<Double, Number>>() {}.getType()
 		)).isFalse();
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<Map<String, Number>>() {}.getType(),
+				new TypeReference<AbstractMap<String, Integer>>() {}.getType()
+		)).isFalse();
+	}
+
+	@Test
+	public void isAssignableFrom_should_work_for_parameterized_class_and_a_direct_sub_class() {
+		// AbstractList and ArrayList
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<AbstractList<String>>() {}.getType(),
+				new TypeReference<ArrayList<String>>() {}.getType()
+		)).isTrue();
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<AbstractList<String>>() {}.getType(),
+				new TypeReference<ArrayList<Number>>() {}.getType()
+		)).isFalse();
+
+		// UnTypedImpl and MoreUnTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<UnTypedImpl<String>>() {}.getType(),
@@ -115,7 +186,42 @@ public class TypesTest {
 				new TypeReference<MoreUnTypedImpl<Integer>>() {}.getType()
 		)).isFalse();
 
-		// TypedImpl
+		// AbstractMap and HashMap
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<AbstractMap<String, Number>>() {}.getType(),
+				new TypeReference<HashMap<String, Number>>() {}.getType()
+		)).isTrue();
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<AbstractMap<String, Number>>() {}.getType(),
+				new TypeReference<HashMap<Double, Number>>() {}.getType()
+		)).isFalse();
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<AbstractMap<String, Number>>() {}.getType(),
+				new TypeReference<HashMap<String, Integer>>() {}.getType()
+		)).isFalse();
+	}
+
+	@Test
+	public void isAssignableFrom_should_work_with_not_direct_sub_types() {
+		// GenericInterface and MoreUnTypedImpl
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<GenericInterface<String>>() {}.getType(),
+				new TypeReference<MoreUnTypedImpl<String>>() {}.getType()
+		)).isTrue();
+
+		softly.assertThat(isAssignableFrom(
+				new TypeReference<GenericInterface<String>>() {}.getType(),
+				new TypeReference<MoreUnTypedImpl<Integer>>() {}.getType()
+		)).isFalse();
+	}
+
+	@Test
+	public void isAssignableFrom_should_work_with_fixed_generic_interface_implementation() {
+		// GenericInterface and TypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
@@ -127,7 +233,7 @@ public class TypesTest {
 				TypedImpl.class
 		)).isFalse();
 
-		// MoreTypedImpl
+		// GenericInterface and MoreTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
@@ -144,7 +250,7 @@ public class TypesTest {
 				MoreTypedImpl.class
 		)).isTrue();
 
-		// GenericTypedImpl
+		// GenericInterface and GenericTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
@@ -156,7 +262,7 @@ public class TypesTest {
 				new TypeReference<GenericTypedImpl<Integer>>() {}.getType()
 		)).isFalse();
 
-		// MoreGenericTypedImpl
+		// GenericInterface, GenericTypedImpl and MoreGenericTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
@@ -182,7 +288,11 @@ public class TypesTest {
 				new TypeReference<GenericTypedImpl<String>>() {}.getType(),
 				new TypeReference<MoreGenericTypedImpl<Double>>() {}.getType()
 		)).isFalse();
+	}
 
+
+	@Test
+	public void isAssignableFrom_should_manage_to_match_generic_variable_from_sub_types_to_super_types() {
 		// SomethingMap and SuperMap
 
 		softly.assertThat(isAssignableFrom(
@@ -237,6 +347,7 @@ public class TypesTest {
 		some classes and interfaces used in isAssignableFrom test cases
 	 */
 
+	@SuppressWarnings("unused")
 	public static interface GenericInterface<T> {}
 
 	public static class UnTypedImpl<T> implements GenericInterface<T> {}
@@ -247,15 +358,21 @@ public class TypesTest {
 
 	public static class MoreTypedImpl extends TypedImpl {}
 
+	@SuppressWarnings("unused")
 	public static class GenericTypedImpl<T> implements GenericInterface<String> {}
 
+	@SuppressWarnings("unused")
 	public static class MoreGenericTypedImpl<T> extends GenericTypedImpl<Integer> {}
 
+	@SuppressWarnings("unused")
 	public static class SomethingMap<A, B> implements GenericInterface<A> {}
 
+	@SuppressWarnings("unused")
 	public static class SuperMap<A,B> extends SomethingMap<B, String> {}
 
+	@SuppressWarnings("unused")
 	public static class FixedSomethingMap<A, B> implements GenericInterface<Double> {}
 
+	@SuppressWarnings("unused")
 	public static class FixedSuperMap<A,B> extends FixedSomethingMap<B, String> {}
 }
