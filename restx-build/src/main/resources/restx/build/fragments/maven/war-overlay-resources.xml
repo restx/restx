@@ -6,7 +6,7 @@
                     <overlays>
                         <overlay>
                             <groupId>${project.war.overlay.groupId}</groupId>
-                            <artifactId>${project.war.overlay.groupId}-ui</artifactId>
+                            <artifactId>${project.war.overlay.artifactId}-ui</artifactId>
                             <type>zip</type>
                         </overlay>
                     </overlays>
