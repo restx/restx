@@ -221,72 +221,72 @@ public class TypesTest {
 
 	@Test
 	public void isAssignableFrom_should_work_with_fixed_generic_interface_implementation() {
-		// GenericInterface and TypedImpl
+		// GenericInterface and StringTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
-				TypedImpl.class
+				StringTypedImpl.class
 		)).isTrue();
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<Integer>>() {}.getType(),
-				TypedImpl.class
+				StringTypedImpl.class
 		)).isFalse();
 
-		// GenericInterface and MoreTypedImpl
+		// GenericInterface and MoreStringTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
-				MoreTypedImpl.class
+				MoreStringTypedImpl.class
 		)).isTrue();
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<Integer>>() {}.getType(),
-				MoreTypedImpl.class
+				MoreStringTypedImpl.class
 		)).isFalse();
 
 		softly.assertThat(isAssignableFrom(
-				TypedImpl.class,
-				MoreTypedImpl.class
+				StringTypedImpl.class,
+				MoreStringTypedImpl.class
 		)).isTrue();
 
-		// GenericInterface and GenericTypedImpl
+		// GenericInterface and GenericStringTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
-				new TypeReference<GenericTypedImpl<Integer>>() {}.getType()
+				new TypeReference<GenericStringTypedImpl<Integer>>() {}.getType()
 		)).isTrue();
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<Integer>>() {}.getType(),
-				new TypeReference<GenericTypedImpl<Integer>>() {}.getType()
+				new TypeReference<GenericStringTypedImpl<Integer>>() {}.getType()
 		)).isFalse();
 
-		// GenericInterface, GenericTypedImpl and MoreGenericTypedImpl
+		// GenericInterface, GenericStringTypedImpl and MoreIntegerGenericStringTypedImpl
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<String>>() {}.getType(),
-				new TypeReference<MoreGenericTypedImpl<Integer>>() {}.getType()
+				new TypeReference<MoreIntegerGenericStringTypedImpl<Integer>>() {}.getType()
 		)).isTrue();
 
 		softly.assertThat(isAssignableFrom(
 				new TypeReference<GenericInterface<Integer>>() {}.getType(),
-				new TypeReference<MoreGenericTypedImpl<Integer>>() {}.getType()
+				new TypeReference<MoreIntegerGenericStringTypedImpl<Integer>>() {}.getType()
 		)).isFalse();
 
 		softly.assertThat(isAssignableFrom(
-				new TypeReference<GenericTypedImpl<Integer>>() {}.getType(),
-				new TypeReference<MoreGenericTypedImpl<Integer>>() {}.getType()
+				new TypeReference<GenericStringTypedImpl<Integer>>() {}.getType(),
+				new TypeReference<MoreIntegerGenericStringTypedImpl<Integer>>() {}.getType()
 		)).isTrue();
 
 		softly.assertThat(isAssignableFrom(
-				new TypeReference<GenericTypedImpl<Integer>>() {}.getType(),
-				new TypeReference<MoreGenericTypedImpl<Double>>() {}.getType()
+				new TypeReference<GenericStringTypedImpl<Integer>>() {}.getType(),
+				new TypeReference<MoreIntegerGenericStringTypedImpl<Double>>() {}.getType()
 		)).isTrue();
 
 		softly.assertThat(isAssignableFrom(
-				new TypeReference<GenericTypedImpl<String>>() {}.getType(),
-				new TypeReference<MoreGenericTypedImpl<Double>>() {}.getType()
+				new TypeReference<GenericStringTypedImpl<String>>() {}.getType(),
+				new TypeReference<MoreIntegerGenericStringTypedImpl<Double>>() {}.getType()
 		)).isFalse();
 	}
 
@@ -354,15 +354,15 @@ public class TypesTest {
 
 	public static class MoreUnTypedImpl<T> extends UnTypedImpl<T> {}
 
-	public static class TypedImpl implements GenericInterface<String> {}
+	public static class StringTypedImpl implements GenericInterface<String> {}
 
-	public static class MoreTypedImpl extends TypedImpl {}
-
-	@SuppressWarnings("unused")
-	public static class GenericTypedImpl<T> implements GenericInterface<String> {}
+	public static class MoreStringTypedImpl extends StringTypedImpl {}
 
 	@SuppressWarnings("unused")
-	public static class MoreGenericTypedImpl<T> extends GenericTypedImpl<Integer> {}
+	public static class GenericStringTypedImpl<T> implements GenericInterface<String> {}
+
+	@SuppressWarnings("unused")
+	public static class MoreIntegerGenericStringTypedImpl<T> extends GenericStringTypedImpl<Integer> {}
 
 	@SuppressWarnings("unused")
 	public static class SomethingMap<A, B> implements GenericInterface<A> {}
