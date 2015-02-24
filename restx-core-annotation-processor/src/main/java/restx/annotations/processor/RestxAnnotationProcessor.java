@@ -607,8 +607,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         },
         BODY {
             public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
-                return String.format("checkValid(validator, body%s)", validationGroupsExpr.isPresent() ? "," + validationGroupsExpr.get() : "");
+                return checkValidStr(parameter, "body");
             }
         },
         CONTEXT {
@@ -637,6 +636,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         };
 
         public abstract String fetchFromReqCode(ResourceMethodParameter parameter);
+
+        private static String checkValidStr(ResourceMethodParameter parameter, String baseExpr) {
+            Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
+            return String.format("checkValid(validator, %s%s)", baseExpr, validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():"");
+        }
     }
 
 }
