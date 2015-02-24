@@ -42,7 +42,7 @@ public class {{router}} extends RestxRouter {
         new StdEntityRoute<{{inEntity}}, {{outEntity}}>("{{routeId}}",
                 readerRegistry.<{{inEntity}}>build({{inEntityType}}, {{inContentType}}),
                 writerRegistry.<{{outEntity}}>build({{outEntityType}}, {{outContentType}}),
-                new StdRestxRequestMatcher(Endpoint.of("{{method}}", "{{path}}")),
+                Endpoint.of("{{method}}", "{{path}}"),
                 HttpStatus.{{successStatusName}}, RestxLogLevel.{{logLevelName}}, pf) {
             @Override
             protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {

@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
-import restx.StdRestxRequestMatcher;
+import restx.endpoint.Endpoint;
 import restx.admin.AdminModule;
 import restx.factory.Component;
 import restx.jackson.FrontObjectMapperFactory;
@@ -36,7 +36,7 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
                                  RestxSecurityManager securityManager,
                                  PermissionFactory permissionFactory
     ) {
-        super("ErrorDescriptorsRoute", ImmutableCollection.class, objectWriter, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"), permissionFactory);
+        super("ErrorDescriptorsRoute", ImmutableCollection.class, objectWriter, Endpoint.of("GET", "/@/errors/descriptors"), permissionFactory);
         Map<String, ErrorDescriptor> map = Maps.newLinkedHashMap();
         for (ErrorDescriptor errorDescriptor : errorDescriptors) {
             if (map.containsKey(errorDescriptor.getErrorCode())) {

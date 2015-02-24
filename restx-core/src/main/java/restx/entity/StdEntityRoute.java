@@ -1,14 +1,8 @@
 package restx.entity;
 
 import com.google.common.base.Optional;
-import restx.RestxContext;
-import restx.RestxLogLevel;
-import restx.RestxRequest;
-import restx.RestxRequestMatch;
-import restx.RestxRequestMatcher;
-import restx.RestxResponse;
-import restx.RouteLifecycleListener;
-import restx.StdRoute;
+import restx.*;
+import restx.endpoint.*;
 import restx.http.HttpStatus;
 import restx.security.Permission;
 import restx.security.PermissionFactory;
@@ -29,7 +23,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         protected EntityRequestBodyReader<I> entityRequestBodyReader;
         protected EntityResponseWriter<O> entityResponseWriter;
         protected String name;
-        protected RestxRequestMatcher matcher;
+        protected Endpoint endpoint;
         protected HttpStatus successStatus = HttpStatus.OK;
         protected RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
         protected PermissionFactory permissionFactory;
@@ -55,8 +49,8 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return this;
         }
 
-        public Builder<I,O> matcher(final RestxRequestMatcher matcher) {
-            this.matcher = matcher;
+        public Builder<I,O> endpoint(final Endpoint endpoint) {
+            this.endpoint = endpoint;
             return this;
         }
 
@@ -80,7 +74,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return new StdEntityRoute<I, O>(
                     name, entityRequestBodyReader == null ? voidBodyReader() : entityRequestBodyReader,
                     entityResponseWriter,
-                    matcher, successStatus, logLevel, permissionFactory) {
+                    endpoint, successStatus, logLevel, permissionFactory) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException {
                     return matchedEntityRoute.route(restxRequest, match, i);
@@ -106,17 +100,19 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     private final EntityRequestBodyReader<I> entityRequestBodyReader;
     private final EntityResponseWriter<O> entityResponseWriter;
     private final RestxLogLevel logLevel;
+    private final Endpoint endpoint;
     private final PermissionFactory permissionFactory;
 
     public StdEntityRoute(String name,
                           EntityRequestBodyReader<I> entityRequestBodyReader,
                           EntityResponseWriter<O> entityResponseWriter,
-                          RestxRequestMatcher matcher,
+                          Endpoint endpoint,
                           HttpStatus successStatus,
                           RestxLogLevel logLevel,
                           PermissionFactory permissionFactory
     ) {
-        super(name, matcher, successStatus);
+        super(name, new StdRestxRequestMatcher(endpoint), successStatus);
+        this.endpoint = endpoint;
         this.permissionFactory = permissionFactory;
         this.entityRequestBodyReader = checkNotNull(entityRequestBodyReader);
         this.entityResponseWriter = checkNotNull(entityResponseWriter);

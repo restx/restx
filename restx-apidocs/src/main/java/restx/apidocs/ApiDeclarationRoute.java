@@ -7,6 +7,7 @@ import com.google.common.collect.*;
 import restx.*;
 import restx.admin.AdminModule;
 import restx.description.*;
+import restx.endpoint.Endpoint;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.Name;
@@ -50,7 +51,7 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     @Inject
     public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
                                Factory factory, RestxSecurityManager securityManager, PermissionFactory permissionFactory) {
-        super("ApiDeclarationRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"), permissionFactory);
+        super("ApiDeclarationRoute", Map.class, writer, Endpoint.of("GET", "/@/api-docs/{router}"), permissionFactory);
         this.factory = factory;
         this.securityManager = securityManager;
         this.permissionFactory = permissionFactory;

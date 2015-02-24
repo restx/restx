@@ -3,6 +3,7 @@ package restx.jackson;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import restx.RestxLogLevel;
 import restx.RestxRequestMatcher;
+import restx.endpoint.Endpoint;
 import restx.entity.StdEntityRoute;
 import restx.entity.VoidContentTypeModule;
 import restx.http.HttpStatus;
@@ -15,11 +16,11 @@ import java.lang.reflect.Type;
  * Time: 11:06
  */
 public abstract class StdJsonProducerEntityRoute<O> extends StdEntityRoute<Void,O> {
-    public StdJsonProducerEntityRoute(String name, Type type, ObjectWriter writer, RestxRequestMatcher matcher, PermissionFactory permissionFactory) {
+    public StdJsonProducerEntityRoute(String name, Type type, ObjectWriter writer, Endpoint endpoint, PermissionFactory permissionFactory) {
         super(name,
                 VoidContentTypeModule.VoidEntityRequestBodyReader.INSTANCE,
                 JsonEntityResponseWriter.<O>using(type, writer),
-                matcher,
+                endpoint,
                 HttpStatus.OK, RestxLogLevel.DEFAULT, permissionFactory);
     }
 }
