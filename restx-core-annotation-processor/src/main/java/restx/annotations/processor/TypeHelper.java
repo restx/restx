@@ -3,9 +3,11 @@ package restx.annotations.processor;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +19,7 @@ public class TypeHelper {
     private static Pattern PARAMETERIZED_TYPE_PATTERN = Pattern.compile("([^\\<]+)\\<(.+)\\>");
     private static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
     private static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
+    private static Set<String> RAW_TYPES_STR = Sets.newHashSet("byte", "short", "int", "long", "float", "double", "boolean", "char");
 
     static String getTypeExpressionFor(String type) {
         Matcher matcher = PARAMETERIZED_TYPE_PATTERN.matcher(type);
@@ -36,6 +39,10 @@ public class TypeHelper {
             }
 
         }
+    }
+
+    static String getTypeReferenceExpressionFor(String type) {
+        return RAW_TYPES_STR.contains(type) ? type+".class" : "new TypeReference<"+type+">(){}";
     }
 
     public static class OptionalMatchingType {

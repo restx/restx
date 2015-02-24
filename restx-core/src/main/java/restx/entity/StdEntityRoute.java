@@ -3,12 +3,15 @@ package restx.entity;
 import com.google.common.base.Optional;
 import restx.*;
 import restx.endpoint.*;
+import restx.factory.NamedType;
 import restx.http.HttpStatus;
 import restx.security.Permission;
 import restx.security.PermissionFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -22,8 +25,10 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     public static class Builder<I,O> {
         protected EntityRequestBodyReader<I> entityRequestBodyReader;
         protected EntityResponseWriter<O> entityResponseWriter;
+        protected EndpointParameterMapperRegistry registry;
         protected String name;
         protected Endpoint endpoint;
+        protected NamedType[] queryParameters = new NamedType[0];
         protected HttpStatus successStatus = HttpStatus.OK;
         protected RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
         protected PermissionFactory permissionFactory;
@@ -54,6 +59,16 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return this;
         }
 
+        public Builder<I,O> registry(final EndpointParameterMapperRegistry registry) {
+            this.registry = registry;
+            return this;
+        }
+
+        public Builder<I,O> queryParameters(final NamedType[] queryParameters) {
+            this.queryParameters = queryParameters;
+            return this;
+        }
+
         public Builder<I,O> successStatus(final HttpStatus successStatus) {
             this.successStatus = successStatus;
             return this;
@@ -74,7 +89,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return new StdEntityRoute<I, O>(
                     name, entityRequestBodyReader == null ? voidBodyReader() : entityRequestBodyReader,
                     entityResponseWriter,
-                    endpoint, successStatus, logLevel, permissionFactory) {
+                    endpoint, successStatus, logLevel, permissionFactory, registry, queryParameters) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException {
                     return matchedEntityRoute.route(restxRequest, match, i);
@@ -102,6 +117,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     private final RestxLogLevel logLevel;
     private final Endpoint endpoint;
     private final PermissionFactory permissionFactory;
+    private final Map<NamedType, EndpointParameterMapper> cachedQueryParameterMappers;
 
     public StdEntityRoute(String name,
                           EntityRequestBodyReader<I> entityRequestBodyReader,
@@ -109,7 +125,21 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
                           Endpoint endpoint,
                           HttpStatus successStatus,
                           RestxLogLevel logLevel,
-                          PermissionFactory permissionFactory
+                          PermissionFactory permissionFactory,
+                          EndpointParameterMapperRegistry registry) {
+        this(name, entityRequestBodyReader, entityResponseWriter, endpoint, successStatus,
+                logLevel, permissionFactory, registry, new NamedType[0]);
+    }
+
+    public StdEntityRoute(String name,
+                          EntityRequestBodyReader<I> entityRequestBodyReader,
+                          EntityResponseWriter<O> entityResponseWriter,
+                          Endpoint endpoint,
+                          HttpStatus successStatus,
+                          RestxLogLevel logLevel,
+                          PermissionFactory permissionFactory,
+                          EndpointParameterMapperRegistry registry,
+                          NamedType[] queryParametersDefinition
     ) {
         super(name, new StdRestxRequestMatcher(endpoint), successStatus);
         this.endpoint = endpoint;
@@ -117,6 +147,19 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         this.entityRequestBodyReader = checkNotNull(entityRequestBodyReader);
         this.entityResponseWriter = checkNotNull(entityResponseWriter);
         this.logLevel = checkNotNull(logLevel);
+        this.cachedQueryParameterMappers = cacheQueryParameterMappers(registry, endpoint, queryParametersDefinition);
+    }
+
+    private static Map<NamedType, EndpointParameterMapper> cacheQueryParameterMappers(
+            EndpointParameterMapperRegistry registry, Endpoint endpoint, NamedType[] parameters) {
+        Map<NamedType, EndpointParameterMapper> cachedParameterMappers = new HashMap<>();
+        for(NamedType parameter : parameters){
+            cachedParameterMappers.put(
+                    parameter,
+                    registry.getEndpointParameterMapperFor(new EndpointParameter(endpoint, parameter)));
+
+        }
+        return cachedParameterMappers;
     }
 
     /**

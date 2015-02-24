@@ -9,6 +9,7 @@ import restx.StdRestxRequestMatcher;
 import restx.annotations.*;
 import restx.common.Mustaches;
 import restx.common.processor.RestxAbstractProcessor;
+import restx.endpoint.EndpointParameterKind;
 import restx.factory.When;
 import restx.http.HttpStatus;
 import restx.security.PermitAll;
@@ -277,18 +278,25 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
             List<String> callParameters = Lists.newArrayList();
             List<String> parametersDescription = Lists.newArrayList();
+            List<String> queryParametersDefinition = Lists.newArrayList();
 
             String inEntityClass = "Void";
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
-                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
+                // TODO: Simplify this since it seems useless for now...
+                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter, resourceMethod);
                 if (!String.class.getName().equals(parameter.type)
                         && parameter.kind != ResourceMethodParameterKind.BODY
                         && parameter.kind != ResourceMethodParameterKind.CONTEXT) {
-                    getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
+//                    getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
                 } else if (parameter.kind == ResourceMethodParameterKind.BODY) {
                     inEntityClass = parameter.type;
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
+
+                if(parameter.kind.resolvedWithQueryParamMapper()) {
+                    queryParametersDefinition.add(String.format("                    NamedType.of(%s, \"%s\")",
+                            TypeHelper.getTypeReferenceExpressionFor(parameter.realType), parameter.name));
+                }
 
                 if (parameter.kind != ResourceMethodParameterKind.CONTEXT) {
                     parametersDescription.add(String.format(
@@ -336,6 +344,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .put("path", resourceMethod.path.replace("\\", "\\\\"))
                     .put("resource", resourceClass.name)
                     .put("securityCheck", "securityManager.check(request, match, " + resourceMethod.permission + ");")
+                    .put("queryParametersDefinition", Joiner.on(",\n").join(queryParametersDefinition))
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("sourceLocation", resourceMethod.sourceLocation)
@@ -585,8 +594,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     private static enum ResourceMethodParameterKind {
-        QUERY {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+        QUERY(true) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 // TODO: we should check the type, in case of list, use getQueryParams,
                 // and we should better handle missing params
                 String code = String.format("request.getQueryParam(\"%s\")", parameter.name);
@@ -600,18 +609,18 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 return code;
             }
         },
-        PATH {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+        PATH(true) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 return String.format("match.getPathParam(\"%s\")", parameter.name);
             }
         },
-        BODY {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+        BODY(false) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 return checkValidStr(parameter, "body");
             }
         },
-        CONTEXT {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+        CONTEXT(false) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 Collection<String> contextParamNames = Arrays.asList("baseUri", "clientAddress", "request", "locale", "locales");
                 if (!contextParamNames.contains(parameter.reqParamName)) {
                     throw new IllegalArgumentException("context parameter not known: " + parameter.reqParamName +
@@ -635,11 +644,21 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
         };
 
-        public abstract String fetchFromReqCode(ResourceMethodParameter parameter);
+        private final boolean resolvedWithQueryParamMapper;
+
+        ResourceMethodParameterKind(boolean resolvedWithQueryParamMapper) {
+            this.resolvedWithQueryParamMapper = resolvedWithQueryParamMapper;
+        }
 
         private static String checkValidStr(ResourceMethodParameter parameter, String baseExpr) {
             Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
             return String.format("checkValid(validator, %s%s)", baseExpr, validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():"");
+        }
+
+        public abstract String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method);
+
+        public boolean resolvedWithQueryParamMapper() {
+            return resolvedWithQueryParamMapper;
         }
     }
 
