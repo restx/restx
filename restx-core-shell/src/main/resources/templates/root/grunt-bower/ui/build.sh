@@ -4,4 +4,5 @@
 
 npm install
 bower install
+grunt test
 grunt build
