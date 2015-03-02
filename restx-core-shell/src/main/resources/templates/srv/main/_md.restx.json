@@ -25,6 +25,7 @@
             "io.restx:restx-core-annotation-processor:${restx.version}",
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-factory-admin:${restx.version}",
+            "io.restx:restx-validation:${restx.version}",
             "io.restx:restx-monitor-codahale:${restx.version}",
             "io.restx:restx-monitor-admin:${restx.version}",
             "io.restx:restx-log-admin:${restx.version}",
