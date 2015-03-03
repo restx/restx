@@ -16,6 +16,7 @@
     "snakeyaml.version": "1.13",
 
     "hibernate-validator.version": "5.0.1.Final",
+    "validation-api.version": "1.1.0.Final",
     "el.api.version": "2.2",
 
     "reflections.version": "0.9.9-RC1",

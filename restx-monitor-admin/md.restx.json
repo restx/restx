@@ -16,7 +16,8 @@
             "io.dropwizard.metrics:metrics-healthchecks:${metrics.version}",
             "io.dropwizard.metrics:metrics-jvm:${metrics.version}",
             "io.dropwizard.metrics:metrics-graphite:${metrics.version}",
-            "io.restx:restx-admin:${restx.version}"
+            "io.restx:restx-admin:${restx.version}",
+            "io.restx:restx-webjars:${restx.version}"
         ]
     }
 }

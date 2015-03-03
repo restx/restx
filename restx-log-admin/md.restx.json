@@ -12,7 +12,8 @@
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}",
             "ch.qos.logback:logback-classic:${logback.version}",
-            "io.restx:restx-admin:${restx.version}"
+            "io.restx:restx-admin:${restx.version}",
+            "io.restx:restx-webjars:${restx.version}"
         ]
     }
 }

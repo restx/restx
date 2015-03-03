@@ -13,7 +13,8 @@
             "io.restx:restx-core-annotation-processor:${restx.version}",
             "io.restx:restx-i18n:${restx.version}",
             "io.restx:restx-admin:${restx.version}",
-            "org.slf4j:slf4j-api:${slf4j-api.version}"
+            "org.slf4j:slf4j-api:${slf4j-api.version}",
+            "io.restx:restx-webjars:${restx.version}"
         ],
         "test": [
             "junit:junit:${junit.version}",

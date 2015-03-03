@@ -20,7 +20,7 @@
             "com.google.guava:guava:${guava.version}",
             "joda-time:joda-time:${joda-time.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}",
-            "org.hibernate:hibernate-validator:${hibernate-validator.version}",
+            "javax.validation:validation-api:${validation-api.version}",
             "org.reflections:reflections:${reflections.version}",
             "org.yaml:snakeyaml:${snakeyaml.version}"
         ],

@@ -12,7 +12,8 @@
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}",
             "io.restx:restx-admin:${restx.version}",
-            "com.github.kevinsawicki:http-request:${http-request.version}"
+            "com.github.kevinsawicki:http-request:${http-request.version}",
+            "io.restx:restx-webjars:${restx.version}"
         ]
     }
 }

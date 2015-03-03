@@ -11,7 +11,8 @@
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-security-basic:${restx.version}",
-            "io.restx:restx-core-annotation-processor:${restx.version}"
+            "io.restx:restx-core-annotation-processor:${restx.version}",
+            "io.restx:restx-webjars:${restx.version}"
         ]
     }
 }
