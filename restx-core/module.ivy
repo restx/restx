@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-core" revision="0.34" status="integration">
+    <info organisation="io.restx" module="restx-core" revision="0.35" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -26,7 +26,7 @@
         <dependency org="com.google.guava" name="guava" rev="17.0" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.3" conf="default" />
         <dependency org="org.slf4j" name="slf4j-api" rev="1.7.5" conf="default" />
-        <dependency org="org.hibernate" name="hibernate-validator" rev="5.0.1.Final" conf="default" />
+        <dependency org="javax.validation" name="validation-api" rev="1.1.0.Final" conf="default" />
         <dependency org="org.reflections" name="reflections" rev="0.9.9-RC1" conf="default" />
         <dependency org="org.yaml" name="snakeyaml" rev="1.13" conf="default" />
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />

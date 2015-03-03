@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-stats-admin" revision="0.34" status="integration">
+    <info organisation="io.restx" module="restx-stats-admin" revision="0.35" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -19,5 +19,6 @@
         <dependency org="io.restx" name="restx-core-annotation-processor" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-admin" rev="latest.integration" conf="default" />
         <dependency org="com.github.kevinsawicki" name="http-request" rev="5.5" conf="default" />
+        <dependency org="io.restx" name="restx-webjars" rev="latest.integration" conf="default" />
     </dependencies>
 </ivy-module>

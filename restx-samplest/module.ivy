@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-samplest" revision="0.34" status="integration">
+    <info organisation="io.restx" module="restx-samplest" revision="0.35" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-webapp-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -15,6 +15,7 @@
     </publications>
     <dependencies>
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-validation" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core-annotation-processor" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-factory-admin" rev="latest.integration" conf="default" />
