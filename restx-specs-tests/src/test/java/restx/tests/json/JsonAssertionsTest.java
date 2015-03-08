@@ -60,8 +60,8 @@ public class JsonAssertionsTest {
                             "to be same json as:\n" +
                             "  {\"key1\": [{\"key2\": \"val22\"}]}\n" +
                             "but following differences were found:\n" +
-                            "- within [L1C2]-[L1C83]:\n" +
-                            "  {\"key1\": [{\"key2\": \"val21\", \"key3\": \"val31\"}, {\"key2\": \"val22\", \"key3\": \"val32\"}]}\n" +
+                            "- within [L1C11]-[L1C82]:\n" +
+                            "  [{\"key2\": \"val21\", \"key3\": \"val31\"}, {\"key2\": \"val22\", \"key3\": \"val32\"}]\n" +
                             "01) extra element(s) in array at position 0 at path './key1' with value(s):\n" +
                             "      [ {\n" +
                             "        \"key2\" : \"val21\",\n" +
@@ -115,8 +115,8 @@ public class JsonAssertionsTest {
                             "to be same json as:\n" +
                             "  {\"key1\":\"val1\"}\n" +
                             "but following differences were found:\n" +
-                            "- within [L1C2]-[L1C16]:\n" +
-                            "  {\"key1\":\"val2\"}\n" +
+                            "- within [L1C10]-[L1C15]:\n" +
+                            "  \"val2\"\n" +
                             "01) expected value \"val1\" but was \"val2\" at path './key1'\n"
             );
         }
@@ -134,8 +134,8 @@ public class JsonAssertionsTest {
                             "to be same json as:\n" +
                             "  {\"key1\": []}\n" +
                             "but following differences were found:\n" +
-                            "- within [L1C2]-[L1C29]:\n" +
-                            "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
+                            "- within [L1C11]-[L1C28]:\n" +
+                            "  [{\"key2\": \"val2\"}]\n" +
                             "01) extra element(s) in array at position 0 at path './key1' with value(s):\n" +
                             "      [ {\n" +
                             "        \"key2\" : \"val2\"\n" +
@@ -156,8 +156,8 @@ public class JsonAssertionsTest {
                             "to be same json as:\n" +
                             "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
                             "but following differences were found:\n" +
-                            "- within [L1C2]-[L1C13]:\n" +
-                            "  {\"key1\": []}\n" +
+                            "- within [L1C11]-[L1C12]:\n" +
+                            "  []\n" +
                             "01) missing element(s) in array at position 0 at path './key1' expected value(s):\n" +
                             "      [ {\n" +
                             "        \"key2\" : \"val2\"\n" +

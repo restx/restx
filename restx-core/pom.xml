@@ -23,7 +23,7 @@
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <guava.version>17.0</guava.version>
         <joda-time.version>2.3</joda-time.version>
-        <jackson.version>2.3.3</jackson.version>
+        <jackson.version>2.5.1</jackson.version>
         <snakeyaml.version>1.13</snakeyaml.version>
         <validation-api.version>1.1.0.Final</validation-api.version>
         <reflections.version>0.9.9-RC1</reflections.version>

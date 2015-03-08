@@ -8,7 +8,7 @@
     "guava.version": "17.0",
     "joda-time.version": "2.3",
 
-    "jackson.version": "2.3.3",
+    "jackson.version": "2.5.1",
 
     "mustache.version": "1.8",
     "http-request.version": "5.5",

@@ -2,6 +2,7 @@ package samplest.core;
 
 import com.github.kevinsawicki.http.HttpRequest;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import restx.tests.RestxServerRule;
 
@@ -38,6 +39,7 @@ public class PolymorphicResourceTest {
                 "}");
     }
 
+    @Ignore
     @Test
     public void should_return_B_list() throws Exception {
         HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(

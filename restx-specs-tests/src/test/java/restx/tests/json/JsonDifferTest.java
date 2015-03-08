@@ -83,7 +83,7 @@ public class JsonDifferTest {
                 .extracting("type", "leftPath", "leftValue", "rightValue",
                         "leftContext.json", "rightContext.json")
                 .containsExactly(Tuple.tuple("CHANGED", "./key1", "val1", "val2",
-                        "{\"key1\": \"val1\"}", "{\"key1\": \"val2\"}"));
+                        "\"val1\"", "\"val2\""));
     }
 
     @Test
@@ -98,7 +98,7 @@ public class JsonDifferTest {
                 .extracting("type", "leftPath", "leftValue", "rightValue",
                         "leftContext.json", "rightContext.json")
                 .containsExactly(Tuple.tuple("CHANGED", "./key2/key3", "val3", "val4",
-                        "{\"key3\": \"val3\"}", "{\"key3\": \"val4\"}"));
+                        "\"val3\"", "\"val4\""));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class JsonDifferTest {
                 .containsExactly(Tuple.tuple(
                         "INSERTED", "./key1",
                         0, asList(ImmutableMap.of("key2", "val2")),
-                        "{\"key1\": []}", "{\"key1\": [{\"key2\": \"val2\"}]}"));
+                        "[]", "[{\"key2\": \"val2\"}]"));
     }
 
     @Test
@@ -136,7 +136,7 @@ public class JsonDifferTest {
                 .containsExactly(Tuple.tuple(
                         "DELETED", "./key1",
                         0, asList(ImmutableMap.of("key2", "val2")),
-                        "{\"key1\": [{\"key2\": \"val2\"}]}", "{\"key1\": []}"));
+                        "[{\"key2\": \"val2\"}]", "[]"));
     }
 
     @Test
@@ -194,8 +194,8 @@ public class JsonDifferTest {
                 .containsExactly(Tuple.tuple(
                         "DELETED", "./key1",
                         0, asList(ImmutableMap.of("key3", "val3")),
-                        "{\"key1\": [{\"key3\": \"val3\"}, {}, {}]}",
-                        "{\"key1\": [{}, {\"key2\": \"val2\"}]}"));
+                        "[{\"key3\": \"val3\"}, {}, {}]",
+                        "[{}, {\"key2\": \"val2\"}]"));
 
         assertThat(compare.getDifferences().subList(1, 2))
                 .extracting("type", "leftPath", "rightPath", "key", "value", "leftContext.json", "rightContext.json")
