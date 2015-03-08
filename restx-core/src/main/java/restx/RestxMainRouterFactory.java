@@ -16,6 +16,7 @@ import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
 import restx.classloader.CompilationSettings;
 import restx.classloader.HotReloadingClassLoader;
+import restx.common.MoreClasses;
 import restx.common.RestxConfig;
 import restx.common.metrics.api.MetricRegistry;
 import restx.factory.Factory;
@@ -695,13 +696,16 @@ public class RestxMainRouterFactory {
                 for (Name<?> name : factory.getWarehouse().listNames()) {
                     Optional<?> c = factory.queryByName(name).findOneAsComponent();
                     if (c.isPresent()) {
-                        coldClasses.add(c.get().getClass());
-                    } else {
+						coldClasses.add(c.get().getClass()); // add the component's class
+						coldClasses.addAll(MoreClasses.getInheritedClasses(c.get().getClass())); // add all inherited classes
+					} else {
                         logger.debug(
                                 "invalid cold class {}: found in factory warehouse but not available as component." +
                                 " Ignored.", name);
                     }
                 }
+
+				logger.debug("cold classes: {}", coldClasses);
 
                 return ImmutableSet.copyOf(coldClasses);
             }
