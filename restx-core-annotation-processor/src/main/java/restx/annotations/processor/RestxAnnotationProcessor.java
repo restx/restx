@@ -546,7 +546,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private static class ResourceMethodParameter {
+    static class ResourceMethodParameter {
         final String type;
         final String realType;
         final boolean guavaOptional;
@@ -596,27 +596,34 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     private static enum ResourceMethodParameterKind {
         QUERY(true) {
             public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
-                // TODO: we should check the type, in case of list, use getQueryParams,
-                // and we should better handle missing params
-                String code = String.format("request.getQueryParam(\"%s\")", parameter.name);
-                if (parameter.guavaOptional) {
-                    code = code;
-                } else if (parameter.java8Optional) {
-                    code = String.format("java.util.Optional.ofNullable(%s.orNull())", code);
-                } else {
-                    code = String.format("checkPresent(%s, \"query param %s is required\")", code, parameter.name);
-                }
-                return code;
+                return ParameterExpressionBuilder
+                        .createFromExpr(
+                            String.format(
+                                "request.getQueryParam(\"%s\").orNull()",
+                                parameter.name),
+                            EndpointParameterKind.QUERY.name())
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
             }
         },
         PATH(true) {
             public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
-                return String.format("match.getPathParam(\"%s\")", parameter.name);
+                return ParameterExpressionBuilder
+                        .createFromExpr(
+                            String.format(
+                                    "match.getPathParam(\"%s\")",
+                                parameter.name),
+                            EndpointParameterKind.PATH.name())
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
             }
         },
         BODY(false) {
             public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
-                return checkValidStr(parameter, "body");
+                return ParameterExpressionBuilder
+                        .createFromExpr("body", "body")
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
             }
         },
         CONTEXT(false) {
@@ -648,43 +655,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
         ResourceMethodParameterKind(boolean resolvedWithQueryParamMapper) {
             this.resolvedWithQueryParamMapper = resolvedWithQueryParamMapper;
-        }
-
-        private static String checkValidStr(ResourceMethodParameter parameter, String baseExpr) {
-            String parameterExpr = baseExpr;
-
-            boolean isOptionalType = parameter.guavaOptional || parameter.java8Optional;
-            // If we don't have any optional type, we should check for non nullity *before* calling checkValid()
-            if(!isOptionalType) {
-                parameterExpr = String.format(
-                        "checkNotNull(%s, \"%s param <%s> is required\")",
-                        parameterExpr,
-                        parameter.kind.name(),
-                        parameter.name
-                );
-            }
-
-            Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
-            parameterExpr = String.format(
-                    "checkValid(validator, %s%s)",
-                    parameterExpr,
-                    validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():""
-            );
-
-            // Transforming to optional if needed
-            if(parameter.guavaOptional) {
-                parameterExpr = String.format(
-                        "Optional.fromNullable(%s)",
-                        parameterExpr
-                );
-            } else if(parameter.java8Optional) {
-                parameterExpr = String.format(
-                        "java.util.Optional.ofNullable(%s)",
-                        parameterExpr
-                );
-            }
-
-            return parameterExpr;
         }
 
         public abstract String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method);
