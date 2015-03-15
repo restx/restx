@@ -14,6 +14,8 @@ import com.google.common.eventbus.Subscribe;
 import com.google.common.net.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import restx.classloader.ColdClasses;
 import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
 import restx.classloader.CompilationSettings;
@@ -729,15 +731,7 @@ public class RestxMainRouterFactory {
 						new Function<String, ImmutableSet<Class<?>>>() {
 							@Override
 							public ImmutableSet<Class<?>> apply(String input) {
-								ImmutableSet.Builder<Class<?>> classes = ImmutableSet.builder();
-								for (String fqcn : Splitter.on(':').split(input)) {
-									try {
-										classes.add(mainFactoryClassLoader.loadClass(fqcn));
-									} catch (ClassNotFoundException e) {
-										logger.warn("invalid cold class {}: unable to find it from main classloader", fqcn);
-									}
-								}
-								return classes.build();
+								return ColdClasses.extractFromString(mainFactoryClassLoader, input);
 							}
 						}
 				).or(ImmutableSet.<Class<?>>of()));
