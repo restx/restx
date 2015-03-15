@@ -736,6 +736,13 @@ public class RestxMainRouterFactory {
 						}
 				).or(ImmutableSet.<Class<?>>of()));
 
+				// and finally try to get some cold classes from resources files
+				try {
+					coldClasses.addAll(ColdClasses.extractFromResources(mainFactoryClassLoader));
+				} catch (IOException e) {
+					logger.warn("Unable to extract cold classes from resources, due to {}", e.getMessage());
+				}
+
 				logger.debug("cold classes: {}", coldClasses);
 
                 return ImmutableSet.copyOf(coldClasses);
