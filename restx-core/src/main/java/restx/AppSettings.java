@@ -43,4 +43,7 @@ public interface AppSettings {
 
     @SettingsKey(key = "restx.factory.load")
     Optional<String> factoryLoadMode();
+
+	@SettingsKey(key = "restx.cold.classes")
+	Optional<String> coldClasses();
 }

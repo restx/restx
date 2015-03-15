@@ -1,7 +1,9 @@
 package restx;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -386,14 +388,20 @@ public class RestxMainRouterFactory {
                     + (getLoadFactoryMode().equals("cleanrequest") ? " >> CLEAN <<" : ""), null);
 
 
+			// keep a reference on the classloader loading factory initial classes, we will need to it
+			// to load cold classes
+			ClassLoader mainFactoryClassLoader = Thread.currentThread().getContextClassLoader();
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
             if (useAutoCompile()) {
                 CompilationManager compilationManager = Apps.with(appSettings).newAppCompilationManager(
                                                         new EventBus(), CompilationManager.DEFAULT_SETTINGS);
                 compilationManager.incrementalCompile();
-                Thread.currentThread().setContextClassLoader(
-                        compilationManager.newHotReloadingClassLoader(
-                                appSettings.appPackage().get(), ImmutableSet.<Class>of()));
+				HotReloadingClassLoader hotReloadingClassLoader = compilationManager.newHotReloadingClassLoader(
+						appSettings.appPackage().get(), ImmutableSet.<Class>of());
+				mainFactoryClassLoader = hotReloadingClassLoader;
+
+				Thread.currentThread().setContextClassLoader(
+						hotReloadingClassLoader);
             }
 
             // Create a Factory to load autotartable components
@@ -430,7 +438,7 @@ public class RestxMainRouterFactory {
             if (useHotCompile()) {
                 final RestxConfig config = settingsFactory.getComponent(RestxConfig.class);
                 router = new CompilationManagerRouter(router, factory.getComponent(EventBus.class),
-                        getColdClasses(factory),
+                        getColdClasses(mainFactoryClassLoader, factory, appSettings),
                         new CompilationSettings() {
                     @Override
                     public int autoCompileCoalescePeriod() {
@@ -443,7 +451,7 @@ public class RestxMainRouterFactory {
                     }
                 });
             } else if (useHotReload()) {
-                router = new HotReloadRouter(router, getColdClasses(factory));
+                router = new HotReloadRouter(router, getColdClasses(mainFactoryClassLoader, factory, appSettings));
             }
 
             routers.put(serverId, router);
@@ -688,7 +696,18 @@ public class RestxMainRouterFactory {
         }
     }
 
-    private static Supplier<ImmutableSet<Class>> getColdClasses(final Factory factory) {
+	/**
+	 * Supplies cold classes.
+	 *
+	 * Cold classes are:
+	 * - all components classes of the specified factory
+	 * - all components inherited classes
+	 * - all cold classes specified in the app settings (setting "coldClasses")
+	 *
+	 * All cold classes need to be loaded using the same classloader, so for the ones loaded from the property, the same classloader than
+	 * the one used to load the components need to be used.
+	 */
+    private static Supplier<ImmutableSet<Class>> getColdClasses(final ClassLoader mainFactoryClassLoader, final Factory factory, final AppSettings appSettings) {
         return new Supplier<ImmutableSet<Class>>() {
             @Override
             public ImmutableSet<Class> get() {
@@ -704,6 +723,24 @@ public class RestxMainRouterFactory {
                                 " Ignored.", name);
                     }
                 }
+
+				// also add in cold classes, cold classes defined in app settings
+				coldClasses.addAll(appSettings.coldClasses().transform(
+						new Function<String, ImmutableSet<Class<?>>>() {
+							@Override
+							public ImmutableSet<Class<?>> apply(String input) {
+								ImmutableSet.Builder<Class<?>> classes = ImmutableSet.builder();
+								for (String fqcn : Splitter.on(':').split(input)) {
+									try {
+										classes.add(mainFactoryClassLoader.loadClass(fqcn));
+									} catch (ClassNotFoundException e) {
+										logger.warn("invalid cold class {}: unable to find it from main classloader", fqcn);
+									}
+								}
+								return classes.build();
+							}
+						}
+				).or(ImmutableSet.<Class<?>>of()));
 
 				logger.debug("cold classes: {}", coldClasses);
 

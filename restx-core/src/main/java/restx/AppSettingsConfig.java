@@ -75,4 +75,10 @@ public class AppSettingsConfig implements AppSettings {
         return Optional.fromNullable(Strings.emptyToNull(
                 config.getString("restx.factory.load").or("")));
     }
+
+	@Override
+	public Optional<String> coldClasses() {
+		return Optional.fromNullable(Strings.emptyToNull(
+				config.getString("restx.cold.classes").or("")));
+	}
 }
