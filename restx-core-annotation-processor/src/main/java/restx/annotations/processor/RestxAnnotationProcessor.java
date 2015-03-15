@@ -651,8 +651,40 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         private static String checkValidStr(ResourceMethodParameter parameter, String baseExpr) {
+            String parameterExpr = baseExpr;
+
+            boolean isOptionalType = parameter.guavaOptional || parameter.java8Optional;
+            // If we don't have any optional type, we should check for non nullity *before* calling checkValid()
+            if(!isOptionalType) {
+                parameterExpr = String.format(
+                        "checkNotNull(%s, \"%s param <%s> is required\")",
+                        parameterExpr,
+                        parameter.kind.name(),
+                        parameter.name
+                );
+            }
+
             Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
-            return String.format("checkValid(validator, %s%s)", baseExpr, validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():"");
+            parameterExpr = String.format(
+                    "checkValid(validator, %s%s)",
+                    parameterExpr,
+                    validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():""
+            );
+
+            // Transforming to optional if needed
+            if(parameter.guavaOptional) {
+                parameterExpr = String.format(
+                        "Optional.fromNullable(%s)",
+                        parameterExpr
+                );
+            } else if(parameter.java8Optional) {
+                parameterExpr = String.format(
+                        "java.util.Optional.ofNullable(%s)",
+                        parameterExpr
+                );
+            }
+
+            return parameterExpr;
         }
 
         public abstract String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method);
