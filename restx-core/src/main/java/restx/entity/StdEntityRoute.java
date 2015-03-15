@@ -180,6 +180,16 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         return entityResponseWriter.getType();
     }
 
+    protected <T> T mapQueryObjectFromRequest(NamedType<T> parameter, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind){
+        EndpointParameterMapper endpointParameterMapper = cachedQueryParameterMappers.get(parameter);
+        if(endpointParameterMapper == null) {
+            throw new IllegalStateException("No cachedQueryParameterMappers for parameter "+parameter+" : please provide corresponding NamedType at instanciation time !");
+        }
+        return endpointParameterMapper.mapRequest(
+                new EndpointParameter(endpoint, parameter),
+                request, match, endpointParameterKind);
+    }
+
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
         RouteLifecycleListener lifecycleListener = ctx.getLifecycleListener();

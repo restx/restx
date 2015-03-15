@@ -4,16 +4,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-import java.lang.Class;
-import java.lang.reflect.Array;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
+import java.lang.reflect.*;
 import java.util.Map;
 
 /**
@@ -39,6 +32,18 @@ public class Types {
             }
         };
     }
+
+	public static String getTypeCanonicalNameFor(Type type) {
+		if (type instanceof Class) {
+			return ((Class) type).getCanonicalName();
+		} else if (type instanceof ParameterizedType) {
+			return type.toString();
+		} else if (type instanceof GenericArrayType) {
+			return type.toString();
+		} else {
+			throw new UnsupportedOperationException("Types.optionalMatchingTypeOf() unsupported for type : " + type.getClass());
+		}
+	}
 
 	/**
 	 * Gets the raw type of the specified type.

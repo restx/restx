@@ -295,7 +295,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
                 if(parameter.kind.resolvedWithQueryParamMapper()) {
                     queryParametersDefinition.add(String.format("                    NamedType.of(%s, \"%s\")",
-                            TypeHelper.getTypeReferenceExpressionFor(parameter.realType), parameter.name));
+                            TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.name));
                 }
 
                 if (parameter.kind != ResourceMethodParameterKind.CONTEXT) {
@@ -597,11 +597,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         QUERY(true) {
             public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 return ParameterExpressionBuilder
-                        .createFromExpr(
-                            String.format(
-                                "request.getQueryParam(\"%s\").orNull()",
-                                parameter.name),
-                            EndpointParameterKind.QUERY.name())
+                        .createFromMapQueryObjectFromRequest(parameter, EndpointParameterKind.QUERY)
                         .surroundWithCheckValid(parameter)
                         .getParameterExpr();
             }
@@ -609,11 +605,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         PATH(true) {
             public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 return ParameterExpressionBuilder
-                        .createFromExpr(
-                            String.format(
-                                    "match.getPathParam(\"%s\")",
-                                parameter.name),
-                            EndpointParameterKind.PATH.name())
+                        .createFromMapQueryObjectFromRequest(parameter, EndpointParameterKind.PATH)
                         .surroundWithCheckValid(parameter)
                         .getParameterExpr();
             }

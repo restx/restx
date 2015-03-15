@@ -42,11 +42,12 @@ public class TypeHelper {
     }
 
     static String getTypeReferenceExpressionFor(String type) {
-        return RAW_TYPES_STR.contains(type) ? type+".class" : "new TypeReference<"+type+">(){}";
+        return RAW_TYPES_STR.contains(type) ? type + ".class" : "new TypeReference<" + type + ">(){}";
     }
 
     public static class OptionalMatchingType {
-        public enum Type { GUAVA, JAVA8, NONE };
+        public enum Type {GUAVA, JAVA8, NONE}
+
         private final Type optionalType;
         private final String underlyingType;
 
@@ -58,9 +59,11 @@ public class TypeHelper {
         public static OptionalMatchingType guava(String underlyingType) {
             return new OptionalMatchingType(Type.GUAVA, underlyingType);
         }
+
         public static OptionalMatchingType java8(String underlyingType) {
             return new OptionalMatchingType(Type.JAVA8, underlyingType);
         }
+
         public static OptionalMatchingType none(String underlyingType) {
             return new OptionalMatchingType(Type.NONE, underlyingType);
         }
@@ -81,7 +84,7 @@ public class TypeHelper {
         }
 
         Matcher java8OptionalMatcher = java8OptionalPattern.matcher(type);
-        if(java8OptionalMatcher.matches()) {
+        if (java8OptionalMatcher.matches()) {
             return OptionalMatchingType.java8(java8OptionalMatcher.group(1));
         }
 
