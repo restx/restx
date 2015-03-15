@@ -15,9 +15,15 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Set;
@@ -110,4 +116,119 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
     }
+
+	/**
+	 * Abstract class to manage resource file generation, it permits to read existing content using the
+	 * {@link #processing()} method, which will call the abstract {@link #readContent(java.io.Reader)} method.
+	 * And the method {@link #generate()} need to be called once we want to generate the resource, during this process
+	 * the {@link #writeContent(java.io.Writer)} method will be called.
+	 */
+	protected abstract class ResourceDeclaration {
+		private final String targetFilePath;
+		private FileObject fileObject;
+
+		/**
+		 * @param targetFilePath path of the resource to write
+		 */
+		protected ResourceDeclaration(String targetFilePath) {
+			this.targetFilePath = targetFilePath;
+		}
+
+		/**
+		 * @return true if the resource need to be generated (for example, it permits to skip empty contents)
+		 */
+		protected abstract boolean requireGeneration();
+
+		/**
+		 * called once the file has been written
+		 */
+		protected abstract void clearContent();
+
+		/**
+		 * Writes the resource content.
+		 *
+		 * @param writer the writer to use
+		 * @throws IOException if an I/O error occurs
+		 */
+		protected abstract void writeContent(Writer writer) throws IOException;
+
+		/**
+		 * Reads the resource content.
+		 *
+		 * @param reader the reader to use
+		 * @throws IOException if an I/O error occurs
+		 */
+		protected abstract void readContent(Reader reader) throws IOException;
+
+		public void generate() throws IOException {
+			if (!requireGeneration()) {
+				return;
+			}
+
+			writeResourceFile(targetFilePath);
+
+			clearContent();
+
+			fileObject = null;
+		}
+
+		public void processing() throws IOException {
+			readExistingResourceIfExists(targetFilePath);
+		}
+
+		private void writeResourceFile(String targetFile) throws IOException {
+			if (fileObject != null
+					&& fileObject.getClass().getSimpleName().equals("EclipseFileObject")
+					) {
+				// eclipse does not allow to do a createResource for a fileobject already obtained via getResource
+				// but the file object can be used for writing, so it's ok to reuse it in this case
+
+				// see source code at:
+				// https://github.com/eclipse/eclipse.jdt.core/blob/master/org.eclipse.jdt.compiler.apt/src/org/eclipse/jdt/internal/compiler/apt/dispatch/BatchProcessingEnvImpl.java
+				// https://github.com/eclipse/eclipse.jdt.core/blob/master/org.eclipse.jdt.compiler.tool/src/org/eclipse/jdt/internal/compiler/tool/EclipseFileObject.java
+			} else {
+				try {
+					fileObject = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", targetFile);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			try (Writer writer = fileObject.openWriter()) {
+				writeContent(writer);
+			}
+		}
+
+		private void readExistingResourceIfExists(String targetFile) throws IOException {
+			try {
+				if (fileObject == null) {
+					fileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", targetFile);
+				}
+				try (Reader r = fileObject.openReader(true)) {
+					readContent(r);
+				}
+			} catch (FileNotFoundException ex) {
+                /*
+                   This is a very strange behaviour of javac during incremantal compilation (at least experienced
+                   with Intellij make process): a FileNotFoundException is raised while the file actually exist.
+
+                   "Fortunately" the exception message is the path of the file, so we can try to load it using
+                   plain java.io
+                 */
+				try {
+					File file = new File(ex.getMessage());
+					if (file.exists()) {
+						try (Reader r = new FileReader(file)) {
+							readContent(r);
+						} catch (IOException e) {
+							// ignore
+						}
+					}
+				} catch (Exception e) {
+					// ignore
+				}
+			} catch (IOException | IllegalArgumentException ex) {
+				// ignore
+			}
+		}
+	}
 }
