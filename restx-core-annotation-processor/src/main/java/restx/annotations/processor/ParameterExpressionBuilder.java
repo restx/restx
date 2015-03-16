@@ -67,7 +67,7 @@ public class ParameterExpressionBuilder {
             EndpointParameterKind kind){
 
         return new ParameterExpressionBuilder(String.format(
-            "mapQueryObjectFromRequest(NamedType.of(%s, \"%s\"), request, match, EndpointParameterKind.%s)",
+            "mapQueryObjectFromRequest(ParamDef.of(%s, \"%s\"), request, match, EndpointParameterKind.%s)",
             TypeHelper.getTypeReferenceExpressionFor(parameter.type),
             parameter.reqParamName,
             kind.name()

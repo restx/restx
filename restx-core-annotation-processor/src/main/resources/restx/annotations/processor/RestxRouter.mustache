@@ -45,7 +45,7 @@ public class {{router}} extends RestxRouter {
                 writerRegistry.<{{outEntity}}>build({{outEntityType}}, {{outContentType}}),
                 Endpoint.of("{{method}}", "{{path}}"),
                 HttpStatus.{{successStatusName}}, RestxLogLevel.{{logLevelName}}, pf,
-                paramMapperRegistry, new NamedType[]{
+                paramMapperRegistry, new ParamDef[]{
 {{queryParametersDefinition}}
                 }) {
             @Override

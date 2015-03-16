@@ -294,7 +294,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
 
                 if(parameter.kind.resolvedWithQueryParamMapper()) {
-                    queryParametersDefinition.add(String.format("                    NamedType.of(%s, \"%s\")",
+                    queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\")",
                             TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.name));
                 }
 

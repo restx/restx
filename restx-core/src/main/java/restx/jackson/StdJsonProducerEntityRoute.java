@@ -2,12 +2,11 @@ package restx.jackson;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 import restx.RestxLogLevel;
-import restx.RestxRequestMatcher;
 import restx.endpoint.Endpoint;
 import restx.endpoint.EndpointParameterMapperRegistry;
 import restx.entity.StdEntityRoute;
 import restx.entity.VoidContentTypeModule;
-import restx.factory.NamedType;
+import restx.factory.ParamDef;
 import restx.http.HttpStatus;
 import restx.security.PermissionFactory;
 
@@ -36,7 +35,7 @@ public abstract class StdJsonProducerEntityRoute<O> extends StdEntityRoute<Void,
             String name, Type type, ObjectWriter writer,
             Endpoint endpoint, PermissionFactory permissionFactory,
             EndpointParameterMapperRegistry endpointParameterMapperRegistry,
-            NamedType[] queryParametersDef
+            ParamDef[] queryParametersDef
     ) {
         super(name,
                 VoidContentTypeModule.VoidEntityRequestBodyReader.INSTANCE,

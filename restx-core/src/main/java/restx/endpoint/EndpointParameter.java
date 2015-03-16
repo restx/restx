@@ -2,24 +2,24 @@ package restx.endpoint;
 
 import com.google.common.base.Objects;
 import restx.common.TypeReference;
-import restx.factory.NamedType;
+import restx.factory.ParamDef;
 
 /**
  * Created by fcamblor on 07/02/15.
  */
 public class EndpointParameter<T> {
     private final Endpoint endpoint;
-    private final NamedType<T> parameter;
+    private final ParamDef<T> parameter;
 
     public EndpointParameter(String method, String pathPattern, TypeReference<T> parameterType, String parameterName) {
-        this(method, pathPattern, NamedType.of(parameterType, parameterName));
+        this(method, pathPattern, ParamDef.of(parameterType, parameterName));
     }
 
-    public EndpointParameter(String method, String pathPattern, NamedType<T> parameter) {
+    public EndpointParameter(String method, String pathPattern, ParamDef<T> parameter) {
         this(new Endpoint(method, pathPattern), parameter);
     }
 
-    public EndpointParameter(Endpoint endpoint, NamedType<T> parameter) {
+    public EndpointParameter(Endpoint endpoint, ParamDef<T> parameter) {
         this.endpoint = endpoint;
         this.parameter = parameter;
     }
@@ -28,7 +28,7 @@ public class EndpointParameter<T> {
         return endpoint;
     }
 
-    public NamedType getParameter() {
+    public ParamDef getParameter() {
         return parameter;
     }
 

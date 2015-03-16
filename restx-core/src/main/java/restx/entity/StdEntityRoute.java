@@ -3,7 +3,7 @@ package restx.entity;
 import com.google.common.base.Optional;
 import restx.*;
 import restx.endpoint.*;
-import restx.factory.NamedType;
+import restx.factory.ParamDef;
 import restx.http.HttpStatus;
 import restx.security.Permission;
 import restx.security.PermissionFactory;
@@ -28,7 +28,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         protected EndpointParameterMapperRegistry registry;
         protected String name;
         protected Endpoint endpoint;
-        protected NamedType[] queryParameters = new NamedType[0];
+        protected ParamDef[] queryParameters = new ParamDef[0];
         protected HttpStatus successStatus = HttpStatus.OK;
         protected RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
         protected PermissionFactory permissionFactory;
@@ -64,7 +64,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return this;
         }
 
-        public Builder<I,O> queryParameters(final NamedType[] queryParameters) {
+        public Builder<I,O> queryParameters(final ParamDef[] queryParameters) {
             this.queryParameters = queryParameters;
             return this;
         }
@@ -117,7 +117,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     private final RestxLogLevel logLevel;
     private final Endpoint endpoint;
     private final PermissionFactory permissionFactory;
-    private final Map<NamedType, EndpointParameterMapper> cachedQueryParameterMappers;
+    private final Map<ParamDef, EndpointParameterMapper> cachedQueryParameterMappers;
 
     public StdEntityRoute(String name,
                           EntityRequestBodyReader<I> entityRequestBodyReader,
@@ -128,7 +128,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
                           PermissionFactory permissionFactory,
                           EndpointParameterMapperRegistry registry) {
         this(name, entityRequestBodyReader, entityResponseWriter, endpoint, successStatus,
-                logLevel, permissionFactory, registry, new NamedType[0]);
+                logLevel, permissionFactory, registry, new ParamDef[0]);
     }
 
     public StdEntityRoute(String name,
@@ -139,7 +139,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
                           RestxLogLevel logLevel,
                           PermissionFactory permissionFactory,
                           EndpointParameterMapperRegistry registry,
-                          NamedType[] queryParametersDefinition
+                          ParamDef[] queryParametersDefinition
     ) {
         super(name, new StdRestxRequestMatcher(endpoint), successStatus);
         this.endpoint = endpoint;
@@ -150,10 +150,10 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         this.cachedQueryParameterMappers = cacheQueryParameterMappers(registry, endpoint, queryParametersDefinition);
     }
 
-    private static Map<NamedType, EndpointParameterMapper> cacheQueryParameterMappers(
-            EndpointParameterMapperRegistry registry, Endpoint endpoint, NamedType[] parameters) {
-        Map<NamedType, EndpointParameterMapper> cachedParameterMappers = new HashMap<>();
-        for(NamedType parameter : parameters){
+    private static Map<ParamDef, EndpointParameterMapper> cacheQueryParameterMappers(
+            EndpointParameterMapperRegistry registry, Endpoint endpoint, ParamDef[] parameters) {
+        Map<ParamDef, EndpointParameterMapper> cachedParameterMappers = new HashMap<>();
+        for(ParamDef parameter : parameters){
             cachedParameterMappers.put(
                     parameter,
                     registry.getEndpointParameterMapperFor(new EndpointParameter(endpoint, parameter)));
@@ -180,10 +180,10 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         return entityResponseWriter.getType();
     }
 
-    protected <T> T mapQueryObjectFromRequest(NamedType<T> parameter, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind){
+    protected <T> T mapQueryObjectFromRequest(ParamDef<T> parameter, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind){
         EndpointParameterMapper endpointParameterMapper = cachedQueryParameterMappers.get(parameter);
         if(endpointParameterMapper == null) {
-            throw new IllegalStateException("No cachedQueryParameterMappers for parameter "+parameter+" : please provide corresponding NamedType at instanciation time !");
+            throw new IllegalStateException("No cachedQueryParameterMappers for parameter "+parameter+" : please provide corresponding ParamDef at instanciation time !");
         }
         return endpointParameterMapper.mapRequest(
                 new EndpointParameter(endpoint, parameter),

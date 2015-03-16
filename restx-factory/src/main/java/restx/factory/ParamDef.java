@@ -8,31 +8,31 @@ import java.lang.reflect.Type;
 /**
  * @author fcamblor
  */
-public class NamedType<T> {
+public class ParamDef<T> {
     private final String name;
     private final TypeReference<T> typeRef;
     private final Class<T> primitiveType;
 
-    public NamedType(TypeReference<T> typeRef, String name) {
+    public ParamDef(TypeReference<T> typeRef, String name) {
         this(name, typeRef, null);
     }
 
-    public NamedType(Class<T> primitiveType, String name) {
+    public ParamDef(Class<T> primitiveType, String name) {
         this(name, null, primitiveType);
     }
 
-    protected NamedType(String name, TypeReference<T> typeRef, Class<T> primitiveType) {
+    protected ParamDef(String name, TypeReference<T> typeRef, Class<T> primitiveType) {
         this.name = name;
         this.typeRef = typeRef;
         this.primitiveType = primitiveType;
     }
 
-    public static <T> NamedType<T> of(TypeReference<T> type, String name) {
-        return new NamedType(type, name);
+    public static <T> ParamDef<T> of(TypeReference<T> type, String name) {
+        return new ParamDef(type, name);
     }
 
-    public static <T> NamedType<T> of(Class<T> rawType, String name) {
-        return new NamedType(rawType, name);
+    public static <T> ParamDef<T> of(Class<T> rawType, String name) {
+        return new ParamDef(rawType, name);
     }
 
     public String getName() {
@@ -50,10 +50,10 @@ public class NamedType<T> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof NamedType)) return false;
-        NamedType<?> namedType = (NamedType<?>) o;
-        return Objects.equal(name, namedType.name) &&
-                Objects.equal(getType(), namedType.getType());
+        if (!(o instanceof ParamDef)) return false;
+        ParamDef<?> paramDef = (ParamDef<?>) o;
+        return Objects.equal(name, paramDef.name) &&
+                Objects.equal(getType(), paramDef.getType());
     }
 
     @Override
