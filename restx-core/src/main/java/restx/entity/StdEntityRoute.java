@@ -112,12 +112,22 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         return new Builder<>();
     }
 
+    private static class EndpointParameterMapperAndDef {
+        EndpointParameterMapper mapper;
+        EndpointParameter endpointParamDef;
+
+        public EndpointParameterMapperAndDef(EndpointParameterMapper mapper, EndpointParameter endpointParamDef) {
+            this.mapper = mapper;
+            this.endpointParamDef = endpointParamDef;
+        }
+    }
+
     private final EntityRequestBodyReader<I> entityRequestBodyReader;
     private final EntityResponseWriter<O> entityResponseWriter;
     private final RestxLogLevel logLevel;
     private final Endpoint endpoint;
     private final PermissionFactory permissionFactory;
-    private final Map<ParamDef, EndpointParameterMapper> cachedQueryParameterMappers;
+    private final Map<String, EndpointParameterMapperAndDef> cachedQueryParameterMappers;
 
     public StdEntityRoute(String name,
                           EntityRequestBodyReader<I> entityRequestBodyReader,
@@ -150,13 +160,14 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         this.cachedQueryParameterMappers = cacheQueryParameterMappers(registry, endpoint, queryParametersDefinition);
     }
 
-    private static Map<ParamDef, EndpointParameterMapper> cacheQueryParameterMappers(
+    private static Map<String, EndpointParameterMapperAndDef> cacheQueryParameterMappers(
             EndpointParameterMapperRegistry registry, Endpoint endpoint, ParamDef[] parameters) {
-        Map<ParamDef, EndpointParameterMapper> cachedParameterMappers = new HashMap<>();
+        Map<String, EndpointParameterMapperAndDef> cachedParameterMappers = new HashMap<>();
         for(ParamDef parameter : parameters){
+            EndpointParameter endpointParameterDef = new EndpointParameter(endpoint, parameter);
             cachedParameterMappers.put(
-                    parameter,
-                    registry.getEndpointParameterMapperFor(new EndpointParameter(endpoint, parameter)));
+                    parameter.getName(),
+                    new EndpointParameterMapperAndDef(registry.getEndpointParameterMapperFor(endpointParameterDef), endpointParameterDef));
 
         }
         return cachedParameterMappers;
@@ -180,13 +191,13 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         return entityResponseWriter.getType();
     }
 
-    protected <T> T mapQueryObjectFromRequest(ParamDef<T> parameter, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind){
-        EndpointParameterMapper endpointParameterMapper = cachedQueryParameterMappers.get(parameter);
-        if(endpointParameterMapper == null) {
-            throw new IllegalStateException("No cachedQueryParameterMappers for parameter "+parameter+" : please provide corresponding ParamDef at instanciation time !");
+    protected <T> T mapQueryObjectFromRequest(Class<T> targetType, String parameterName, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind){
+        EndpointParameterMapperAndDef endpointParameterMapperAndDef = cachedQueryParameterMappers.get(parameterName);
+        if(endpointParameterMapperAndDef == null) {
+            throw new IllegalStateException("No cachedQueryParameterMappers for parameter "+parameterName+" : please provide corresponding ParamDef at instanciation time !");
         }
-        return endpointParameterMapper.mapRequest(
-                new EndpointParameter(endpoint, parameter),
+        return endpointParameterMapperAndDef.mapper.mapRequest(
+                endpointParameterMapperAndDef.endpointParamDef,
                 request, match, endpointParameterKind);
     }
 
