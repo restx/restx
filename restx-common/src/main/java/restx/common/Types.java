@@ -33,18 +33,6 @@ public class Types {
         };
     }
 
-	public static String getTypeCanonicalNameFor(Type type) {
-		if (type instanceof Class) {
-			return ((Class) type).getCanonicalName();
-		} else if (type instanceof ParameterizedType) {
-			return type.toString();
-		} else if (type instanceof GenericArrayType) {
-			return type.toString();
-		} else {
-			throw new UnsupportedOperationException("Types.optionalMatchingTypeOf() unsupported for type : " + type.getClass());
-		}
-	}
-
 	/**
 	 * Gets the raw type of the specified type.
 	 *

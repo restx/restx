@@ -28,10 +28,9 @@ public class LegacyEndpointParameterMapper implements EndpointParameterMapper {
             RestxRequest request,
             RestxRequestMatch match, EndpointParameterKind parameterKind) {
 
-        String underlyingType = Types.getTypeCanonicalNameFor(endpointParamDef.getType());
         Optional<String> queryParamStrValue = parameterKind.extractQueryParamStringedValueFor(endpointParamDef, request, match);
 
-        if(String.class.getCanonicalName().equals(underlyingType)) {
+        if(String.class == endpointParamDef.getType()) {
             return (T) queryParamStrValue.orNull();
         } else {
             if(queryParamStrValue.isPresent()) {
