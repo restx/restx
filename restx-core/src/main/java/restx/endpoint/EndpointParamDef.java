@@ -1,6 +1,6 @@
 package restx.endpoint;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
 import restx.common.TypeReference;
 import restx.factory.ParamDef;
 
@@ -48,11 +48,11 @@ public class EndpointParamDef<T> extends ParamDef<T> {
         if (!(o instanceof EndpointParamDef)) return false;
         if (!super.equals(o)) return false;
         EndpointParamDef<?> that = (EndpointParamDef<?>) o;
-        return Objects.equal(endpoint, that.endpoint);
+        return Objects.equals(endpoint, that.endpoint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), endpoint);
+        return Objects.hash(super.hashCode(), endpoint);
     }
 }

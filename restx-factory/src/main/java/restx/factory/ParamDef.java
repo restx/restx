@@ -1,6 +1,6 @@
 package restx.factory;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
 import restx.common.TypeReference;
 
 import java.lang.reflect.Type;
@@ -56,20 +56,21 @@ public class ParamDef<T> {
         if (this == o) return true;
         if (!(o instanceof ParamDef)) return false;
         ParamDef<?> paramDef = (ParamDef<?>) o;
-        return Objects.equal(name, paramDef.name) &&
-                Objects.equal(getType(), paramDef.getType());
+        return Objects.equals(name, paramDef.name) &&
+                Objects.equals(getType(), paramDef.getType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, getType());
+        return Objects.hash(name, getType());
     }
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("name", name)
-                .add("type", getType())
-                .toString();
+        final StringBuilder sb = new StringBuilder("ParamDef{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", type=").append(getType());
+        sb.append('}');
+        return sb.toString();
     }
 }
