@@ -1,7 +1,7 @@
 package restx.endpoint.legacy;
 
 import com.google.common.base.Optional;
-import restx.endpoint.EndpointParameter;
+import restx.endpoint.EndpointParamDef;
 import restx.endpoint.EndpointParameterMapper;
 import restx.endpoint.EndpointParameterMapperFactory;
 import restx.factory.Component;
@@ -19,7 +19,7 @@ public class LegacyEndpointParameterMapperFactory implements EndpointParameterMa
     }
 
     @Override
-    public Optional<? extends EndpointParameterMapper> getEndpointParameterMapperFor(EndpointParameter endpointParameter) {
+    public Optional<? extends EndpointParameterMapper> getEndpointParameterMapperFor(EndpointParamDef endpointParamDef) {
         return Optional.of(legacyEndpointParameterMapper);
     }
 }

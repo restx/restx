@@ -21,6 +21,10 @@ public class ParamDef<T> {
         this(name, null, primitiveType);
     }
 
+    protected ParamDef(ParamDef other) {
+        this(other.name, other.typeRef, other.primitiveType);
+    }
+
     protected ParamDef(String name, TypeReference<T> typeRef, Class<T> primitiveType) {
         this.name = name;
         this.typeRef = typeRef;

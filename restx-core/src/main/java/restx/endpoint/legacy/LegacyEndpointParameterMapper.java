@@ -3,10 +3,9 @@ package restx.endpoint.legacy;
 import com.google.common.base.Optional;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
-import restx.common.MorePreconditions;
 import restx.common.Types;
 import restx.converters.MainStringConverter;
-import restx.endpoint.EndpointParameter;
+import restx.endpoint.EndpointParamDef;
 import restx.endpoint.EndpointParameterKind;
 import restx.endpoint.EndpointParameterMapper;
 import restx.factory.Component;
@@ -25,19 +24,19 @@ public class LegacyEndpointParameterMapper implements EndpointParameterMapper {
 
     @Override
     public <T> T mapRequest(
-            EndpointParameter endpointParameter,
+            EndpointParamDef endpointParamDef,
             RestxRequest request,
             RestxRequestMatch match, EndpointParameterKind parameterKind) {
 
-        String underlyingType = Types.getTypeCanonicalNameFor(endpointParameter.getParameter().getType());
-        Optional<String> queryParamStrValue = parameterKind.extractQueryParamStringedValueFor(endpointParameter, request, match);
+        String underlyingType = Types.getTypeCanonicalNameFor(endpointParamDef.getType());
+        Optional<String> queryParamStrValue = parameterKind.extractQueryParamStringedValueFor(endpointParamDef, request, match);
 
         if(String.class.getCanonicalName().equals(underlyingType)) {
             return (T) queryParamStrValue.orNull();
         } else {
             if(queryParamStrValue.isPresent()) {
                 // Wondering if we shouldn't prepare the potentially costy Types.getRawType() call here
-                return (T) converter.convert(queryParamStrValue.get(), Types.getRawType(endpointParameter.getParameter().getType()));
+                return (T) converter.convert(queryParamStrValue.get(), Types.getRawType(endpointParamDef.getType()));
             } else {
                 return null;
             }

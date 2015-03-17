@@ -10,15 +10,15 @@ import restx.RestxRequestMatch;
 public enum EndpointParameterKind {
     QUERY {
         @Override
-        public Optional<String> extractQueryParamStringedValueFor(EndpointParameter parameter, RestxRequest request, RestxRequestMatch match) {
-            return request.getQueryParam(parameter.getParameter().getName());
+        public Optional<String> extractQueryParamStringedValueFor(EndpointParamDef parameter, RestxRequest request, RestxRequestMatch match) {
+            return request.getQueryParam(parameter.getName());
         }
     }, PATH {
         @Override
-        public Optional<String> extractQueryParamStringedValueFor(EndpointParameter parameter, RestxRequest request, RestxRequestMatch match) {
-            return Optional.of(match.getPathParam(parameter.getParameter().getName()));
+        public Optional<String> extractQueryParamStringedValueFor(EndpointParamDef parameter, RestxRequest request, RestxRequestMatch match) {
+            return Optional.of(match.getPathParam(parameter.getName()));
         }
     };
 
-    public abstract Optional<String> extractQueryParamStringedValueFor(EndpointParameter parameter, RestxRequest request, RestxRequestMatch match);
+    public abstract Optional<String> extractQueryParamStringedValueFor(EndpointParamDef parameter, RestxRequest request, RestxRequestMatch match);
 }

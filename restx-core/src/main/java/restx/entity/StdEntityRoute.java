@@ -114,9 +114,9 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
 
     private static class EndpointParameterMapperAndDef {
         EndpointParameterMapper mapper;
-        EndpointParameter endpointParamDef;
+        EndpointParamDef endpointParamDef;
 
-        public EndpointParameterMapperAndDef(EndpointParameterMapper mapper, EndpointParameter endpointParamDef) {
+        public EndpointParameterMapperAndDef(EndpointParameterMapper mapper, EndpointParamDef endpointParamDef) {
             this.mapper = mapper;
             this.endpointParamDef = endpointParamDef;
         }
@@ -164,10 +164,10 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             EndpointParameterMapperRegistry registry, Endpoint endpoint, ParamDef[] parameters) {
         Map<String, EndpointParameterMapperAndDef> cachedParameterMappers = new HashMap<>();
         for(ParamDef parameter : parameters){
-            EndpointParameter endpointParameterDef = new EndpointParameter(endpoint, parameter);
+            EndpointParamDef endpointParamDefDef = new EndpointParamDef(endpoint, parameter);
             cachedParameterMappers.put(
                     parameter.getName(),
-                    new EndpointParameterMapperAndDef(registry.getEndpointParameterMapperFor(endpointParameterDef), endpointParameterDef));
+                    new EndpointParameterMapperAndDef(registry.getEndpointParameterMapperFor(endpointParamDefDef), endpointParamDefDef));
 
         }
         return cachedParameterMappers;

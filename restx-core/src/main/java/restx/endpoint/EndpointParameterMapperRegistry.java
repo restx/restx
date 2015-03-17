@@ -12,9 +12,9 @@ public class EndpointParameterMapperRegistry {
     this.factories = factories;
   }
 
-  public <T> EndpointParameterMapper getEndpointParameterMapperFor(EndpointParameter endpointParameter) {
+  public <T> EndpointParameterMapper getEndpointParameterMapperFor(EndpointParamDef endpointParamDef) {
     for (EndpointParameterMapperFactory factory : factories) {
-      Optional<? extends EndpointParameterMapper> mapper = factory.getEndpointParameterMapperFor(endpointParameter);
+      Optional<? extends EndpointParameterMapper> mapper = factory.getEndpointParameterMapperFor(endpointParamDef);
       if (mapper.isPresent()) {
         return mapper.get();
       }
@@ -22,7 +22,7 @@ public class EndpointParameterMapperRegistry {
 
     throw new IllegalStateException(String.format(
             "no mapper found for parameter %s !%nAvailable factories: %s",
-            endpointParameter,
+            endpointParamDef,
             Iterables.toString(factories)));
   }
 }
