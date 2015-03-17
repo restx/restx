@@ -2,6 +2,7 @@ package restx.factory;
 
 import java.util.Objects;
 import restx.common.TypeReference;
+import restx.common.Types;
 
 import java.lang.reflect.Type;
 
@@ -12,6 +13,7 @@ public class ParamDef<T> {
     private final String name;
     private final TypeReference<T> typeRef;
     private final Class<T> primitiveType;
+    private final Class rawType;
 
     public ParamDef(TypeReference<T> typeRef, String name) {
         this(name, typeRef, null);
@@ -29,6 +31,7 @@ public class ParamDef<T> {
         this.name = name;
         this.typeRef = typeRef;
         this.primitiveType = primitiveType;
+        this.rawType = Types.getRawType(getType());
     }
 
     public static <T> ParamDef<T> of(TypeReference<T> type, String name) {
@@ -49,6 +52,10 @@ public class ParamDef<T> {
 
     public boolean isPrimitiveType(){
         return primitiveType != null;
+    }
+
+    public Class getRawType() {
+        return rawType;
     }
 
     @Override

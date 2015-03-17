@@ -34,8 +34,7 @@ public class LegacyEndpointParameterMapper implements EndpointParameterMapper {
             return (T) queryParamStrValue.orNull();
         } else {
             if(queryParamStrValue.isPresent()) {
-                // Wondering if we shouldn't prepare the potentially costy Types.getRawType() call here
-                return (T) converter.convert(queryParamStrValue.get(), Types.getRawType(endpointParamDef.getType()));
+                return (T) converter.convert(queryParamStrValue.get(), endpointParamDef.getRawType());
             } else {
                 return null;
             }
