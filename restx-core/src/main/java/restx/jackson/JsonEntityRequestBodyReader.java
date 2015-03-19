@@ -6,6 +6,7 @@ import restx.RestxRequest;
 import restx.entity.EntityRequestBodyReader;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 
 /**
@@ -32,6 +33,12 @@ public class JsonEntityRequestBodyReader<T> implements EntityRequestBodyReader<T
 
     @Override
     public T readBody(RestxRequest req, RestxContext ctx) throws IOException {
-        return reader.readValue(req.getContentStream());
+        InputStream contentStream = req.getContentStream();
+        if(contentStream.available() == 0) {
+            contentStream.close();
+            return null;
+        }
+
+        return reader.readValue(contentStream);
     }
 }
