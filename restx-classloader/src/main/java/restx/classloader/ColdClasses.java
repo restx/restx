@@ -26,7 +26,7 @@ public class ColdClasses {
 	/**
 	 * Extracts the cold classes from a string containing a list of cold classes.
 	 * <p>
-	 * The {@code coldClasses} parameter contains a list of fqcn separated by ':' character.
+	 * The {@code coldClasses} parameter contains a list of fqcn separated by ',' character.
 	 *
 	 * @param classLoader the classloader to load cold classes
 	 * @param coldClasses all cold classes in a string
@@ -34,7 +34,7 @@ public class ColdClasses {
 	 */
 	public static ImmutableSet<Class<?>> extractFromString(ClassLoader classLoader, String coldClasses) {
 		ImmutableSet.Builder<Class<?>> classes = ImmutableSet.builder();
-		for (String fqcn : Splitter.on(':').split(coldClasses)) {
+		for (String fqcn : Splitter.on(',').trimResults().split(coldClasses)) {
 			try {
 				classes.add(classLoader.loadClass(fqcn));
 			} catch (ClassNotFoundException e) {
