@@ -9,6 +9,6 @@ import restx.factory.Component;
 @Component
 public class MessagesUIRoute extends ResourcesRoute {
     public MessagesUIRoute() {
-        super("MessagesUIRoute", "/@/ui/messages", "restx/i18n", ImmutableMap.of("", "index.html"));
+        super("MessagesUIRoute", "/@/ui/messages", "restx/i18n/admin", ImmutableMap.of("", "index.html"));
     }
 }
