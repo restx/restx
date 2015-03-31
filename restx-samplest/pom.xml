@@ -81,6 +81,11 @@
             <version>${restx.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-i18n-admin</artifactId>
+            <version>${restx.version}</version>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>

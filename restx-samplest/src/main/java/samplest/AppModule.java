@@ -6,9 +6,11 @@ import com.google.common.collect.ImmutableSet;
 import restx.admin.AdminModule;
 import restx.factory.Module;
 import restx.factory.Provides;
+import restx.i18n.SupportedLocale;
 import restx.security.*;
 
 import javax.inject.Named;
+import java.util.Locale;
 
 /**
  * Date: 1/12/13
@@ -24,6 +26,11 @@ public class AppModule {
     @Provides @Named("restx.app.package")
     public String appPackage() {
         return "samplest";
+    }
+
+    @Provides
+    public SupportedLocale french() {
+        return new SupportedLocale(Locale.FRENCH);
     }
 
     @Provides
