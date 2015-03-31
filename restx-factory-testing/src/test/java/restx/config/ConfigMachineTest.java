@@ -1,8 +1,12 @@
 package restx.config;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
+import com.google.common.io.Files;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import restx.common.ConfigElement;
 import restx.common.RestxConfig;
 import restx.common.StdRestxConfig;
@@ -10,6 +14,8 @@ import restx.config.ConfigSupplier;
 import restx.config.ConsolidatedConfigFactoryMachine;
 import restx.config.ElementsFromConfigFactoryMachine;
 import restx.factory.*;
+
+import java.io.File;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,6 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Time: 10:05 PM
  */
 public class ConfigMachineTest {
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
     @BeforeClass
     public static void deactivateElementsFromConfig() {
         System.setProperty("restx.activation::java.lang.String::mandatory.dep.result1", "false");
@@ -131,6 +140,44 @@ public class ConfigMachineTest {
         assertThat(configOptional.get().getElement("key1").get())
                 .isEqualToComparingFieldByField(ConfigElement.of(
                         "classpath:restx/common/config.properties", "Doc 1", "key1", "val1"));
+    }
+
+    @Test
+    public void should_loader_load_settings_from_file_setup_with_system_property() throws Exception {
+        String key = "restx.common.config.location";
+        try {
+            File file = folder.newFile("config.properties");
+            Files.append("key1=myval1", file, Charsets.UTF_8);
+            System.setProperty(key, file.getAbsolutePath());
+
+            Factory factory = Factory.builder()
+                    .addFromServiceLoader()
+                    .build();
+
+            RestxConfig config = factory.getComponent(RestxConfig.class);
+
+            assertThat(config.getString("key1")).isEqualTo(Optional.of("myval1"));
+            assertThat(config.getElement("key1").get())
+                    .isEqualToComparingFieldByField(ConfigElement.of(
+                            "file://" + file.getAbsolutePath(), "Doc 1", "key1", "myval1"));
+
+        } finally {
+            System.clearProperty(key);
+        }
+    }
+
+    @Test
+    public void should_loader_load_settings_from_file() throws Exception {
+        File file = folder.newFile("config.properties");
+        Files.append("key1=myval1", file, Charsets.UTF_8);
+
+        RestxConfig config = new ConfigLoader(Optional.<String>absent())
+                .fromFile(file.getAbsolutePath()).get();
+
+        assertThat(config.getString("key1")).isEqualTo(Optional.of("myval1"));
+        assertThat(config.getElement("key1").get())
+                .isEqualToComparingFieldByField(ConfigElement.of(
+                        "file://" + file.getAbsolutePath(), "", "key1", "myval1"));
     }
 
     private SingletonFactoryMachine<ConfigSupplier> configSupplierMachine(
