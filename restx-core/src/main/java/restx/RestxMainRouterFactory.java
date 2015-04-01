@@ -695,7 +695,14 @@ public class RestxMainRouterFactory {
                 for (Name<?> name : factory.getWarehouse().listNames()) {
                     Optional<?> c = factory.queryByName(name).findOneAsComponent();
                     if (c.isPresent()) {
-                        coldClasses.add(c.get().getClass());
+                        Class<?> componentClass = c.get().getClass();
+                        String packages = System.getProperty("restx.app.package","");
+                        if(!componentClass.getName().contains(packages)) {
+                            coldClasses.add(componentClass);
+                            for(Class<?> inf:componentClass.getInterfaces()) {
+                                coldClasses.add(inf);
+                            }
+                        }
                     } else {
                         logger.debug(
                                 "invalid cold class {}: found in factory warehouse but not available as component." +
