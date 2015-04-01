@@ -17,8 +17,6 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.*;
 import java.util.Collection;
 import java.util.Collections;
@@ -727,91 +725,37 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     }
 
 
-    private class ServicesDeclaration {
+    private class ServicesDeclaration extends ResourceDeclaration {
         private final Set<String> declaredServices = Sets.newHashSet();
-        private final String targetFile;
-        private FileObject fileObject;
 
         private ServicesDeclaration(String targetFile) {
-            this.targetFile = "META-INF/services/" + targetFile;
-        }
+			super("META-INF/services/" + targetFile);
+		}
 
-        void declareService(String service) {
+		@Override
+		protected boolean requireGeneration() {
+			return declaredServices.size() > 0;
+		}
+
+		@Override
+		protected void clearContent() {
+			declaredServices.clear();
+		}
+
+		@Override
+		protected void writeContent(Writer writer) throws IOException {
+			for (String declaredService : Ordering.natural().sortedCopy(declaredServices)) {
+				writer.write(declaredService + "\n");
+			}
+		}
+
+		@Override
+		protected void readContent(Reader reader) throws IOException {
+			declaredServices.addAll(CharStreams.readLines(reader));
+		}
+
+		void declareService(String service) {
             declaredServices.add(service);
-        }
-
-        void generate() throws IOException {
-            if (declaredServices.isEmpty()) {
-                return;
-            }
-
-            writeServicesFile(targetFile);
-
-            declaredServices.clear();
-
-            fileObject = null;
-        }
-
-
-        public void processing() throws IOException {
-            readExistingServicesIfExists(targetFile);
-        }
-
-        private void writeServicesFile(String targetFile) throws IOException {
-            if (fileObject != null
-                    && fileObject.getClass().getSimpleName().equals("EclipseFileObject")
-                    ) {
-                // eclipse does not allow to do a createResource for a fileobject already obtained via getResource
-                // but the file object can be used for writing, so it's ok to reuse it in this case
-
-                // see source code at:
-                // https://github.com/eclipse/eclipse.jdt.core/blob/master/org.eclipse.jdt.compiler.apt/src/org/eclipse/jdt/internal/compiler/apt/dispatch/BatchProcessingEnvImpl.java
-                // https://github.com/eclipse/eclipse.jdt.core/blob/master/org.eclipse.jdt.compiler.tool/src/org/eclipse/jdt/internal/compiler/tool/EclipseFileObject.java
-            } else {
-                try {
-                    fileObject = processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", targetFile);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            try (Writer writer = fileObject.openWriter()) {
-                for (String declaredService : Ordering.natural().sortedCopy(declaredServices)) {
-                    writer.write(declaredService + "\n");
-                }
-            }
-        }
-
-        private void readExistingServicesIfExists(String targetFile) throws IOException {
-            try {
-                if (fileObject == null) {
-                    fileObject = processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", targetFile);
-                }
-                try (Reader r = fileObject.openReader(true)) {
-                    declaredServices.addAll(CharStreams.readLines(r));
-                }
-            } catch (FileNotFoundException ex) {
-                /*
-                   This is a very strange behaviour of javac during incremantal compilation (at least experienced
-                   with Intellij make process): a FileNotFoundException is raised while the file actually exist.
-
-                   "Fortunately" the exception message is the path of the file, so we can try to load it using
-                   plain java.io
-                 */
-                try {
-                    File file = new File(ex.getMessage());
-                    if (file.exists()) {
-                        try (Reader r = new FileReader(file)) {
-                            declaredServices.addAll(CharStreams.readLines(r));
-                        } catch (IOException e) {
-                            // ignore
-                        }
-                    }
-                } catch (Exception e) {
-                    // ignore
-                }
-            } catch (IOException | IllegalArgumentException ex) {
-                // ignore
-            }
         }
     }
 }
