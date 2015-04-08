@@ -1,5 +1,8 @@
 package restx.common;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 /**
  * Date: 29/11/13
  * Time: 11:13
@@ -11,6 +14,24 @@ public class MoreObjects {
         }
         return clazz.getName() + "[" + toString(clazz.getClassLoader()) + "]";
     }
+
+	public static String toString(Type type) {
+		if (type == null) {
+			return "null";
+		}
+        String typeString;
+        /*
+            in jse8 another case should be done, using type.getTypeName() if
+            type is an instanceof ParameterizedType
+         */
+        if (type instanceof Class) {
+            typeString = ((Class) type).getName();
+        } else {
+            typeString = String.valueOf(type);
+        }
+
+		return  typeString + "[" + toString(Types.getRawType(type).getClassLoader()) + "]";
+	}
 
     public static String toString(ClassLoader classLoader) {
         if (classLoader == null) {

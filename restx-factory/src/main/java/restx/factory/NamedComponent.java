@@ -1,8 +1,11 @@
 package restx.factory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+
 import com.google.common.base.Function;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.lang.reflect.Type;
 
 /**
  * User: xavierhanin
@@ -29,12 +32,22 @@ public final class NamedComponent<T> {
     }
 
     public static <T> NamedComponent<T> of(Class<T> clazz, String name, T component) {
-        return new NamedComponent<>(new Name<>(clazz, name), component);
+        return new NamedComponent<>(Name.of(clazz, name), component);
     }
 
     public static <T> NamedComponent<T> of(Class<T> clazz, String name, int priority, T component) {
-        return new NamedComponent<>(new Name<>(clazz, name), priority, component);
+        return new NamedComponent<>(Name.of(clazz, name), priority, component);
     }
+
+	@SuppressWarnings("unchecked")
+	public static <T> NamedComponent<T> of(Type type, String name, T component) {
+		return new NamedComponent<>((Name<T>) Name.of(type, name), component);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> NamedComponent<T> of(Type type, String name, int priority, T component) {
+		return new NamedComponent<>((Name<T>) Name.of(type, name), priority, component);
+	}
 
     private final Name<T> name;
     private final int priority;

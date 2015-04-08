@@ -1,14 +1,16 @@
 package restx.factory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static restx.factory.Factory.LocalMachines.threadLocal;
+
+
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Test;
 
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.*;
-import static restx.factory.Factory.LocalMachines.threadLocal;
 
 /**
  * User: xavierhanin
@@ -179,12 +181,12 @@ public class FactoryTest {
             assertThat(e)
                 .hasMessageStartingWith(
                     "\n" +
-                            "  QueryByName{name=Name{name='test', clazz=java.lang.String[]}}\n" +
-                            "    |       \\__=> Name{name='test', clazz=java.lang.String[]}\n" +
+                            "  QueryByName{name=Name{name='test', type=class java.lang.String[]}}\n" +
+                            "    |       \\__=> Name{name='test', type=class java.lang.String[]}\n" +
                             "    |\n" +
-                            "    +-> QueryByName{name=Name{name='missing', clazz=java.lang.String[]}}\n" +
+                            "    +-> QueryByName{name=Name{name='missing', type=class java.lang.String[]}}\n" +
                             "          |\n" +
-                            "          +--: Name{name='missing', clazz=java.lang.String[]} can't be satisfied")
+                            "          +--: Name{name='missing', type=class java.lang.String[]} can't be satisfied")
             ;
         }
     }
@@ -217,9 +219,9 @@ public class FactoryTest {
                             " Please select which one you want with a more specific query,\n" +
                             " or by deactivating one of the available components.\n" +
                             " Available components:\n" +
-                            " - NamedComponent{name=Name{name='test', clazz=java.lang.String[]}, priority=0, component=value1}\n" +
+                            " - NamedComponent{name=Name{name='test', type=class java.lang.String[]}, priority=0, component=value1}\n" +
                             "         [Activation key: 'restx.activation::java.lang.String::test']\n" +
-                            " - NamedComponent{name=Name{name='test2', clazz=java.lang.String[]}, priority=0, component=value1}\n" +
+                            " - NamedComponent{name=Name{name='test2', type=class java.lang.String[]}, priority=0, component=value1}\n" +
                             "         [Activation key: 'restx.activation::java.lang.String::test2']\n")
             ;
         }
