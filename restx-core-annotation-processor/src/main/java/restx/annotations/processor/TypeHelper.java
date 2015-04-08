@@ -41,6 +41,14 @@ public class TypeHelper {
         }
     }
 
+    static boolean isParameterizedType(String type) {
+        return type.contains("<");
+    }
+
+    static String rawTypeFrom(String type) {
+        return isParameterizedType(type)?type.substring(0, type.indexOf("<")):type;
+    }
+
     static String getTypeReferenceExpressionFor(String type) {
         return RAW_TYPES_STR.contains(type) ? type + ".class" : "new TypeReference<" + type + ">(){}";
     }
