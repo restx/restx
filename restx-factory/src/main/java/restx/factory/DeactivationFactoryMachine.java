@@ -6,6 +6,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import java.lang.reflect.Type;
 import java.util.Set;
 
 public class DeactivationFactoryMachine implements FactoryMachine {
@@ -45,8 +46,8 @@ public class DeactivationFactoryMachine implements FactoryMachine {
 	}
 
 	@Override
-	public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-		if (componentClass != String.class) {
+	public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
+		if (componentType != String.class) {
 			return ImmutableSet.of();
 		}
 		return Sets.newLinkedHashSet(Iterables.transform(keys, new Function<String, Name<T>>() {

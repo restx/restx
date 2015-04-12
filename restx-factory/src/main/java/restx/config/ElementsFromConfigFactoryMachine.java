@@ -6,6 +6,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
 import restx.common.ConfigElement;
@@ -69,8 +70,8 @@ public class ElementsFromConfigFactoryMachine extends DefaultFactoryMachine {
 
                     @Override
                     @SuppressWarnings("unchecked")
-                    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-                        if (String.class == componentClass) {
+                    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
+                        if (String.class == componentType) {
                             return (Set) Sets.newHashSet(Iterables.transform(config.elements(),
                                     new Function<ConfigElement, Name<String>>() {
                                 @Override
@@ -78,7 +79,7 @@ public class ElementsFromConfigFactoryMachine extends DefaultFactoryMachine {
                                     return Name.of(String.class, input.getKey());
                                 }
                             }));
-                        } else if (ConfigElement.class == componentClass) {
+                        } else if (ConfigElement.class == componentType) {
                             return (Set) Sets.newHashSet(Iterables.transform(config.elements(),
                                     new Function<ConfigElement, Name<ConfigElement>>() {
                                 @Override

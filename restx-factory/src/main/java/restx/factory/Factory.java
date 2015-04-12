@@ -1274,7 +1274,7 @@ public class Factory implements AutoCloseable {
 
     private <T> Set<Name<T>> nameBuildableComponents(FactoryMachine machine, Class<T> componentClass) {
         Set<Name<T>> buildableComponents = new LinkedHashSet<>();
-        for (Name<T> tName : machine.nameBuildableComponents(componentClass)) {
+        for (Name<T> tName : machine.<T>nameBuildableComponents(componentClass)) {
             if (checkActive(tName)) {
                 buildableComponents.add(tName);
             }

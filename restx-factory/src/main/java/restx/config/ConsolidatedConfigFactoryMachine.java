@@ -6,6 +6,7 @@ import static com.google.common.collect.Iterables.addAll;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -98,8 +99,8 @@ public class ConsolidatedConfigFactoryMachine implements FactoryMachine {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-        if (componentClass == RestxConfig.class) {
+    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
+        if (componentType == RestxConfig.class) {
             return Collections.singleton(Name.of((Class<T>) RestxConfig.class));
         } else {
             return Collections.emptySet();
