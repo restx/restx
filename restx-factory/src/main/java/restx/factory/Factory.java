@@ -12,12 +12,15 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.common.MoreObjects;
+import restx.common.TypeReference;
+import restx.common.Types;
 import restx.common.metrics.api.MetricRegistry;
 import restx.common.metrics.api.Monitor;
 import restx.common.metrics.api.Timer;
 import restx.common.metrics.dummy.DummyMetricRegistry;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -393,6 +396,19 @@ public class Factory implements AutoCloseable {
             return new ClassQuery<>(componentClass);
         }
 
+		public static <T> Query<T> byType(Type componentType) {
+			return new TypeQuery<>(componentType);
+		}
+
+        @SuppressWarnings("unchecked")
+        public static <T> Query<T> byType(Class<?> rawType, Type... arguments) {
+            return new TypeQuery<>(null, false, Types.newParameterizedType(rawType, arguments), rawType);
+        }
+
+        public static <T> Query<T> byType(TypeReference<T> typeReference) {
+            return new TypeQuery<>(typeReference.getType());
+        }
+
         public static Query<Factory> factoryQuery() {
             return new FactoryQuery();
         }
@@ -405,7 +421,18 @@ public class Factory implements AutoCloseable {
             this.factory = factory;
         }
 
-        public abstract Class<T> getComponentClass();
+		/**
+		 * @return the component's type
+		 */
+		public abstract Type getComponentType();
+
+		/**
+		 * Returns the raw type of the component, to get the complete type, use {@link #getComponentType()}
+		 * instead.
+		 *
+		 * @return the component's class
+		 */
+		public abstract Class<?> getComponentClass();
 
         public abstract Query<T> bind(Factory factory);
 
@@ -551,7 +578,12 @@ public class Factory implements AutoCloseable {
             return Collections.singleton(FACTORY_NAME);
         }
 
-        @Override
+		@Override
+		public Type getComponentType() {
+			return Factory.class;
+		}
+
+		@Override
         public Class<Factory> getComponentClass() {
             return Factory.class;
         }
@@ -614,7 +646,12 @@ public class Factory implements AutoCloseable {
             return factory().checkActive(name) ? Collections.singleton(name) : Collections.<Name<T>>emptySet();
         }
 
-        @Override
+		@Override
+		public Type getComponentType() {
+			return name.getType();
+		}
+
+		@Override
         public Class<T> getComponentClass() {
             return name.getClazz();
         }
@@ -627,7 +664,67 @@ public class Factory implements AutoCloseable {
         }
     }
 
-    public static class ClassQuery<T> extends MultipleQuery<T> {
+	public static class TypeQuery<T> extends MultipleQuery<T> {
+		private final Type componentType;
+		private final Class<?> componentRawType;
+
+		@SuppressWarnings("unchecked")
+		TypeQuery(Type componentType) {
+			this(null, false, componentType, Types.getRawType(componentType));
+		}
+
+		TypeQuery(Factory factory, boolean mandatory, Type componentType, Class<?> componentRawType) {
+			super(factory, mandatory);
+			this.componentType = componentType;
+			this.componentRawType = componentRawType;
+		}
+
+		@Override
+		public Query<T> bind(Factory factory) {
+			return new TypeQuery<>(factory, isMandatory(), getComponentType(), getComponentClass());
+		}
+
+		@Override
+		public Query<T> setMandatory(boolean mandatory) {
+			return new TypeQuery<>(mayGetFactory(), mandatory, getComponentType(), getComponentClass());
+		}
+
+		@Override
+		public Type getComponentType() {
+			return componentType;
+		}
+
+		@Override
+		public Class<?> getComponentClass() {
+			 return componentRawType;
+		}
+
+		@Override
+		protected Set<NamedComponent<T>> doFind() {
+			Set<NamedComponent<T>> components = Sets.newTreeSet(NAMED_COMPONENT_COMPARATOR);
+			Factory factory = factory();
+			for (Name<T> tName : factory.<T>collectAllBuildableNames(componentType)) {
+				components.addAll(factory.queryByName(tName).optional().find());
+			}
+
+			return components;
+		}
+
+		@Override
+		public Set<Name<T>> findNames() {
+			return factory().collectAllBuildableNames(componentType);
+		}
+
+		@Override
+		public String toString() {
+			return "QueryByType{" +
+					"componentType=" + MoreObjects.toString(componentType) +
+					'}';
+		}
+	}
+
+
+	public static class ClassQuery<T> extends MultipleQuery<T> {
         private final Class<T> componentClass;
 
         ClassQuery(Class<T> componentClass) {
@@ -649,7 +746,12 @@ public class Factory implements AutoCloseable {
             return new ClassQuery<>(mayGetFactory(), mandatory, getComponentClass());
         }
 
-        @Override
+		@Override
+		public Type getComponentType() {
+			return null;
+		}
+
+		@Override
         public Class<T> getComponentClass() {
             return componentClass;
         }
@@ -658,7 +760,7 @@ public class Factory implements AutoCloseable {
         protected Set<NamedComponent<T>> doFind() {
             Set<NamedComponent<T>> components = Sets.newTreeSet(NAMED_COMPONENT_COMPARATOR);
             Factory factory = factory();
-            for (Name<T> tName : factory.collectAllBuildableNames(componentClass)) {
+            for (Name<T> tName : factory.<T>collectAllBuildableNames(componentClass)) {
                 components.addAll(factory.queryByName(tName).optional().find());
             }
 
@@ -781,6 +883,18 @@ public class Factory implements AutoCloseable {
 
     public <T> Query<T> queryByClass(Class<T> componentClass) {
         return new ClassQuery<>(componentClass).bind(this);
+    }
+
+    public <T> Query<T> queryByType(Type componentType) {
+        return Query.<T>byType(componentType).bind(this);
+    }
+
+    public <T> Query<T> queryByType(Class<?> rawType, Type... arguments) {
+        return Query.<T>byType(rawType, arguments).bind(this);
+    }
+
+    public <T> Query<T> queryByType(TypeReference<T> typeReference) {
+        return Query.byType(typeReference).bind(this);
     }
 
     /**
@@ -1047,10 +1161,10 @@ public class Factory implements AutoCloseable {
         return engineFor.get();
     }
 
-    private <T> Set<Name<T>> collectAllBuildableNames(Class<T> componentClass) {
+    private <T> Set<Name<T>> collectAllBuildableNames(Type componentType) {
         Set<Name<T>> buildableNames = Sets.newLinkedHashSet();
         for (FactoryMachine machine : machines) {
-            buildableNames.addAll(nameBuildableComponents(machine, componentClass));
+            buildableNames.addAll(this.<T>nameBuildableComponents(machine, componentType));
         }
         return buildableNames;
     }
@@ -1272,9 +1386,9 @@ public class Factory implements AutoCloseable {
         return getMachineEngineFor(name).getBillOfMaterial();
     }
 
-    private <T> Set<Name<T>> nameBuildableComponents(FactoryMachine machine, Class<T> componentClass) {
+    private <T> Set<Name<T>> nameBuildableComponents(FactoryMachine machine, Type componentType) {
         Set<Name<T>> buildableComponents = new LinkedHashSet<>();
-        for (Name<T> tName : machine.<T>nameBuildableComponents(componentClass)) {
+        for (Name<T> tName : machine.<T>nameBuildableComponents(componentType)) {
             if (checkActive(tName)) {
                 buildableComponents.add(tName);
             }
