@@ -27,7 +27,7 @@ public class MongoModule {
     @Provides @Named(MONGO_CLIENT_NAME)
     public MongoClient mongoClient(MongoSettings settings) {
         try {
-            return new MongoClient(new MongoClientURI(settings.uri()));
+            return new CloseableMongoClient(new MongoClientURI(settings.uri()));
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
