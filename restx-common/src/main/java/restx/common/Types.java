@@ -57,6 +57,46 @@ public class Types {
 				}
 				return false;
 			}
+
+			@Override
+			public String toString() {
+				StringBuilder sb = new StringBuilder();
+				Type ownerType = getOwnerType();
+				if (ownerType != null) {
+					if (ownerType instanceof Class) {
+						sb.append(((Class) ownerType).getName());
+					} else {
+						sb.append(ownerType.toString());
+					}
+
+					sb.append(".");
+					if (ownerType instanceof ParameterizedType) {
+
+						sb.append(rawType.getName().replace(((Class) ((ParameterizedType) ownerType).getRawType()).getName() + "$", ""));
+					} else {
+						sb.append(rawType.getName());
+					}
+				} else {
+					sb.append(rawType.getName());
+				}
+
+				if (arguments != null && arguments.length > 0) {
+					sb.append("<");
+					boolean first = true;
+
+					for (Type current : arguments) {
+						if (!first) {
+							sb.append(", ");
+						}
+						sb.append(current.toString()); // getTypeName() in jse8
+						first = false;
+					}
+
+					sb.append(">");
+				}
+
+				return sb.toString();
+			}
 		};
     }
 
