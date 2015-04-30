@@ -9,6 +9,7 @@ import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.lang.reflect.Type;
 import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -23,6 +24,38 @@ public class TypesTest {
 
 	@Rule
 	public JUnitSoftAssertions softly = new JUnitSoftAssertions();
+
+	@Test
+	public void newParameterizedType_should_create_equals_parameters_types() {
+		Type parameterizedType1 = Types.newParameterizedType(List.class, String.class);
+		Type parameterizedType2 = Types.newParameterizedType(List.class, String.class);
+		softly.assertThat(parameterizedType1.equals(parameterizedType2)).isTrue();
+
+		Type typeReference = new TypeReference<List<String>>() {}.getType();
+		softly.assertThat(typeReference.equals(parameterizedType1)).isTrue();
+	}
+
+	static class GenericHolder<T> {
+		final T value;
+
+		GenericHolder(T value) {
+			this.value = value;
+		}
+
+		public T getValue() {
+			return value;
+		}
+	}
+
+	@Test
+	public void newParameterizedType_should_create_equals_inner_parameters_types() {
+		Type genericHolder1 = Types.newParameterizedType(GenericHolder.class, String.class);
+		Type genericHolder2 = Types.newParameterizedType(GenericHolder.class, String.class);
+		softly.assertThat(genericHolder1.equals(genericHolder2)).isTrue();
+
+		Type typeReference = new TypeReference<GenericHolder<String>>() {}.getType();
+		softly.assertThat(typeReference.equals(genericHolder1)).isTrue();
+	}
 
 	@Test
 	public void getRawType_should_return_the_class_of_non_parametrized_types() {
