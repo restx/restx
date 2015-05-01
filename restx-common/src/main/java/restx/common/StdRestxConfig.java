@@ -35,14 +35,12 @@ public class StdRestxConfig implements RestxConfig {
 			if (line.startsWith("#")) {
 				doc.append(line.substring(1).trim()).append("\n");
 			} else if (!line.trim().isEmpty()) {
+				boolean keyValue = line.contains("=");
 				int index = line.indexOf('=');
-
-				if (line.contains("\\")) {
-					lkey = line.contains("=") ? line.split("=")[0].trim() : lkey;
-					if (line.endsWith("\\")) {
-					lvalue += line.contains("=") ? line.split("=")[1].trim() : line.trim();
-						continue;
-					}	
+				if (line.endsWith("\\")) {
+					lkey = keyValue && lkey.isEmpty() ? line.split("=")[0].trim() : lkey;
+					lvalue += keyValue && !lvalue.endsWith("\\") ? line.split("=")[1] : line.trim();
+					continue;
 				}
 				else 
 					if (index == -1) {
@@ -51,7 +49,6 @@ public class StdRestxConfig implements RestxConfig {
 									" line does not contain the equals sign '='");
 						}
 					}
-
 				String key;
 				if (!lkey.isEmpty()) {
 					key = lkey;
@@ -59,15 +56,44 @@ public class StdRestxConfig implements RestxConfig {
 				else {
 					key = line.substring(0, index).trim();
 				}
-				
+
 				String value = lvalue.trim() + line.substring(index + 1).trim();
-				value = value.replace("\\", "");
+				StringBuilder finalValue = new StringBuilder();
+				int pos = 0;
+				while (pos < value.length() - 1) {
+					char c = value.charAt(pos);
+					char escape = value.charAt(++pos);
+					if (c == '\\') {
+						String specialChar = String.valueOf(c) + String.valueOf(escape);
+						switch (specialChar) {
+						case "\\\\" :
+							finalValue.append("\\");
+							++pos;
+							break;
+						case "\\n" :
+							finalValue.append("\n");
+							pos++;
+							break;
+						case "\\r" :
+							finalValue.append("\r");
+							pos++;
+							break;
+						case "\\t" :
+							finalValue.append("\t");
+							pos++;
+							break;
+						}
+					}
+					else
+						finalValue.append(c);
+				}
+				finalValue.append(value.charAt(value.length() - 1));
 				lvalue = "";
-				elements.add(ConfigElement.of(origin, doc.toString().trim(), key, value));
+				lkey = "";
+				elements.add(ConfigElement.of(origin, doc.toString().trim(), key, finalValue.toString()));
 				doc.setLength(0);
 			}
 		}
-
 		return new StdRestxConfig(elements);
 	}
 
