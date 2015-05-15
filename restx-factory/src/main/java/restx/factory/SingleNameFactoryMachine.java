@@ -24,8 +24,8 @@ public class SingleNameFactoryMachine<C> implements FactoryMachine {
     @Override
     public boolean canBuild(Name<?> name) {
         return (this.name.equals(name)
-                || (   this.name.getName().equals(name.getName())
-                    && name.getClazz().isAssignableFrom(this.name.getClazz())));
+                || (this.name.getName().equals(name.getName())
+                && Types.isAssignableFrom(name.getType(), this.name.getType())));
     }
 
     @Override
