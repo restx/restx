@@ -33,6 +33,11 @@ public abstract class TypeReference<T> {
 	}
 
 	public Type getType() { return type; }
+
+	@Override
+	public String toString() {
+		return String.valueOf(type);
+	}
 }
 
 
