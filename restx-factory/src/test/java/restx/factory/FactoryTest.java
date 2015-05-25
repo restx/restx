@@ -114,6 +114,34 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_permit_to_query_generic_components_using_types_with_shortcuts_methods() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic"))
+                .addMachine(testGenericIntegerMachine("generic"))
+                .build();
+
+        GenericHolder<Integer> componentInteger = factory.getComponent(new TypeReference<GenericHolder<Integer>>() {});
+        assertThat(componentInteger.getValue()).isEqualTo(42);
+
+        GenericHolder<String> componentString = factory.getComponent(new TypeReference<GenericHolder<String>>() {});
+        assertThat(componentString.getValue()).isEqualTo("foo");
+
+        // now query multiple components
+        factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic1"))
+                .addMachine(testGenericStringMachine("generic2"))
+                .build();
+
+        Set<GenericHolder<String>> components = factory.getComponents(new TypeReference<GenericHolder<String>>() {});
+        assertThat(components).hasSize(2);
+
+        try {
+            factory.getComponent(new TypeReference<GenericHolder<String>>() {});
+            fail("should throw exception, as two component were available for the type");
+        } catch (Factory.UnsatisfiedDependenciesException ignored) {}
+    }
+
+    @Test
      public void should_permit_to_query_generic_components_using_names() throws Exception {
         Factory factory = Factory.builder()
                 .addMachine(testGenericStringMachine("generic"))

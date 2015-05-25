@@ -914,6 +914,22 @@ public class Factory implements AutoCloseable {
     }
 
     /**
+     * Builds a component by type.
+     *
+     * This is a shortcut for queryByType(typeReference).mandatory().findOneAsComponent().get()
+     *
+     * Therefore it raises an exception if no component of this type is found or if several one match.
+     *
+     * @param componentTypeReference
+     * @param <T>
+     * @return
+     */
+    public <T> T getComponent(TypeReference<T> componentTypeReference) {
+        return checkPresent(queryByType(componentTypeReference).mandatory().findOneAsComponent(),
+                "component of type %s not found", componentTypeReference);
+    }
+
+    /**
      * Builds a component by name.
      *
      * This is a shortcut for queryByName(name).mandatory().findOneAsComponent().get()
@@ -940,6 +956,19 @@ public class Factory implements AutoCloseable {
      */
     public <T> Set<T> getComponents(Class<T> componentClass) {
         return queryByClass(componentClass).findAsComponents();
+    }
+
+    /**
+     * Builds and return all the component of given type.
+     *
+     * This is a shortcut for queryByType(typeReference).findAsComponents()
+     *
+     * @param typeReference the type reference of the components to build and return
+     * @param <T> the type of components
+     * @return the set of components of given type
+     */
+    public <T> Set<T> getComponents(TypeReference<T> typeReference) {
+        return queryByType(typeReference).findAsComponents();
     }
 
     /**
