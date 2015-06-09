@@ -1,6 +1,8 @@
 package {{package}};
 
 import com.google.common.collect.ImmutableSet;
+
+import restx.common.Types;
 import restx.factory.*;
 import {{moduleFqcn}};
 
@@ -12,7 +14,14 @@ public class {{machine}} extends DefaultFactoryMachine {
     public {{machine}}() {
         super({{priority}}, new MachineEngine[] {
 {{#engines}}
-            new StdMachineEngine<{{type}}>(Name.of({{type}}.class, "{{injectionName}}"), {{enginePriority}}, BoundlessComponentBox.FACTORY) {
+            new StdMachineEngine<{{type}}>(
+                    Name.<{{type}}>of(
+                            {{typeFactory}},
+                            "{{injectionName}}"
+                    ),
+                    {{enginePriority}},
+                    BoundlessComponentBox.FACTORY) {
+
         {{queriesDeclarations}}
                 @Override
                 public BillOfMaterials getBillOfMaterial() {
@@ -49,8 +58,12 @@ public class {{machine}} extends DefaultFactoryMachine {
                             && satisfiedBOM.getOne(query).get().getComponent().equals("{{whenValue}}")) {
                         return new SingleNameFactoryMachine<{{componentType}}>({{priority}},
                                         new StdMachineEngine<{{componentType}}>(
-                                                Name.of({{componentType}}.class, "{{componentName}}"),
-                                                {{priority}}, BoundlessComponentBox.FACTORY) {
+                                                Name.<{{componentType}}>of(
+                                                        {{componentTypeFactory}},
+                                                        "{{componentName}}"
+                                                ),
+                                                {{priority}},
+                                                BoundlessComponentBox.FACTORY) {
                                             {{queriesDeclarations}}
 
                                             @Override
