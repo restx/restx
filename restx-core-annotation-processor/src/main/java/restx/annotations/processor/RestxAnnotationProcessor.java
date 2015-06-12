@@ -441,7 +441,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private static class ResourceClassDef {
+    protected static class ResourceClassDef {
         String value;
         String group;
         int priority;
