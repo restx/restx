@@ -2,6 +2,7 @@ package restx.common.processor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -29,6 +30,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -270,4 +272,31 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
 			}
 		}
 	}
+
+    /**
+     * Checks of the TypeMirror has the same raw type as the specified class.
+     *
+     * @param typeMirror the type mirror
+     * @param clazz the class
+     * @return true if both have the same raw type
+     */
+    public static boolean isClass(TypeMirror typeMirror, Class clazz) {
+        return typeMirror.toString().startsWith(clazz.getCanonicalName());
+    }
+
+    /**
+     * Checks if the TypeMirror has the same raw type as one of the specified class array.
+     *
+     * @param typeMirror the type mirror
+     * @param classes the classes
+     * @return true if one of the classes has the same type as the type mirror's type.
+     */
+    public static boolean isClass(final TypeMirror typeMirror, Class... classes) {
+        for (Class aClass : classes) {
+            if (isClass(typeMirror, aClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

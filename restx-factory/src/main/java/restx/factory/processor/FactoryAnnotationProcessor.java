@@ -95,6 +95,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                         // multiple cases, provides only, provides with when, and alternative
 
                         if (provides != null && methodWhen == null && classWhen == null) {
+                            if (InjectableParameter.isMultiType(exec.getReturnType())) {
+                                error("The provided component's type, use a reserved type (used for multiple injection).", element);
+                                continue;
+                            }
+
                             // add a provider method to the module
                             processProviderMethod(mod, module, provides, exec);
                         } else {
@@ -112,12 +117,19 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                             }
 
                             if (provides != null) {
+                                TypeMirror returnType = exec.getReturnType();
+
+                                if (InjectableParameter.isMultiType(returnType)) {
+                                    error("The provided component's type, use a reserved type (used for multiple injection).", element);
+                                    continue;
+                                }
+
                                 // we need to create a conditional provider method
                                 processConditionalProviderMethod(
                                         mod,
                                         module,
-                                        exec.getReturnType().toString(),
-                                        toSerializedType(exec.getReturnType()),
+                                        returnType.toString(),
+                                        toSerializedType(returnType),
                                         getInjectionName(exec.getAnnotation(Named.class)).or(exec.getSimpleName().toString()),
                                         provides.priority() == 0 ? mod.priority() : provides.priority(),
                                         whenToUse,
@@ -656,13 +668,8 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             return type.toString().startsWith(NamedComponent.class.getCanonicalName());
         }
 
-        private boolean isMultiType(TypeMirror type) {
-            for (Class it : iterableClasses) {
-                if (type.toString().startsWith(it.getCanonicalName())) {
-                    return true;
-                }
-            }
-            return false;
+        private static boolean isMultiType(TypeMirror type) {
+            return isClass(type, iterableClasses);
         }
     }
 
