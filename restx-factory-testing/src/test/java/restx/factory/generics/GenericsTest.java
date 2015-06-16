@@ -113,4 +113,18 @@ public class GenericsTest {
 		TestGenericInterface<Double> componentDouble = factory.getComponent(new TypeReference<TestGenericInterface<Double>>() {});
 		softly.assertThat(componentDouble.execute(23d)).isEqualTo("42.0");
 	}
+
+	@Test
+	public void should_inject_generic_components() {
+		Factory factory = Factory.newInstance();
+
+		String component = factory.getComponent(Name.of(String.class, "withDependency"));
+		softly.assertThat(component).isEqualTo("42");
+
+		component = factory.getComponent(Name.of(String.class, "withNamedDependency"));
+		softly.assertThat(component).isEqualTo("23");
+
+		TestGenericComponentWithDep componentWithDep = factory.getComponent(TestGenericComponentWithDep.class);
+		softly.assertThat(componentWithDep.execute(42d)).isEqualTo("42.0#23");
+	}
 }

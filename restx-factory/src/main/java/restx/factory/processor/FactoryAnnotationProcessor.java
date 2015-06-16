@@ -95,7 +95,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                         // multiple cases, provides only, provides with when, and alternative
 
                         if (provides != null && methodWhen == null && classWhen == null) {
-                            if (InjectableParameter.isMultiType(exec.getReturnType())) {
+                            if (isMultiType(exec.getReturnType())) {
                                 error("The provided component's type, use a reserved type (used for multiple injection).", element);
                                 continue;
                             }
@@ -119,7 +119,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                             if (provides != null) {
                                 TypeMirror returnType = exec.getReturnType();
 
-                                if (InjectableParameter.isMultiType(returnType)) {
+                                if (isMultiType(returnType)) {
                                     error("The provided component's type, use a reserved type (used for multiple injection).", element);
                                     continue;
                                 }
@@ -572,11 +572,15 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
     }
 
-    private static class InjectableParameter {
-        private static final Class[] iterableClasses = new Class[]{
-                Iterable.class, Collection.class, List.class, Set.class,
-                ImmutableList.class, ImmutableSet.class};
+    private static final Class[] iterableClasses = new Class[]{
+            Iterable.class, Collection.class, List.class, Set.class,
+            ImmutableList.class, ImmutableSet.class};
 
+    private static boolean isMultiType(TypeMirror type) {
+        return isClass(type, iterableClasses);
+    }
+
+    private class InjectableParameter {
         final TypeMirror baseType;
         final String name;
         final Optional<String> injectionName;
@@ -591,12 +595,13 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             TypeMirror targetType = targetType(baseType);
             String optionalOrNotQueryQualifier = isGuavaOptionalType(baseType) || isJava8OptionalType(baseType) || isMultiType(baseType) ? "optional()" : "mandatory()";
 
+            String targetTypeSer = String.valueOf(targetType);
             if (injectionName.isPresent()) {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).%s;",
-                        targetType, name, targetType + ".class", injectionName.get(), optionalOrNotQueryQualifier);
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.<%s>byName(Name.<%s>of(%s, \"%s\")).%s;",
+                        targetTypeSer, name, targetTypeSer, targetTypeSer, toSerializedType(targetType), injectionName.get(), optionalOrNotQueryQualifier);
             } else {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).%s;",
-                        targetType, name, targetType + ".class", optionalOrNotQueryQualifier);
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.<%s>byType(%s).%s;",
+                        targetTypeSer, name, targetTypeSer, toSerializedType(targetType), optionalOrNotQueryQualifier);
             }
         }
 
@@ -666,10 +671,6 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
         private boolean isNamedComponentType(TypeMirror type) {
             return type.toString().startsWith(NamedComponent.class.getCanonicalName());
-        }
-
-        private static boolean isMultiType(TypeMirror type) {
-            return isClass(type, iterableClasses);
         }
     }
 

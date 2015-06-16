@@ -3,6 +3,7 @@ package restx.factory.generics;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
+import javax.inject.Named;
 import restx.factory.Module;
 import restx.factory.Provides;
 import restx.factory.When;
@@ -52,5 +53,15 @@ public class TestModuleWithGenerics {
 	@When(name = "answer-of", value = "universe")
 	public Map<String, Long> longTestGenericInterfaceMapConditional() {
 		return ImmutableMap.of("foo", 42l);
+	}
+
+	@Provides
+	public String withDependency(TestGenericInterface<Long> dep) {
+		return dep.execute(42l);
+	}
+
+	@Provides
+	public String withNamedDependency(@Named("longTestGenericInterface") TestGenericInterface<Long> dep) {
+		return dep.execute(23l);
 	}
 }
