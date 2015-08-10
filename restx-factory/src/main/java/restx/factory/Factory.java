@@ -784,6 +784,10 @@ public class Factory implements AutoCloseable {
         return "restx.activation::" + aClass.getName() + "::" + name;
     }
 
+    public static <T> String activationKey(TypeReference<T> type, String name) {
+        return "restx.activation::" + type.getType() + "::" + name;
+    }
+
     private final class CanBuildPredicate implements Predicate<FactoryMachine> {
         private final Name<?> name;
 
