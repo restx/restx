@@ -130,7 +130,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
         }
     }
 
-    private Optional<CachedResourcePolicy> cachePolicyMatching(String contentType, String path) {
+    protected Optional<CachedResourcePolicy> cachePolicyMatching(String contentType, String path) {
         for(CachedResourcePolicy cachedResourcePolicy : cachedResourcePolicies){
             if(cachedResourcePolicy.matches(contentType, path)){
                 return Optional.of(cachedResourcePolicy);
@@ -139,7 +139,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
         return Optional.absent();
     }
 
-    private void notFound(RestxResponse resp, String relativePath) throws IOException {
+    protected void notFound(RestxResponse resp, String relativePath) throws IOException {
         resp.setStatus(HttpStatus.NOT_FOUND);
         resp.setContentType("text/plain");
         resp.getWriter().println("Resource route matched '" + this + "', but resource "
