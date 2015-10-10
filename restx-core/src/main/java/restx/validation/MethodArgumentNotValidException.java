@@ -53,7 +53,7 @@ public class MethodArgumentNotValidException extends IllegalArgumentException {
 
     public <T> MethodArgumentNotValidException(Set<ConstraintViolation<T>> violations) {
         // Kept for backward compat for restx <= 0.34
-        super(Joiner.on(",").join(violations));
+        super(Joiner.on(", ").join(violations));
         this.violations = newHashSet(Collections2.transform(violations, VIOLATION_CONTENT_EXTRACTOR));
     }
 
