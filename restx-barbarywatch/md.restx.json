@@ -9,7 +9,7 @@
     "dependencies": {
         "compile": [
             "io.restx:restx-common:${restx.version}",
-            "net.java.dev.jna:jna:3.2.7"
+            "net.incongru.watchservice:barbary-watchservice:1.0"
         ],
         "test": [
             "junit:junit:${junit.version}"
