@@ -26,11 +26,13 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             GAV parent;
             if (jsonObject.has("parent")) {
                 JSONObject parentObject = jsonObject.getJSONObject("parent");
-                parent = getGav(parentObject);
+                // No packaging type is allowed on <parent> tag
+                parent = getGav(parentObject, null);
             } else {
                 parent = null;
             }
-            GAV gav = getGav(jsonObject);
+            // Packaging is defined with <packaging> tag on artefact definition
+            GAV gav = getGav(jsonObject, "packaging");
             String packaging = jsonObject.has("packaging") ? jsonObject.getString("packaging") : "jar";
 
             Map<String, String> properties = new LinkedHashMap<>();
@@ -61,7 +63,8 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                         dependencies.put(scope, scopeDependencies = new ArrayList<>());
                     }
 
-                    scopeDependencies.add(new ModuleDependency(getGav(dep)));
+                    // Packaging is defined with <type> tag on dependencies
+                    scopeDependencies.add(new ModuleDependency(getGav(dep, "type")));
                 }
             }
 
@@ -69,8 +72,13 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                     properties, new HashMap<String,List<ModuleFragment>>(), dependencies);
         }
 
-        private GAV getGav(JSONObject jsonObject) {
-            return new GAV(jsonObject.getString("groupId"), jsonObject.getString("artifactId"), String.valueOf(jsonObject.get("version")));
+        private GAV getGav(JSONObject jsonObject, String typeKey) {
+            return new GAV(
+                    jsonObject.getString("groupId"),
+                    jsonObject.getString("artifactId"),
+                    String.valueOf(jsonObject.get("version")),
+                    typeKey==null?null:jsonObject.has(typeKey)?jsonObject.getString(typeKey):null,
+                    jsonObject.has("classifier")?jsonObject.getString("classifier"):null);
         }
     }
     static class Generator {
