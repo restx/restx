@@ -78,7 +78,8 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                     jsonObject.getString("artifactId"),
                     String.valueOf(jsonObject.get("version")),
                     typeKey==null?null:jsonObject.has(typeKey)?jsonObject.getString(typeKey):null,
-                    jsonObject.has("classifier")?jsonObject.getString("classifier"):null);
+                    jsonObject.has("classifier")?jsonObject.getString("classifier"):null,
+                    false);
         }
     }
     static class Generator {
