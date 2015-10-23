@@ -33,7 +33,8 @@
 {{#includeStatsModule}}
             "io.restx:restx-stats-admin:${restx.version}",
 {{/includeStatsModule}}
-            "io.restx:restx-server-jetty:${restx.version}",
+            "io.restx:restx-servlet:${restx.version}",
+            "io.restx:restx-server-jetty:${restx.version}!optional",
             "io.restx:restx-apidocs:${restx.version}",
             "io.restx:restx-specs-admin:${restx.version}",
             "io.restx:restx-admin:${restx.version}",
