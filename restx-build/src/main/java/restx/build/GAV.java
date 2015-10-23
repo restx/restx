@@ -65,9 +65,21 @@ public class GAV {
     
     @Override
     public String toString() {
+        return groupId + ":" + artifactId + ":" + version;
+    }
+
+    /**
+     * toString() will only generate simple GAV whereas toParseableString()
+     * should generate a String that should return the same GAV content when parsed
+     * through GAV.parse()
+     */
+    public String toParseableString(){
         if (type == null){
             return groupId + ":" + artifactId + ":" + version;
         }
-        return groupId + ":" + artifactId + ":" + version + ":" + type;
+        if(classifier == null) {
+            return groupId + ":" + artifactId + ":" + version + ":" + type;
+        }
+        return groupId + ":" + artifactId + ":" + version + ":" + type + ":" + classifier;
     }
 }
