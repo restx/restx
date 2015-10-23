@@ -79,7 +79,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                     String.valueOf(jsonObject.get("version")),
                     typeKey==null?null:jsonObject.has(typeKey)?jsonObject.getString(typeKey):null,
                     jsonObject.has("classifier")?jsonObject.getString("classifier"):null,
-                    false);
+                    jsonObject.has("optional")?jsonObject.getBoolean("optional"):false);
         }
     }
     static class Generator {
@@ -178,7 +178,10 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             }
             if(gav.getClassifier() != null) {
                 writeXmlTag(w, indent, "classifier", gav.getClassifier());
-            }            
+            }
+            if(gav.isOptional()) {
+                writeXmlTag(w, indent, "optional", Boolean.TRUE.toString());
+            }
         }
 
         private void writeXmlTag(Writer w, String indent, String tag, String val) throws IOException {
