@@ -42,7 +42,7 @@ public class MonitorRouter extends RestxRouter {
         return new StdRoute("MonitorRoute", new StdRestxRequestMatcher("GET", "/@/monitor")) {
             @Override
             public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+                securityManager.check(req, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                 resp.setStatus(HttpStatus.OK);
                 resp.setContentType("application/json");
                 resp.getWriter().print("[");

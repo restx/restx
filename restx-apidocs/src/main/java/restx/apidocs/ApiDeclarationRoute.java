@@ -56,7 +56,7 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
 
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object body) throws IOException {
-        securityManager.check(restxRequest, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+        securityManager.check(restxRequest, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
         String routerName = match.getPathParam("router");
         Optional<NamedComponent<RestxRouter>> router = getRouterByName(factory, routerName);
 

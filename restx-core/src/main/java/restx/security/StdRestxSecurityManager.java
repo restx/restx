@@ -3,6 +3,7 @@ package restx.security;
 import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import restx.RestxRequestMatch;
 import restx.http.HttpStatus;
 import restx.RestxRequest;
 import restx.WebException;
@@ -17,7 +18,7 @@ public class StdRestxSecurityManager implements RestxSecurityManager {
     private static final Logger logger = LoggerFactory.getLogger(StdRestxSecurityManager.class);
 
     @Override
-    public void check(RestxRequest request, Permission permission) {
+    public void check(RestxRequest request, RestxRequestMatch requestMatch, Permission permission) {
         if (permission == Permissions.open()) {
             return;
         }

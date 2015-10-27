@@ -300,7 +300,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .put("method", resourceMethod.httpMethod)
                     .put("path", resourceMethod.path.replace("\\", "\\\\"))
                     .put("resource", resourceClass.name)
-                    .put("securityCheck", "securityManager.check(request, " + resourceMethod.permission + ");")
+                    .put("securityCheck", "securityManager.check(request, match, " + resourceMethod.permission + ");")
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("sourceLocation", resourceMethod.sourceLocation)

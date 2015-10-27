@@ -24,7 +24,7 @@ public class FactoryDumpRoute extends StdRoute {
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+        securityManager.check(req, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
         resp.setContentType("text/plain");
         resp.getWriter().println(factory.dump());
     }

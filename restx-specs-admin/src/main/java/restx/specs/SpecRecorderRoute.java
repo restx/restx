@@ -29,7 +29,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRoute", new StdRestxRequestMatcher("GET", "/@/recorders")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+                        securityManager.check(req, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         resp.setContentType("application/json");
                         List<String> data = Lists.newArrayList();
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
@@ -48,7 +48,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecord", new StdRestxRequestMatcher("GET", "/@/recorders/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+                        securityManager.check(req, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {
@@ -65,7 +65,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecordStorage", new StdRestxRequestMatcher("POST", "/@/recorders/storage/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+                        securityManager.check(req, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {

@@ -1,6 +1,7 @@
 package restx.security;
 
 import restx.RestxRequest;
+import restx.RestxRequestMatch;
 
 /**
  * A security manager is responsible for checking if the principal associated with a given request (or current session)
@@ -13,7 +14,8 @@ public interface RestxSecurityManager {
      * The security manager can safely assume that a RestxSession is available in current thread context.
      *
      * @param request the request for which the check is performed
+     * @param request the request matcher for which the check is performed
      * @param permission the permission to check. must not be null.
      */
-    void check(RestxRequest request, Permission permission);
+    void check(RestxRequest request, RestxRequestMatch match, Permission permission);
 }
