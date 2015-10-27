@@ -4,12 +4,16 @@ import com.google.common.base.Optional;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provides a set of useful permissions, including the OPEN permission which is the only one that can allow access
  * to a resource without being authenticated.
  */
 public class Permissions {
+    private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{([^}]+)\\}");
+
     private static final Permission OPEN = new Permission() {
         @Override
         public Optional<? extends Permission> has(RestxPrincipal principal, Map<String, String> roleInterpolationMap) {
@@ -58,8 +62,16 @@ public class Permissions {
 
             @Override
             public Optional<? extends Permission> has(RestxPrincipal principal, Map<String, String> roleInterpolationMap) {
-                return principal.getPrincipalRoles().contains(role) || principal.getPrincipalRoles().contains("*")
-                        ? Optional.of(this) : Optional.<Permission>absent();
+                if(principal.getPrincipalRoles().contains("*")) {
+                    return Optional.of(this);
+                }
+
+                String interpolatedRole = interpolateRole(role, roleInterpolationMap);
+                if(principal.getPrincipalRoles().contains(interpolatedRole)) {
+                    return Optional.of(this);
+                }
+
+                return Optional.absent();
             }
 
             @Override
@@ -67,6 +79,16 @@ public class Permissions {
                 return TO_STRING;
             }
         };
+    }
+
+    protected static String interpolateRole(String role, Map<String, String> roleInterpolationMap) {
+        Matcher matcher = ROLE_PARAM_INTERPOLATOR_REGEX.matcher(role);
+        StringBuffer interpolatedRole = new StringBuffer();
+        while(matcher.find()){
+            matcher.appendReplacement(interpolatedRole, roleInterpolationMap.get(matcher.group(1)));
+        }
+        matcher.appendTail(interpolatedRole);
+        return interpolatedRole.toString();
     }
 
     /**
