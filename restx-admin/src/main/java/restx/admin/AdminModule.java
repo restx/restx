@@ -86,7 +86,7 @@ public class AdminModule {
                                 public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                                     final RestxSession current = RestxSession.current();
                                     if (current.getPrincipal().isPresent() &&
-                                            Permissions.hasRole(RESTX_ADMIN_ROLE).has(current.getPrincipal().get(), req).isPresent()) {
+                                            Permissions.hasRole(RESTX_ADMIN_ROLE).has(current.getPrincipal().get(), req, match).isPresent()) {
                                         ctx.nextHandlerMatch().handle(req, resp, ctx);
                                     } else {
                                         throw new WebException(HttpStatus.UNAUTHORIZED);

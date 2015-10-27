@@ -2,6 +2,7 @@ package restx.security;
 
 import com.google.common.base.Optional;
 import restx.RestxRequest;
+import restx.RestxRequestMatch;
 
 import java.util.Arrays;
 
@@ -12,7 +13,7 @@ import java.util.Arrays;
 public class Permissions {
     private static final Permission OPEN = new Permission() {
         @Override
-        public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request) {
+        public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request, RestxRequestMatch match) {
             return Optional.of(this);
         }
 
@@ -23,7 +24,7 @@ public class Permissions {
     };
     private static final Permission IS_AUTHENTICATED = new Permission() {
         @Override
-        public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request) {
+        public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request, RestxRequestMatch match) {
             return Optional.of(this);
         }
 
@@ -57,7 +58,7 @@ public class Permissions {
             public final String TO_STRING = "HAS_ROLE[" + role + "]";
 
             @Override
-            public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request) {
+            public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request, RestxRequestMatch match) {
                 return principal.getPrincipalRoles().contains(role) || principal.getPrincipalRoles().contains("*")
                         ? Optional.of(this) : Optional.<Permission>absent();
             }
@@ -75,9 +76,9 @@ public class Permissions {
     public static Permission anyOf(final Permission... permissions) {
         return new Permission() {
             @Override
-            public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request) {
+            public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request, RestxRequestMatch match) {
                 for (Permission permission : permissions) {
-                    Optional<? extends Permission> p = permission.has(principal, request);
+                    Optional<? extends Permission> p = permission.has(principal, request, match);
                     if (p.isPresent()) {
                         return p;
                     }
@@ -99,9 +100,9 @@ public class Permissions {
     public static Permission allOf(final Permission... permissions) {
         return new Permission() {
             @Override
-            public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request) {
+            public Optional<? extends Permission> has(RestxPrincipal principal, RestxRequest request, RestxRequestMatch match) {
                 for (Permission permission : permissions) {
-                    Optional<? extends Permission> p = permission.has(principal, request);
+                    Optional<? extends Permission> p = permission.has(principal, request, match);
                     if (!p.isPresent()) {
                         return Optional.absent();
                     }

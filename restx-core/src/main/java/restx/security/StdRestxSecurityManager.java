@@ -30,7 +30,7 @@ public class StdRestxSecurityManager implements RestxSecurityManager {
             throw new WebException(HttpStatus.UNAUTHORIZED);
         }
 
-        Optional<? extends Permission> match = permission.has(principal.get(), request);
+        Optional<? extends Permission> match = permission.has(principal.get(), request, requestMatch);
         if (match.isPresent()) {
             logger.debug("permission matched: request={} principal={} perm={}", request, principal.get(), match.get());
             return;
