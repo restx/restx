@@ -18,10 +18,14 @@ import java.util.Locale;
  */
 @Module
 public class AppModule {
-    private ImmutableMap<String, RestxPrincipal> principals = ImmutableMap.of(
-            "admin", AdminModule.RESTX_ADMIN_PRINCIPAL,
-            "user1", new StdUser("user1", ImmutableSet.<String>of("hello"))
-    );
+    private ImmutableMap<String, RestxPrincipal> principals = ImmutableMap.<String, RestxPrincipal>builder()
+            .put("admin", AdminModule.RESTX_ADMIN_PRINCIPAL)
+            .put("user1", new StdUser("user1", ImmutableSet.<String>of("hello")))
+            .put("user-belonging-to-1234-5678", new StdUser("user-belonging-to-1234-5678", ImmutableSet.<String>of("EDIT_COMPANY_1234_5678")))
+            .put("user-managing-1234-subcompanies", new StdUser("user-managing-1234-subcompanies", ImmutableSet.<String>of("EDIT_COMPANY_1234_*")))
+            .put("user-managing-all-companies", new StdUser("user-managing-companies", ImmutableSet.<String>of("EDIT_COMPANY_*_*")))
+            .put("user-managing-all-parents-for-a-given-subcompany", new StdUser("user-managing-all-parents-for-a-given-subcompany", ImmutableSet.<String>of("EDIT_COMPANY_*_5678")))
+            .build();
 
     @Provides @Named("restx.app.package")
     public String appPackage() {
