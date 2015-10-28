@@ -8,10 +8,8 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-annotation-processors-package</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <name>restx-annotation-processors-package</name>
     <description>
         This RESTX module is used to provide a packaged version of all the official RESTX annotation processors.
 
@@ -58,12 +56,10 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
