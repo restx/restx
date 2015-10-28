@@ -2,6 +2,7 @@ package restx.i18n;
 
 import restx.AppSettings;
 import restx.RestxContext;
+import restx.RestxRequest;
 import restx.factory.Module;
 import restx.factory.Provides;
 
@@ -23,6 +24,16 @@ public class I18nModule {
         } else {
             return new DefaultMutableMessages("labels", StandardCharsets.UTF_8);
         }
+    }
+
+    @Provides @Named("CurrentLocaleResolver")
+    public CurrentLocaleResolver currentLocaleResolver(){
+        return new CurrentLocaleResolver() {
+            @Override
+            public Locale guessLocale(RestxRequest request) {
+                return request.getLocale();
+            }
+        };
     }
 
     @Provides @Named("ROOT")

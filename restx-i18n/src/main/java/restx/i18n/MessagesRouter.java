@@ -23,21 +23,24 @@ import java.util.Map.Entry;
 @Component
 public class MessagesRouter extends RestxRouter {
     public MessagesRouter(@Named("Messages") Messages messages,
-                          @Named("restx.i18n.labelsJsTemplate") String labelsJsTemplate) {
-        super("MessagesRouter", new JsonLabelsRoute(messages), new JsLabelsRoute(messages, labelsJsTemplate));
+                          @Named("restx.i18n.labelsJsTemplate") String labelsJsTemplate,
+                          @Named("CurrentLocaleResolver") CurrentLocaleResolver currentLocaleResolver) {
+        super("MessagesRouter", new JsonLabelsRoute(messages, currentLocaleResolver), new JsLabelsRoute(messages, labelsJsTemplate, currentLocaleResolver));
     }
 
     private static class JsonLabelsRoute extends StdRoute {
         private final Messages messages;
+        private CurrentLocaleResolver currentLocaleResolver;
 
-        public JsonLabelsRoute(Messages messages) {
+        public JsonLabelsRoute(Messages messages, CurrentLocaleResolver currentLocaleResolver) {
             super("labels.json", new StdRestxRequestMatcher("GET", "/i18n/labels.json"));
             this.messages = messages;
+            this.currentLocaleResolver = currentLocaleResolver;
         }
 
         @Override
         public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-            Iterable<Entry<String, String>> entries = messages.entries(req.getLocale());
+            Iterable<Entry<String, String>> entries = messages.entries(currentLocaleResolver.guessLocale(req));
             handleETagFor(req, resp, entries);
             resp.setStatus(HttpStatus.OK);
             resp.setContentType("application/json");
@@ -50,12 +53,14 @@ public class MessagesRouter extends RestxRouter {
 
     private static class JsLabelsRoute extends StdRoute {
         private final Messages messages;
+        private final CurrentLocaleResolver currentLocaleResolver;
         private final String labelsJsBefore;
         private final String labelsJsAfter;
 
-        public JsLabelsRoute(Messages messages, String labelsJsTemplate) {
+        public JsLabelsRoute(Messages messages, String labelsJsTemplate, CurrentLocaleResolver currentLocaleResolver) {
             super("labels.js", new StdRestxRequestMatcher("GET", "/i18n/labels.js"));
             this.messages = messages;
+            this.currentLocaleResolver = currentLocaleResolver;
             int i = labelsJsTemplate.indexOf("{LABELS}");
             if (i == -1) {
                 throw new IllegalArgumentException("invalid labels js template. It must have {LABELS} token inside." +
@@ -67,7 +72,7 @@ public class MessagesRouter extends RestxRouter {
 
         @Override
         public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-            Iterable<Entry<String, String>> entries = messages.entries(req.getLocale());
+            Iterable<Entry<String, String>> entries = messages.entries(currentLocaleResolver.guessLocale(req));
             handleETagFor(req, resp, entries);
 
             resp.setStatus(HttpStatus.OK);
