@@ -18,11 +18,24 @@ public class GAVTest {
     }
 
     @Test
+    public void should_parse_classifier_artifact(){
+        shouldBeConsistent("restx:restx-ui:0.2:zip:jdk8");
+        shouldBeConsistent("restx:restx-ui:0.2:jar:jdk8");
+    }
+
+    @Test
+    public void should_parse_optional_artifact(){
+        shouldBeConsistent("restx:restx-ui:0.2!optional");
+        shouldBeConsistent("restx:restx-ui:0.2:zip!optional");
+        shouldBeConsistent("restx:restx-ui:0.2:jar:jdk8!optional");
+    }
+
+    @Test
     public void should_parse_artifact_with_type() throws Exception {
         shouldBeConsistent("restx:restx-ui:0.2:zip");
     }
 
     private void shouldBeConsistent(String gav) {
-        assertThat(GAV.parse(gav).toString()).isEqualTo(gav);
+        assertThat(GAV.parse(gav).toParseableString()).isEqualTo(gav);
     }
 }

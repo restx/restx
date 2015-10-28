@@ -1,0 +1,22 @@
+{
+    "parent": "com.example:example-parent:0.8",
+    "module": "com.example:example-common:0.2-SNAPSHOT",
+
+    "properties": {
+        "java.version": "1.7",
+        "joda-time.version": "2.0",
+        "junit.version": "4.11"
+    },
+
+    "dependencies": {
+        "compile": [
+            "com.google.guava:guava:14.0-rc2",
+            "joda-time:joda-time:${joda-time.version}",
+            "com.github.spullara.mustache.java:compiler:0.8.10!optional"
+        ],
+        "test": [
+            "junit:junit:${junit.version}",
+            "org.easytesting:fest-assert-core:2.0M8"
+        ]
+    }
+}
