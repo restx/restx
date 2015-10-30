@@ -85,7 +85,12 @@ public class Permissions {
         Matcher matcher = ROLE_PARAM_INTERPOLATOR_REGEX.matcher(role);
         StringBuffer interpolatedRole = new StringBuffer();
         while(matcher.find()){
-            matcher.appendReplacement(interpolatedRole, roleInterpolationMap.get(matcher.group(1)));
+            String interpolationVarName = matcher.group(1);
+            if(!roleInterpolationMap.containsKey(interpolationVarName)) {
+                throw new IllegalArgumentException(String.format("Variable <%s> not found in role interpolation map <%s>",
+                        interpolationVarName, roleInterpolationMap.toString()));
+            }
+            matcher.appendReplacement(interpolatedRole, roleInterpolationMap.get(interpolationVarName));
         }
         matcher.appendTail(interpolatedRole);
         return interpolatedRole.toString();
