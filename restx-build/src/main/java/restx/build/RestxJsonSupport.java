@@ -25,9 +25,9 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
             w.write("{\n");
 
             if (md.getParent() != null) {
-                w.write(String.format("    \"parent\": \"%s\",\n", md.getParent()));
+                w.write(String.format("    \"parent\": \"%s\",\n", md.getParent().toParseableString()));
             }
-            w.write(String.format("    \"module\": \"%s\",\n", md.getGav()));
+            w.write(String.format("    \"module\": \"%s\",\n", md.getGav().toString()));
             if (!"jar".equals(md.getPackaging())) {
                 w.write(String.format("    \"packaging\": \"%s\",\n", md.getPackaging()));
             }
@@ -52,7 +52,7 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
                 w.write(String.format("        \"%s\": [\n", scope));
                 for (Iterator<ModuleDependency> itDeps = md.getDependencies(scope).iterator(); itDeps.hasNext(); ) {
                     ModuleDependency dependency = itDeps.next();
-                    w.write(String.format("            \"%s\"", dependency.getGav()));
+                    w.write(String.format("            \"%s\"", dependency.getGav().toParseableString()));
                     if (itDeps.hasNext()) {
                         w.write(",");
                     }

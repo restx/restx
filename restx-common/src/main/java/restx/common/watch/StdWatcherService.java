@@ -111,60 +111,65 @@ public class StdWatcherService implements WatcherService {
          * Process all events for keys queued to the watcher
          */
         void processEvents() {
-            for (;;) {
+            try {
+                for (;;) {
 
-                // wait for key to be signalled
-                WatchKey key;
-                try {
-                    key = watcher.take();
-                } catch (InterruptedException x) {
-                    return;
-                }
+					// wait for key to be signalled
+					WatchKey key;
+					try {
+						key = watcher.take();
+					} catch (InterruptedException x) {
+						return;
+					}
 
-                Path dir = keys.get(key);
-                if (dir == null) {
-                    System.err.println("WatchKey not recognized!!");
-                    continue;
-                }
+					Path dir = keys.get(key);
+					if (dir == null) {
+						System.err.println("WatchKey not recognized!!");
+						continue;
+					}
 
-                for (WatchEvent<?> event: key.pollEvents()) {
-                    WatchEvent.Kind kind = event.kind();
+					for (WatchEvent<?> event: key.pollEvents()) {
+						WatchEvent.Kind kind = event.kind();
 
-                    // Context for directory entry event is the file name of entry
-                    WatchEvent<Path> ev = cast(event);
+						// Context for directory entry event is the file name of entry
+						WatchEvent<Path> ev = cast(event);
 
-                    coalescor.post(FileWatchEvent.newInstance(root, dir, ev.context(), ev.kind(), ev.count()));
+						coalescor.post(FileWatchEvent.newInstance(root, dir, ev.context(), ev.kind(), ev.count()));
 
-                    if (kind == OVERFLOW) {
-                        continue;
-                    }
+						if (kind == OVERFLOW) {
+							continue;
+						}
 
-                    Path name = ev.context();
-                    Path child = dir.resolve(name);
+						Path name = ev.context();
+						Path child = dir.resolve(name);
 
-                    // if directory is created, and watching recursively, then
-                    // register it and its sub-directories
-                    if (recursive && (kind == ENTRY_CREATE)) {
-                        try {
-                            if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
-                                registerAll(child);
-                            }
-                        } catch (IOException x) {
-                            // ignore to keep sample readbale
-                        }
-                    }
-                }
+						// if directory is created, and watching recursively, then
+						// register it and its sub-directories
+						if (recursive && (kind == ENTRY_CREATE)) {
+							try {
+								if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
+									registerAll(child);
+								}
+							} catch (IOException x) {
+								// ignore to keep sample readbale
+							}
+						}
+					}
 
-                // reset key and remove from set if directory no longer accessible
-                boolean valid = key.reset();
-                if (!valid) {
-                    keys.remove(key);
+					// reset key and remove from set if directory no longer accessible
+					boolean valid = key.reset();
+					if (!valid) {
+						keys.remove(key);
 
-                    // all directories are inaccessible
-                    if (keys.isEmpty()) {
-                        break;
-                    }
-                }
+						// all directories are inaccessible
+						if (keys.isEmpty()) {
+							break;
+						}
+					}
+				}
+            } catch (ClosedWatchServiceException e) {
+                // just ignore this exception, it just meant that the service has been closed,
+                // while the current thread was waiting some event with the "take" method.
             }
         }
 

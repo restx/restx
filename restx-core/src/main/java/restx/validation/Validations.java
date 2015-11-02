@@ -31,7 +31,7 @@ public class Validations {
 
             Set<ConstraintViolation<T>> violations = validator.get().validate(o, groups);
             if (!violations.isEmpty()) {
-                throw new IllegalArgumentException(Joiner.on(", ").join(violations));
+                throw new MethodArgumentNotValidException(violations);
             }
         }
 
