@@ -61,7 +61,7 @@
 
         <!-- 3rd party libs -->
         <jackson.version>2.3.3</jackson.version>
-        <guava.version>17.0</guava.version>
+        <guava.version>18.0</guava.version>
         <joda-time.version>2.3</joda-time.version>
         <jna.version>3.2.7</jna.version>
         <slf4j-api.version>1.7.5</slf4j-api.version>
