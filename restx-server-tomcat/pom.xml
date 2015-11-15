@@ -10,16 +10,11 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-server-tomcat</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-server-tomcat</name>
 
     <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
+        <servlet-api.version>3.0.1</servlet-api.version>
         <embedded.tomcat.version>7.0.47</embedded.tomcat.version>
     </properties>
 
@@ -27,18 +22,19 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
+            <version>${servlet-api.version}</version>
+            <scope>provided</scope>
         </dependency>
+
+        <!-- Tomcat -->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-catalina</artifactId>

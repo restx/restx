@@ -10,48 +10,30 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-shell-manager</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-shell-manager</name>
-
-    <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <jackson.version>2.3.3</jackson.version>
-        <ivy.version>2.3.0</ivy.version>
-        <junit.version>4.11</junit.version>
-        <assertj-core.version>1.6.0</assertj-core.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>
-            <version>${ivy.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

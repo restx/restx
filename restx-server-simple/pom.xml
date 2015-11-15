@@ -10,31 +10,21 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-server-simple</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-server-simple</name>
 
     <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <http-request.version>5.5</http-request.version>
         <simple.version>5.1.6</simple.version>
-        <assertj-core.version>1.6.0</assertj-core.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.simpleframework</groupId>
@@ -44,25 +34,21 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.kevinsawicki</groupId>
             <artifactId>http-request</artifactId>
-            <version>${http-request.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

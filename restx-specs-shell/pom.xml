@@ -10,38 +10,25 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-specs-shell</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-specs-shell</name>
-
-    <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core-shell</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-specs-server</artifactId>
-            <version>${restx.version}</version>
         </dependency>
     </dependencies>
 </project>

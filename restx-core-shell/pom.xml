@@ -10,74 +10,51 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-core-shell</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-core-shell</name>
-
-    <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <ivy.version>2.3.0</ivy.version>
-        <junit.version>4.11</junit.version>
-        <maven-verifier.version>1.4</maven-verifier.version>
-        <mockito.version>1.9.5</mockito.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell-manager</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-build</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>
-            <version>${ivy.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
-            <version>0.3m</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-verifier</artifactId>
-            <version>${maven-verifier.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

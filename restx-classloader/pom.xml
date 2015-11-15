@@ -10,22 +10,10 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-classloader</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-classloader</name>
 
     <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <slf4j-api.version>1.7.5</slf4j-api.version>
-        <guava.version>17.0</guava.version>
-        <joda-time.version>2.3</joda-time.version>
-        <javax.inject.version>1</javax.inject.version>
-        <junit.version>4.11</junit.version>
-        <assertj-core.version>1.6.0</assertj-core.version>
         <project.premain.classname>restx.classloader.HotswapAgent</project.premain.classname>
         <project.agent.can-redefine-classes>true</project.agent.can-redefine-classes>
         <project.agent.can-retransform-classes>false</project.agent.can-retransform-classes>
@@ -36,38 +24,31 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-common</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
-            <version>${javax.inject.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>${joda-time.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

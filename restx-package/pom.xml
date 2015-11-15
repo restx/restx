@@ -8,9 +8,7 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-package</artifactId>
-    <version>0.35-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <build>
@@ -18,7 +16,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
                 <executions>
                     <execution>
                         <id>make-assembly</id>
@@ -45,12 +42,10 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-shell-manager</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -10,49 +10,33 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-apidocs</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-apidocs</name>
-
-    <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <jackson.version>2.3.3</jackson.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-admin</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-jsonSchema</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-webjars</artifactId>
-            <version>${restx.version}</version>
         </dependency>
     </dependencies>
 </project>

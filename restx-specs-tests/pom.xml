@@ -10,19 +10,10 @@
         <version>0.35-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.restx</groupId>
     <artifactId>restx-specs-tests</artifactId>
-    <version>0.35-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>restx-specs-tests</name>
 
     <properties>
-        <restx.version>0.35-SNAPSHOT</restx.version>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <http-request.version>5.5</http-request.version>
-        <junit.version>4.11</junit.version>
-        <assertj-core.version>1.6.0</assertj-core.version>
         <diffutils.version>1.3.0</diffutils.version>
     </properties>
 
@@ -30,42 +21,34 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-core-annotation-processor</artifactId>
-            <version>${restx.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj-core.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.kevinsawicki</groupId>
             <artifactId>http-request</artifactId>
-            <version>${http-request.version}</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.java-diff-utils</groupId>
             <artifactId>diffutils</artifactId>
-            <version>${diffutils.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-server-jetty</artifactId>
-            <version>${restx.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
