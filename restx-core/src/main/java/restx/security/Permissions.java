@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
  * Provides a set of useful permissions, including the OPEN permission which is the only one that can allow access
  * to a resource without being authenticated.
  */
-public class Permissions {
-    private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{([^}]+)\\}");
+    public class Permissions {
+    private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{(.+?)\\}");
 
     private static final Permission OPEN = new Permission() {
         @Override

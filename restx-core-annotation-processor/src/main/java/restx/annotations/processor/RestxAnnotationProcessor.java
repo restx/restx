@@ -36,7 +36,7 @@ import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 })
 @SupportedOptions({ "debug" })
 public class RestxAnnotationProcessor extends RestxAbstractProcessor {
-    private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{([^}]+)\\}");
+    private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{(.+?)\\}");
 
     final Template routerTpl;
 
