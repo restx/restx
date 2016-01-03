@@ -1,6 +1,8 @@
 package restx.jackson;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.base.Throwables;
 import restx.RestxContext;
 import restx.RestxRequest;
 import restx.entity.EntityRequestBodyReader;
@@ -33,12 +35,17 @@ public class JsonEntityRequestBodyReader<T> implements EntityRequestBodyReader<T
 
     @Override
     public T readBody(RestxRequest req, RestxContext ctx) throws IOException {
-        InputStream contentStream = req.getContentStream();
-        if(contentStream.available() == 0) {
-            contentStream.close();
-            return null;
-        }
+        return readNullableValue(reader, req.getContentStream());
+    }
 
-        return reader.readValue(contentStream);
+    protected static <T> T readNullableValue(ObjectReader reader, InputStream stream) throws IOException {
+        try {
+            return reader.readValue(stream);
+        } catch(JsonMappingException e) {
+            if(e.getMessage().startsWith("No content to map due to end-of-input")) {
+                return null;
+            }
+            throw Throwables.propagate(e);
+        }
     }
 }
