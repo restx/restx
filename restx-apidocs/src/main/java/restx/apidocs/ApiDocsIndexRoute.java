@@ -7,6 +7,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
+import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
@@ -49,7 +50,7 @@ public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxResponse restxResponse,RestxRequestMatch match, Object i) throws IOException {
         return Optional.of(ImmutableMap.builder()
                 .put("apiVersion", "0.1") // TODO
                 .put("swaggerVersion", "1.1")

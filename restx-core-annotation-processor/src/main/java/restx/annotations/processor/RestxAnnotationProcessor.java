@@ -23,6 +23,7 @@ import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.*;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -82,7 +83,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 Optional<String> inContentType = Optional.fromNullable(inContentTypeAnn != null ? inContentTypeAnn.value() : null);
                 Produces outContentTypeAnn = annotation.methodElem.getAnnotation(Produces.class);
                 Optional<String> outContentType = Optional.fromNullable(outContentTypeAnn != null ? outContentTypeAnn.value() : null);
-
+                Optional<Cache> cacheAnnotation = Optional.fromNullable(annotation.methodElem.getAnnotation(Cache.class));
                 ResourceMethod resourceMethod = new ResourceMethod(
                         resourceClass,
                         annotation.httpMethod, r.value() + annotation.path,
@@ -90,7 +91,9 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                         annotation.methodElem.getReturnType().toString(),
                         successStatus, logLevel, permission,
                         typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString(),
-                        inContentType, outContentType
+                        inContentType, outContentType,
+                        cacheAnnotation
+
                 );
 
                 resourceClass.resourceMethods.add(resourceMethod);
@@ -290,7 +293,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     call = "Optional.of(" + call + ")";
                 }
                 call = "return " + call + ";";
-
+            }
+            if(resourceMethod.cacheAnnotation.isPresent()) {
+                TimeUnit timeUnit = resourceMethod.cacheAnnotation.get().unit();
+                long duration = timeUnit.toSeconds(resourceMethod.cacheAnnotation.get().duration());
+                call = "response.setHeader(\"Cache-Control\",\"max-age=" + duration + "\");\n" + call;
             }
 
             String outEntity = resourceMethod.returnType.equalsIgnoreCase("void") ? "Empty" : resourceMethod.returnType;
@@ -470,10 +477,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final Optional<String> outContentType;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
+        private final Optional<Cache> cacheAnnotation;
 
         ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
                        HttpStatus successStatus, RestxLogLevel logLevel, String permission, String sourceLocation,
-                       Optional<String> inContentType, Optional<String> outContentType) {
+                       Optional<String> inContentType, Optional<String> outContentType, Optional<Cache> cacheAnnotation) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
@@ -498,6 +506,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.successStatus = successStatus;
             StdRestxRequestMatcher requestMatcher = new StdRestxRequestMatcher(httpMethod, path);
             pathParamNames = requestMatcher.getPathParamNames();
+            this.cacheAnnotation = cacheAnnotation;
         }
     }
 

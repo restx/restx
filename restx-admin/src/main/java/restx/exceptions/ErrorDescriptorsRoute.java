@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
+import restx.RestxResponse;
 import restx.StdRestxRequestMatcher;
 import restx.factory.Component;
 import restx.jackson.FrontObjectMapperFactory;
@@ -40,7 +41,7 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxResponse restxResponse, RestxRequestMatch match, Object i) throws IOException {
         return Optional.of(errorDescriptors.values());
     }
 }

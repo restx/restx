@@ -43,7 +43,7 @@ public class {{router}} extends RestxRouter {
                 new StdRestxRequestMatcher("{{method}}", "{{path}}"),
                 HttpStatus.{{successStatusName}}, RestxLogLevel.{{logLevelName}}) {
             @Override
-            protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {
+            protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxResponse response, RestxRequestMatch match, {{inEntity}} body) throws IOException {
                 {{securityCheck}}
                 {{call}}
             }
