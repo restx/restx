@@ -1,10 +1,12 @@
 package restx.config;
 
+import restx.admin.AdminModule;
 import restx.annotations.GET;
 import restx.annotations.RestxResource;
 import restx.common.ConfigElement;
 import restx.common.RestxConfig;
 import restx.factory.Component;
+import restx.security.RolesAllowed;
 
 /**
  */
@@ -16,6 +18,7 @@ public class ConfigResource {
         this.config = config;
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/config/elements")
     public Iterable<ConfigElement> findConfigElements() {
         return config.elements();
