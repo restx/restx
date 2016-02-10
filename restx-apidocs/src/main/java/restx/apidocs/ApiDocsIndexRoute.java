@@ -1,17 +1,21 @@
 package restx.apidocs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static restx.security.Permissions.hasRole;
+
+
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
+import restx.admin.AdminModule;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
 import restx.jackson.StdJsonProducerEntityRoute;
+import restx.security.RestxSecurityManager;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,15 +45,21 @@ import java.util.Set;
 @Component
 public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
+    private final RestxSecurityManager securityManager;
 
     @Inject
-    public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer, Factory factory) {
+    public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
+                             Factory factory,
+                             RestxSecurityManager securityManager) {
+
         super("ApiDocsIndexRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs"));
         this.factory = factory;
+        this.securityManager = securityManager;
     }
 
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
+        securityManager.check(restxRequest, hasRole(AdminModule.RESTX_ADMIN_ROLE));
         return Optional.of(ImmutableMap.builder()
                 .put("apiVersion", "0.1") // TODO
                 .put("swaggerVersion", "1.1")
