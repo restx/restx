@@ -15,7 +15,7 @@
     <name>restx-specs-tests-java8</name>
 
     <properties>
-        <restx.version>0.33.2</restx.version>
+        <restx.version>0.33.3-SNAPSHOT</restx.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
     </properties>
