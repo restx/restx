@@ -5,17 +5,17 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.33.1</version>
+        <version>0.33.2-SNAPSHOT</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-samplest-java8</artifactId>
-    <version>0.33.1</version>
+    <version>0.33.2-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>restx-samplest-java8</name>
 
     <properties>
-        <restx.version>0.33.1</restx.version>
+        <restx.version>0.33.2-SNAPSHOT</restx.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <logback.version>1.0.13</logback.version>
