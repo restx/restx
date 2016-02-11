@@ -4,11 +4,14 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.jvm.ThreadDump;
 import com.google.common.collect.ImmutableMap;
+
+import restx.admin.AdminModule;
 import restx.annotations.GET;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.metrics.codahale.CodahaleMetricRegistry;
 import restx.metrics.codahale.health.CodahaleHealthCheckRegistry;
+import restx.security.RolesAllowed;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.management.ManagementFactory;
@@ -36,6 +39,7 @@ public class MetricsResource {
         threadDump = new ThreadDump(ManagementFactory.getThreadMXBean());
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/metrics")
     public Map metrics() {
         return ImmutableMap.of(
@@ -47,11 +51,13 @@ public class MetricsResource {
         );
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/health-checks")
     public Map healthChecks() {
         return healthChecks.runHealthChecks();
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/thread-dump")
     public String threadDump() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();

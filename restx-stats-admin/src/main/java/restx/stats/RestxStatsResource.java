@@ -1,8 +1,10 @@
 package restx.stats;
 
+import restx.admin.AdminModule;
 import restx.annotations.GET;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
+import restx.security.RolesAllowed;
 
 /**
  * Date: 4/5/14
@@ -17,6 +19,7 @@ public class RestxStatsResource {
         this.collector = collector;
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/restx-stats")
     public RestxStats getRestxStats() {
         return collector.getStats();

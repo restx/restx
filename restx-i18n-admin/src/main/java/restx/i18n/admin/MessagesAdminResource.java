@@ -1,5 +1,6 @@
 package restx.i18n.admin;
 
+import restx.admin.AdminModule;
 import restx.annotations.GET;
 import restx.annotations.POST;
 import restx.annotations.RestxResource;
@@ -7,6 +8,7 @@ import restx.factory.Component;
 import restx.i18n.Messages;
 import restx.i18n.MutableMessages;
 import restx.i18n.SupportedLocale;
+import restx.security.RolesAllowed;
 
 import javax.inject.Named;
 import java.io.IOException;
@@ -27,11 +29,13 @@ public class MessagesAdminResource {
         this.supportedLocales = supportedLocales;
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/i18n/keys")
     public Iterable<String> keys() {
         return messages.keys();
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/i18n/locales")
     public Iterable<String> locales() {
         Collection<String> locales = new ArrayList<>();
@@ -42,6 +46,7 @@ public class MessagesAdminResource {
         return locales;
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/i18n/messages/{locale}")
     public Map<String, String> messages(String locale) {
         Locale l = toLocale(locale);
@@ -52,6 +57,7 @@ public class MessagesAdminResource {
         return m;
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @POST("/@/i18n/messages/{locale}")
     public void setMessage(String locale, Map<String, String> entries) {
         if (!(messages instanceof MutableMessages)) {

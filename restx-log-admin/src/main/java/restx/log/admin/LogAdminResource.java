@@ -8,11 +8,13 @@ import com.google.common.io.Files;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 import restx.WebException;
+import restx.admin.AdminModule;
 import restx.annotations.GET;
 import restx.annotations.PUT;
 import restx.annotations.RestxResource;
 import restx.common.MorePreconditions;
 import restx.factory.Component;
+import restx.security.RolesAllowed;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +41,7 @@ public class LogAdminResource {
         }
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/logs")
     public String getLogs() {
         // quick and dirty basic implementation to get logs from the default log file.
@@ -64,6 +67,7 @@ public class LogAdminResource {
         }
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/loggers")
     public Iterable<Logger> getLoggers() {
         ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
@@ -81,6 +85,7 @@ public class LogAdminResource {
         }
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @PUT("/@/loggers/{name}")
     public Logger updateLogger(String name, Logger logger) {
         logger.name = name;
