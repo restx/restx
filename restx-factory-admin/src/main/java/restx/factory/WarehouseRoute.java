@@ -1,9 +1,14 @@
 package restx.factory;
 
+import static restx.security.Permissions.hasRole;
+
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import restx.*;
+import restx.admin.AdminModule;
 import restx.annotations.RestxResource;
+import restx.security.RestxSecurityManager;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -13,19 +18,22 @@ import java.util.List;
 @Component
 public class WarehouseRoute extends StdRoute {
     private final Warehouse warehouse;
+    private final RestxSecurityManager securityManager;
 
     @Inject
-    public WarehouseRoute(Factory factory) {
-        this(factory.getWarehouse());
+    public WarehouseRoute(Factory factory, RestxSecurityManager securityManager) {
+        this(factory.getWarehouse(), securityManager);
     }
 
-    public WarehouseRoute(Warehouse warehouse) {
+    public WarehouseRoute(Warehouse warehouse, RestxSecurityManager securityManager) {
         super("WarehouseRoute", new StdRestxRequestMatcher("GET", "/@/warehouse"));
         this.warehouse = warehouse;
+        this.securityManager = securityManager;
     }
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
         resp.setContentType("application/json");
 
         List<String> nodesCode = Lists.newArrayList();
