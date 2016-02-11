@@ -5,12 +5,12 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.33.2</version>
+        <version>0.33.3-SNAPSHOT</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-samplest-java8</artifactId>
-    <version>0.33.2</version>
+    <version>0.33.3-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>restx-samplest-java8</name>
 
