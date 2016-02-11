@@ -15,7 +15,7 @@
     <name>restx-core-java8</name>
 
     <properties>
-        <restx.version>0.34.1</restx.version>
+        <restx.version>0.34.2-SNAPSHOT</restx.version>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <jackson.version>2.3.3</jackson.version>

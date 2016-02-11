@@ -15,7 +15,7 @@
     <name>restx-specs-shell</name>
 
     <properties>
-        <restx.version>0.34.1</restx.version>
+        <restx.version>0.34.2-SNAPSHOT</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
     </properties>
