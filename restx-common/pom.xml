@@ -5,12 +5,12 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.34.1-SNAPSHOT</version>
+        <version>0.34.1</version>
     </parent>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-common</artifactId>
-    <version>0.34.1-SNAPSHOT</version>
+    <version>0.34.1</version>
     <packaging>jar</packaging>
     <name>restx-common</name>
 

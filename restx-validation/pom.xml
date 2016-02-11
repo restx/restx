@@ -3,18 +3,18 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.34.1-SNAPSHOT</version>
+        <version>0.34.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.restx</groupId>
     <artifactId>restx-validation</artifactId>
-    <version>0.34.1-SNAPSHOT</version>
+    <version>0.34.1</version>
     <packaging>jar</packaging>
     <name>restx-validation</name>
 
     <properties>
-        <restx.version>0.34.1-SNAPSHOT</restx.version>
+        <restx.version>0.34.1</restx.version>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.compiler.source>1.7</maven.compiler.source>
         <hibernate-validator.version>5.0.1.Final</hibernate-validator.version>
