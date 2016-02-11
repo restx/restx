@@ -5,8 +5,21 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
+
+import java.io.IOException;
+import java.util.regex.Pattern;
+import restx.RestxContext;
+import restx.RestxFilter;
+import restx.RestxHandler;
+import restx.RestxHandlerMatch;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxResponse;
+import restx.StdRestxRequestMatch;
+import restx.WebException;
 import restx.factory.Module;
 import restx.factory.Provides;
+import restx.http.HttpStatus;
 import restx.security.*;
 
 import javax.inject.Named;
@@ -56,5 +69,34 @@ public class AdminModule {
         public String getName() {
             return "admin";
         }
+    }
+
+    @Provides
+    public RestxFilter adminRoleFilter() {
+        return new RestxFilter() {
+            final Pattern privatePath = Pattern.compile("^/@/(?!(ui|webjars)/).*$");
+
+            @Override
+            public Optional<RestxHandlerMatch> match(RestxRequest req) {
+                if (privatePath.matcher(req.getRestxPath()).find()) {
+                    return Optional.of(new RestxHandlerMatch(
+                            new StdRestxRequestMatch("/@/*", req.getRestxPath()),
+                            new RestxHandler() {
+                                @Override
+                                public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                                    final RestxSession current = RestxSession.current();
+                                    if (current.getPrincipal().isPresent() &&
+                                            Permissions.hasRole(RESTX_ADMIN_ROLE).has(current.getPrincipal().get(), req).isPresent()) {
+                                        ctx.nextHandlerMatch().handle(req, resp, ctx);
+                                    } else {
+                                        throw new WebException(HttpStatus.UNAUTHORIZED);
+                                    }
+                                }
+                            }
+                    ));
+                }
+                return Optional.absent();
+            }
+        };
     }
 }

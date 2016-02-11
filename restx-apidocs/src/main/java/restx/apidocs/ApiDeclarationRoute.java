@@ -5,6 +5,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import restx.*;
+import restx.admin.AdminModule;
 import restx.description.*;
 import restx.factory.Component;
 import restx.factory.Factory;
@@ -12,6 +13,7 @@ import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
 import restx.jackson.StdJsonProducerEntityRoute;
+import restx.security.RestxSecurityManager;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static restx.apidocs.ApiDocsIndexRoute.getRouterApiPath;
+import static restx.security.Permissions.hasRole;
 
 /**
  * Serves the swagger api declaration of one router, which looks like that:
@@ -41,16 +44,19 @@ import static restx.apidocs.ApiDocsIndexRoute.getRouterApiPath;
 @Component
 public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
+    private final RestxSecurityManager securityManager;
 
     @Inject
     public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
-                               Factory factory) {
+            Factory factory, RestxSecurityManager securityManager) {
         super("ApiDeclarationRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"));
         this.factory = factory;
+        this.securityManager = securityManager;
     }
 
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object body) throws IOException {
+        securityManager.check(restxRequest, hasRole(AdminModule.RESTX_ADMIN_ROLE));
         String routerName = match.getPathParam("router");
         Optional<NamedComponent<RestxRouter>> router = getRouterByName(factory, routerName);
 

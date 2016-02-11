@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
 import restx.WebException;
+import restx.admin.AdminModule;
 import restx.annotations.GET;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.http.HttpStatus;
 import restx.jackson.FrontObjectMapperFactory;
+import restx.security.RolesAllowed;
 
 import javax.inject.Named;
 
@@ -27,6 +29,7 @@ public class JsonSchemaResource {
     }
 
     @GET("/@/api-docs/schemas/{fqcn}")
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     public String getJsonSchema(String fqcn) {
         SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
         try {

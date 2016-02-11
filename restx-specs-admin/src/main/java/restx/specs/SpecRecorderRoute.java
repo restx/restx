@@ -1,10 +1,15 @@
 package restx.specs;
 
+import static restx.security.Permissions.hasRole;
+
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
+import restx.admin.AdminModule;
+import restx.security.RestxSecurityManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,17 +22,20 @@ import java.util.List;
  */
 public class SpecRecorderRoute extends RestxRouter {
     public SpecRecorderRoute(final RestxSpecRecorder.Repository recordedSpecsRepository,
-                             final RestxSpec.StorageSettings storageSettings) {
+                             final RestxSpec.StorageSettings storageSettings,
+                             final RestxSecurityManager securityManager) {
         super("SpecRecorderRouter",
                 new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs.recorder", ImmutableMap.of("", "index.html")),
                 new StdRoute("RecorderRoute", new StdRestxRequestMatcher("GET", "/@/recorders")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         resp.setContentType("application/json");
                         List<String> data = Lists.newArrayList();
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
-                            data.add(String.format("{ \"id\": \"%03d\", \"method\": \"%s\", \"path\": \"%s\", \"recordTime\": \"%s\", \"duration\": %d, " +
-                                    "\"capturedItems\": %d, \"capturedRequestSize\": %d, \"capturedResponseSize\": %d }",
+                            data.add(String.format("{ \"id\": \"%03d\", \"method\": \"%s\", \"path\": \"%s\", \"recordTime\": \"%s\", \"duration\":"
+                                    + " %d, " +
+                                            "\"capturedItems\": %d, \"capturedRequestSize\": %d, \"capturedResponseSize\": %d }",
                                     spec.getId(), spec.getMethod(), spec.getPath(), spec.getRecordTime(), spec.getDuration().getMillis(),
                                     spec.getCapturedItems(), spec.getCapturedRequestSize(), spec.getCapturedResponseSize()));
                         }
@@ -40,6 +48,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecord", new StdRestxRequestMatcher("GET", "/@/recorders/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {
@@ -56,6 +65,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecordStorage", new StdRestxRequestMatcher("POST", "/@/recorders/storage/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {
@@ -66,8 +76,8 @@ public class SpecRecorderRoute extends RestxRouter {
 
                                 File destFile = storage.store(
                                         spec.getSpec()
-                                            .withTitle(title)
-                                            .withPath(storage.buildPath(path, title.or(spec.getSpec().getTitle()))));
+                                                .withTitle(title)
+                                                .withPath(storage.buildPath(path, title.or(spec.getSpec().getTitle()))));
 
                                 resp.setContentType("text/plain");
                                 resp.getWriter().println(destFile.getAbsolutePath());

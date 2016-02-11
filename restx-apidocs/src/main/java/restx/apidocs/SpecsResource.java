@@ -2,10 +2,13 @@ package restx.apidocs;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
+
+import restx.admin.AdminModule;
 import restx.annotations.GET;
 import restx.annotations.PUT;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
+import restx.security.RolesAllowed;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecRepository;
 import restx.specs.ThenHttpResponse;
@@ -30,11 +33,13 @@ public class SpecsResource {
         storage = RestxSpec.Storage.with(storageSettings);
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/specs")
     public Iterable<String> findSpecsForOperation(String httpMethod, String path) {
         return repository.findSpecsByOperation(httpMethod, path);
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @GET("/@/specs/{id}")
     public Optional<RestxSpec> getSpecById(String id) {
         try {
@@ -49,6 +54,7 @@ public class SpecsResource {
         }
     }
 
+    @RolesAllowed(AdminModule.RESTX_ADMIN_ROLE)
     @PUT("/@/specs/{id}/wts/{wtsIndex}/then")
     public Optional<ThenHttpResponse> updateSpecThenHttp(String id, int wtsIndex, ThenHttpResponse response) throws IOException {
         try {

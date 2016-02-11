@@ -1,12 +1,17 @@
 package restx.monitor;
 
+import static restx.security.Permissions.hasRole;
+
+
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.ImmutableMap;
 import restx.*;
+import restx.admin.AdminModule;
 import restx.factory.Component;
 import restx.http.HttpStatus;
 import restx.metrics.codahale.CodahaleMetricRegistry;
+import restx.security.RestxSecurityManager;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -20,13 +25,14 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class MonitorRouter extends RestxRouter {
-    public MonitorRouter(final restx.common.metrics.api.MetricRegistry metricsRegistry) {
+    public MonitorRouter(final restx.common.metrics.api.MetricRegistry metricsRegistry,
+                         final RestxSecurityManager securityManager) {
         super("restx-admin", "MonitorRouter",
                 getMonitorUIRoute(),
-                getGetMonitorRoute(metricsRegistry));
+                getGetMonitorRoute(metricsRegistry, securityManager));
     }
 
-    private static StdRoute getGetMonitorRoute(restx.common.metrics.api.MetricRegistry metricRegistry) {
+    private static StdRoute getGetMonitorRoute(restx.common.metrics.api.MetricRegistry metricRegistry, final RestxSecurityManager securityManager) {
         if (!(metricRegistry instanceof CodahaleMetricRegistry)){
             throw new IllegalStateException("restx-monitor-admin expects that module restx-monitor-codahale is loaded");
         }
@@ -36,6 +42,7 @@ public class MonitorRouter extends RestxRouter {
         return new StdRoute("MonitorRoute", new StdRestxRequestMatcher("GET", "/@/monitor")) {
             @Override
             public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
+                securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
                 resp.setStatus(HttpStatus.OK);
                 resp.setContentType("application/json");
                 resp.getWriter().print("[");
