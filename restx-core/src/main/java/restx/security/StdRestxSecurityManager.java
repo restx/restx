@@ -24,9 +24,15 @@ import java.util.Map;
 public class StdRestxSecurityManager implements RestxSecurityManager {
     private static final Logger logger = LoggerFactory.getLogger(StdRestxSecurityManager.class);
 
+    protected final PermissionFactory permissionFactory;
+
+    public StdRestxSecurityManager(PermissionFactory permissionFactory) {
+        this.permissionFactory = permissionFactory;
+    }
+
     @Override
     public void check(RestxRequest request, RestxRequestMatch requestMatch, Permission permission) {
-        if (permission == Permissions.open()) {
+        if (permissionFactory.isOpen(permission)) {
             return;
         }
 

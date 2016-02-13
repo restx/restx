@@ -1,6 +1,7 @@
 package restx.security;
 
 import com.google.common.base.Optional;
+import restx.factory.Component;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -11,7 +12,8 @@ import java.util.regex.Pattern;
  * Provides a set of useful permissions, including the OPEN permission which is the only one that can allow access
  * to a resource without being authenticated.
  */
-    public class Permissions {
+@Component
+public class PermissionFactory {
     private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{(.+?)\\}");
 
     private static final Permission OPEN = new Permission() {
@@ -40,23 +42,30 @@ import java.util.regex.Pattern;
     /**
      * This is the only permission that can allow access to a resource without being authenticated.
      */
-    public static Permission open() {
+    public Permission open() {
         return OPEN;
     }
 
     /**
      * This is the most basic permission which is true as soon as a principal is authenticated.
      */
-    public static Permission isAuthenticated() {
+    public Permission isAuthenticated() {
         return IS_AUTHENTICATED;
     }
 
+    public boolean isOpen(Permission permission) {
+        return permission == open();
+    }
+
+    public boolean isIsAuthenticated(Permission permission) {
+        return permission == isAuthenticated();
+    }
 
     /**
      * This permission is true as soon as the principal has the given role
      * @param role the role to check
      */
-    public static Permission hasRole(final String role) {
+    public Permission hasRole(final String role) {
         return new Permission() {
             public final String TO_STRING = "HAS_ROLE[" + role + "]";
 
@@ -81,7 +90,7 @@ import java.util.regex.Pattern;
         };
     }
 
-    protected static String interpolateRole(String role, Map<String, String> roleInterpolationMap) {
+    protected String interpolateRole(String role, Map<String, String> roleInterpolationMap) {
         Matcher matcher = ROLE_PARAM_INTERPOLATOR_REGEX.matcher(role);
         StringBuffer interpolatedRole = new StringBuffer();
         while(matcher.find()){
@@ -99,7 +108,7 @@ import java.util.regex.Pattern;
     /**
      * A compound permission which is true if any of the underlying permissions is true
      */
-    public static Permission anyOf(final Permission... permissions) {
+    public Permission anyOf(final Permission... permissions) {
         return new Permission() {
             @Override
             public Optional<? extends Permission> has(RestxPrincipal principal, Map<String, String> roleInterpolationMap) {
@@ -123,7 +132,7 @@ import java.util.regex.Pattern;
     /**
      * A compound permission which is true if all underlying permissions are true
      */
-    public static Permission allOf(final Permission... permissions) {
+    public Permission allOf(final Permission... permissions) {
         return new Permission() {
             @Override
             public Optional<? extends Permission> has(RestxPrincipal principal, Map<String, String> roleInterpolationMap) {

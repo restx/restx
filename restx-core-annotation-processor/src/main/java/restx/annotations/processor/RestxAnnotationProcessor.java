@@ -112,32 +112,32 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         String permission;
         PermitAll permitAll = annotation.methodElem.getAnnotation(PermitAll.class);
         if (permitAll != null) {
-            permission = "open()";
+            permission = "pf.open()";
         } else {
             RolesAllowed rolesAllowed = annotation.methodElem.getAnnotation(RolesAllowed.class);
             if (rolesAllowed != null) {
                 List<String> roles = new ArrayList<>();
                 for (String role : rolesAllowed.value()) {
                     for(String wildcardedRole : generateWildcardRolesFor(role)){
-                        roles.add("hasRole(\"" + wildcardedRole + "\")");
+                        roles.add("pf.hasRole(\"" + wildcardedRole + "\")");
                     }
                 }
                 switch (roles.size()) {
                     case 0:
-                        permission = "isAuthenticated()";
+                        permission = "pf.isAuthenticated()";
                         break;
                     case 1:
                         permission = roles.get(0);
                         break;
                     default:
-                        permission = "anyOf(" + Joiner.on(", ").join(roles) + ")";
+                        permission = "pf.anyOf(" + Joiner.on(", ").join(roles) + ")";
                 }
             } else {
                 permitAll = typeElem.getAnnotation(PermitAll.class);
                 if (permitAll != null) {
-                    permission = "open()";
+                    permission = "pf.open()";
                 } else {
-                    permission = "isAuthenticated()";
+                    permission = "pf.isAuthenticated()";
                 }
             }
         }

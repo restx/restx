@@ -13,6 +13,7 @@ import restx.factory.Name;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
 import restx.jackson.StdJsonProducerEntityRoute;
+import restx.security.PermissionFactory;
 import restx.security.RestxSecurityManager;
 
 import javax.inject.Inject;
@@ -21,7 +22,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static restx.apidocs.ApiDocsIndexRoute.getRouterApiPath;
-import static restx.security.Permissions.hasRole;
 
 /**
  * Serves the swagger api declaration of one router, which looks like that:
@@ -45,18 +45,20 @@ import static restx.security.Permissions.hasRole;
 public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
     private final RestxSecurityManager securityManager;
+    private PermissionFactory permissionFactory;
 
     @Inject
     public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
-            Factory factory, RestxSecurityManager securityManager) {
+                               Factory factory, RestxSecurityManager securityManager, PermissionFactory permissionFactory) {
         super("ApiDeclarationRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"));
         this.factory = factory;
         this.securityManager = securityManager;
+        this.permissionFactory = permissionFactory;
     }
 
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object body) throws IOException {
-        securityManager.check(restxRequest, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+        securityManager.check(restxRequest, match, permissionFactory.hasRole(AdminModule.RESTX_ADMIN_ROLE));
         String routerName = match.getPathParam("router");
         Optional<NamedComponent<RestxRouter>> router = getRouterByName(factory, routerName);
 

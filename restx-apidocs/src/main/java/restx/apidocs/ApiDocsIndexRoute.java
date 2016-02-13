@@ -1,8 +1,5 @@
 package restx.apidocs;
 
-import static restx.security.Permissions.hasRole;
-
-
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Optional;
@@ -15,6 +12,7 @@ import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.jackson.FrontObjectMapperFactory;
 import restx.jackson.StdJsonProducerEntityRoute;
+import restx.security.PermissionFactory;
 import restx.security.RestxSecurityManager;
 
 import javax.inject.Inject;
@@ -46,20 +44,23 @@ import java.util.Set;
 public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
     private final Factory factory;
     private final RestxSecurityManager securityManager;
+    private PermissionFactory permissionFactory;
 
     @Inject
     public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
                              Factory factory,
-                             RestxSecurityManager securityManager) {
+                             RestxSecurityManager securityManager,
+                             PermissionFactory permissionFactory) {
 
         super("ApiDocsIndexRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs"));
         this.factory = factory;
         this.securityManager = securityManager;
+        this.permissionFactory = permissionFactory;
     }
 
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
-        securityManager.check(restxRequest, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+        securityManager.check(restxRequest, match, permissionFactory.hasRole(AdminModule.RESTX_ADMIN_ROLE));
         return Optional.of(ImmutableMap.builder()
                 .put("apiVersion", "0.1") // TODO
                 .put("swaggerVersion", "1.1")
