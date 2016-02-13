@@ -6,6 +6,7 @@ import restx.RestxRequestMatcher;
 import restx.entity.StdEntityRoute;
 import restx.entity.VoidContentTypeModule;
 import restx.http.HttpStatus;
+import restx.security.PermissionFactory;
 
 import java.lang.reflect.Type;
 
@@ -14,11 +15,11 @@ import java.lang.reflect.Type;
  * Time: 11:06
  */
 public abstract class StdJsonProducerEntityRoute<O> extends StdEntityRoute<Void,O> {
-    public StdJsonProducerEntityRoute(String name, Type type, ObjectWriter writer, RestxRequestMatcher matcher) {
+    public StdJsonProducerEntityRoute(String name, Type type, ObjectWriter writer, RestxRequestMatcher matcher, PermissionFactory permissionFactory) {
         super(name,
                 VoidContentTypeModule.VoidEntityRequestBodyReader.INSTANCE,
                 JsonEntityResponseWriter.<O>using(type, writer),
                 matcher,
-                HttpStatus.OK, RestxLogLevel.DEFAULT);
+                HttpStatus.OK, RestxLogLevel.DEFAULT, permissionFactory);
     }
 }

@@ -34,10 +34,9 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
     public ErrorDescriptorsRoute(Iterable<ErrorDescriptor> errorDescriptors,
                                  @Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter objectWriter,
                                  RestxSecurityManager securityManager,
-                                 PermissionFactory permissionFactory) {
-
-        super("ErrorDescriptorsRoute", ImmutableCollection.class, objectWriter, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"));
-        this.permissionFactory = permissionFactory;
+                                 PermissionFactory permissionFactory
+    ) {
+        super("ErrorDescriptorsRoute", ImmutableCollection.class, objectWriter, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"), permissionFactory);
         Map<String, ErrorDescriptor> map = Maps.newLinkedHashMap();
         for (ErrorDescriptor errorDescriptor : errorDescriptors) {
             if (map.containsKey(errorDescriptor.getErrorCode())) {

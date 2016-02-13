@@ -32,6 +32,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         protected RestxRequestMatcher matcher;
         protected HttpStatus successStatus = HttpStatus.OK;
         protected RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
+        protected PermissionFactory permissionFactory;
         protected MatchedEntityRoute<I,O> matchedEntityRoute;
 
         public Builder<I,O> entityRequestBodyReader(final EntityRequestBodyReader<I> entityRequestBodyReader) {
@@ -46,6 +47,11 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
 
         public Builder<I,O> name(final String name) {
             this.name = name;
+            return this;
+        }
+
+        public Builder<I,O> permissionFactory(final PermissionFactory permissionFactory) {
+            this.permissionFactory = permissionFactory;
             return this;
         }
 
@@ -74,7 +80,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return new StdEntityRoute<I, O>(
                     name, entityRequestBodyReader == null ? voidBodyReader() : entityRequestBodyReader,
                     entityResponseWriter,
-                    matcher, successStatus, logLevel) {
+                    matcher, successStatus, logLevel, permissionFactory) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException {
                     return matchedEntityRoute.route(restxRequest, match, i);
@@ -101,16 +107,6 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     private final EntityResponseWriter<O> entityResponseWriter;
     private final RestxLogLevel logLevel;
     private final PermissionFactory permissionFactory;
-
-    public StdEntityRoute(String name,
-                          EntityRequestBodyReader<I> entityRequestBodyReader,
-                          EntityResponseWriter<O> entityResponseWriter,
-                          RestxRequestMatcher matcher,
-                          HttpStatus successStatus,
-                          RestxLogLevel logLevel
-    ) {
-        this(name, entityRequestBodyReader, entityResponseWriter, matcher, successStatus, logLevel, null);
-    }
 
     public StdEntityRoute(String name,
                           EntityRequestBodyReader<I> entityRequestBodyReader,

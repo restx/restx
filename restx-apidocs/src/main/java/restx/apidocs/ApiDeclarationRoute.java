@@ -50,7 +50,7 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
     @Inject
     public ApiDeclarationRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
                                Factory factory, RestxSecurityManager securityManager, PermissionFactory permissionFactory) {
-        super("ApiDeclarationRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"));
+        super("ApiDeclarationRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs/{router}"), permissionFactory);
         this.factory = factory;
         this.securityManager = securityManager;
         this.permissionFactory = permissionFactory;
