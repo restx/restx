@@ -10,6 +10,8 @@ import restx.RestxResponse;
 import restx.RouteLifecycleListener;
 import restx.StdRoute;
 import restx.http.HttpStatus;
+import restx.security.Permission;
+import restx.security.PermissionFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -22,6 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Time: 8:10 AM
  */
 public abstract class StdEntityRoute<I,O> extends StdRoute {
+
     public static class Builder<I,O> {
         protected EntityRequestBodyReader<I> entityRequestBodyReader;
         protected EntityResponseWriter<O> entityResponseWriter;
@@ -97,13 +100,28 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     private final EntityRequestBodyReader<I> entityRequestBodyReader;
     private final EntityResponseWriter<O> entityResponseWriter;
     private final RestxLogLevel logLevel;
+    private final PermissionFactory permissionFactory;
 
     public StdEntityRoute(String name,
                           EntityRequestBodyReader<I> entityRequestBodyReader,
                           EntityResponseWriter<O> entityResponseWriter,
                           RestxRequestMatcher matcher,
-                          HttpStatus successStatus, RestxLogLevel logLevel) {
+                          HttpStatus successStatus,
+                          RestxLogLevel logLevel
+    ) {
+        this(name, entityRequestBodyReader, entityResponseWriter, matcher, successStatus, logLevel, null);
+    }
+
+    public StdEntityRoute(String name,
+                          EntityRequestBodyReader<I> entityRequestBodyReader,
+                          EntityResponseWriter<O> entityResponseWriter,
+                          RestxRequestMatcher matcher,
+                          HttpStatus successStatus,
+                          RestxLogLevel logLevel,
+                          PermissionFactory permissionFactory
+    ) {
         super(name, matcher, successStatus);
+        this.permissionFactory = permissionFactory;
         this.entityRequestBodyReader = checkNotNull(entityRequestBodyReader);
         this.entityResponseWriter = checkNotNull(entityResponseWriter);
         this.logLevel = checkNotNull(logLevel);
@@ -146,4 +164,11 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     }
 
     protected abstract Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException;
+
+    // Aliases to permissionFactory allowing to have a more readable generated code through APT
+    protected Permission hasRole(String role){ return permissionFactory.hasRole(role); }
+    protected Permission anyOf(Permission... permissions){ return permissionFactory.anyOf(permissions); }
+    protected Permission allOf(Permission... permissions){ return permissionFactory.allOf(permissions); }
+    protected Permission open(){ return permissionFactory.open(); }
+    protected Permission isAuthenticated(){ return permissionFactory.isAuthenticated(); }
 }

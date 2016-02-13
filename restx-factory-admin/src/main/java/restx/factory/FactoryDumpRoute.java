@@ -15,7 +15,7 @@ public class FactoryDumpRoute extends StdRoute {
     private PermissionFactory permissionFactory;
 
     @Inject
-    public FactoryDumpRoute(Factory factory, RestxSecurityManager securityManager, PermissionFactory permissionFactory) {
+    public FactoryDumpRoute(Factory factory, RestxSecurityManager securityManager, final PermissionFactory permissionFactory) {
         super("FactoryRoute", new StdRestxRequestMatcher("GET", "/@/factory"));
         this.factory = factory;
         this.securityManager = securityManager;
