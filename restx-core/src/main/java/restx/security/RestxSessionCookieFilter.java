@@ -124,7 +124,7 @@ public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler 
             Optional<RestxPrincipal> principalOptional = RestxSession.getValue(
                     sessionDefinition, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principalName);
             if (principalOptional.isPresent()
-                    && Permissions.hasRole("restx-admin").has(principalOptional.get(), null, null).isPresent()) {
+                    && Permissions.hasRole("restx-admin").has(principalOptional.get(), Collections.<String,String>emptyMap()).isPresent()) {
                 Optional<String> su = req.getHeader("RestxSu");
                 if (su.isPresent() && !Strings.isNullOrEmpty(su.get())) {
                     try {
