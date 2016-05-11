@@ -9,9 +9,9 @@ import com.google.common.collect.Lists;
 import restx.entity.MatchedEntityRoute;
 import restx.jackson.JsonEntityRouteBuilder;
 import restx.jackson.StdJsonProducerEntityRoute;
+import restx.security.PermissionFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -88,8 +88,16 @@ public class RestxRouter {
             return addRoute(path, new StdRestxRequestMatcher(method, path), outputType, route);
         }
 
+        /**
+         * @deprecated Prefer to use addRoute(String, RestxRequestMatcher, PermissionFactory, Class<O>, MatchedEntityRoute<Void, O>)
+         * in order to avoid NPEs when checking permissions through permissionFactory
+         */
         public <O> Builder addRoute(String name, RestxRequestMatcher matcher, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
-            routes.add(new StdJsonProducerEntityRoute<O>(name, outputType, writer.withType(outputType), matcher) {
+            return addRoute(name, matcher, null, outputType, route);
+        }
+
+        public <O> Builder addRoute(String name, RestxRequestMatcher matcher, PermissionFactory permissionFactory, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            routes.add(new StdJsonProducerEntityRoute<O>(name, outputType, writer.withType(outputType), matcher, permissionFactory) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Void i) throws IOException {
                     return route.route(restxRequest, match, i);

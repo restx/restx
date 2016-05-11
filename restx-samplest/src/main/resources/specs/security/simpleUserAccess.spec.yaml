@@ -1,0 +1,20 @@
+title: Simple user access with rights on company 1234 and sub company 5678
+given:
+  - time: 2015-10-27T01:18:00.822+02:00
+  - uuids: [ "e2b4430f-9541-4602-9a3a-413d17c56a6b" ]
+wts:
+  - when: |
+      GET security/1234/5678
+      $RestxSession: {"_expires":"2015-10-27T01:18:00.822+02:00","principal":"user-belonging-to-1234-5678","sessionKey":"e2b4430f-9541-4602-9a3a-413d17c56a6b"}
+    then: |
+      200
+  - when: |
+      GET security/1234/8765
+      $RestxSession: {"_expires":"2015-10-27T01:18:00.822+02:00","principal":"user-belonging-to-1234-5678","sessionKey":"e2b4430f-9541-4602-9a3a-413d17c56a6b"}
+    then: |
+      403
+  - when: |
+      GET security/4321/8765
+      $RestxSession: {"_expires":"2015-10-27T01:18:00.822+02:00","principal":"user-belonging-to-1234-5678","sessionKey":"e2b4430f-9541-4602-9a3a-413d17c56a6b"}
+    then: |
+      403

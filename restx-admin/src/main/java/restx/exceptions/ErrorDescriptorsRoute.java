@@ -1,8 +1,5 @@
 package restx.exceptions;
 
-import static restx.security.Permissions.hasRole;
-
-
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableCollection;
@@ -15,6 +12,7 @@ import restx.admin.AdminModule;
 import restx.factory.Component;
 import restx.jackson.FrontObjectMapperFactory;
 import restx.jackson.StdJsonProducerEntityRoute;
+import restx.security.PermissionFactory;
 import restx.security.RestxSecurityManager;
 
 import javax.inject.Named;
@@ -31,12 +29,14 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
 
     private final ImmutableMap<String, ErrorDescriptor> errorDescriptors;
     private final RestxSecurityManager securityManager;
+    private PermissionFactory permissionFactory;
 
     public ErrorDescriptorsRoute(Iterable<ErrorDescriptor> errorDescriptors,
                                  @Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter objectWriter,
-                                 RestxSecurityManager securityManager) {
-
-        super("ErrorDescriptorsRoute", ImmutableCollection.class, objectWriter, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"));
+                                 RestxSecurityManager securityManager,
+                                 PermissionFactory permissionFactory
+    ) {
+        super("ErrorDescriptorsRoute", ImmutableCollection.class, objectWriter, new StdRestxRequestMatcher("GET", "/@/errors/descriptors"), permissionFactory);
         Map<String, ErrorDescriptor> map = Maps.newLinkedHashMap();
         for (ErrorDescriptor errorDescriptor : errorDescriptors) {
             if (map.containsKey(errorDescriptor.getErrorCode())) {
@@ -50,7 +50,7 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
 
     @Override
     protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
-        securityManager.check(restxRequest, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+        securityManager.check(restxRequest, match, permissionFactory.hasRole(AdminModule.RESTX_ADMIN_ROLE));
         return Optional.of(errorDescriptors.values());
     }
 }

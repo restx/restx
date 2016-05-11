@@ -1,6 +1,7 @@
 package restx.security;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,19 +51,22 @@ public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler 
     private final RestxSession.Definition sessionDefinition;
     private final ObjectMapper mapper;
 	private final Signer signer;
-	private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
+    private final PermissionFactory permissionFactory;
+    private final RestxSessionCookieDescriptor restxSessionCookieDescriptor;
     private final RestxSession emptySession;
 
 	public RestxSessionCookieFilter(
 			RestxSession.Definition sessionDefinition,
 			@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper mapper,
 			@Named(COOKIE_SIGNER_NAME) Signer signer,
+            PermissionFactory permissionFactory,
 			RestxSessionCookieDescriptor restxSessionCookieDescriptor) {
 
 		this.sessionDefinition = sessionDefinition;
 		this.mapper = mapper;
 		this.signer = signer;
-		this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
+        this.permissionFactory = permissionFactory;
+        this.restxSessionCookieDescriptor = restxSessionCookieDescriptor;
 		this.emptySession = new RestxSession(sessionDefinition, ImmutableMap.<String, String>of(),
 				Optional.<RestxPrincipal>absent(), Duration.ZERO);
 	}
@@ -123,7 +127,7 @@ public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler 
             Optional<RestxPrincipal> principalOptional = RestxSession.getValue(
                     sessionDefinition, RestxPrincipal.class, RestxPrincipal.SESSION_DEF_KEY, principalName);
             if (principalOptional.isPresent()
-                    && Permissions.hasRole("restx-admin").has(principalOptional.get(), null).isPresent()) {
+                    && permissionFactory.hasRole("restx-admin").has(principalOptional.get(), Collections.<String,String>emptyMap()).isPresent()) {
                 Optional<String> su = req.getHeader("RestxSu");
                 if (su.isPresent() && !Strings.isNullOrEmpty(su.get())) {
                     try {

@@ -1,8 +1,6 @@
 package restx.annotations.processor;
 
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
+import com.google.common.base.*;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import com.samskivert.mustache.Template;
@@ -38,6 +36,8 @@ import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 })
 @SupportedOptions({ "debug" })
 public class RestxAnnotationProcessor extends RestxAbstractProcessor {
+    private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{(.+?)\\}");
+
     final Template routerTpl;
 
     private static final Function<Class,String> FQN_EXTRACTOR = new Function<Class,String>(){
@@ -118,7 +118,9 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             if (rolesAllowed != null) {
                 List<String> roles = new ArrayList<>();
                 for (String role : rolesAllowed.value()) {
-                    roles.add("hasRole(\"" + role + "\")");
+                    for(String wildcardedRole : generateWildcardRolesFor(role)){
+                        roles.add("hasRole(\"" + wildcardedRole + "\")");
+                    }
                 }
                 switch (roles.size()) {
                     case 0:
@@ -140,6 +142,39 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
         }
         return permission;
+    }
+
+    private static List<String> generateWildcardRolesFor(String role) {
+        String[] roleChunks = Splitter.on(ROLE_PARAM_INTERPOLATOR_REGEX).splitToList(role).toArray(new String[0]);
+
+        List<String> combinatorialInterpolatedRoles = new ArrayList<>();
+        if(roleChunks.length == 1){
+            combinatorialInterpolatedRoles.add(role);
+        } else {
+            List<ImmutableSet<String>> variablePotentialValues = new ArrayList<>();
+
+            // Generating cartesian product with [variableName, "*"] on every variables in role
+            // It will allow to check for wildcards on every variable chunk in role
+            Matcher matcher = ROLE_PARAM_INTERPOLATOR_REGEX.matcher(role);
+            while(matcher.find()) {
+                String variableName = matcher.group(1);
+                variablePotentialValues.add(ImmutableSet.of("*", "{"+variableName+"}"));
+            }
+
+            Set<List<String>> variableCombinations = Sets.cartesianProduct(variablePotentialValues);
+            for(List<String> variableCombination : variableCombinations){
+                StringBuilder interpolatedRole = new StringBuilder(roleChunks[0]);
+                int i=1;
+                for(String value : variableCombination){
+                    interpolatedRole.append(value).append(roleChunks[i]);
+                    i++;
+                }
+
+                combinatorialInterpolatedRoles.add(interpolatedRole.toString());
+            }
+        }
+
+        return combinatorialInterpolatedRoles;
     }
 
     private void buildResourceMethodParams(ResourceMethodAnnotation annotation, ResourceMethod resourceMethod) {
@@ -300,7 +335,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .put("method", resourceMethod.httpMethod)
                     .put("path", resourceMethod.path.replace("\\", "\\\\"))
                     .put("resource", resourceClass.name)
-                    .put("securityCheck", "securityManager.check(request, " + resourceMethod.permission + ");")
+                    .put("securityCheck", "securityManager.check(request, match, " + resourceMethod.permission + ");")
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("sourceLocation", resourceMethod.sourceLocation)

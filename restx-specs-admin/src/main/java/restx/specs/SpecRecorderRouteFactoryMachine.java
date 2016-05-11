@@ -6,6 +6,7 @@ import restx.AppSettings;
 import restx.RestxContext;
 import restx.admin.AdminPage;
 import restx.factory.*;
+import restx.security.PermissionFactory;
 import restx.security.RestxSecurityManager;
 
 @Machine
@@ -16,6 +17,7 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
     private static final Factory.Query<RestxSpecRecorder.Repository> recordedSpecRepo = Factory.Query.byClass(RestxSpecRecorder.Repository.class);
     private static final Factory.Query<RestxSpec.StorageSettings> storageSettings = Factory.Query.byClass(RestxSpec.StorageSettings.class).mandatory();
     private static final Factory.Query<RestxSecurityManager> securityManager = Factory.Query.byClass(RestxSecurityManager.class).mandatory();
+    private static final Factory.Query<PermissionFactory> permissionFactory = Factory.Query.byClass(PermissionFactory.class).mandatory();
     private static final Name<AdminPage> ADMIN_PAGE_NAME = Name.of(AdminPage.class, "Recorder");
 
     public SpecRecorderRouteFactoryMachine() {
@@ -34,7 +36,7 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
 
                 @Override
                 public BillOfMaterials getBillOfMaterial() {
-                    return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(recordedSpecRepo, storageSettings, securityManager));
+                    return new BillOfMaterials(ImmutableSet.<Factory.Query<?>>of(recordedSpecRepo, storageSettings, securityManager, permissionFactory));
                 }
 
                 @Override
@@ -46,7 +48,8 @@ public class SpecRecorderRouteFactoryMachine extends DefaultFactoryMachine {
                     return BoundlessComponentBox.FACTORY.of(new NamedComponent<>(RECORDER_ROUTE_NAME,
                             new SpecRecorderRoute(recorder.get().getComponent(),
                                     satisfiedBOM.getOneAsComponent(storageSettings).get(),
-                                    satisfiedBOM.getOneAsComponent(securityManager).get()
+                                    satisfiedBOM.getOneAsComponent(securityManager).get(),
+                                    satisfiedBOM.getOneAsComponent(permissionFactory).get()
                                     )));
                 }
 

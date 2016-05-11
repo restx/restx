@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.regex.Pattern;
 import restx.RestxContext;
 import restx.RestxFilter;
@@ -72,7 +73,7 @@ public class AdminModule {
     }
 
     @Provides
-    public RestxFilter adminRoleFilter() {
+    public RestxFilter adminRoleFilter(final PermissionFactory permissionFactory) {
         return new RestxFilter() {
             final Pattern privatePath = Pattern.compile("^/@/(?!(ui|webjars)/).*$");
 
@@ -86,7 +87,7 @@ public class AdminModule {
                                 public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
                                     final RestxSession current = RestxSession.current();
                                     if (current.getPrincipal().isPresent() &&
-                                            Permissions.hasRole(RESTX_ADMIN_ROLE).has(current.getPrincipal().get(), req).isPresent()) {
+                                            permissionFactory.hasRole(RESTX_ADMIN_ROLE).has(current.getPrincipal().get(), Collections.<String, String>emptyMap()).isPresent()) {
                                         ctx.nextHandlerMatch().handle(req, resp, ctx);
                                     } else {
                                         throw new WebException(HttpStatus.UNAUTHORIZED);

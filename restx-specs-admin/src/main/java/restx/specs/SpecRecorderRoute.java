@@ -1,14 +1,12 @@
 package restx.specs;
 
-import static restx.security.Permissions.hasRole;
-
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
 import restx.admin.AdminModule;
+import restx.security.PermissionFactory;
 import restx.security.RestxSecurityManager;
 
 import java.io.File;
@@ -23,13 +21,14 @@ import java.util.List;
 public class SpecRecorderRoute extends RestxRouter {
     public SpecRecorderRoute(final RestxSpecRecorder.Repository recordedSpecsRepository,
                              final RestxSpec.StorageSettings storageSettings,
-                             final RestxSecurityManager securityManager) {
+                             final RestxSecurityManager securityManager,
+                             final PermissionFactory permissionFactory) {
         super("SpecRecorderRouter",
                 new ResourcesRoute("RecorderUIRoute", "/@/ui/recorder/", "restx.specs.recorder", ImmutableMap.of("", "index.html")),
                 new StdRoute("RecorderRoute", new StdRestxRequestMatcher("GET", "/@/recorders")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+                        securityManager.check(req, match, permissionFactory.hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         resp.setContentType("application/json");
                         List<String> data = Lists.newArrayList();
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
@@ -48,7 +47,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecord", new StdRestxRequestMatcher("GET", "/@/recorders/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+                        securityManager.check(req, match, permissionFactory.hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {
@@ -65,7 +64,7 @@ public class SpecRecorderRoute extends RestxRouter {
                 new StdRoute("RecorderRecordStorage", new StdRestxRequestMatcher("POST", "/@/recorders/storage/{id}")) {
                     @Override
                     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-                        securityManager.check(req, hasRole(AdminModule.RESTX_ADMIN_ROLE));
+                        securityManager.check(req, match, permissionFactory.hasRole(AdminModule.RESTX_ADMIN_ROLE));
                         int id = Integer.parseInt(match.getPathParam("id"));
                         for (RestxSpecRecorder.RecordedSpec spec : recordedSpecsRepository.getRecordedSpecs()) {
                             if (spec.getId() == id) {

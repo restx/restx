@@ -12,7 +12,7 @@ import restx.entity.*;
 import restx.http.*;
 import restx.factory.*;
 import restx.security.*;
-import static restx.security.Permissions.*;
+import restx.security.PermissionFactory;
 import restx.description.*;
 import restx.converters.MainStringConverter;
 import static restx.common.MorePreconditions.checkPresent;
@@ -32,6 +32,7 @@ public class {{router}} extends RestxRouter {
                     final EntityRequestBodyReaderRegistry readerRegistry,
                     final EntityResponseWriterRegistry writerRegistry,
                     final MainStringConverter converter,
+                    final PermissionFactory pf,
                     final Optional<Validator> validator,
                     final RestxSecurityManager securityManager) {
         super(
@@ -41,7 +42,7 @@ public class {{router}} extends RestxRouter {
                 readerRegistry.<{{inEntity}}>build({{inEntityType}}, {{inContentType}}),
                 writerRegistry.<{{outEntity}}>build({{outEntityType}}, {{outContentType}}),
                 new StdRestxRequestMatcher("{{method}}", "{{path}}"),
-                HttpStatus.{{successStatusName}}, RestxLogLevel.{{logLevelName}}) {
+                HttpStatus.{{successStatusName}}, RestxLogLevel.{{logLevelName}}, pf) {
             @Override
             protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {
                 {{securityCheck}}
