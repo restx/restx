@@ -86,6 +86,7 @@ public class NewAppTest {
                 mavenVerifier.setEnvironmentVariable("JAVA_HOME", javaHome);
             }
         }
+        mavenVerifier.addCliOption("--offline");
         mavenVerifier.executeGoal("package");
         mavenVerifier.verifyErrorFreeLog();
     }
