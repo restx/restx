@@ -89,7 +89,7 @@ public class RestxRouter {
         }
 
         /**
-         * @deprecated Prefer to use addRoute(String, RestxRequestMatcher, PermissionFactory, Class<O>, MatchedEntityRoute<Void, O>)
+         * @deprecated Prefer to use addRoute(String, RestxRequestMatcher, PermissionFactory, Class&lt;O&gt;, MatchedEntityRoute&lt;Void, O&gt;)
          * in order to avoid NPEs when checking permissions through permissionFactory
          */
         public <O> Builder addRoute(String name, RestxRequestMatcher matcher, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
