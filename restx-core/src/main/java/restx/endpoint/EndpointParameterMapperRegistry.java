@@ -2,6 +2,8 @@ package restx.endpoint;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
+import restx.endpoint.mappers.EndpointParameterMapper;
+import restx.endpoint.mappers.EndpointParameterMapperFactory;
 import restx.factory.Component;
 
 @Component

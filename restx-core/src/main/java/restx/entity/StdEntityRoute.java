@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import restx.*;
 import restx.endpoint.*;
+import restx.endpoint.mappers.EndpointParameterMapper;
 import restx.factory.ParamDef;
 import restx.http.HttpStatus;
 import restx.security.Permission;

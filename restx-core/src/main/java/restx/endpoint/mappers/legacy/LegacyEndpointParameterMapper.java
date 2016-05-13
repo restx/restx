@@ -1,13 +1,12 @@
-package restx.endpoint.legacy;
+package restx.endpoint.mappers.legacy;
 
 import com.google.common.base.Optional;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
-import restx.common.Types;
 import restx.converters.MainStringConverter;
 import restx.endpoint.EndpointParamDef;
 import restx.endpoint.EndpointParameterKind;
-import restx.endpoint.EndpointParameterMapper;
+import restx.endpoint.mappers.EndpointParameterMapper;
 import restx.factory.Component;
 
 /**

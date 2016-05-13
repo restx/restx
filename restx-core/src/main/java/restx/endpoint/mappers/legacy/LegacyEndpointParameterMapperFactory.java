@@ -1,15 +1,15 @@
-package restx.endpoint.legacy;
+package restx.endpoint.mappers.legacy;
 
 import com.google.common.base.Optional;
 import restx.endpoint.EndpointParamDef;
-import restx.endpoint.EndpointParameterMapper;
-import restx.endpoint.EndpointParameterMapperFactory;
+import restx.endpoint.mappers.EndpointParameterMapper;
+import restx.endpoint.mappers.EndpointParameterMapperFactory;
 import restx.factory.Component;
 
 /**
  * @author fcamblor
  */
-@Component
+@Component(priority = 1000)
 public class LegacyEndpointParameterMapperFactory implements EndpointParameterMapperFactory {
 
     private final LegacyEndpointParameterMapper legacyEndpointParameterMapper;
