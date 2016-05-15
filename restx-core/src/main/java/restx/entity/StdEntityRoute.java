@@ -22,12 +22,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Time: 8:10 AM
  */
 public abstract class StdEntityRoute<I,O> extends StdRoute {
-    protected static final Supplier<Iterable> EMPTY_ITERABLE_SUPPLIER = new Supplier<Iterable>() {
-        @Override
-        public Iterable get() {
-            return Collections.emptyList();
-        }
-    };
     protected static final Supplier<List> EMPTY_LIST_SUPPLIER = new Supplier<List>() {
         @Override
         public List get() {
@@ -37,6 +31,18 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     protected static final Supplier<Set> EMPTY_SET_SUPPLIER = new Supplier<Set>() {
         @Override
         public Set get() {
+            return Collections.emptySet();
+        }
+    };
+    protected static final Supplier<Iterable> EMPTY_ITERABLE_SUPPLIER = new Supplier<Iterable>() {
+        @Override
+        public Iterable get() {
+            return Collections.emptyList();
+        }
+    };
+    protected static final Supplier<Collection> EMPTY_COLLECTION_SUPPLIER = new Supplier<Collection>() {
+        @Override
+        public Collection get() {
             return Collections.emptySet();
         }
     };

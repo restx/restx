@@ -1,10 +1,13 @@
 package restx.annotations.processor;
 
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Optional;
+import restx.common.AggregateType;
 import restx.endpoint.EndpointParameterKind;
 
-import java.util.List;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author fcamblor
@@ -21,43 +24,19 @@ public class ParameterExpressionBuilder {
         this.kind = kind;
     }
 
-    private static enum IterableInterface {
-        ITERABLE(Iterable.class.getCanonicalName()) {
+    private static final Map<AggregateType, Function<String, String>> EMPTY_AGGREGATE_FUNCTIONS = new HashMap<AggregateType, Function<String, String>>(){{
+        // These (Function) casts are ugly, I know, but read https://github.com/google/guava/issues/1927
+        put(AggregateType.ITERABLE, (Function) Functions.constant("EMPTY_ITERABLE_SUPPLIER"));
+        put(AggregateType.LIST, (Function) Functions.constant("EMPTY_LIST_SUPPLIER"));
+        put(AggregateType.SET, (Function) Functions.constant("EMPTY_SET_SUPPLIER"));
+        put(AggregateType.COLLECTION, (Function) Functions.constant("EMPTY_COLLECTION_SUPPLIER"));
+        put(AggregateType.ARRAY, new Function<String, String>() {
             @Override
-            String generateEmptyIterableExpr() {
-                return "EMPTY_ITERABLE_SUPPLIER";
+            public String apply(String fqcn) {
+                return "Suppliers.ofInstance(new "+fqcn+"{})";
             }
-        },
-        LIST(List.class.getCanonicalName()) {
-            @Override
-            String generateEmptyIterableExpr() {
-                return "EMPTY_LIST_SUPPLIER";
-            }
-        },
-        SET(Set.class.getCanonicalName()) {
-            @Override
-            String generateEmptyIterableExpr() {
-                return "EMPTY_SET_SUPPLIER";
-            }
-        };
-
-        private String fqcn;
-        private IterableInterface(String fqcn) {
-            this.fqcn = fqcn;
-        }
-
-        abstract String generateEmptyIterableExpr();
-
-        static Optional<IterableInterface> fromType(String fqcn) {
-            for(IterableInterface iterableInterface : values()){
-                if(fqcn.startsWith(iterableInterface.fqcn)) {
-                    return Optional.of(iterableInterface);
-                }
-            }
-
-            return Optional.absent();
-        }
-    }
+        });
+    }};
 
     public ParameterExpressionBuilder surroundWithCheckValid(
             RestxAnnotationProcessor.ResourceMethodParameter parameter) {
@@ -65,10 +44,9 @@ public class ParameterExpressionBuilder {
         boolean isOptionalType = parameter.guavaOptional || parameter.java8Optional;
         // If we don't have any optional type, we should check for non nullity *before* calling checkValid()
         if(!isOptionalType) {
-            // In case we're on an iterable interface, parameterExpr will always return a non-null value
-            // so we don't need to add checkNotNull() check on this
-            Optional<IterableInterface> iterableInterface = IterableInterface.fromType(parameter.type);
-            if(iterableInterface.isPresent()) {
+            // In case we're on an aggregate interface, parameterExpr will always return a non-null value
+            // (see createFromMapQueryObjectFromRequest() method) so we don't need to add checkNotNull() check on this
+            if(AggregateType.isAggregate(parameter.type)) {
             } else {
                 // If not an iterable type, ensuring target value is set
                 this.parameterExpr = String.format(
@@ -116,7 +94,15 @@ public class ParameterExpressionBuilder {
 
         // We should check if target type is an iterable interface : in that case, we should
         // instantiate an empty iterable instead of null value if data is missing in request
-        Optional<IterableInterface> iterableInterface = IterableInterface.fromType(parameter.type);
+        Optional<AggregateType> aggregateType = AggregateType.fromType(parameter.type);
+        String emptySupplierParam = "";
+        if(aggregateType.isPresent()) {
+            Function<String, String> fqcnToEmptyAggregateTransformer = EMPTY_AGGREGATE_FUNCTIONS.get(aggregateType.get());
+            if(fqcnToEmptyAggregateTransformer == null) {
+                throw new IllegalStateException("Missing EMPTY_AGGREGATE_FUNCTIONS entry for aggregate type "+aggregateType.get().name());
+            }
+            emptySupplierParam = ", "+fqcnToEmptyAggregateTransformer.apply(parameter.type);
+        }
 
         return new ParameterExpressionBuilder(String.format(
             "%smapQueryObjectFromRequest(%s.class, \"%s\", request, match, EndpointParameterKind.%s%s)",
@@ -124,7 +110,7 @@ public class ParameterExpressionBuilder {
             TypeHelper.rawTypeFrom(parameter.type),
             parameter.reqParamName,
             kind.name(),
-            iterableInterface.isPresent()?", "+iterableInterface.get().generateEmptyIterableExpr():""
+            emptySupplierParam
         ), kind.name());
     }
 }
