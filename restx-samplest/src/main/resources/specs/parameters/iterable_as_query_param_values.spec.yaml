@@ -1,0 +1,36 @@
+title: Iterable as query params values
+given:
+  - time: 2014-12-24T17:01:21.795+02:00
+wts:
+  - when: |
+       GET params/iterableStringParams?params=1&otherParams=2&params=3&otherParams=4
+    then: |
+       [ "1", "3", "2", "4" ]
+  - when: |
+       GET params/iterableStringParams
+    then: |
+       [ ]
+  - when: |
+       GET params/iterableStringParams?params=2014-10-08T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200&otherParams=2014-10-07T10:11:12%2B0200
+    then: |
+       [ "2014-10-08T10:11:12+0200", "2014-10-09T10:11:12+0200", "2014-10-07T10:11:12+0200" ]
+  - when: |
+       GET params/optionalIterableStringParams?params=2014-10-08T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200&otherParams=2014-10-07T10:11:12%2B0200
+    then: |
+       [ "2014-10-08T10:11:12+0200", "2014-10-09T10:11:12+0200", "2014-10-07T10:11:12+0200" ]
+  - when: |
+       GET params/optionalIterableStringParams
+    then: |
+       [ ]
+  - when: |
+       GET params/iterableJodaDatesParams?params=2014-10-08T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200&otherParams=2014-10-07T10:11:12%2B0200
+    then: |
+       [ "2014-10-08T08:11:12.000Z", "2014-10-09T08:11:12.000Z", "2014-10-07T08:11:12.000Z" ]
+  - when: |
+       GET params/optionalIterableJodaDatesParams?params=2014-10-08T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200&otherParams=2014-10-07T10:11:12%2B0200
+    then: |
+       [ "2014-10-08T08:11:12.000Z", "2014-10-09T08:11:12.000Z", "2014-10-07T08:11:12.000Z" ]
+  - when: |
+       GET params/optionalIterableJodaDatesParams
+    then: |
+       [ ]

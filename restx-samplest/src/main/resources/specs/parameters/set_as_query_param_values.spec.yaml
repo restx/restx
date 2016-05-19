@@ -1,0 +1,20 @@
+title: Set as query params values
+given:
+  - time: 2014-12-24T17:01:21.795+02:00
+wts:
+  - when: |
+       GET params/setStringParams?params=1&otherParams=2&params=3&otherParams=4&otherParams=1&params=1
+    then: |
+       [ "3", "1", "2", "4" ]
+  - when: |
+       GET params/setStringParams
+    then: |
+       [ ]
+  - when: |
+       GET params/setStringParams?params=2014-10-08T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200
+    then: |
+       [ "2014-10-08T10:11:12+0200", "2014-10-09T10:11:12+0200" ]
+  - when: |
+       GET params/setJodaDatesParams?params=2014-10-08T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200&otherParams=2014-10-09T10:11:12%2B0200
+    then: |
+       [ "2014-10-08T08:11:12.000Z", "2014-10-09T08:11:12.000Z" ]
