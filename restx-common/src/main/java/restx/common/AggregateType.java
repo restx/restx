@@ -5,6 +5,9 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
 
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -88,5 +91,15 @@ public enum AggregateType {
 
     public static boolean isAggregate(String fqcn) {
         return fromType(fqcn).isPresent();
+    }
+
+    public static Class aggregatedTypeOf(Type type) {
+        if(type instanceof ParameterizedType) {
+            return (Class)((ParameterizedType)type).getActualTypeArguments()[0];
+        } else if(type instanceof Class && ((Class)type).isArray()){
+            return ((Class)type).getComponentType();
+        } else {
+            throw new IllegalArgumentException("Call to aggregatedTypeOf() is not supported for type : "+type);
+        }
     }
 }
