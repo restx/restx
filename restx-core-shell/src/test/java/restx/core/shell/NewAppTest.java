@@ -86,7 +86,9 @@ public class NewAppTest {
                 mavenVerifier.setEnvironmentVariable("JAVA_HOME", javaHome);
             }
         }
-        mavenVerifier.addCliOption("--offline");
+        if(System.getProperty("skip-offline") == null) {
+            mavenVerifier.addCliOption("--offline");
+        }
         mavenVerifier.executeGoal("package");
         mavenVerifier.verifyErrorFreeLog();
     }
