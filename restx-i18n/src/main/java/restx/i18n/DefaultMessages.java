@@ -55,9 +55,14 @@ public class DefaultMessages extends AbstractMessages implements Messages {
     }
 
     @Override
-    public Iterable<String> keys() {
-        Optional<ResourceBundle> bundle = getBundle(Locale.ROOT);
+    public Iterable<String> keys(Locale locale) {
+        Optional<ResourceBundle> bundle = getBundle(locale);
         return bundle.isPresent() ? Ordering.natural().sortedCopy(bundle.get().keySet()) : Collections.<String>emptySet();
+    }
+
+    @Override
+    public Iterable<String> keys() {
+        return keys(Locale.ROOT);
     }
 
     @Override

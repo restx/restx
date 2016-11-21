@@ -9,6 +9,14 @@ import java.util.Map.Entry;
  */
 public interface Messages {
     /**
+     * Return the list of message keys available in this Messages instance, for given Locale
+     *
+     * @param locale the locale in which the keys should be resolved.
+     * @return the list of keys, as an Iterable
+     */
+    Iterable<String> keys(Locale locale);
+
+    /**
      * Return the list of message keys available in this Messages instance.
      *
      * @return the list of keys, as an Iterable
