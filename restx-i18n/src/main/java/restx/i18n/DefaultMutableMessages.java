@@ -32,6 +32,7 @@ public class DefaultMutableMessages extends DefaultMessages implements MutableMe
         }
         MutablePropertyResourceBundle bundle = (MutablePropertyResourceBundle) b.get();
         bundle.setMessageTemplate(key, messageTemplate);
+        invalidateCachedKeysFor(locale);
         return this;
     }
 
