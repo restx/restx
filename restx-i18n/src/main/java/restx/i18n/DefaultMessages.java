@@ -1,6 +1,9 @@
 package restx.i18n;
 
 import com.google.common.base.Optional;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Ordering;
 import com.google.common.io.Resources;
 import com.samskivert.mustache.Mustache;
@@ -31,6 +34,13 @@ import java.util.Set;
 public class DefaultMessages extends AbstractMessages implements Messages {
     private final String baseName;
     private final Charset charset;
+    private final LoadingCache<Locale, Iterable<String>> cachedKeysByLocale = CacheBuilder.newBuilder().build(new CacheLoader<Locale, Iterable<String>>() {
+        @Override
+        public Iterable<String> load(Locale locale) throws Exception {
+            Optional<ResourceBundle> bundle = getBundle(locale);
+            return bundle.isPresent() ? Ordering.natural().sortedCopy(bundle.get().keySet()) : Collections.<String>emptySet();
+        }
+    });
 
     public DefaultMessages(String baseName) {
         this(baseName, StandardCharsets.UTF_8);
@@ -56,8 +66,11 @@ public class DefaultMessages extends AbstractMessages implements Messages {
 
     @Override
     public Iterable<String> keys(Locale locale) {
-        Optional<ResourceBundle> bundle = getBundle(locale);
-        return bundle.isPresent() ? Ordering.natural().sortedCopy(bundle.get().keySet()) : Collections.<String>emptySet();
+        return cachedKeysByLocale.getUnchecked(locale);
+    }
+
+    protected void invalidateCachedKeysFor(Locale locale) {
+        cachedKeysByLocale.invalidate(locale);
     }
 
     @Override
