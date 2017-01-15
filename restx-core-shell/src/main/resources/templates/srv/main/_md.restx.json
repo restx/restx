@@ -17,9 +17,6 @@
     },
     "dependencies": {
         "compile": [
-{{#useSrvuiLayout}}
-            "{{groupId}}:{{artifactId}}-ui:{{version}}:zip",
-{{/useSrvuiLayout}}
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-security-basic:${restx.version}",
             "io.restx:restx-core-annotation-processor:${restx.version}",
