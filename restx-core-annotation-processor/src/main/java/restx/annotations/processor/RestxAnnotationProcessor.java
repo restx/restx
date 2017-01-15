@@ -20,6 +20,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.*;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,7 +60,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         for (ResourceMethodAnnotation annotation : getResourceMethodAnnotationsInRound(roundEnv)) {
             try {
                 TypeElement typeElem = (TypeElement) annotation.methodElem.getEnclosingElement();
-                RestxResource r = typeElem.getAnnotation(RestxResource.class);
+                ResourceClassDef r = getResourceClassDef(typeElem);
                 if (r == null) {
                     error(
                         String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
@@ -85,7 +86,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
                 ResourceMethod resourceMethod = new ResourceMethod(
                         resourceClass,
-                        annotation.httpMethod, r.value() + annotation.path,
+                        annotation.httpMethod, r.value + annotation.path,
                         annotation.methodElem.getSimpleName().toString(),
                         annotation.methodElem.getReturnType().toString(),
                         successStatus, logLevel, permission,
@@ -106,6 +107,19 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             generateFiles(groups, modulesListOriginatingElements);
         }
         return true;
+    }
+
+    protected ResourceClassDef getResourceClassDef(TypeElement typeElem) {
+        RestxResource r = typeElem.getAnnotation(RestxResource.class);
+        ResourceClassDef resourceClassDef = new ResourceClassDef();
+        resourceClassDef.value = r.value();
+        resourceClassDef.priority = r.priority();
+        resourceClassDef.group = r.group();
+        return resourceClassDef;
+    }
+
+    protected Class<? extends Annotation> getRestAnnotationClass() {
+        return RestxResource.class;
     }
 
     private String buildPermission(ResourceMethodAnnotation annotation, TypeElement typeElem) {
@@ -228,21 +242,21 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private ResourceGroup getResourceGroup(RestxResource r, Map<String, ResourceGroup> groups) {
-        ResourceGroup group = groups.get(r.group());
+    private ResourceGroup getResourceGroup(ResourceClassDef r, Map<String, ResourceGroup> groups) {
+        ResourceGroup group = groups.get(r.group);
         if (group == null) {
-            groups.put(r.group(), group = new ResourceGroup(r.group()));
+            groups.put(r.group, group = new ResourceGroup(r.group));
         }
         return group;
     }
 
-    private ResourceClass getResourceClass(TypeElement typeElem, RestxResource r, ResourceGroup group, Set<Element> modulesListOriginatingElements) {
+    private ResourceClass getResourceClass(TypeElement typeElem, ResourceClassDef r, ResourceGroup group, Set<Element> modulesListOriginatingElements) {
         String fqcn = typeElem.getQualifiedName().toString();
         ResourceClass resourceClass = group.resourceClasses.get(fqcn);
         if (resourceClass == null) {
             modulesListOriginatingElements.add(typeElem);
             When when = typeElem.getAnnotation(When.class);
-            group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn, r.priority(),
+            group.resourceClasses.put(fqcn, resourceClass = new ResourceClass(group, fqcn, r.priority,
                     when == null ? ""
                             : ("@restx.factory.When(name=\"" + when.name() + "\", value=\"" + when.value() + "\")")));
             resourceClass.originatingElements.add(typeElem);
@@ -406,7 +420,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
     private Collection<ResourceMethodAnnotation> getResourceMethodAnnotationsInRound(RoundEnvironment roundEnv) {
         Collection<ResourceMethodAnnotation> methodAnnotations = Lists.newArrayList();
-        for (Element resourceElem : roundEnv.getElementsAnnotatedWith(RestxResource.class)) {
+        for (Element resourceElem : roundEnv.getElementsAnnotatedWith(getRestAnnotationClass())) {
             if (! (resourceElem instanceof TypeElement)) {
                 error(
                     String.format("Only a class can be annotated with @RestxResource. Found %s",
@@ -465,6 +479,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         ResourceGroup(String name) {
             this.name = name;
         }
+    }
+
+    public static class ResourceClassDef {
+        public String value;
+        public String group;
+        public int priority;
     }
 
     private static class ResourceClass {
