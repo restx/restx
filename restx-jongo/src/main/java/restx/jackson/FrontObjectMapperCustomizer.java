@@ -41,7 +41,7 @@ public class FrontObjectMapperCustomizer extends SingleComponentNameCustomizerEn
 
             @Override
             public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a) {
-                Class<? extends JsonDeserializer<?>> deserializer = super.findDeserializer(a);
+                Class<? extends JsonDeserializer<?>> deserializer = (Class<? extends JsonDeserializer<?>>) super.findDeserializer(a);
                 if (ObjectIdDeserializer.class == deserializer
                         || FixedPrecisionDeserializer.class == deserializer) {
                     return null;

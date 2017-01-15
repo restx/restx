@@ -60,7 +60,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
 
         <!-- 3rd party libs -->
-        <jackson.version>2.3.3</jackson.version>
+        <jackson.version>2.8.6</jackson.version>
         <guava.version>18.0</guava.version>
         <joda-time.version>2.3</joda-time.version>
         <jna.version>3.2.7</jna.version>
