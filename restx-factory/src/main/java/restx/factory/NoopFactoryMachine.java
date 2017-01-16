@@ -1,5 +1,6 @@
 package restx.factory;
 
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
 
@@ -23,7 +24,7 @@ public class NoopFactoryMachine implements FactoryMachine {
     }
 
     @Override
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
+    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
         return Collections.emptySet();
     }
 

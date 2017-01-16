@@ -1,5 +1,8 @@
 package restx.common.processor;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -12,6 +15,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -26,6 +30,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -97,6 +102,42 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
         return (TypeElement)TypeUtils.asElement(typeMirror);
     }
 
+    /**
+     * Permits to generate a String to create the specified type in a template file.
+     * For example a classic class type, like java.lang.String will produce: "java.lang.String.class".
+     * For parameterized types, for example {@code Foo<Bar>} the produced result will be:
+     * "Types.newParameterizedType(Foo.class, Bar.class)"
+     *
+     * @param typeMirror the type to serialize
+     * @return the serialized type (ready to be used in a template file)
+     */
+    protected String toSerializedType(TypeMirror typeMirror) {
+        if (typeMirror instanceof DeclaredType) {
+            DeclaredType type = (DeclaredType) typeMirror;
+
+            // not a parameterized type...
+            if (type.getTypeArguments().isEmpty()) {
+                return type.toString() + ".class";
+            }
+
+            // parameterized type...
+            StringBuilder serialized = new StringBuilder();
+            serialized.append("Types.newParameterizedType(");
+            serialized.append(asTypeElement(typeMirror).getQualifiedName()).append(".class, ");
+            Joiner.on(", ").appendTo(serialized, Iterables.transform(type.getTypeArguments(), new Function<TypeMirror, String>() {
+                @Override
+                public String apply(TypeMirror input) {
+                    // recursively serialize parameterized types
+                    return toSerializedType(input);
+                }
+            }));
+            serialized.append(")");
+            return serialized.toString();
+        } else {
+            // fall back, for other type like TypeVar, just print the class
+            return typeMirror.toString() + ".class";
+        }
+    }
 
     protected void generateJavaClass(String className, Template mustache, ImmutableMap<String, Object> ctx,
                                      Element originatingElements) throws IOException {
@@ -231,4 +272,31 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
 			}
 		}
 	}
+
+    /**
+     * Checks of the TypeMirror has the same raw type as the specified class.
+     *
+     * @param typeMirror the type mirror
+     * @param clazz the class
+     * @return true if both have the same raw type
+     */
+    public static boolean isClass(TypeMirror typeMirror, Class clazz) {
+        return typeMirror.toString().startsWith(clazz.getCanonicalName());
+    }
+
+    /**
+     * Checks if the TypeMirror has the same raw type as one of the specified class array.
+     *
+     * @param typeMirror the type mirror
+     * @param classes the classes
+     * @return true if one of the classes has the same type as the type mirror's type.
+     */
+    public static boolean isClass(final TypeMirror typeMirror, Class... classes) {
+        for (Class aClass : classes) {
+            if (isClass(typeMirror, aClass)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

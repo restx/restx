@@ -3,6 +3,7 @@ package restx.factory;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 
+import java.lang.reflect.Type;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -30,8 +31,8 @@ public class SystemPropertyFactoryMachine implements FactoryMachine {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-        if (componentClass != String.class) {
+    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
+        if (componentType != String.class) {
             return emptySet();
         }
         Set<Name<T>> names = new LinkedHashSet<>();

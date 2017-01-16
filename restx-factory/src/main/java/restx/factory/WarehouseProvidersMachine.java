@@ -6,8 +6,10 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
+import java.lang.reflect.Type;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import restx.common.Types;
 
 /**
  * Date: 16/11/13
@@ -95,11 +97,11 @@ public class WarehouseProvidersMachine implements FactoryMachine {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
+    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
         Set<Name<T>> names = new LinkedHashSet<>();
         for (Warehouse provider : providers) {
             for (Name<?> name : provider.listNames()) {
-                if (componentClass.isAssignableFrom(name.getClazz())) {
+                if (Types.isAssignableFrom(componentType, name.getType())) {
                     names.add((Name<T>) name);
                 }
             }

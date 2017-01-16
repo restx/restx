@@ -14,7 +14,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Date: 23/10/13
@@ -37,7 +39,65 @@ public class Types {
             public Type getOwnerType() {
                 return rawType.getEnclosingClass();
             }
-        };
+
+			@Override
+			public int hashCode() {
+				return Objects.hashCode(getOwnerType())
+						^ Objects.hashCode(rawType)
+						^ Arrays.hashCode(arguments);
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (obj instanceof ParameterizedType) {
+					ParameterizedType type = (ParameterizedType) obj;
+					return Objects.equals(type.getOwnerType(), getOwnerType())
+							&& Objects.equals(type.getRawType(), rawType)
+							&& Arrays.equals(type.getActualTypeArguments(), arguments);
+				}
+				return false;
+			}
+
+			@Override
+			public String toString() {
+				StringBuilder sb = new StringBuilder();
+				Type ownerType = getOwnerType();
+				if (ownerType != null) {
+					if (ownerType instanceof Class) {
+						sb.append(((Class) ownerType).getName());
+					} else {
+						sb.append(ownerType.toString());
+					}
+
+					sb.append(".");
+					if (ownerType instanceof ParameterizedType) {
+
+						sb.append(rawType.getName().replace(((Class) ((ParameterizedType) ownerType).getRawType()).getName() + "$", ""));
+					} else {
+						sb.append(rawType.getName());
+					}
+				} else {
+					sb.append(rawType.getName());
+				}
+
+				if (arguments != null && arguments.length > 0) {
+					sb.append("<");
+					boolean first = true;
+
+					for (Type current : arguments) {
+						if (!first) {
+							sb.append(", ");
+						}
+						sb.append(current.toString()); // getTypeName() in jse8
+						first = false;
+					}
+
+					sb.append(">");
+				}
+
+				return sb.toString();
+			}
+		};
     }
 
 	/**

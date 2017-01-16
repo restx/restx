@@ -3,7 +3,9 @@ package restx.factory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
+import java.lang.reflect.Type;
 import java.util.Set;
+import restx.common.Types;
 
 /**
  * User: xavierhanin
@@ -37,10 +39,10 @@ public class DefaultFactoryMachine implements FactoryMachine {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
+    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
         Set<Name<T>> names = Sets.newHashSet();
         for (Name<?> name : engines.keySet()) {
-            if (componentClass.isAssignableFrom(name.getClazz())) {
+            if (Types.isAssignableFrom(componentType, name.getType())) {
                 names.add((Name<T>) name);
             }
         }

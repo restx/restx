@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,8 +109,9 @@ public class FactoryMachineWrapper implements FactoryMachine {
         return original.getEngine(name);
     }
 
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-        return original.nameBuildableComponents(componentClass);
+	@Override
+    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
+        return original.nameBuildableComponents(componentType);
     }
 
     @Override

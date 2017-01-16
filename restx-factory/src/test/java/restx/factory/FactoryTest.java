@@ -1,14 +1,18 @@
 package restx.factory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static restx.factory.Factory.LocalMachines.threadLocal;
+
+
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Test;
 
+import java.lang.reflect.Type;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.*;
-import static restx.factory.Factory.LocalMachines.threadLocal;
+import restx.common.TypeReference;
 
 /**
  * User: xavierhanin
@@ -44,6 +48,201 @@ public class FactoryTest {
         assertThat(component.get().getComponent()).isEqualTo("value1");
 
         assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get()).isEqualTo(component.get());
+    }
+
+    @Test
+    public void should_permit_to_query_component_by_name_using_types() throws Exception {
+        Factory factory = Factory.builder().addMachine(testMachine()).build();
+
+        // the cast permit to force the use of the name with Type signature
+        Name<String> name = Name.of((Type) String.class, "test");
+        Optional<NamedComponent<String>> component = factory.queryByName(name).findOne();
+
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName()).isEqualTo(Name.of(String.class, "test"));
+        assertThat(component.get().getComponent()).isEqualTo("value1");
+
+        assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get()).isEqualTo(component.get());
+    }
+
+    @Test
+    public void should_permit_to_query_component_by_types() throws Exception {
+        Factory factory = Factory.builder().addMachine(testMachine()).build();
+
+        // first test the query by type signature with the Type
+        Optional<NamedComponent<String>> component = factory.<String>queryByType(String.class).findOne();
+
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName()).isEqualTo(Name.of(String.class, "test"));
+        assertThat(component.get().getComponent()).isEqualTo("value1");
+
+        assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get()).isEqualTo(component.get());
+
+        // the signature with raw type and types args might not be tested here, as String is not a parameterized type
+
+        // finally with type reference
+        component = factory.queryByType(new TypeReference<String>() {}).findOne();
+
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName()).isEqualTo(Name.of(String.class, "test"));
+        assertThat(component.get().getComponent()).isEqualTo("value1");
+
+        assertThat(factory.queryByName(Name.of(String.class, "test")).findOne().get()).isEqualTo(component.get());
+    }
+
+    @Test
+    public void should_permit_to_query_generic_components_using_types() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic"))
+                .addMachine(testGenericIntegerMachine("generic"))
+                .build();
+
+        Optional<NamedComponent<GenericHolder<String>>> component = factory.<GenericHolder<String>>queryByType(GenericHolder.class, String.class).findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("generic");
+        assertThat(component.get().getComponent().getValue()).isEqualTo("foo");
+
+        Optional<NamedComponent<GenericHolder<Integer>>> component2 = factory.<GenericHolder<Integer>>queryByType(GenericHolder.class, Integer.class).findOne();
+        assertThat(component2.isPresent()).isTrue();
+        assertThat(component2.get().getName().getName()).isEqualTo("generic");
+        assertThat(component2.get().getComponent().getValue()).isEqualTo(42);
+
+        Optional<NamedComponent<GenericHolder<Integer>>> component3 = factory.queryByType(new TypeReference<GenericHolder<Integer>>() {}).findOne();
+        assertThat(component3.isPresent()).isTrue();
+        assertThat(component3.get().getName().getName()).isEqualTo("generic");
+        assertThat(component3.get().getComponent().getValue()).isEqualTo(42);
+    }
+
+    @Test
+    public void should_permit_to_query_generic_components_using_types_with_shortcuts_methods() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic"))
+                .addMachine(testGenericIntegerMachine("generic"))
+                .build();
+
+        GenericHolder<Integer> componentInteger = factory.getComponent(new TypeReference<GenericHolder<Integer>>() {});
+        assertThat(componentInteger.getValue()).isEqualTo(42);
+
+        GenericHolder<String> componentString = factory.getComponent(new TypeReference<GenericHolder<String>>() {});
+        assertThat(componentString.getValue()).isEqualTo("foo");
+
+        // now query multiple components
+        factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic1"))
+                .addMachine(testGenericStringMachine("generic2"))
+                .build();
+
+        Set<GenericHolder<String>> components = factory.getComponents(new TypeReference<GenericHolder<String>>() {});
+        assertThat(components).hasSize(2);
+
+        try {
+            factory.getComponent(new TypeReference<GenericHolder<String>>() {});
+            fail("should throw exception, as two component were available for the type");
+        } catch (Factory.UnsatisfiedDependenciesException ignored) {}
+    }
+
+    @Test
+     public void should_permit_to_query_generic_components_using_names() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic"))
+                .addMachine(testGenericIntegerMachine("generic"))
+                .build();
+
+        Optional<NamedComponent<GenericHolder<String>>> component = factory.queryByName(Name.<GenericHolder<String>>of("generic", GenericHolder
+                .class, String.class)).findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("generic");
+        assertThat(component.get().getComponent().getValue()).isEqualTo("foo");
+
+        Optional<NamedComponent<GenericHolder<Integer>>> component2 = factory.queryByName(Name.<GenericHolder<Integer>>of("generic", GenericHolder
+                .class, Integer.class)).findOne();
+        assertThat(component2.isPresent()).isTrue();
+        assertThat(component2.get().getName().getName()).isEqualTo("generic");
+        assertThat(component2.get().getComponent().getValue()).isEqualTo(42);
+
+        Optional<NamedComponent<GenericHolder<Integer>>> component3 = factory.queryByName(Name.of(new TypeReference<GenericHolder<Integer>>() {
+        }, "generic")).findOne();
+        assertThat(component3.isPresent()).isTrue();
+        assertThat(component3.get().getName().getName()).isEqualTo("generic");
+        assertThat(component3.get().getComponent().getValue()).isEqualTo(42);
+    }
+
+    @Test
+    public void should_permit_to_query_generic_components_using_rawType() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(testGenericStringMachine("genericstring"))
+                .addMachine(testGenericIntegerMachine("genericinteger"))
+                .build();
+
+        Optional<NamedComponent<GenericHolder>> component = factory.queryByName(Name.of(GenericHolder.class, "genericstring")).findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("genericstring");
+        assertThat(component.get().getComponent().getValue()).isEqualTo("foo");
+
+        Optional<NamedComponent<GenericHolder>> component2 = factory.queryByName(Name.of(GenericHolder.class, "genericinteger")).findOne();
+        assertThat(component2.isPresent()).isTrue();
+        assertThat(component2.get().getName().getName()).isEqualTo("genericinteger");
+        assertThat(component2.get().getComponent().getValue()).isEqualTo(42);
+    }
+
+    @Test
+    public void should_not_allow_more_than_one_matching_component_if_raw_type_are_used() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(testGenericStringMachine("genericstring"))
+                .addMachine(testGenericIntegerMachine("genericinteger"))
+                .build();
+
+        try {
+            factory.queryByClass(GenericHolder.class).findOne();
+            fail("should throw exception");
+        } catch (Factory.UnsatisfiedDependenciesException ignored) {}
+
+        try {
+            factory.queryByType(GenericHolder.class).findOne();
+            fail("should throw exception");
+        } catch (Factory.UnsatisfiedDependenciesException ignored) {}
+    }
+
+    @Test
+    public void should_retrieve_highest_priority_for_raw_types_using_query_by_names() {
+        Factory factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic", -100))
+                .addMachine(testGenericIntegerMachine("generic", 10))
+                .build();
+        Optional<NamedComponent<GenericHolder>> component = factory.queryByName(Name.of(GenericHolder.class, "generic")).findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("generic");
+        assertThat(component.get().getComponent().getValue()).isEqualTo("foo");
+
+        factory = Factory.builder()
+                .addMachine(testGenericStringMachine("generic", 10))
+                .addMachine(testGenericIntegerMachine("generic", -1000))
+                .build();
+        component = factory.queryByName(Name.of(GenericHolder.class, "generic")).findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("generic");
+        assertThat(component.get().getComponent().getValue()).isEqualTo(42);
+    }
+
+    @Test
+    public void should_retrieve_highest_priority_using_query_by_names() {
+        Factory factory = Factory.builder()
+                .addMachine(testMachine("common_name", "foo", -100))
+                .addMachine(testMachine("common_name", "bar", 10))
+                .build();
+        Optional<NamedComponent<String>> component = factory.queryByName(Name.of(String.class, "common_name")).findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("common_name");
+        assertThat(component.get().getComponent()).isEqualTo("foo");
+
+        factory = Factory.builder()
+                .addMachine(testMachine("common_name", "foo", 100))
+                .addMachine(testMachine("common_name", "bar", 10))
+                .build();
+        component = factory.queryByName(Name.of(String.class, "common_name")).findOne();
+        assertThat(component.isPresent()).isTrue();
+        assertThat(component.get().getName().getName()).isEqualTo("common_name");
+        assertThat(component.get().getComponent()).isEqualTo("bar");
     }
 
     @Test
@@ -179,12 +378,12 @@ public class FactoryTest {
             assertThat(e)
                 .hasMessageStartingWith(
                     "\n" +
-                            "  QueryByName{name=Name{name='test', clazz=java.lang.String[]}}\n" +
-                            "    |       \\__=> Name{name='test', clazz=java.lang.String[]}\n" +
+                            "  QueryByName{name=Name{name='test', type=java.lang.String[]}}\n" +
+                            "    |       \\__=> Name{name='test', type=java.lang.String[]}\n" +
                             "    |\n" +
-                            "    +-> QueryByName{name=Name{name='missing', clazz=java.lang.String[]}}\n" +
+                            "    +-> QueryByName{name=Name{name='missing', type=java.lang.String[]}}\n" +
                             "          |\n" +
-                            "          +--: Name{name='missing', clazz=java.lang.String[]} can't be satisfied")
+                            "          +--: Name{name='missing', type=java.lang.String[]} can't be satisfied")
             ;
         }
     }
@@ -217,9 +416,9 @@ public class FactoryTest {
                             " Please select which one you want with a more specific query,\n" +
                             " or by deactivating one of the available components.\n" +
                             " Available components:\n" +
-                            " - NamedComponent{name=Name{name='test', clazz=java.lang.String[]}, priority=0, component=value1}\n" +
+                            " - NamedComponent{name=Name{name='test', type=java.lang.String[]}, priority=0, component=value1}\n" +
                             "         [Activation key: 'restx.activation::java.lang.String::test']\n" +
-                            " - NamedComponent{name=Name{name='test2', clazz=java.lang.String[]}, priority=0, component=value1}\n" +
+                            " - NamedComponent{name=Name{name='test2', type=java.lang.String[]}, priority=0, component=value1}\n" +
                             "         [Activation key: 'restx.activation::java.lang.String::test2']\n")
             ;
         }
@@ -585,6 +784,56 @@ public class FactoryTest {
             }
         });
     }
+
+    private SingleNameFactoryMachine<String> testMachine(String name, final String returnValue, int priority) {
+        return new SingleNameFactoryMachine<>(
+                priority, new NoDepsMachineEngine<String>(Name.of(String.class, name), priority, BoundlessComponentBox.FACTORY) {
+            @Override
+            protected String doNewComponent(SatisfiedBOM satisfiedBOM) {
+                return returnValue;
+            }
+        });
+    }
+
+	private SingleNameFactoryMachine<GenericHolder<String>> testGenericStringMachine(String name) {
+        return testGenericStringMachine(name, 0);
+    }
+
+    private SingleNameFactoryMachine<GenericHolder<String>> testGenericStringMachine(String name, int priority) {
+        return new SingleNameFactoryMachine<>(
+                priority, new NoDepsMachineEngine<GenericHolder<String>>(Name.<GenericHolder<String>>of(name, GenericHolder.class, String.class), priority, BoundlessComponentBox.FACTORY) {
+            @Override
+            protected GenericHolder<String> doNewComponent(SatisfiedBOM satisfiedBOM) {
+                return new GenericHolder<>("foo");
+            }
+        });
+    }
+
+    private SingleNameFactoryMachine<GenericHolder<Integer>> testGenericIntegerMachine(String name) {
+        return testGenericIntegerMachine(name, 0);
+    }
+
+    private SingleNameFactoryMachine<GenericHolder<Integer>> testGenericIntegerMachine(String name, int priority) {
+        return new SingleNameFactoryMachine<>(
+                priority, new NoDepsMachineEngine<GenericHolder<Integer>>(Name.<GenericHolder<Integer>>of(name, GenericHolder.class, Integer.class), BoundlessComponentBox.FACTORY) {
+            @Override
+            protected GenericHolder<Integer> doNewComponent(SatisfiedBOM satisfiedBOM) {
+                return new GenericHolder<>(42);
+            }
+        });
+    }
+
+    static class GenericHolder<T> {
+		final T value;
+
+		GenericHolder(T value) {
+			this.value = value;
+		}
+
+		public T getValue() {
+			return value;
+		}
+	}
 
     private SingleNameFactoryMachine<String> machineWithMissingDependency() {
         return new SingleNameFactoryMachine<>(

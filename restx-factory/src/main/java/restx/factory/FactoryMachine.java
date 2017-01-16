@@ -1,5 +1,6 @@
 package restx.factory;
 
+import java.lang.reflect.Type;
 import java.util.Set;
 
 /**
@@ -10,6 +11,6 @@ import java.util.Set;
 public interface FactoryMachine {
     boolean canBuild(Name<?> name);
     <T> MachineEngine<T> getEngine(Name<T> name);
-    <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass);
+    <T> Set<Name<T>> nameBuildableComponents(Type componentType);
     int priority();
 }

@@ -95,6 +95,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                         // multiple cases, provides only, provides with when, and alternative
 
                         if (provides != null && methodWhen == null && classWhen == null) {
+                            if (isMultiType(exec.getReturnType())) {
+                                error("The provided component's type, use a reserved type (used for multiple injection).", element);
+                                continue;
+                            }
+
                             // add a provider method to the module
                             processProviderMethod(mod, module, provides, exec);
                         } else {
@@ -112,11 +117,19 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                             }
 
                             if (provides != null) {
+                                TypeMirror returnType = exec.getReturnType();
+
+                                if (isMultiType(returnType)) {
+                                    error("The provided component's type, use a reserved type (used for multiple injection).", element);
+                                    continue;
+                                }
+
                                 // we need to create a conditional provider method
                                 processConditionalProviderMethod(
                                         mod,
                                         module,
-                                        exec.getReturnType().toString(),
+                                        returnType.toString(),
+                                        toSerializedType(returnType),
                                         getInjectionName(exec.getAnnotation(Named.class)).or(exec.getSimpleName().toString()),
                                         provides.priority() == 0 ? mod.priority() : provides.priority(),
                                         whenToUse,
@@ -156,6 +169,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                                         mod,
                                         module,
                                         alternativeTo.getQualifiedName().toString(),
+                                        toSerializedType(alternativeTo.asType()),
                                         componentName,
                                         alternative.priority(),
                                         whenToUse,
@@ -178,6 +192,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     private void processProviderMethod(Module mod, ModuleClass module, Provides provides, ExecutableElement exec) {
         ProviderMethod m = new ProviderMethod(
 				exec.getReturnType().toString(),
+                toSerializedType(exec.getReturnType()),
 				exec.getSimpleName().toString(),
 				provides.priority() == 0 ? mod.priority() : provides.priority(),
 				getInjectionName(exec.getAnnotation(Named.class)),
@@ -190,11 +205,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         module.providerMethods.add(m);
     }
 
-    private void processConditionalProviderMethod(Module mod, ModuleClass module, String componentType,
+    private void processConditionalProviderMethod(Module mod, ModuleClass module, String componentType, String componentTypeFactory,
             String componentName, int priority, When when, String factoryMachineNameSuffix, ExecutableElement exec) {
         ConditionalProviderMethod m = new ConditionalProviderMethod(
                 componentType,
-                componentName,
+                componentTypeFactory, componentName,
                 exec.getSimpleName().toString(),
                 priority == 0 ? mod.priority() : priority,
                 when.name(),
@@ -394,6 +409,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         for (ProviderMethod method : moduleClass.providerMethods) {
             engines.add(ImmutableMap.<String, Object>builder()
                     .put("type", method.type)
+                    .put("typeFactory", method.typeFactory)
                     .put("name", method.name)
                     .put("enginePriority", method.priority)
                     .put("injectionName", method.injectionName.isPresent() ?
@@ -408,6 +424,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         for (ConditionalProviderMethod method : moduleClass.conditionalProviderMethods) {
             conditionalsEngines.add(ImmutableMap.<String, Object>builder()
                     .put("componentType", method.componentType)
+                    .put("componentTypeFactory", method.componentTypeFactory)
                     .put("componentName", method.componentName)
                     .put("conditionalFactoryMachineName", method.methodName + method.componentName + method.factoryMachineNameSuffix)
                     .put("whenName", method.whenName)
@@ -555,11 +572,15 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
     }
 
-    private static class InjectableParameter {
-        private static final Class[] iterableClasses = new Class[]{
-                Iterable.class, Collection.class, List.class, Set.class,
-                ImmutableList.class, ImmutableSet.class};
+    private static final Class[] iterableClasses = new Class[]{
+            Iterable.class, Collection.class, List.class, Set.class,
+            ImmutableList.class, ImmutableSet.class};
 
+    private static boolean isMultiType(TypeMirror type) {
+        return isClass(type, iterableClasses);
+    }
+
+    private class InjectableParameter {
         final TypeMirror baseType;
         final String name;
         final Optional<String> injectionName;
@@ -574,12 +595,13 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             TypeMirror targetType = targetType(baseType);
             String optionalOrNotQueryQualifier = isGuavaOptionalType(baseType) || isJava8OptionalType(baseType) || isMultiType(baseType) ? "optional()" : "mandatory()";
 
+            String targetTypeSer = String.valueOf(targetType);
             if (injectionName.isPresent()) {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byName(Name.of(%s, \"%s\")).%s;",
-                        targetType, name, targetType + ".class", injectionName.get(), optionalOrNotQueryQualifier);
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.<%s>byName(Name.<%s>of(%s, \"%s\")).%s;",
+                        targetTypeSer, name, targetTypeSer, targetTypeSer, toSerializedType(targetType), injectionName.get(), optionalOrNotQueryQualifier);
             } else {
-                return String.format("private final Factory.Query<%s> %s = Factory.Query.byClass(%s).%s;",
-                        targetType, name, targetType + ".class", optionalOrNotQueryQualifier);
+                return String.format("private final Factory.Query<%s> %s = Factory.Query.<%s>byType(%s).%s;",
+                        targetTypeSer, name, targetTypeSer, toSerializedType(targetType), optionalOrNotQueryQualifier);
             }
         }
 
@@ -650,15 +672,6 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         private boolean isNamedComponentType(TypeMirror type) {
             return type.toString().startsWith(NamedComponent.class.getCanonicalName());
         }
-
-        private boolean isMultiType(TypeMirror type) {
-            for (Class it : iterableClasses) {
-                if (type.toString().startsWith(it.getCanonicalName())) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 
     private static class ModuleClass {
@@ -688,9 +701,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final Optional<String> injectionName;
         final List<InjectableParameter> parameters = Lists.newArrayList();
         final List<String> exceptions = Lists.newArrayList();
+        final String typeFactory;
 
-        ProviderMethod(String type, String name, int priority, Optional<String> injectionName, Element originatingElement) {
+        ProviderMethod(String type, String typeFactory, String name, int priority, Optional<String> injectionName, Element originatingElement) {
             this.type = type;
+            this.typeFactory = typeFactory;
             this.name = name;
             this.priority = priority;
             this.injectionName = injectionName;
@@ -709,11 +724,13 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final String factoryMachineNameSuffix;
         final List<InjectableParameter> parameters = Lists.newArrayList();
         final List<String> exceptions = Lists.newArrayList();
+        final String componentTypeFactory;
 
         ConditionalProviderMethod(String componentType,
-                String componentName, String methodName, int priority,
+                String componentTypeFactory, String componentName, String methodName, int priority,
                 String whenName, String whenValue, String factoryMachineNameSuffix, Element originatingElement) {
             this.componentType = componentType;
+            this.componentTypeFactory = componentTypeFactory;
             this.componentName = componentName;
             this.methodName = methodName;
             this.priority = priority;

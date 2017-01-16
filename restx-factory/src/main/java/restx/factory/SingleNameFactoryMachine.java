@@ -1,7 +1,9 @@
 package restx.factory;
 
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
+import restx.common.Types;
 
 /**
  * User: xavierhanin
@@ -22,8 +24,8 @@ public class SingleNameFactoryMachine<C> implements FactoryMachine {
     @Override
     public boolean canBuild(Name<?> name) {
         return (this.name.equals(name)
-                || (   this.name.getName().equals(name.getName())
-                    && name.getClazz().isAssignableFrom(this.name.getClazz())));
+                || (this.name.getName().equals(name.getName())
+                && Types.isAssignableFrom(name.getType(), this.name.getType())));
     }
 
     @Override
@@ -34,8 +36,8 @@ public class SingleNameFactoryMachine<C> implements FactoryMachine {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Set<Name<T>> nameBuildableComponents(Class<T> componentClass) {
-        if (componentClass.isAssignableFrom(name.getClazz())) {
+    public <T> Set<Name<T>> nameBuildableComponents(Type componentType) {
+        if (Types.isAssignableFrom(componentType, name.getType())) {
             return Collections.singleton((Name<T>) name);
         } else {
             return Collections.emptySet();
