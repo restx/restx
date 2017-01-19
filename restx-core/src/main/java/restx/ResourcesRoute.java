@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -108,7 +109,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        String relativePath = req.getRestxPath().substring(baseRestPath.length());
+        String relativePath = this.requestRelativePath(req);
         relativePath = Optional.fromNullable(aliases.get(relativePath)).or(relativePath);
         try {
             URL resource = MoreResources.getResource(
@@ -116,21 +117,43 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
                                                     || RestxContext.Modes.TEST.equals(ctx.getMode())
                                                     || RestxContext.Modes.INFINIREST.equals(ctx.getMode())
             );
-            resp.setLogLevel(RestxLogLevel.QUIET);
-            resp.setStatus(HttpStatus.OK);
-            String contentType = HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream");
-            Optional<CachedResourcePolicy> cachedResourcePolicy = cachePolicyMatching(contentType, relativePath);
-            if(cachedResourcePolicy.isPresent()) {
-                resp.setHeader("Cache-Control", cachedResourcePolicy.get().getCacheValue());
-            }
-            resp.setContentType(contentType);
-            Resources.asByteSource(resource).copyTo(resp.getOutputStream());
+            serveCacheableResource(resp, resource, relativePath);
         } catch (IllegalArgumentException e) {
             notFound(resp, relativePath);
         }
     }
 
-    private Optional<CachedResourcePolicy> cachePolicyMatching(String contentType, String path) {
+    protected String requestRelativePath(RestxRequest req) {
+        return req.getRestxPath().substring(baseRestPath.length());
+    }
+
+    protected void serveCacheableResource(RestxResponse resp, URL resource, String relativePath) throws IOException {
+        String contentType = HTTP.getContentTypeFromExtension(relativePath).or("application/octet-stream");
+
+        ImmutableMap.Builder<String, String> headers = ImmutableMap.builder();
+        Optional<CachedResourcePolicy> cachedResourcePolicy = cachePolicyMatching(contentType, relativePath);
+        if(cachedResourcePolicy.isPresent()) {
+            headers.put("Cache-Control", cachedResourcePolicy.get().getCacheValue());
+        }
+
+        serveResource(resp, resource, contentType, headers.build());
+    }
+
+    protected void serveResource(RestxResponse resp, URL resource, String contentType) throws IOException {
+        serveResource(resp, resource, contentType, ImmutableMap.<String, String>of());
+    }
+
+    protected void serveResource(RestxResponse resp, URL resource, String contentType, Map<String, String> headers) throws IOException {
+        resp.setLogLevel(RestxLogLevel.QUIET);
+        resp.setStatus(HttpStatus.OK);
+        for(Map.Entry<String,String> headerEntry: headers.entrySet()) {
+            resp.setHeader(headerEntry.getKey(), headerEntry.getValue());
+        }
+        resp.setContentType(contentType);
+        Resources.asByteSource(resource).copyTo(resp.getOutputStream());
+    }
+
+    protected Optional<CachedResourcePolicy> cachePolicyMatching(String contentType, String path) {
         for(CachedResourcePolicy cachedResourcePolicy : cachedResourcePolicies){
             if(cachedResourcePolicy.matches(contentType, path)){
                 return Optional.of(cachedResourcePolicy);
@@ -139,7 +162,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
         return Optional.absent();
     }
 
-    private void notFound(RestxResponse resp, String relativePath) throws IOException {
+    protected void notFound(RestxResponse resp, String relativePath) throws IOException {
         resp.setStatus(HttpStatus.NOT_FOUND);
         resp.setContentType("text/plain");
         resp.getWriter().println("Resource route matched '" + this + "', but resource "
