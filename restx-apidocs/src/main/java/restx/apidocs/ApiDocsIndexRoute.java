@@ -6,7 +6,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import restx.*;
+import restx.endpoint.Endpoint;
 import restx.admin.AdminModule;
+import restx.endpoint.EndpointParameterMapperRegistry;
 import restx.factory.Component;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
@@ -47,11 +49,13 @@ public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
     private final RestxSecurityManager securityManager;
 
     @Inject
-    public ApiDocsIndexRoute(@Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
-                             Factory factory,
-                             RestxSecurityManager securityManager,
-                             PermissionFactory permissionFactory) {
-        super("ApiDocsIndexRoute", Map.class, writer, new StdRestxRequestMatcher("GET", "/@/api-docs"), permissionFactory);
+    public ApiDocsIndexRoute(
+            @Named(FrontObjectMapperFactory.WRITER_NAME) ObjectWriter writer,
+            Factory factory,
+            RestxSecurityManager securityManager,
+            PermissionFactory permissionFactory,
+            EndpointParameterMapperRegistry registry) {
+        super("ApiDocsIndexRoute", Map.class, writer, Endpoint.of("GET", "/@/api-docs"), permissionFactory, registry);
         this.factory = factory;
         this.securityManager = securityManager;
     }

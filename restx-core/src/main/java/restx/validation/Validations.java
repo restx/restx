@@ -24,7 +24,7 @@ public class Validations {
     }
 
     public static <T> T checkValid(Optional<Validator> validator, T o, Class... groups) {
-        if(validator.isPresent()) {
+        if(o != null && validator.isPresent()) {
             if(groups == null || groups.length==0) {
                 groups = new Class[]{ Default.class };
             }

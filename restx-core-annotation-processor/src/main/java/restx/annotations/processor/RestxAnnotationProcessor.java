@@ -9,6 +9,7 @@ import restx.StdRestxRequestMatcher;
 import restx.annotations.*;
 import restx.common.Mustaches;
 import restx.common.processor.RestxAbstractProcessor;
+import restx.endpoint.EndpointParameterKind;
 import restx.factory.When;
 import restx.http.HttpStatus;
 import restx.security.PermitAll;
@@ -291,18 +292,25 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
             List<String> callParameters = Lists.newArrayList();
             List<String> parametersDescription = Lists.newArrayList();
+            List<String> queryParametersDefinition = Lists.newArrayList();
 
             String inEntityClass = "Void";
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
-                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter);
+                // TODO: Simplify this since it seems useless for now...
+                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter, resourceMethod);
                 if (!String.class.getName().equals(parameter.type)
                         && parameter.kind != ResourceMethodParameterKind.BODY
                         && parameter.kind != ResourceMethodParameterKind.CONTEXT) {
-                    getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
+//                    getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
                 } else if (parameter.kind == ResourceMethodParameterKind.BODY) {
                     inEntityClass = parameter.type;
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
+
+                if(parameter.kind.resolvedWithQueryParamMapper()) {
+                    queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\")",
+                            TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.name));
+                }
 
                 if (parameter.kind != ResourceMethodParameterKind.CONTEXT) {
                     parametersDescription.add(String.format(
@@ -350,6 +358,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .put("path", resourceMethod.path.replace("\\", "\\\\"))
                     .put("resource", resourceClass.name)
                     .put("securityCheck", "securityManager.check(request, match, " + resourceMethod.permission + ");")
+                    .put("queryParametersDefinition", Joiner.on(",\n").join(queryParametersDefinition))
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("sourceLocation", resourceMethod.sourceLocation)
@@ -457,9 +466,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         return methodAnnotations;
     }
 
-    static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
-    static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
-
     private static class ResourceMethodAnnotation {
         final String httpMethod;
         final ExecutableElement methodElem;
@@ -537,18 +543,22 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.sourceLocation = sourceLocation;
             this.inContentType = inContentType;
             this.outContentType = outContentType;
-            Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(returnType);
-            Matcher java8OptionalMatcher = java8OptionalPattern.matcher(returnType);
+
             this.realReturnType = returnType;
-            this.returnTypeGuavaOptional = guavaOptionalMatcher.matches();
-            this.returnTypeJava8Optional = java8OptionalMatcher.matches();
-            if (returnTypeGuavaOptional) {
-                this.returnType = guavaOptionalMatcher.group(1);
-            } else if (returnTypeJava8Optional) {
-                this.returnType = java8OptionalMatcher.group(1);
+
+            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(returnType);
+            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
+                this.returnTypeGuavaOptional = true;
+                this.returnTypeJava8Optional = false;
+            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
+                this.returnTypeGuavaOptional = false;
+                this.returnTypeJava8Optional = true;
             } else {
-                this.returnType = returnType;
+                this.returnTypeGuavaOptional = false;
+                this.returnTypeJava8Optional = false;
             }
+            this.returnType = optionalMatchingReturnType.getUnderlyingType();
+
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             this.successStatus = successStatus;
             StdRestxRequestMatcher requestMatcher = new StdRestxRequestMatcher(httpMethod, path);
@@ -556,7 +566,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private static class ResourceMethodParameter {
+    static class ResourceMethodParameter {
         final String type;
         final String realType;
         final boolean guavaOptional;
@@ -574,22 +584,20 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         };
 
         private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
-            Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(type);
-            Matcher java8OptionalMatcher = java8OptionalPattern.matcher(type);
-            this.realType = type;
-            if (guavaOptionalMatcher.matches()) {
+            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(type);
+            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
                 this.guavaOptional = true;
                 this.java8Optional = false;
-                this.type = guavaOptionalMatcher.group(1);
-            } else if (java8OptionalMatcher.matches()) {
+            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
                 this.guavaOptional = false;
                 this.java8Optional = true;
-                this.type = java8OptionalMatcher.group(1);
             } else {
                 this.guavaOptional = false;
                 this.java8Optional = false;
-                this.type = type;
             }
+            this.type = optionalMatchingReturnType.getUnderlyingType();
+            this.realType = type;
+
             this.name = name;
             this.reqParamName = reqParamName;
             this.kind = kind;
@@ -606,34 +614,32 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     private static enum ResourceMethodParameterKind {
-        QUERY {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                // TODO: we should check the type, in case of list, use getQueryParams,
-                // and we should better handle missing params
-                String code = String.format("request.getQueryParam(\"%s\")", parameter.name);
-                if (parameter.guavaOptional) {
-                    code = code;
-                } else if (parameter.java8Optional) {
-                    code = String.format("java.util.Optional.ofNullable(%s.orNull())", code);
-                } else {
-                    code = String.format("checkPresent(%s, \"query param %s is required\")", code, parameter.name);
-                }
-                return code;
+        QUERY(true) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
+                return ParameterExpressionBuilder
+                        .createFromMapQueryObjectFromRequest(parameter, EndpointParameterKind.QUERY)
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
             }
         },
-        PATH {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                return String.format("match.getPathParam(\"%s\")", parameter.name);
+        PATH(true) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
+                return ParameterExpressionBuilder
+                        .createFromMapQueryObjectFromRequest(parameter, EndpointParameterKind.PATH)
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
             }
         },
-        BODY {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
-                Optional<String> validationGroupsExpr = parameter.joinedValidationGroupFQNExpression();
-                return String.format("checkValid(validator, body%s)", validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():"");
+        BODY(false) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
+                return ParameterExpressionBuilder
+                        .createFromExpr("body", "body")
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
             }
         },
-        CONTEXT {
-            public String fetchFromReqCode(ResourceMethodParameter parameter) {
+        CONTEXT(false) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 Collection<String> contextParamNames = Arrays.asList("baseUri", "clientAddress", "request", "locale", "locales");
                 if (!contextParamNames.contains(parameter.reqParamName)) {
                     throw new IllegalArgumentException("context parameter not known: " + parameter.reqParamName +
@@ -657,7 +663,17 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
         };
 
-        public abstract String fetchFromReqCode(ResourceMethodParameter parameter);
+        private final boolean resolvedWithQueryParamMapper;
+
+        ResourceMethodParameterKind(boolean resolvedWithQueryParamMapper) {
+            this.resolvedWithQueryParamMapper = resolvedWithQueryParamMapper;
+        }
+
+        public abstract String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method);
+
+        public boolean resolvedWithQueryParamMapper() {
+            return resolvedWithQueryParamMapper;
+        }
     }
 
 }

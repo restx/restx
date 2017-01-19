@@ -1,20 +1,18 @@
 package restx.entity;
 
 import com.google.common.base.Optional;
-import restx.RestxContext;
-import restx.RestxLogLevel;
-import restx.RestxRequest;
-import restx.RestxRequestMatch;
-import restx.RestxRequestMatcher;
-import restx.RestxResponse;
-import restx.RouteLifecycleListener;
-import restx.StdRoute;
+import com.google.common.base.Supplier;
+import restx.*;
+import restx.endpoint.*;
+import restx.endpoint.mappers.EndpointParameterMapper;
+import restx.factory.ParamDef;
 import restx.http.HttpStatus;
 import restx.security.Permission;
 import restx.security.PermissionFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -24,12 +22,38 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Time: 8:10 AM
  */
 public abstract class StdEntityRoute<I,O> extends StdRoute {
+    protected static final Supplier<List> EMPTY_LIST_SUPPLIER = new Supplier<List>() {
+        @Override
+        public List get() {
+            return Collections.emptyList();
+        }
+    };
+    protected static final Supplier<Set> EMPTY_SET_SUPPLIER = new Supplier<Set>() {
+        @Override
+        public Set get() {
+            return Collections.emptySet();
+        }
+    };
+    protected static final Supplier<Iterable> EMPTY_ITERABLE_SUPPLIER = new Supplier<Iterable>() {
+        @Override
+        public Iterable get() {
+            return Collections.emptyList();
+        }
+    };
+    protected static final Supplier<Collection> EMPTY_COLLECTION_SUPPLIER = new Supplier<Collection>() {
+        @Override
+        public Collection get() {
+            return Collections.emptySet();
+        }
+    };
 
     public static class Builder<I,O> {
         protected EntityRequestBodyReader<I> entityRequestBodyReader;
         protected EntityResponseWriter<O> entityResponseWriter;
+        protected EndpointParameterMapperRegistry registry;
         protected String name;
-        protected RestxRequestMatcher matcher;
+        protected Endpoint endpoint;
+        protected ParamDef[] queryParameters = new ParamDef[0];
         protected HttpStatus successStatus = HttpStatus.OK;
         protected RestxLogLevel logLevel = RestxLogLevel.DEFAULT;
         protected PermissionFactory permissionFactory;
@@ -55,8 +79,18 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return this;
         }
 
-        public Builder<I,O> matcher(final RestxRequestMatcher matcher) {
-            this.matcher = matcher;
+        public Builder<I,O> endpoint(final Endpoint endpoint) {
+            this.endpoint = endpoint;
+            return this;
+        }
+
+        public Builder<I,O> registry(final EndpointParameterMapperRegistry registry) {
+            this.registry = registry;
+            return this;
+        }
+
+        public Builder<I,O> queryParameters(final ParamDef[] queryParameters) {
+            this.queryParameters = queryParameters;
             return this;
         }
 
@@ -80,7 +114,7 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
             return new StdEntityRoute<I, O>(
                     name, entityRequestBodyReader == null ? voidBodyReader() : entityRequestBodyReader,
                     entityResponseWriter,
-                    matcher, successStatus, logLevel, permissionFactory) {
+                    endpoint, successStatus, logLevel, permissionFactory, registry, queryParameters) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, I i) throws IOException {
                     return matchedEntityRoute.route(restxRequest, match, i);
@@ -103,24 +137,65 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
         return new Builder<>();
     }
 
+    private static class EndpointParameterMapperAndDef {
+        EndpointParameterMapper mapper;
+        EndpointParamDef endpointParamDef;
+
+        public EndpointParameterMapperAndDef(EndpointParameterMapper mapper, EndpointParamDef endpointParamDef) {
+            this.mapper = mapper;
+            this.endpointParamDef = endpointParamDef;
+        }
+    }
+
     private final EntityRequestBodyReader<I> entityRequestBodyReader;
     private final EntityResponseWriter<O> entityResponseWriter;
     private final RestxLogLevel logLevel;
+    private final Endpoint endpoint;
     private final PermissionFactory permissionFactory;
+    private final Map<String, EndpointParameterMapperAndDef> cachedQueryParameterMappers;
 
     public StdEntityRoute(String name,
                           EntityRequestBodyReader<I> entityRequestBodyReader,
                           EntityResponseWriter<O> entityResponseWriter,
-                          RestxRequestMatcher matcher,
+                          Endpoint endpoint,
                           HttpStatus successStatus,
                           RestxLogLevel logLevel,
-                          PermissionFactory permissionFactory
+                          PermissionFactory permissionFactory,
+                          EndpointParameterMapperRegistry registry) {
+        this(name, entityRequestBodyReader, entityResponseWriter, endpoint, successStatus,
+                logLevel, permissionFactory, registry, new ParamDef[0]);
+    }
+
+    public StdEntityRoute(String name,
+                          EntityRequestBodyReader<I> entityRequestBodyReader,
+                          EntityResponseWriter<O> entityResponseWriter,
+                          Endpoint endpoint,
+                          HttpStatus successStatus,
+                          RestxLogLevel logLevel,
+                          PermissionFactory permissionFactory,
+                          EndpointParameterMapperRegistry registry,
+                          ParamDef[] queryParametersDefinition
     ) {
-        super(name, matcher, successStatus);
+        super(name, new StdRestxRequestMatcher(endpoint), successStatus);
+        this.endpoint = endpoint;
         this.permissionFactory = permissionFactory;
         this.entityRequestBodyReader = checkNotNull(entityRequestBodyReader);
         this.entityResponseWriter = checkNotNull(entityResponseWriter);
         this.logLevel = checkNotNull(logLevel);
+        this.cachedQueryParameterMappers = cacheQueryParameterMappers(registry, endpoint, queryParametersDefinition);
+    }
+
+    private static Map<String, EndpointParameterMapperAndDef> cacheQueryParameterMappers(
+            EndpointParameterMapperRegistry registry, Endpoint endpoint, ParamDef[] parameters) {
+        Map<String, EndpointParameterMapperAndDef> cachedParameterMappers = new HashMap<>();
+        for(ParamDef parameter : parameters){
+            EndpointParamDef endpointParamDefDef = new EndpointParamDef(endpoint, parameter);
+            cachedParameterMappers.put(
+                    parameter.getName(),
+                    new EndpointParameterMapperAndDef(registry.getEndpointParameterMapperFor(endpointParamDefDef), endpointParamDefDef));
+
+        }
+        return cachedParameterMappers;
     }
 
     /**
@@ -139,6 +214,28 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
      */
     public Type getEntityResponseType() {
         return entityResponseWriter.getType();
+    }
+
+    protected <T> T mapQueryObjectFromRequest(Class<T> targetType, String parameterName, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind){
+        return mapQueryObjectFromRequest(targetType, parameterName, request, match, endpointParameterKind, null);
+    }
+
+    protected <T> T mapQueryObjectFromRequest(Class<T> targetType, String parameterName, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind, Supplier<T> nullResultDefaultValueSupplier){
+        EndpointParameterMapperAndDef endpointParameterMapperAndDef = cachedQueryParameterMappers.get(parameterName);
+        if(endpointParameterMapperAndDef == null) {
+            throw new IllegalStateException("No cachedQueryParameterMappers for parameter "+parameterName+" : please provide corresponding ParamDef at instanciation time !");
+        }
+
+        T result = endpointParameterMapperAndDef.mapper.mapRequest(
+                endpointParameterMapperAndDef.endpointParamDef,
+                request, match, endpointParameterKind);
+
+        // In case we have a null result *and* a null result default value supplier, let's use it
+        if(nullResultDefaultValueSupplier != null && result == null) {
+            result = nullResultDefaultValueSupplier.get();
+        }
+
+        return result;
     }
 
     @Override

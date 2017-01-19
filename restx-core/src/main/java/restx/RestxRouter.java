@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import restx.endpoint.*;
 import restx.entity.MatchedEntityRoute;
 import restx.jackson.JsonEntityRouteBuilder;
 import restx.jackson.StdJsonProducerEntityRoute;
@@ -31,6 +32,7 @@ public class RestxRouter {
         private String name = "default";
         private ObjectWriter writer;
         private ObjectReader reader;
+        private EndpointParameterMapperRegistry registry;
         private List<RestxRoute> routes = Lists.newArrayList();
 
         public Builder name(final String name) {
@@ -63,6 +65,11 @@ public class RestxRouter {
             return this;
         }
 
+        public Builder withEndpointParameterMapperRegistry(EndpointParameterMapperRegistry registry) {
+            this.registry = registry;
+            return this;
+        }
+
         public Builder addRoute(RestxRoute route) {
             routes.add(route);
             return this;
@@ -85,19 +92,19 @@ public class RestxRouter {
         }
 
         public <O> Builder addRoute(String method, String path, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
-            return addRoute(path, new StdRestxRequestMatcher(method, path), outputType, route);
+            return addRoute(path, Endpoint.of(method, path), outputType, route);
         }
 
         /**
-         * @deprecated Prefer to use addRoute(String, RestxRequestMatcher, PermissionFactory, Class&lt;O&gt;, MatchedEntityRoute&lt;Void, O&gt;)
+         * @deprecated Prefer to use addRoute(String, Endpoint, PermissionFactory, Class&lt;O&gt;, MatchedEntityRoute&lt;Void, O&gt;)
          * in order to avoid NPEs when checking permissions through permissionFactory
          */
-        public <O> Builder addRoute(String name, RestxRequestMatcher matcher, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
-            return addRoute(name, matcher, null, outputType, route);
+        public <O> Builder addRoute(String name, Endpoint endpoint, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            return addRoute(name, endpoint, (PermissionFactory)null, outputType, route);
         }
 
-        public <O> Builder addRoute(String name, RestxRequestMatcher matcher, PermissionFactory permissionFactory, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
-            routes.add(new StdJsonProducerEntityRoute<O>(name, outputType, writer.withType(outputType), matcher, permissionFactory) {
+        public <O> Builder addRoute(String name, Endpoint endpoint, PermissionFactory permissionFactory, Class<O> outputType, final MatchedEntityRoute<Void, O> route) {
+            routes.add(new StdJsonProducerEntityRoute<O>(name, outputType, writer.withType(outputType), endpoint, permissionFactory, registry) {
                 @Override
                 protected Optional<O> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Void i) throws IOException {
                     return route.route(restxRequest, match, i);
@@ -115,16 +122,17 @@ public class RestxRouter {
         }
 
         public <I,O> Builder addRoute(String method, String path, Class<I> inputType, Class<O> outputType, MatchedEntityRoute<I, O> route) {
-            return addRoute(path, new StdRestxRequestMatcher(method, path), inputType, outputType, route);
+            return addRoute(path, new Endpoint(method, path), inputType, outputType, route);
         }
 
-        public <I, O> Builder addRoute(String name, StdRestxRequestMatcher matcher,
+        public <I, O> Builder addRoute(String name, Endpoint endpoint,
                                        Class<I> inputType, Class<O> outputType, MatchedEntityRoute<I, O> route) {
             routes.add(new JsonEntityRouteBuilder<I, O>()
                     .withObjectWriter(outputType, writer)
                     .withObjectReader(inputType, reader.withType(inputType))
                     .name(name)
-                    .matcher(matcher)
+                    .registry(registry)
+                    .endpoint(endpoint)
                     .matchedEntityRoute(route)
                     .build()
             );

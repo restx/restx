@@ -1,0 +1,13 @@
+title: Mandatory POJO
+given:
+  - time: 2014-12-24T17:01:21.795+02:00
+wts:
+  - when: |
+       POST params/mandatoryPost
+    then: |
+       500
+  - when: |
+       POST params/mandatoryPost
+       {"val": "a value"}
+    then: |
+       {"val": "a value"}

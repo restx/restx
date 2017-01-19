@@ -79,7 +79,8 @@ public class SimpleRestxRequest  extends AbstractRequest {
 
     @Override
     public List<String> getQueryParams(String param) {
-        return Lists.newArrayList(request.getQuery().getAll(param));
+        List<String> queryParams = request.getQuery().getAll(param);
+        return queryParams==null?null:Lists.newArrayList(queryParams);
     }
 
     @Override

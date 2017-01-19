@@ -1,5 +1,6 @@
 package restx.converters;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Optional;
 import restx.factory.Component;
@@ -26,6 +27,10 @@ public class MainStringConverter {
         } else {
             return Optional.absent();
         }
+    }
+
+    public boolean canDeserialize(JavaType javaType) {
+        return mapper.canDeserialize(javaType);
     }
 
     public <T> T convert(String value, Class<T> toClass) {
