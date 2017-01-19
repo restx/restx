@@ -200,7 +200,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 pathParamNamesToMatch.remove(reqParamName);
                 parameterKind = ResourceMethodParameterKind.PATH;
             } else if (parameterKind == null) {
-                if (ImmutableList.of("GET", "HEAD").contains(resourceMethod.httpMethod)) {
+                if (ImmutableList.of("GET", "HEAD", "DELETE").contains(resourceMethod.httpMethod)) {
                     parameterKind = ResourceMethodParameterKind.QUERY;
                 } else {
                     parameterKind = ResourceMethodParameterKind.BODY;
