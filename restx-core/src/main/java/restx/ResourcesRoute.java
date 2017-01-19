@@ -108,7 +108,7 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
 
     @Override
     public void handle(RestxRequestMatch match, RestxRequest req, RestxResponse resp, RestxContext ctx) throws IOException {
-        String relativePath = req.getRestxPath().substring(baseRestPath.length());
+        String relativePath = this.requestRelativePath(req);
         relativePath = Optional.fromNullable(aliases.get(relativePath)).or(relativePath);
         try {
             URL resource = MoreResources.getResource(
@@ -128,6 +128,10 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
         } catch (IllegalArgumentException e) {
             notFound(resp, relativePath);
         }
+    }
+
+    protected String requestRelativePath(RestxRequest req) {
+        return req.getRestxPath().substring(baseRestPath.length());
     }
 
     protected Optional<CachedResourcePolicy> cachePolicyMatching(String contentType, String path) {
