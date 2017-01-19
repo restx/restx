@@ -13,6 +13,8 @@ import restx.tests.HttpTestClient;
 import restx.tests.RestxServerRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
 import static restx.factory.Factory.LocalMachines.threadLocal;
 import static restx.factory.Factory.activationKey;
 
@@ -50,8 +52,17 @@ public class SecuredResourceTest {
         HttpRequest httpRequest = client.GET("/api/security/user")
                 .basic("admin", Hashing.md5().hashString("juma", Charsets.UTF_8).toString());
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.headers("Set-Cookie")[1]).contains("\"principal\":\"admin\"");
+        assertResponseSetCookieContainsKeyAndValue(httpRequest.headers("Set-Cookie")[1], "principal", "admin");
         assertThat(httpRequest.body().trim()).isEqualTo("admin");
+    }
+
+    private void assertResponseSetCookieContainsKeyAndValue(String responseSetCookieHeader, String key, String value) {
+        org.hamcrest.MatcherAssert.assertThat(responseSetCookieHeader, anyOf(
+                // Depending on restx-server implementation, Set-Cookie may surround its cookie value with double quotes,
+                // thus surrounding key/value with backslash escapes
+                containsString(String.format("\"%s\":\"%s\"", key, value)),
+                containsString(String.format("\\\"%s\\\":\\\"%s\\\"", key, value))
+        ));
     }
 
     @Test
