@@ -49,7 +49,7 @@
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-server-simple</artifactId>
+            <artifactId>restx-server-jetty</artifactId>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>

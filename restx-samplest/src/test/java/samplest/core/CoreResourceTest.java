@@ -39,6 +39,14 @@ public class CoreResourceTest {
     }
 
     @Test
+    public void should_return_hello_msg_when_delete_with_param() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin").DELETE(
+                "/api/core/hellomsg?who=restx");
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("hello restx");
+    }
+
+    @Test
     public void should_post_hello() throws Exception {
         HttpRequest httpRequest = server.client().authenticatedAs("admin").POST(
                 "/api/core/hellomsg").send("{\"msg\": \"restx\"}");

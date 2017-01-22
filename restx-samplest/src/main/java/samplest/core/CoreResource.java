@@ -1,8 +1,7 @@
 package samplest.core;
 
-import restx.annotations.GET;
-import restx.annotations.POST;
-import restx.annotations.RestxResource;
+import com.google.common.base.Optional;
+import restx.annotations.*;
 import restx.factory.Component;
 
 /**
@@ -52,4 +51,8 @@ public class CoreResource {
         return new Message().setMsg("hello " + who.getMsg());
     }
 
+    @DELETE("/hellomsg")
+    public String deleteHello(String who) {
+        return "hello "+who;
+    }
 }

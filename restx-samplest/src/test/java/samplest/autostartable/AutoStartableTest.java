@@ -1,16 +1,12 @@
 package samplest.autostartable;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kevinsawicki.http.HttpRequest;
 import org.junit.Test;
 import restx.factory.*;
+import restx.server.WebServer;
+import restx.server.WebServerSupplier;
 import restx.server.WebServers;
-import restx.server.simple.simple.SimpleWebServer;
 import restx.tests.HttpTestClient;
-import samplest.autostartable.AutoStartableTestComponent;
-import samplest.autostartable.AutoStartableTestRoute;
-
-import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,8 +21,8 @@ public class AutoStartableTest {
                 new SingletonFactoryMachine<>(-1000, NamedComponent.of(String.class, "restx.mode", "dev")));
 
         try {
-            SimpleWebServer server = SimpleWebServer.builder()
-                    .setRouterPath("/api").setPort(WebServers.findAvailablePort()).build();
+            int port = WebServers.findAvailablePort();
+            WebServer server = Factory.getInstance().getComponent(WebServerSupplier.class).newWebServer(port);
             server.start();
             try {
                 HttpTestClient client = HttpTestClient.withBaseUrl(server.baseUrl());
