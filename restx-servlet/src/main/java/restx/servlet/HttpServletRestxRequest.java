@@ -67,7 +67,11 @@ public class HttpServletRestxRequest extends AbstractRequest {
 
     @Override
     public List<String> getQueryParams(String param) {
-        return Lists.newArrayList(request.getParameterValues(param));
+        final String[] parameterValues = request.getParameterValues(param);
+        if(parameterValues==null) {
+            return Collections.emptyList();
+        }
+        return Lists.newArrayList(parameterValues);
     }
 
     @Override
