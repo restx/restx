@@ -61,11 +61,15 @@ public class SessionResource {
     }
 
     @GET("/sessions/current")
-    public Session currentSession() {
-        String sessionKey = RestxSession.current().get(String.class, Session.SESSION_DEF_KEY).get();
-        RestxPrincipal principal = RestxSession.current().getPrincipal().get();
+    public Optional<Session> currentSession() {
+        Optional<String> sessionKey = RestxSession.current().get(String.class, Session.SESSION_DEF_KEY);
+        Optional<? extends RestxPrincipal> principal = RestxSession.current().getPrincipal();
 
-        return new Session(sessionKey, principal);
+        if(!sessionKey.isPresent() || !principal.isPresent()) {
+            return Optional.absent();
+        }
+
+        return Optional.of(new Session(sessionKey.get(), principal.get()));
     }
 
     @PermitAll
