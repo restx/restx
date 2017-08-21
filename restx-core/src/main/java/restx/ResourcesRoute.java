@@ -93,6 +93,9 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
         this.baseRestPath = ("/" + checkNotNull(baseRestPath) + "/").replaceAll("/+", "/");
         this.baseResourcePath = checkNotNull(baseResourcePath)
                 .replace('.', '/').replaceAll("^/", "").replaceAll("/$", "") + "/";
+        if("/".equals(this.baseResourcePath)){
+            throw new IllegalArgumentException("Please, avoid using '/' as ResourcesRoute's baseResourcePath as it represents serious security flaws (people will be able to read your classpath configuration files)");
+        }
         this.aliases = checkNotNull(aliases);
         this.cachedResourcePolicies = ImmutableList.copyOf(cachedResourcePolicies);
     }
