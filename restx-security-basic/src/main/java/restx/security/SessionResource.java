@@ -19,10 +19,12 @@ public class SessionResource {
 
     private final BasicPrincipalAuthenticator authenticator;
     private final UUIDGenerator uuidGenerator;
+    private SessionInvalider sessionInvalider;
 
-    public SessionResource(BasicPrincipalAuthenticator authenticator, UUIDGenerator uuidGenerator) {
+    public SessionResource(BasicPrincipalAuthenticator authenticator, UUIDGenerator uuidGenerator, SessionInvalider sessionInvalider) {
         this.authenticator = authenticator;
         this.uuidGenerator = uuidGenerator;
+        this.sessionInvalider = sessionInvalider;
     }
 
 
@@ -69,8 +71,7 @@ public class SessionResource {
     @PermitAll
     @DELETE("/sessions/{sessionKey}")
     public Status logout(String sessionKey) {
-        RestxSession.current().clearPrincipal();
-        RestxSession.current().define(String.class, Session.SESSION_DEF_KEY, null);
+        sessionInvalider.invalidateSession();
         return Status.of("logout");
     }
 }
