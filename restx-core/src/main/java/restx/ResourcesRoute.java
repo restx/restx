@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 import restx.common.MoreResources;
 import restx.http.HTTP;
@@ -22,7 +21,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Resources route allows to serves files from the classpath.
  *
  * Example:
- * <pre>new ResourcesRoute("myResources", "/")</pre>
+ * <pre>new ResourcesRoute("myResources", "web", "static")</pre>
+ * We will consider every urls matching /web/* will serve files into 'static' classpath's directory
+ * For instance, /web/foo/bar.json URL will serve classpath:static/foo/bar.json
  */
 public class ResourcesRoute implements RestxRoute, RestxHandler {
     /**
