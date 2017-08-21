@@ -20,11 +20,15 @@ public class SessionResource {
     private final BasicPrincipalAuthenticator authenticator;
     private final UUIDGenerator uuidGenerator;
     private SessionInvalider sessionInvalider;
+    private CurrentSessionResolver currentSessionResolver;
 
-    public SessionResource(BasicPrincipalAuthenticator authenticator, UUIDGenerator uuidGenerator, SessionInvalider sessionInvalider) {
+    public SessionResource(
+            BasicPrincipalAuthenticator authenticator, UUIDGenerator uuidGenerator,
+            SessionInvalider sessionInvalider, CurrentSessionResolver currentSessionResolver) {
         this.authenticator = authenticator;
         this.uuidGenerator = uuidGenerator;
         this.sessionInvalider = sessionInvalider;
+        this.currentSessionResolver = currentSessionResolver;
     }
 
 
@@ -62,14 +66,7 @@ public class SessionResource {
 
     @GET("/sessions/current")
     public Optional<Session> currentSession() {
-        Optional<String> sessionKey = RestxSession.current().get(String.class, Session.SESSION_DEF_KEY);
-        Optional<? extends RestxPrincipal> principal = RestxSession.current().getPrincipal();
-
-        if(!sessionKey.isPresent() || !principal.isPresent()) {
-            return Optional.absent();
-        }
-
-        return Optional.of(new Session(sessionKey.get(), principal.get()));
+        return currentSessionResolver.resolveCurrentSession();
     }
 
     @PermitAll
