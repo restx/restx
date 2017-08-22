@@ -63,11 +63,11 @@ public class Factory implements AutoCloseable {
         }
     };
     private static int compareByPriorityAndName(int p1, Name<?> n1, int p2, Name<?> n2) {
-        int c = p1 - p2;
-        if (c == 0) {
+        int priorityComparison = Integer.compare(p1, p2);
+        if (priorityComparison == 0) {
             return n1.asId().compareTo(n2.asId());
         } else {
-            return c;
+            return priorityComparison;
         }
     }
     private static final AtomicLong ID = new AtomicLong();
