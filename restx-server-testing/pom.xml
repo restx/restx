@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-server-jetty</artifactId>
+            <artifactId>restx-server-jetty8</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -17,7 +17,7 @@
             "com.googlecode.java-diff-utils:diffutils:${diffutils.version}"
         ],
         "test": [
-            "io.restx:restx-server-jetty:${restx.version}"
+            "io.restx:restx-server-jetty8:${restx.version}"
         ]
     }
 }
