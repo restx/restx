@@ -1,6 +1,7 @@
 package restx.common;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
@@ -24,21 +25,30 @@ public class StdRestxConfig implements RestxConfig {
     public static RestxConfig parse(String origin, CharSource charSource) throws IOException {
         List<ConfigElement> elements = new ArrayList<>();
         StringBuilder doc = new StringBuilder();
-        int lineCount = 0;
-        for (String line : charSource.readLines()) {
-            lineCount++;
+        ImmutableList<String> lines = charSource.readLines();
+
+        for (int lineCount = 0; lineCount < lines.size(); lineCount++) {
+            String line = lines.get(lineCount);
             if (line.startsWith("#")) {
                 doc.append(line.substring(1).trim()).append("\n");
             } else if (!line.trim().isEmpty()) {
-                int index = line.indexOf('=');
-                if (index == -1) {
+                int equalIndex = line.indexOf('=');
+                if (equalIndex == -1) {
                     throw new IOException("invalid config " + origin + " at line " + lineCount + ":" +
                             " line does not contain the equals sign '='");
                 }
-                String key = line.substring(0, index).trim();
-                String value = line.substring(index + 1).trim();
+                String key = line.substring(0, equalIndex).trim();
+                StringBuilder value = new StringBuilder();
+                String lineValue = line.substring(equalIndex + 1).trim();
+                while(lineValue.endsWith("\\") && lineCount+1 < lines.size()) {
+                    value.append(lineValue.substring(0, lineValue.length() - "\\".length()));
 
-                elements.add(ConfigElement.of(origin, doc.toString().trim(), key, value));
+                    lineCount++;
+                    lineValue = lines.get(lineCount).trim();
+                }
+                value.append(lineValue);
+
+                elements.add(ConfigElement.of(origin, doc.toString().trim(), key, value.toString()));
                 doc.setLength(0);
             }
         }
