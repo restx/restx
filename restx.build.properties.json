@@ -36,6 +36,7 @@
 
     "servlet-api.version": "2.5",
 
+    "jetty7.version": "7.6.21.v20160908",
     "jetty8.version": "8.1.8.v20121106",
     "embedded.tomcat.version": "7.0.47",
     "simple.version": "5.1.6",
