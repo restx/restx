@@ -33,6 +33,7 @@ public abstract class SimpleWebServer extends WebServerBase {
         private int port;
         private String routerPath = "/api";
         private String appBase = null;
+        private String bindInterface = "0.0.0.0";
         private RestxMainRouter router;
         public SimpleWebServerBuilder setPort(int port) {
             this.port = port;
@@ -49,6 +50,11 @@ public abstract class SimpleWebServer extends WebServerBase {
             return this;
         }
 
+        public SimpleWebServerBuilder setBindInterface(String bindInterface) {
+            this.bindInterface = bindInterface;
+            return this;
+        }
+
         public SimpleWebServerBuilder setRouter(RestxMainRouter router) {
             this.router = router;
             return this;
@@ -56,12 +62,12 @@ public abstract class SimpleWebServer extends WebServerBase {
 
         public SimpleWebServer build() {
             if (router == null) {
-                return new SimpleWebServer(routerPath, appBase, port) {
+                return new SimpleWebServer(routerPath, appBase, port, bindInterface) {
                     @Override
                     protected RestxMainRouter setupRouter() {
                         return RestxMainRouterFactory.newInstance(
                                 serverId,
-                                Optional.of(WebServers.baseUri("0.0.0.0", port, routerPath)));
+                                Optional.of(WebServers.baseUri(bindInterface, port, routerPath)));
                     }
 
                     @Override
@@ -72,7 +78,7 @@ public abstract class SimpleWebServer extends WebServerBase {
                     }
                 };
             } else {
-                return new SimpleWebServer(routerPath, appBase, port) {
+                return new SimpleWebServer(routerPath, appBase, port, bindInterface) {
                     @Override
                     protected RestxMainRouter setupRouter() {
                         return router;
@@ -94,8 +100,8 @@ public abstract class SimpleWebServer extends WebServerBase {
     private RestxMainRouter router;
     private Connection connection;
 
-    private SimpleWebServer(String routerPath, String appBase, int port) {
-        super(appBase, port, "localhost", "SimpleFrameowkr", "org.simpleframework", "simple");
+    private SimpleWebServer(String routerPath, String appBase, int port, String bindInterface) {
+        super(appBase, port, bindInterface, "SimpleFrameowkr", "org.simpleframework", "simple");
 
         this.routerPath = routerPath;
         this.httpSettings = Factory.getInstance().getComponent(HttpSettings.class);
@@ -154,7 +160,7 @@ public abstract class SimpleWebServer extends WebServerBase {
         return new WebServerSupplier() {
             @Override
             public WebServer newWebServer(int port) {
-                return SimpleWebServer.builder().setPort(port).build();
+                return SimpleWebServer.builder().setPort(port).setBindInterface("0.0.0.0").build();
             }
         };
     }
