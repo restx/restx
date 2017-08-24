@@ -15,91 +15,32 @@ import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.common.Version;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.common.MoreFiles.checkFileExists;
-import static restx.common.MoreIO.checkCanOpenSocket;
 
-public class JettyWebServer implements WebServer {
-    private static final AtomicLong SERVER_ID = new AtomicLong();
-
+public class JettyWebServer extends WebServerBase {
     private static final Logger logger = LoggerFactory.getLogger(JettyWebServer.class);
 
     private Server server;
-    private int port;
-    private String bindInterface;
-    private String appBase;
     private String webInfLocation;
-    private String serverId;
-
 
     public JettyWebServer(String appBase, int aPort) {
         this(null, appBase, aPort, null);
     }
 
     public JettyWebServer(String webInfLocation, String appBase, int port, String bindInterface) {
-        checkFileExists(checkNotNull(appBase));
+        super(checkNotNull(appBase), port, bindInterface, "Jetty7", "org.eclipse.jetty", "jetty-server");
 
         if (webInfLocation != null) {
             checkFileExists(webInfLocation);
         }
-
-        this.port = port;
-        this.bindInterface = bindInterface;
-        this.appBase = appBase;
         this.webInfLocation = webInfLocation;
-        this.serverId = "Jetty#" + SERVER_ID.incrementAndGet();
-    }
-
-    /**
-     * Sets the serverId used by this server.
-     *
-     * Must not be called when server is started.
-     *
-     * The serverId is used to uniquely identify the main Factory used by REST main router in this server.
-     * It allows to access the Factory with Factory.getInstance(serverId).
-     *
-     * @param serverId the server id to set. Must be unique in the JVM.
-     *
-     * @return current server
-     */
-    public synchronized JettyWebServer setServerId(final String serverId) {
-        if (isStarted()) {
-            throw new IllegalStateException("can't set server id when server is started");
-        }
-        this.serverId = serverId;
-        return this;
     }
 
     @Override
-    public String getServerId() {
-        return serverId;
-    }
-
-    @Override
-    public int getPort() {
-        return port;
-    }
-
-    @Override
-    public String baseUrl() {
-        return WebServers.baseUri("127.0.0.1", port);
-    }
-
-    @Override
-    public String getServerType() {
-        return "Jetty " + Version.getVersion("org.eclipse.jetty", "jetty-server") + ", embedded";
-    }
-
-    @Override
-    public synchronized void start() throws Exception {
-        checkCanOpenSocket(port);
-
+    protected void _start() throws Exception {
         server = new Server();
-        WebServers.register(this);
 
         server.setThreadPool(createThreadPool());
         server.addConnector(createConnector());
@@ -110,26 +51,14 @@ public class JettyWebServer implements WebServer {
     }
 
     @Override
-    public void startAndAwait() throws Exception {
-        start();
-        await();
-    }
-
-    @Override
     public void await() throws InterruptedException {
         server.join();
     }
 
     @Override
-    public synchronized void stop() throws Exception {
+    protected void _stop() throws Exception {
         server.stop();
         server = null;
-        WebServers.unregister(serverId);
-    }
-
-    @Override
-    public synchronized boolean isStarted() {
-        return server != null;
     }
 
     protected ThreadPool createThreadPool() {
