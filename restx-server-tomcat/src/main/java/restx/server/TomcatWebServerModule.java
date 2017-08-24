@@ -20,6 +20,6 @@ public class TomcatWebServerModule {
     @Provides
     @Named("restx.server.tomcat")
     public WebServerSupplier tomcatWebServerSupplier(@Named("restx.server.tomcat.appbase.default.location") String appBase){
-        return TomcatWebServer.tomcatWebServerSupplier(appBase);
+        return TomcatWebServer.tomcatWebServerSupplier(appBase, "0.0.0.0");
     }
 }

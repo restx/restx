@@ -22,8 +22,8 @@ public class TomcatWebServer extends WebServerBase {
     private final Tomcat tomcat;
     private final Context context;
 
-    public TomcatWebServer(String appBase, int port) throws ServletException {
-        super(checkNotNull(appBase), port, "localhost", "Apache Tomcat", "org.apache.tomcat", "tomcat-catalina");
+    public TomcatWebServer(String appBase, int port, String bindInterface) throws ServletException {
+        super(checkNotNull(appBase), port, bindInterface, "Apache Tomcat", "org.apache.tomcat", "tomcat-catalina");
 
         tomcat = new Tomcat();
 
@@ -58,12 +58,12 @@ public class TomcatWebServer extends WebServerBase {
         tomcat.stop();
     }
 
-    public static WebServerSupplier tomcatWebServerSupplier(final String appBase) {
+    public static WebServerSupplier tomcatWebServerSupplier(final String appBase, final String bindInterface) {
         return new WebServerSupplier() {
             @Override
             public WebServer newWebServer(int port) {
                 try {
-                    return new TomcatWebServer(appBase, port);
+                    return new TomcatWebServer(appBase, port, bindInterface);
                 } catch (ServletException e) {
                     throw Throwables.propagate(e);
                 }
