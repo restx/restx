@@ -12,6 +12,7 @@ import restx.*;
 import restx.entity.*;
 import restx.http.*;
 import restx.endpoint.*;
+import restx.exceptions.WrappedCheckedException;
 import restx.factory.*;
 import restx.security.*;
 import restx.security.PermissionFactory;
@@ -52,7 +53,11 @@ public class {{router}} extends RestxRouter {
             @Override
             protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {
                 {{securityCheck}}
-                {{call}}
+                try {
+                    {{call}}
+                } catch(RuntimeException e) { throw e; }
+                  {{#throwsIOException}}catch(IOException e) { throw e; }
+                  {{/throwsIOException}}catch(Exception e) { throw new WrappedCheckedException(e); }
             }
 
             @Override

@@ -334,11 +334,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             String call = "resource." + resourceMethod.name + "(\n" +
                     "                        " +
                     Joiner.on(",\n                        ").join(callParameters) + "\n" +
-                    "                )";
+                    "                    )";
 
             if (resourceMethod.returnType.equalsIgnoreCase("void")) {
                 call = call + ";\n" +
-                        "                return Optional.of(Empty.EMPTY);";
+                        "                    return Optional.of(Empty.EMPTY);";
             } else {
                 if (resourceMethod.returnTypeGuavaOptional) {
                     call = call ;
@@ -360,6 +360,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .put("resource", resourceClass.name)
                     .put("securityCheck", "securityManager.check(request, match, " + resourceMethod.permission + ");")
                     .put("queryParametersDefinition", Joiner.on(",\n").join(queryParametersDefinition))
+                    .put("throwsIOException", resourceMethod.throwsIOException())
                     .put("call", call)
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("sourceLocation", resourceMethod.sourceLocation)

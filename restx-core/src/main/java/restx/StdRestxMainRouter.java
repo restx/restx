@@ -13,6 +13,7 @@ import restx.common.metrics.api.MetricRegistry;
 import restx.common.metrics.api.Monitor;
 import restx.common.metrics.dummy.DummyMetricRegistry;
 import restx.exceptions.RestxError;
+import restx.exceptions.WrappedCheckedException;
 import restx.factory.Factory;
 import restx.factory.NamedComponent;
 import restx.http.HttpStatus;
@@ -218,6 +219,14 @@ public class StdRestxMainRouter implements RestxMainRouter {
             restxResponse.setContentType("text/plain");
             PrintWriter out = restxResponse.getWriter();
             out.println("UNEXPECTED CLIENT ERROR:");
+            out.print(ex.getMessage());
+        } catch (WrappedCheckedException wrappedException) {
+            Throwable ex = wrappedException.getCause();
+            logger.error("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
+            restxResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            restxResponse.setContentType("text/plain");
+            PrintWriter out = restxResponse.getWriter();
+            out.println("UNEXPECTED SERVER ERROR:");
             out.print(ex.getMessage());
         } catch (Throwable ex) {
             logger.error("request raised " + ex.getClass().getSimpleName() + ": " + ex.getMessage(), ex);
