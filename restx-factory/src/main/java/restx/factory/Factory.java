@@ -1065,7 +1065,7 @@ public class Factory implements AutoCloseable {
                 ImmutableList.<SatisfiedQuery<?>>of(SatisfiedQuery.of(query, name)), engine);
         Deque<BuildingBox<?>> dependencies = buildBuildingBoxesClosure(buildingBox);
 
-        logger.info("{} - dependencies closure for {} is: {}", id, name, dependencies);
+        logger.debug("{} - dependencies closure for {} is: {}", id, name, dependencies);
         satisfyBoms(dependencies);
 
         return buildAndStore(buildingBox);
@@ -1211,7 +1211,7 @@ public class Factory implements AutoCloseable {
     }
 
     private <T> Optional<NamedComponent<T>> buildAndStore(Name<T> name, MachineEngine<T> engine, SatisfiedBOM satisfiedBOM) {
-        logger.info("{} - building {} with {} / {}", id, name, engine, satisfiedBOM);
+        logger.debug("{} - building {} with {} / {}", id, name, engine, satisfiedBOM);
         Timer timer = metrics.timer("<BUILD> " + name.getSimpleName());
         Monitor monitor = timer.time();
         ComponentBox<T> box;
@@ -1238,7 +1238,7 @@ public class Factory implements AutoCloseable {
             monitor = metrics.timer("<CUSTOMIZE> " + name.getSimpleName()
                     + " <WITH> " + customizer.getClass().getSimpleName()).time();
             try {
-                logger.info("{} - customizing {} with {}", id, name, customizer);
+                logger.debug("{} - customizing {} with {}", id, name, customizer);
                 box = box.customize(customizer);
             } finally {
                 monitor.stop();
