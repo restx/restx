@@ -46,9 +46,9 @@ public class ParametersResource {
         }
     }
 
-    @GET("/params/path/{a}/:b/{c:\\d+}:d")
-    public String pathparams(String a, String b, String c, String d) {
-        return "a=" + a + " b=" + b + " c=" + c + " d=" + d;
+    @GET("/params/path/{a}/:_b/{c:\\d+}:d")
+    public String pathparams(String a, String _b, String c, String d) {
+        return "a=" + a + " b=" + _b + " c=" + c + " d=" + d;
     }
 
     @GET("/params/query/withOptionalString")

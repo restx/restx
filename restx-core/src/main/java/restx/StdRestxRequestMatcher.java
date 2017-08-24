@@ -112,6 +112,11 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
         void end(PathPatternParser pathPatternParser);
     }
 
+    private static boolean isValidPathParamNameChar(int curChar) {
+        //only letters/digit/underscore are authorized in path param name
+        return Character.isLetterOrDigit(curChar) || curChar == '_';
+    }
+
     private static final class CurlyBracesPathParamPathParserCharProcessor implements PathParserCharProcessor {
         private int openBr = 1;
         private boolean inRegexDef;
@@ -166,8 +171,8 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
                     inRegexDef = true;
                     pathParamRegex.append("(");
                 } else {
-                    if (!Character.isLetterOrDigit(curChar)) {
-                        //only letters are authorized in path param name
+                    if (!isValidPathParamNameChar(curChar)) {
+                        //only letters/digit/underscore are authorized in path param name
                         throw new IllegalArgumentException(String.format(
                                 "illegal path parameter definition '%s' at offset %d" +
                                         " - only letters and digits are authorized in path param name",
@@ -188,7 +193,7 @@ public class StdRestxRequestMatcher implements RestxRequestMatcher {
         private StringBuilder pathParamName = new StringBuilder();
         @Override
         public void handle(int curChar, PathPatternParser pathPatternParser) {
-            if (!Character.isLetterOrDigit(curChar)) {
+            if (!isValidPathParamNameChar(curChar)) {
                 pathPatternParser.patternBuilder.append("([^\\/]+)");
                 pathPatternParser.stdPathPatternBuilder.append("{").append(pathParamName).append("}");
                 pathPatternParser.groupNamesBuilder.add(pathParamName.toString());
