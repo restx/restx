@@ -90,6 +90,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                         annotation.httpMethod, r.value + annotation.path,
                         annotation.methodElem.getSimpleName().toString(),
                         annotation.methodElem.getReturnType().toString(),
+                        annotation.methodElem.getThrownTypes().toString(),
                         successStatus, logLevel, permission,
                         typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString(),
                         inContentType, outContentType
@@ -521,6 +522,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final boolean returnTypeGuavaOptional;
         final boolean returnTypeJava8Optional;
         final String returnType;
+        final String thrownTypes;
         final String id;
         final ImmutableList<String> pathParamNames;
         final HttpStatus successStatus;
@@ -533,8 +535,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
         ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
-                       HttpStatus successStatus, RestxLogLevel logLevel, String permission, String sourceLocation,
-                       Optional<String> inContentType, Optional<String> outContentType) {
+                       String thrownTypes, HttpStatus successStatus, RestxLogLevel logLevel, String permission,
+                       String sourceLocation, Optional<String> inContentType, Optional<String> outContentType) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
@@ -544,6 +546,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.inContentType = inContentType;
             this.outContentType = outContentType;
 
+            this.thrownTypes = thrownTypes;
             this.realReturnType = returnType;
 
             TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(returnType);
@@ -563,6 +566,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.successStatus = successStatus;
             StdRestxRequestMatcher requestMatcher = new StdRestxRequestMatcher(httpMethod, path);
             pathParamNames = requestMatcher.getPathParamNames();
+        }
+
+        boolean throwsIOException() {
+            return thrownTypes != null && thrownTypes.contains(IOException.class.getCanonicalName());
         }
     }
 
