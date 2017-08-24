@@ -116,7 +116,7 @@ public class RestxSpecTape {
         Stopwatch stopwatch = Stopwatch.createStarted();
         System.out.print("RECORDING REQUEST...");
         final String method = restxRequest.getHttpMethod();
-        final String path = restxRequest.getRestxUri().substring(1); // remove leading slash
+        final String path = (restxRequest.getRestxUri().length()>1)?restxRequest.getRestxUri().substring(1):restxRequest.getRestxUri(); // remove leading slash
         final ImmutableMap<String, String> cookies =
                 sessionFilter.toCookiesMap(sessionFilter.buildContextFromRequest(restxRequest));
         final byte[] requestBody = ByteStreams.toByteArray(restxRequest.getContentStream());

@@ -183,7 +183,7 @@ adminApp.controller('OperationController', function OperationController(
                 spec = { title: data.title, requests: [] };
                 data.whens.forEach(function (when) {
                     spec.requests.push({
-                        httpMethod: when.method, path: '/' + when.path, body: when.body, showBody: when.body.trim() !== '',
+                        httpMethod: when.method, path: ((when.path === '/')?'':'/') + when.path, body: when.body, showBody: when.body.trim() !== '',
                         response: { body: when.then.expected, status: when.then.expectedCode }});
                 });
                 $scope.specs.push(spec);
