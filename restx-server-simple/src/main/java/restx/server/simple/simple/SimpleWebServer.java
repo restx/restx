@@ -33,7 +33,6 @@ public abstract class SimpleWebServer extends WebServerBase {
         private int port;
         private String routerPath = "/api";
         private String appBase = null;
-        private String serverId;
         private RestxMainRouter router;
         public SimpleWebServerBuilder setPort(int port) {
             this.port = port;
@@ -50,23 +49,14 @@ public abstract class SimpleWebServer extends WebServerBase {
             return this;
         }
 
-        public SimpleWebServerBuilder setServerId(String serverId) {
-            this.serverId = serverId;
-            return this;
-        }
-
         public SimpleWebServerBuilder setRouter(RestxMainRouter router) {
             this.router = router;
             return this;
         }
 
         public SimpleWebServer build() {
-            if (serverId == null) {
-                serverId = "SimpleWebServer#" + SERVER_ID.incrementAndGet();
-            }
-
             if (router == null) {
-                return new SimpleWebServer(serverId, routerPath, appBase, port) {
+                return new SimpleWebServer(routerPath, appBase, port) {
                     @Override
                     protected RestxMainRouter setupRouter() {
                         return RestxMainRouterFactory.newInstance(
@@ -82,7 +72,7 @@ public abstract class SimpleWebServer extends WebServerBase {
                     }
                 };
             } else {
-                return new SimpleWebServer(serverId, routerPath, appBase, port) {
+                return new SimpleWebServer(routerPath, appBase, port) {
                     @Override
                     protected RestxMainRouter setupRouter() {
                         return router;
@@ -104,7 +94,7 @@ public abstract class SimpleWebServer extends WebServerBase {
     private RestxMainRouter router;
     private Connection connection;
 
-    private SimpleWebServer(String serverId, String routerPath, String appBase, int port) {
+    private SimpleWebServer(String routerPath, String appBase, int port) {
         super(appBase, port, "localhost", "SimpleFrameowkr", "org.simpleframework", "simple");
 
         this.routerPath = routerPath;
