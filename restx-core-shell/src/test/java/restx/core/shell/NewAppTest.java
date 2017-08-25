@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 
@@ -52,8 +53,11 @@ public class NewAppTest {
     @Parameterized.Parameters(name="{0}")
     public static Iterable<Object[]> data() throws IOException {
         return Arrays.asList(
-            new Object[]{ "Simplest app", createDescriptor("test1", false) },
-            new Object[]{ "App with hello resource", createDescriptor("test2", true) }
+            new Object[]{ "Simplest app", createDescriptor("test1", false, Arrays.asList(ModuleDescriptorType.values())) },
+            new Object[]{ "App with hello resource + all descriptors", createDescriptor("test2", true, Arrays.asList(ModuleDescriptorType.values())) },
+            new Object[]{ "App with hello resource + maven descriptor only", createDescriptor("test3", true, Arrays.asList(ModuleDescriptorType.MAVEN)) }
+            // Disabled because executing maven goals won't work with ivy-only file
+            // new Object[]{ "App with hello resource + ivy descriptor only", createDescriptor("test4", true, Arrays.asList(ModuleDescriptorType.IVY)) }
         );
     }
 
@@ -101,7 +105,7 @@ public class NewAppTest {
         return shell;
     }
 
-    private static AppShellCommand.NewAppDescriptor createDescriptor(String name, boolean generateHelloResource) throws IOException {
+    private static AppShellCommand.NewAppDescriptor createDescriptor(String name, boolean generateHelloResource, List<ModuleDescriptorType> buildFiles) throws IOException {
         AppShellCommand.NewAppDescriptor desc = new AppShellCommand.NewAppDescriptor();
         desc.appName = name+"App";
         desc.groupId = "com.foo";
@@ -109,7 +113,7 @@ public class NewAppTest {
         desc.targetPath = name;
         desc.mainPackage = "com.foo";
         desc.version = "0.1-SNAPSHOT";
-        desc.buildFile = "all";
+        desc.buildFiles = buildFiles;
         desc.signatureKey = "blah blah blah";
         desc.adminPassword = "pwd";
         desc.defaultPort = "8080";
