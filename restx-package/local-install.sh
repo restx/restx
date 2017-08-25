@@ -10,7 +10,7 @@ build-shell"
 rm -rf target/restx
 mkdir target/restx
 cd target/restx
-tar xzvf ../assembly/out/restx-0.31-SNAPSHOT.tar.gz
+tar xzvf ../assembly/out/restx-*-SNAPSHOT.tar.gz
 
 cd -
 
