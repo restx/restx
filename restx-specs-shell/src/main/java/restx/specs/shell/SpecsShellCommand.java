@@ -104,7 +104,7 @@ public class SpecsShellCommand extends StdShellCommand {
 
             if (!DepsShellCommand.depsUpToDate(shell)) {
                 shell.println("restx> deps install");
-                new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+                new DepsShellCommand.InstallDepsCommandRunner().run(shell);
             }
 
             new ShellAppRunner(appSettings, "restx.tests.RestxSpecTestServer",

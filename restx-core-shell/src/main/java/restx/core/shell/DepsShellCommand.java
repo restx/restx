@@ -67,7 +67,7 @@ public class DepsShellCommand extends StdShellCommand {
                 new StringsCompleter("deps"), new StringsCompleter("install", "add")));
     }
 
-    public class InstallDepsCommandRunner implements ShellCommandRunner {
+    public static class InstallDepsCommandRunner implements ShellCommandRunner {
 
         @Override
         public void run(RestxShell shell) throws Exception {
@@ -111,7 +111,7 @@ public class DepsShellCommand extends StdShellCommand {
         }
     }
 
-    class AddDepsCommandRunner implements ShellCommandRunner {
+    static class AddDepsCommandRunner implements ShellCommandRunner {
         private final String scope;
         private Optional<List<String>> pluginIds;
 

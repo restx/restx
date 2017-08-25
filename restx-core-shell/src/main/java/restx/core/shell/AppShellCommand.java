@@ -305,7 +305,7 @@ public class AppShellCommand extends StdShellCommand {
                             "You can always install the deps later by using the `deps install` command\n" +
                             "and run the app with the `app run` command")) {
                 shell.println("restx> deps install");
-                new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+                new DepsShellCommand.InstallDepsCommandRunner().run(shell);
                 shell.println("restx> app run");
                 new RunAppCommandRunner(Collections.<String>emptyList()).run(shell);
             }
@@ -632,7 +632,7 @@ public class AppShellCommand extends StdShellCommand {
 
             if (!DepsShellCommand.depsUpToDate(shell)) {
                 shell.println("restx> deps install");
-                new DepsShellCommand().new InstallDepsCommandRunner().run(shell);
+                new DepsShellCommand.InstallDepsCommandRunner().run(shell);
             }
 
             List<String> vmOptions = new ArrayList<>(this.vmOptions);
