@@ -109,7 +109,7 @@ public class AppShellCommand extends StdShellCommand {
         String artifactId;
         String mainPackage;
         String version;
-        String buildFile;
+        List<ModuleDescriptorType> buildFiles;
         String signatureKey;
         String adminPassword;
         String defaultPort;
@@ -184,15 +184,35 @@ public class AppShellCommand extends StdShellCommand {
                             "It's recommended to use Maven convention to suffix it with -SNAPSHOT if you plan to use Maven for your app\n" +
                             "Examples: 0.1-SNAPSHOT, 1.0, ...");
 
-            descriptor.buildFile = shell.ask("generate module descriptor (ivy/pom/none/all) [%s]? ", "all",
-                    "This allows to generate a module descriptor for your app.\n" +
-                            "Options:\n" +
-                            "\t- 'ivy': get an Easyant compatible Ivy file generated for you.\n" +
-                            "\t- 'pom': get a Maven POM generated for you.\n" +
-                            "\t- 'all': get both a POM and an Ivy file.\n" +
-                            "\t- 'none': get no module descriptor generated. WARNING: this will make it harder to build your app.\n" +
-                            "If you don't know these tools, use default answer.\n"
-            );
+            while (descriptor.buildFiles == null) {
+                String option = shell.ask("Select module descriptor(s) you want to generate :\n" +
+                                " [   1] md.restx.json only.\n" +
+                                " [   2] module.ivy only.\n" +
+                                " [   3] pom.xml only.\n" +
+                                " [   4] md.restx.json + module.ivy.\n" +
+                                " [   5] md.restx.json + pom.xml.\n" +
+                                " [ all] md.restx.json + pom.xml + module.ivy.\n" +
+                                " [none] no module descriptor. WARNING: this will make it harder to build your app.\n" +
+                                "\n" +
+                                " Which option [%s]? ",
+                        "all",
+                        "This allows to generate module descriptor(s) for your app.\n" +
+                                "Module descriptor types:\n" +
+                                "\t- 'md.restx.json': get a RestX module descriptor generated for you.\n" +
+                                "\t- 'module.ivy': get an Easyant compatible Ivy file generated for you.\n" +
+                                "\t- 'pom.xml': get a Maven POM generated for you.\n" +
+                                "If you don't know these tools, use default answer.\n");
+                switch (option.trim()) {
+                    case "1": descriptor.buildFiles = Arrays.asList(ModuleDescriptorType.RESTX); break;
+                    case "2": descriptor.buildFiles = Arrays.asList(ModuleDescriptorType.IVY); break;
+                    case "3": descriptor.buildFiles = Arrays.asList(ModuleDescriptorType.MAVEN); break;
+                    case "4": descriptor.buildFiles = Arrays.asList(ModuleDescriptorType.RESTX, ModuleDescriptorType.IVY); break;
+                    case "5": descriptor.buildFiles = Arrays.asList(ModuleDescriptorType.RESTX, ModuleDescriptorType.MAVEN); break;
+                    case "all": descriptor.buildFiles = Arrays.asList(ModuleDescriptorType.values()); break;
+                    case "none": descriptor.buildFiles = Collections.emptyList(); break;
+                    default:  descriptor.buildFiles = null;
+                }
+            }
 
             descriptor.javaVersion = shell.ask("java version [%s]? ",
                     System.getProperty("java.version").replaceAll("^(\\d+\\.\\d+).*$", "$1"),
@@ -389,15 +409,18 @@ public class AppShellCommand extends StdShellCommand {
             }
 
             srvMainTemplates.generate(srvModulePath, scope);
-            boolean generateIvy = "ivy".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
-            boolean generatePom = "pom".equalsIgnoreCase(descriptor.buildFile) || "all".equalsIgnoreCase(descriptor.buildFile);
-            if (generateIvy) {
+            if (descriptor.buildFiles.contains(ModuleDescriptorType.IVY)) {
                 shell.println("generating module.ivy ...");
                 RestxBuild.convert(srvModulePath.toAbsolutePath() + "/md.restx.json", srvModulePath.toAbsolutePath() + "/module.ivy");
             }
-            if (generatePom) {
+            if (descriptor.buildFiles.contains(ModuleDescriptorType.MAVEN)) {
                 shell.println("generating pom.xml ...");
                 RestxBuild.convert(srvModulePath.toAbsolutePath() + "/md.restx.json", srvModulePath.toAbsolutePath() + "/pom.xml");
+            }
+            // We remove md.restx.json file *after* having generated pom and/or ivy file as it is needed for their generation
+            if (!descriptor.buildFiles.contains(ModuleDescriptorType.RESTX)) {
+                shell.println("removing md.restx.json ...");
+                srvModulePath.resolve(ModuleDescriptorType.RESTX.getDescriptorFileName()).toFile().delete();
             }
 
             if (descriptor.generateHelloResource) {
