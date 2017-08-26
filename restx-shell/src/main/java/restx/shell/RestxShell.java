@@ -100,7 +100,11 @@ public class RestxShell implements Appendable {
         boolean exit = false;
         while (!exit) {
             String line = consoleReader.readLine();
-            exit = exec(line);
+            if(line == null) { // line will be null when EOF, eg ctrl+c
+                exit = true;
+            } else {
+                exit = exec(line);
+            }
         }
 
         terminate();
