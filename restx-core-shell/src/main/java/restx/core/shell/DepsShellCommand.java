@@ -88,6 +88,9 @@ public class DepsShellCommand extends StdShellCommand {
             } else if(ModuleDescriptorType.MAVEN.equals(moduleDescriptorTypeWithExistingFile)) {
                 shell.println("installing deps using maven descriptor...");
                 installDepsFromMavenDescriptor(shell, ModuleDescriptorType.MAVEN.resolveDescriptorFile(shell.currentLocation()));
+            } else if(ModuleDescriptorType.IVY.equals(moduleDescriptorTypeWithExistingFile)) {
+                shell.println("installing deps using ivy descriptor...");
+                installDepsFromIvyDescriptor(shell, ModuleDescriptorType.IVY.resolveDescriptorFile(shell.currentLocation()));
             } else {
                 throw new IllegalArgumentException("Unsupported deps install for module type "+moduleDescriptorTypeWithExistingFile);
             }
@@ -98,7 +101,6 @@ public class DepsShellCommand extends StdShellCommand {
         }
 
         private void installDepsFromModuleDescriptor(RestxShell shell, File mdFile) throws Exception {
-            Ivy ivy = ShellIvy.loadIvy(shell);
             File tempFile = File.createTempFile("restx-md", ".ivy");
             try (FileInputStream is = new FileInputStream(mdFile)) {
                 ModuleDescriptor descriptor = new RestxJsonSupport().parse(is);
@@ -106,19 +108,25 @@ public class DepsShellCommand extends StdShellCommand {
                     new IvySupport().generate(descriptor, w);
                 }
 
-                shell.println("resolving dependencies...");
-                ResolveReport resolveReport = ivy.resolve(tempFile);
-
-                shell.println("synchronizing dependencies in " + shell.currentLocation().resolve("target/dependency") + " ...");
-                ivy.retrieve(resolveReport.getModuleDescriptor().getModuleRevisionId(),
-                        new RetrieveOptions()
-                                .setDestArtifactPattern(
-                                        shell.currentLocation().toAbsolutePath() + "/target/dependency/[artifact]-[revision](-[classifier]).[ext]")
-                                .setSync(true)
-                );
+                installDepsFromIvyDescriptor(shell, tempFile);
             } finally {
                 tempFile.delete();
             }
+        }
+
+        private void installDepsFromIvyDescriptor(RestxShell shell, File ivyFile) throws Exception {
+            Ivy ivy = ShellIvy.loadIvy(shell);
+
+            shell.println("resolving dependencies...");
+            ResolveReport resolveReport = ivy.resolve(ivyFile);
+
+            shell.println("synchronizing dependencies in " + shell.currentLocation().resolve("target/dependency") + " ...");
+            ivy.retrieve(resolveReport.getModuleDescriptor().getModuleRevisionId(),
+                    new RetrieveOptions()
+                            .setDestArtifactPattern(
+                                    shell.currentLocation().toAbsolutePath() + "/target/dependency/[artifact]-[revision](-[classifier]).[ext]")
+                            .setSync(true)
+            );
         }
 
         private void installDepsFromMavenDescriptor(RestxShell shell, File pomFile) throws Exception {
