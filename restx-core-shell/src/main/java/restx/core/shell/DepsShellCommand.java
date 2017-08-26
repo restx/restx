@@ -72,11 +72,21 @@ public class DepsShellCommand extends StdShellCommand {
         @Override
         public void run(RestxShell shell) throws Exception {
             File mdFile = mdFile(shell);
-            if (!mdFile.exists()) {
+            if(!mdFile.exists()) {
                 throw new IllegalStateException(
                         "md.restx.json file not found in " + shell.currentLocation() + "." +
                                 " It is required to perform deps management");
             }
+
+            installDepsFromModuleDescriptor(shell, mdFile);
+
+            File md5File = md5File(shell);
+            Files.write(Files.hash(mdFile, Hashing.md5()).toString(), md5File, Charsets.UTF_8);
+
+            shell.println("DONE");
+        }
+
+        private void installDepsFromModuleDescriptor(RestxShell shell, File mdFile) throws Exception {
             Ivy ivy = ShellIvy.loadIvy(shell);
             File tempFile = File.createTempFile("restx-md", ".ivy");
             try (FileInputStream is = new FileInputStream(mdFile)) {
@@ -93,13 +103,8 @@ public class DepsShellCommand extends StdShellCommand {
                         new RetrieveOptions()
                                 .setDestArtifactPattern(
                                         shell.currentLocation().toAbsolutePath() + "/target/dependency/[artifact]-[revision](-[classifier]).[ext]")
-                        .setSync(true)
+                                .setSync(true)
                 );
-
-                File md5File = md5File(shell);
-                Files.write(Files.hash(mdFile, Hashing.md5()).toString(), md5File, Charsets.UTF_8);
-
-                shell.println("DONE");
             } finally {
                 tempFile.delete();
             }
