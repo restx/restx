@@ -31,7 +31,7 @@ public enum ModuleDescriptorType {
 
     public static Optional<ModuleDescriptorType> firstModuleDescriptorTypeWithExistingFile(final Path inDirectory) {
         return FluentIterable
-            .from(Arrays.asList(ModuleDescriptorType.RESTX))
+            .from(Arrays.asList(ModuleDescriptorType.RESTX, ModuleDescriptorType.MAVEN))
             .filter(new Predicate<ModuleDescriptorType>() {
                 @Override
                 public boolean apply(ModuleDescriptorType mdType) {

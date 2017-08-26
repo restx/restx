@@ -11,6 +11,7 @@ import jline.console.completer.StringsCompleter;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.retrieve.RetrieveOptions;
+import restx.AppSettings;
 import restx.build.*;
 import restx.build.ModuleDescriptor;
 import restx.factory.Component;
@@ -19,10 +20,12 @@ import restx.shell.*;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -82,6 +85,9 @@ public class DepsShellCommand extends StdShellCommand {
             if(ModuleDescriptorType.RESTX.equals(moduleDescriptorTypeWithExistingFile)) {
                 shell.println("installing deps using restx module descriptor...");
                 installDepsFromModuleDescriptor(shell, ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation()));
+            } else if(ModuleDescriptorType.MAVEN.equals(moduleDescriptorTypeWithExistingFile)) {
+                shell.println("installing deps using maven descriptor...");
+                installDepsFromMavenDescriptor(shell, ModuleDescriptorType.MAVEN.resolveDescriptorFile(shell.currentLocation()));
             } else {
                 throw new IllegalArgumentException("Unsupported deps install for module type "+moduleDescriptorTypeWithExistingFile);
             }
@@ -113,6 +119,43 @@ public class DepsShellCommand extends StdShellCommand {
             } finally {
                 tempFile.delete();
             }
+        }
+
+        private void installDepsFromMavenDescriptor(RestxShell shell, File pomFile) throws Exception {
+            AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
+
+            Path dependenciesDir = Paths.get(appSettings.targetDependency());
+
+            // Emptying target dependencies directory first
+            if(dependenciesDir.toFile().exists()) {
+                java.nio.file.Files.walkFileTree(dependenciesDir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        java.nio.file.Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        java.nio.file.Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+
+            dependenciesDir.toFile().mkdirs();
+
+            // Then copying dependencies through copy-dependencies plugin
+            ProcessBuilder mavenCmd = new ProcessBuilder(
+                    "mvn", "org.apache.maven.plugins:maven-dependency-plugin:3.0.1:copy-dependencies",
+                    "-DoutputDirectory=" + dependenciesDir.toAbsolutePath(), "-DincludeScope=runtime"
+            );
+
+            shell.println("Executing `"+mavenCmd+"` ...");
+            mavenCmd.redirectErrorStream(true)
+             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+             .directory(shell.currentLocation().toFile().getAbsoluteFile())
+             .start()
+             .waitFor();
         }
 
         private static void storeModuleDescriptorMD5File(RestxShell shell, ModuleDescriptorType mdType) throws IOException {
