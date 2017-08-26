@@ -1,9 +1,7 @@
 package restx.core.shell;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
+import com.google.common.base.*;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -22,7 +20,9 @@ import restx.shell.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -71,17 +71,22 @@ public class DepsShellCommand extends StdShellCommand {
 
         @Override
         public void run(RestxShell shell) throws Exception {
-            File mdFile = mdFile(shell);
-            if(!mdFile.exists()) {
+            Optional<ModuleDescriptorType> moduleDescriptorTypeWithExistingFileOpt = ModuleDescriptorType.firstModuleDescriptorTypeWithExistingFile(shell.currentLocation());
+            if(!moduleDescriptorTypeWithExistingFileOpt.isPresent()) {
                 throw new IllegalStateException(
                         "md.restx.json file not found in " + shell.currentLocation() + "." +
                                 " It is required to perform deps management");
             }
 
-            installDepsFromModuleDescriptor(shell, mdFile);
+            ModuleDescriptorType moduleDescriptorTypeWithExistingFile = moduleDescriptorTypeWithExistingFileOpt.get();
+            if(ModuleDescriptorType.RESTX.equals(moduleDescriptorTypeWithExistingFile)) {
+                shell.println("installing deps using restx module descriptor...");
+                installDepsFromModuleDescriptor(shell, ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation()));
+            } else {
+                throw new IllegalArgumentException("Unsupported deps install for module type "+moduleDescriptorTypeWithExistingFile);
+            }
 
-            File md5File = md5File(shell);
-            Files.write(Files.hash(mdFile, Hashing.md5()).toString(), md5File, Charsets.UTF_8);
+            storeModuleDescriptorMD5File(shell, moduleDescriptorTypeWithExistingFile);
 
             shell.println("DONE");
         }
@@ -109,6 +114,14 @@ public class DepsShellCommand extends StdShellCommand {
                 tempFile.delete();
             }
         }
+
+        private static void storeModuleDescriptorMD5File(RestxShell shell, ModuleDescriptorType mdType) throws IOException {
+            File mdFile = mdType.resolveDescriptorFile(shell.currentLocation());
+            File md5File = ModuleDescriptorType.MAVEN.resolveDescriptorMd5File(shell.currentLocation());
+
+            shell.println(String.format("Storing md5 file %s for module descriptor %s...", md5File.getAbsolutePath(), mdFile.getAbsolutePath()));
+            Files.write(Files.hash(mdFile, Hashing.md5()).toString(), md5File, Charsets.UTF_8);
+        }
     }
 
     static class AddDepsCommandRunner implements ShellCommandRunner {
@@ -134,7 +147,7 @@ public class DepsShellCommand extends StdShellCommand {
 
         @Override
         public void run(RestxShell shell) throws Exception {
-            File mdFile = mdFile(shell);
+            File mdFile = ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation());
             if (!mdFile.exists()) {
                 throw new IllegalStateException(
                         "md.restx.json file not found in " + shell.currentLocation() + "." +
@@ -195,31 +208,24 @@ public class DepsShellCommand extends StdShellCommand {
     }
 
     public static boolean depsUpToDate(RestxShell shell) {
-        File mdFile = mdFile(shell);
-        if (!mdFile.exists()) {
+        Optional<ModuleDescriptorType> moduleDescriptorTypeWithExistingFileOpt = ModuleDescriptorType.firstModuleDescriptorTypeWithExistingFile(shell.currentLocation());
+        if(!moduleDescriptorTypeWithExistingFileOpt.isPresent()) {
             // no dependency management at all
             return true;
         }
 
-        File md5File = md5File(shell);
-
-        if (!md5File.exists()) {
+        ModuleDescriptorType moduleDescriptorTypeWithExistingFile = moduleDescriptorTypeWithExistingFileOpt.get();
+        File descriptorFile = moduleDescriptorTypeWithExistingFile.resolveDescriptorFile(shell.currentLocation());
+        File moduleDescriptorMd5 = moduleDescriptorTypeWithExistingFile.resolveDescriptorMd5File(shell.currentLocation());
+        if(!moduleDescriptorMd5.exists()) {
             return false;
         }
 
         try {
-            String md5 = Files.hash(mdFile, Hashing.md5()).toString();
-            return md5.equals(Files.toString(md5File, Charsets.UTF_8));
+            String md5 = Files.hash(descriptorFile, Hashing.md5()).toString();
+            return md5.equals(Files.toString(moduleDescriptorMd5, Charsets.UTF_8));
         } catch (IOException e) {
             return false;
         }
-    }
-
-    private static File mdFile(RestxShell shell) {
-        return shell.currentLocation().resolve("md.restx.json").toFile();
-    }
-
-    public static File md5File(RestxShell shell) {
-        return shell.currentLocation().resolve("target/dependency/md.restx.json.md5").toFile();
     }
 }
