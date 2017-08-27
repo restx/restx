@@ -2,6 +2,7 @@ package restx.common;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+
 import org.junit.Test;
 
 import static java.util.Arrays.asList;
@@ -99,5 +100,11 @@ public class StdRestxConfigTest {
         assertThat(config.getInt("key2").get()).isEqualTo(2);
         assertThat(config.getElement("key2").get()).isEqualToComparingFieldByField(
                 ConfigElement.of("restx/common/config.properties", "Doc 2\non 2 lines", "key2", "2"));
+        
+        assertThat(config.getString("key3").isPresent()).isTrue();
+        assertThat(config.getString("key3").get()).isEqualTo("val1+2=3\\o/ \nthis was a smiley!");
+        assertThat(config.getElement("key3").isPresent()).isTrue();
+        assertThat(config.getElement("key3").get()).isEqualToComparingFieldByField(
+                ConfigElement.of("restx/common/config.properties", "Doc 3\nLogical line", "key3", "val1+2=3\\o/ \nthis was a smiley!"));
     }
 }
