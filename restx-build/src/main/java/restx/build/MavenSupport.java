@@ -139,7 +139,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             for (ModuleFragment fragment : md.getFragments("maven")) {
                 if (fragment.matches(PLUGIN_PATTERN)) {
                     fragment.write(md, plugins);
-                } else {
+                } else if(fragment.resolvedContent()) {
                     fragment.write(md, others);
                 }
             }

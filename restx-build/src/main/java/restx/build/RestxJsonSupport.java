@@ -120,21 +120,7 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
                     JSONArray array = jsonFragments.getJSONArray(type);
                     for (int i = 0; i < array.length(); i++) {
                         String url = expandProperties(properties, array.getString(i));
-
-                        if (url.startsWith("classpath://")) {
-                            String fragmentPath = url.substring("classpath://".length());
-                            InputStream stream = getClass().getResourceAsStream(fragmentPath);
-                            if (stream == null) {
-                                throw new IllegalArgumentException("classpath fragment not found: '" + fragmentPath + "'" +
-                                        ". Check your classpath.");
-                            }
-                            fragmentsForType.add(new ModuleFragment(RestxBuildHelper.toString(stream)));
-                        } else {
-                            URL fragmentUrl = new URL(url);
-                            try (InputStream stream = fragmentUrl.openStream()) {
-                                fragmentsForType.add(new ModuleFragment(RestxBuildHelper.toString(stream)));
-                            }
-                        }
+                        fragmentsForType.add(new ModuleFragment(url));
                     }
 
                     fragments.put(type, fragmentsForType);
