@@ -5,7 +5,6 @@ import restx.build.org.json.JSONObject;
 import restx.build.org.json.JSONTokener;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,10 +36,21 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
             for (Iterator<Map.Entry<String, String>> iterator = md.getProperties().entrySet().iterator(); iterator.hasNext(); ) {
                 Map.Entry<String, String> entry = iterator.next();
                 w.write(String.format("        \"%s\": \"%s\"", entry.getKey(), entry.getValue()));
-                if (iterator.hasNext()) {
+                if (iterator.hasNext() || !md.getPropertiesFileReferences().isEmpty()) {
                     w.write(",");
                 }
                 w.write("\n");
+            }
+            if(!md.getPropertiesFileReferences().isEmpty()) {
+                w.write("      \"@files\": [\n");
+                for (Iterator<String> itFileRef = md.getPropertiesFileReferences().iterator(); itFileRef.hasNext(); ) {
+                    w.write(String.format("        \"%s\"", itFileRef.next()));
+                    if(itFileRef.hasNext()) {
+                        w.write(",");
+                    }
+                    w.write("\n");
+                }
+                w.write("        ]\n");
             }
             w.write("    },\n\n");
 
@@ -102,9 +112,21 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
         private ModuleDescriptor parse(Path path, InputStream inputStream) throws IOException {
             JSONObject jsonObject = new JSONObject(new JSONTokener(new InputStreamReader(inputStream, "UTF-8")));
 
+            JSONObject propertiesJSONObj = null;
             Map<String, String> properties = new LinkedHashMap<>();
+            List<String> propertiesFileReferences = new ArrayList<>();
             if (jsonObject.has("properties")) {
-                loadJsonProperties(path == null ? null : path.getParent(), properties, jsonObject.getJSONObject("properties"));
+                propertiesJSONObj = jsonObject.getJSONObject("properties");
+                loadJsonProperties(path == null ? null : path.getParent(), properties, propertiesJSONObj);
+                for(Object p: propertiesJSONObj.keySet()) {
+                    String key = p.toString();
+                    if("@files".equals(key)) {
+                        JSONArray propertyFiles = propertiesJSONObj.getJSONArray(key);
+                        for (int i = 0; i < propertyFiles.length(); i++) {
+                            propertiesFileReferences.add(propertyFiles.getString(i));
+                        }
+                    }
+                }
             }
 
             GAV parent = null;

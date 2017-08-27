@@ -69,7 +69,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             }
 
             return new ModuleDescriptor(parent, gav, packaging,
-                    properties, new HashMap<String,List<ModuleFragment>>(), dependencies);
+                    properties, Collections.<String>emptyList(), new HashMap<String,List<ModuleFragment>>(), dependencies);
         }
 
         private GAV getGav(JSONObject jsonObject, String typeKey, GAV parentGAV) {
