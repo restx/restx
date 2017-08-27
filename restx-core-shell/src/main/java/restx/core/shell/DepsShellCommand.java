@@ -239,7 +239,7 @@ public class DepsShellCommand extends StdShellCommand {
 
             ModuleDescriptor descriptor;
             try (FileInputStream is = new FileInputStream(mdFile)) {
-                descriptor = new RestxJsonSupport().parse(is);
+                descriptor = new RestxJsonSupport().parse(is).getParsedModuleDescriptor();
 
                 for (String s : pluginIds.get()) {
                     descriptor = descriptor.concatDependency(scope, new ModuleDependency(GAV.parse(s)));

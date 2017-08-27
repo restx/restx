@@ -117,7 +117,6 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
             List<String> propertiesFileReferences = new ArrayList<>();
             if (jsonObject.has("properties")) {
                 propertiesJSONObj = jsonObject.getJSONObject("properties");
-                loadJsonProperties(path == null ? null : path.getParent(), properties, propertiesJSONObj);
                 for(Object p: propertiesJSONObj.keySet()) {
                     String key = p.toString();
                     if("@files".equals(key)) {
@@ -125,15 +124,17 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
                         for (int i = 0; i < propertyFiles.length(); i++) {
                             propertiesFileReferences.add(propertyFiles.getString(i));
                         }
+                    } else {
+                        properties.put(key, propertiesJSONObj.getString(key));
                     }
                 }
             }
 
             GAV parent = null;
             if (jsonObject.has("parent")) {
-                parent = GAV.parse(expandProperties(properties, jsonObject.getString("parent")));
+                parent = GAV.parse(jsonObject.getString("parent"));
             }
-            GAV gav = GAV.parse(expandProperties(properties, jsonObject.getString("module")));
+            GAV gav = GAV.parse(jsonObject.getString("module"));
 
             String packaging = jsonObject.has("packaging") ? jsonObject.getString("packaging") : "jar";
 
@@ -161,7 +162,7 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
 
                     JSONArray array = jsonFragments.getJSONArray(type);
                     for (int i = 0; i < array.length(); i++) {
-                        String url = expandProperties(properties, array.getString(i));
+                        String url = array.getString(i);
                         fragmentsForType.add(new ModuleFragment(url));
                     }
 
@@ -169,7 +170,37 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
                 }
             }
 
-            return new ModuleDescriptor(parent, gav, packaging, properties, fragments, dependencies);
+            ModuleDescriptor parsedModuleDescriptor = new ModuleDescriptor(parent, gav, packaging, properties, propertiesFileReferences, fragments, dependencies, null);
+
+            // Interpolating stuff in parsed module descriptor ...
+
+            Map<String, String> interpolatedProperties = new LinkedHashMap<>();
+            if(propertiesJSONObj != null) {
+                loadJsonProperties(path == null ? null : path.getParent(), interpolatedProperties, propertiesJSONObj);
+            }
+
+            GAV interpolatedParent = parent==null?null:GAV.parse(expandProperties(interpolatedProperties, parent.toParseableString()));
+            GAV interpolatedGAV = GAV.parse(expandProperties(interpolatedProperties, gav.toParseableString()));
+
+            Map<String, List<ModuleDependency>> interpolatedDependencies = new LinkedHashMap<>();
+            for(Map.Entry<String,List<ModuleDependency>> scopedDependenciesEntry: dependencies.entrySet()) {
+                List<ModuleDependency> scopedDependencies = new ArrayList<>();
+                for(ModuleDependency dep: scopedDependenciesEntry.getValue()) {
+                    scopedDependencies.add(new ModuleDependency(GAV.parse(expandProperties(interpolatedProperties, dep.getGav().toParseableString()))));
+                }
+                interpolatedDependencies.put(scopedDependenciesEntry.getKey(), scopedDependencies);
+            }
+
+            Map<String, List<ModuleFragment>> interpolatedFragmentsPerModuleType = new LinkedHashMap<>();
+            for(Map.Entry<String,List<ModuleFragment>> perModuleTypeFragment: fragments.entrySet()) {
+                List<ModuleFragment> interpolatedFragments = new ArrayList<>();
+                for(ModuleFragment fragment: perModuleTypeFragment.getValue()) {
+                    interpolatedFragments.add(new ModuleFragment(expandProperties(interpolatedProperties, fragment.getUrl())));
+                }
+                interpolatedFragmentsPerModuleType.put(perModuleTypeFragment.getKey(), interpolatedFragments);
+            }
+
+            return new ModuleDescriptor(interpolatedParent, interpolatedGAV, packaging, interpolatedProperties, propertiesFileReferences, interpolatedFragmentsPerModuleType, interpolatedDependencies, parsedModuleDescriptor);
         }
 
         private void loadJsonProperties(Path path, Map<String, String> properties, JSONObject props) throws IOException {
@@ -186,10 +217,10 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
                             throw new IllegalArgumentException(
                                     "can't resolve property file " + propertyFilePath.toAbsolutePath() + "." +
                                             " Not found." +
-                                    (path == null ?
-                                            " Note that parsing from mere inputstream resolve files " +
-                                                    "relative to current directory." :
-                                            ""));
+                                            (path == null ?
+                                                    " Note that parsing from mere inputstream resolve files " +
+                                                            "relative to current directory." :
+                                                    ""));
                         }
 
                         try (InputStreamReader reader = new InputStreamReader(Files.newInputStream(propertyFilePath))) {

@@ -69,7 +69,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             }
 
             return new ModuleDescriptor(parent, gav, packaging,
-                    properties, Collections.<String>emptyList(), new HashMap<String,List<ModuleFragment>>(), dependencies);
+                    properties, Collections.<String>emptyList(), new HashMap<String,List<ModuleFragment>>(), dependencies, null);
         }
 
         private GAV getGav(JSONObject jsonObject, String typeKey, GAV parentGAV) {
@@ -117,7 +117,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
 
             w.write("    <dependencies>\n");
             for (String scope : md.getDependencyScopes()) {
-                for (ModuleDependency dependency : md.getDependencies(scope)) {
+                for (ModuleDependency dependency : md.getParsedModuleDescriptor().getDependencies(scope)) {
                     w.write("        <dependency>\n");
                     toMavenGAV(dependency.getGav(), "            ", w);
                     if (!"compile".equals(scope)) {
@@ -160,7 +160,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
 
         private boolean isVersionPropertyUsed(ModuleDescriptor md, String property) {
             for (String scope : md.getDependencyScopes()) {
-                for (ModuleDependency dependency : md.getDependencies(scope)) {
+                for (ModuleDependency dependency : md.getParsedModuleDescriptor().getDependencies(scope)) {
                     if (dependency.getGav().getVersion().indexOf("${" + property + "}") != -1) {
                         return true;
                     }

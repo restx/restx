@@ -15,12 +15,14 @@ public class ModuleDescriptor {
     private final List<String> propertiesFileReferences;
     private final Map<String, List<ModuleFragment>> fragments;
     private final Map<String, List<ModuleDependency>> dependencies;
+    private final ModuleDescriptor parsedModuleDescriptor;
 
     public ModuleDescriptor(GAV parent, GAV gav, String packaging,
                             Map<String, String> properties,
                             List<String> propertiesFileReferences,
                             Map<String, List<ModuleFragment>> fragments,
-                            Map<String, List<ModuleDependency>> dependencies) {
+                            Map<String, List<ModuleDependency>> dependencies,
+                            ModuleDescriptor parsedModuleDescriptor) {
         this.parent = parent;
         this.gav = gav;
         this.packaging = packaging;
@@ -28,6 +30,7 @@ public class ModuleDescriptor {
         this.fragments = Collections.unmodifiableMap(fragments);
         this.properties = Collections.unmodifiableMap(properties);
         this.dependencies = Collections.unmodifiableMap(dependencies);
+        this.parsedModuleDescriptor = parsedModuleDescriptor;
     }
 
     public GAV getParent() {
@@ -72,7 +75,7 @@ public class ModuleDescriptor {
         }
         newDeps.get(scope).add(dep);
 
-        return new ModuleDescriptor(parent, gav, packaging, properties, propertiesFileReferences, fragments, newDeps);
+        return new ModuleDescriptor(parent, gav, packaging, properties, propertiesFileReferences, fragments, newDeps, parsedModuleDescriptor);
     }
     
     public boolean hasClassifier() {
@@ -84,6 +87,10 @@ public class ModuleDescriptor {
             }
         }
         return false;
+    }
+
+    public ModuleDescriptor getParsedModuleDescriptor() {
+        return parsedModuleDescriptor==null?this:parsedModuleDescriptor;
     }
 
     public List<String> getPropertiesFileReferences() {
