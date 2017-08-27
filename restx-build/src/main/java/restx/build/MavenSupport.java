@@ -27,12 +27,12 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             if (jsonObject.has("parent")) {
                 JSONObject parentObject = jsonObject.getJSONObject("parent");
                 // No packaging type is allowed on <parent> tag
-                parent = getGav(parentObject, null);
+                parent = getGav(parentObject, null, null);
             } else {
                 parent = null;
             }
             // Packaging is defined with <packaging> tag on artefact definition
-            GAV gav = getGav(jsonObject, "packaging");
+            GAV gav = getGav(jsonObject, "packaging", parent);
             String packaging = jsonObject.has("packaging") ? jsonObject.getString("packaging") : "jar";
 
             Map<String, String> properties = new LinkedHashMap<>();
@@ -64,7 +64,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                     }
 
                     // Packaging is defined with <type> tag on dependencies
-                    scopeDependencies.add(new ModuleDependency(getGav(dep, "type")));
+                    scopeDependencies.add(new ModuleDependency(getGav(dep, "type", null)));
                 }
             }
 
@@ -72,12 +72,12 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                     properties, new HashMap<String,List<ModuleFragment>>(), dependencies);
         }
 
-        private GAV getGav(JSONObject jsonObject, String typeKey) {
+        private GAV getGav(JSONObject jsonObject, String typeKey, GAV parentGAV) {
             return new GAV(
-                    jsonObject.getString("groupId"),
-                    jsonObject.getString("artifactId"),
-                    String.valueOf(jsonObject.get("version")),
-                    typeKey==null?null:jsonObject.has(typeKey)?jsonObject.getString(typeKey):null,
+                    jsonObject.has("groupId")?jsonObject.getString("groupId"):parentGAV==null?null:parentGAV.getGroupId(),
+                    jsonObject.has("artifactId")?jsonObject.getString("artifactId"):parentGAV==null?null:parentGAV.getArtifactId(),
+                    jsonObject.has("version")?String.valueOf(jsonObject.get("version")):parentGAV==null?null:parentGAV.getVersion(),
+                    typeKey==null?null:jsonObject.has(typeKey)?jsonObject.getString(typeKey):parentGAV==null?null:parentGAV.getType(),
                     jsonObject.has("classifier")?jsonObject.getString("classifier"):null,
                     jsonObject.has("optional")?jsonObject.getBoolean("optional"):false);
         }
