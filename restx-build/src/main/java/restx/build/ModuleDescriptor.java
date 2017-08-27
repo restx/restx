@@ -51,6 +51,10 @@ public class ModuleDescriptor {
         return dependencies.get(scope);
     }
 
+    public Set<String> getFragmentTypes() {
+        return fragments.keySet();
+    }
+
     public List<ModuleFragment> getFragments(String s) {
         List<ModuleFragment> moduleFragments = fragments.get(s);
         return moduleFragments == null ? Collections.<ModuleFragment>emptyList() : moduleFragments;

@@ -44,6 +44,26 @@ public class RestxJsonSupport implements RestxBuild.Parser, RestxBuild.Generator
             }
             w.write("    },\n\n");
 
+            if(!md.getFragmentTypes().isEmpty()) {
+                w.write("    \"fragments\": {\n");
+                for (Iterator<String> itFragmentType = md.getFragmentTypes().iterator(); itFragmentType.hasNext(); ) {
+                    String fragmentType = itFragmentType.next();
+                    w.write(String.format("      \"%s\": [\n", fragmentType));
+                    for (Iterator<ModuleFragment> itFragment = md.getFragments(fragmentType).iterator(); itFragment.hasNext(); ) {
+                        w.write(String.format("        \"%s\"", itFragment.next().getUrl()));
+                        if(itFragment.hasNext()) {
+                            w.write(",");
+                        }
+                        w.write("\n");
+                    }
+                    w.write("      ]");
+                    if(itFragmentType.hasNext()) {
+                        w.write(",");
+                    }
+                    w.write("\n");
+                }
+                w.write("    },\n\n");
+            }
 
             w.write("    \"dependencies\": {\n");
             Set<String> scopes = md.getDependencyScopes();
