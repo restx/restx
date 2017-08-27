@@ -611,6 +611,28 @@ public class AppShellCommand extends StdShellCommand {
                 shell.cd(standardCachedAppPath(appNameArg.get()));
             }
 
+            if(!ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation()).exists()) {
+
+                Path srvDir = shell.currentLocation().resolve("srv");
+                if(srvDir.toFile().exists()) {
+                    shell.cd(srvDir);
+                    if(!ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation()).exists()) {
+                        shell.println(String.format("Cannot find %s in both %s and %s",
+                                ModuleDescriptorType.RESTX.getDescriptorFileName(),
+                                shell.currentLocation().getParent().toAbsolutePath(),
+                                shell.currentLocation().toAbsolutePath()));
+                        shell.println("=> Cannot run application");
+                        return;
+                    }
+                } else {
+                    shell.println(String.format("Cannot find %s in %s",
+                            ModuleDescriptorType.RESTX.getDescriptorFileName(),
+                            shell.currentLocation().toAbsolutePath()));
+                    shell.println("=> Cannot run application");
+                    return;
+                }
+            }
+
             boolean sourcesAvailable = Apps.with(shell.getFactory().getComponent(AppSettings.class)).sourcesAvailableIn(shell.currentLocation());
 
             String appClassName;
