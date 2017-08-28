@@ -25,7 +25,8 @@ public class TypeHelperTest {
                 {"java.util.Map<java.lang.String, java.lang.Integer>", "Types.newParameterizedType(java.util.Map.class, java.lang.String.class, java.lang.Integer.class)" },
                 {"java.util.List<java.util.List<java.lang.String>>", "Types.newParameterizedType(java.util.List.class, Types.newParameterizedType(java.util.List.class, java.lang.String.class))" },
                 {"java.util.List<java.util.Map<java.lang.String, java.lang.Integer>>", "Types.newParameterizedType(java.util.List.class, Types.newParameterizedType(java.util.Map.class, java.lang.String.class, java.lang.Integer.class))" },
-                {"java.util.List<java.util.Map<java.util.Set<java.lang.String>, java.lang.Integer>>", "Types.newParameterizedType(java.util.List.class, Types.newParameterizedType(java.util.Map.class, Types.newParameterizedType(java.util.Set.class, java.lang.String.class), java.lang.Integer.class))" }
+                {"java.util.List<java.util.Map<java.util.Set<java.lang.String>, java.lang.Integer>>", "Types.newParameterizedType(java.util.List.class, Types.newParameterizedType(java.util.Map.class, Types.newParameterizedType(java.util.Set.class, java.lang.String.class), java.lang.Integer.class))" },
+                {"java.util.Map<java.lang.Boolean, java.util.Collection<java.lang.String>>", "Types.newParameterizedType(java.util.Map.class, java.lang.Boolean.class, Types.newParameterizedType(java.util.Collection.class, java.lang.String.class))" }
         });
     }
 

@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * Time: 10:26
  */
 public class TypeHelper {
-    private static Pattern PARAMETERIZED_TYPE_PATTERN = Pattern.compile("([^\\<]+)\\<(.+)\\>");
+    private static Pattern PARAMETERIZED_TYPE_PATTERN = Pattern.compile("([^\\<,]+)\\<(.+)\\>");
     private static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
     private static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
     private static Set<String> RAW_TYPES_STR = Sets.newHashSet("byte", "short", "int", "long", "float", "double", "boolean", "char");
