@@ -607,6 +607,7 @@ public class AppShellCommand extends StdShellCommand {
 
         @Override
         public void run(final RestxShell shell) throws Exception {
+            Path shellInitialLocation = shell.currentLocation();
             if(appNameArg.isPresent()) {
                 shell.cd(standardCachedAppPath(appNameArg.get()));
             }
@@ -691,6 +692,9 @@ public class AppShellCommand extends StdShellCommand {
                     .getComponent(AppSettings.class);
             new ShellAppRunner(appSettings, appClassName, compileMode, quiet, daemon, vmOptions)
                 .run(shell);
+
+            // Moving back to initial location in case we either moved in cached apps or srv directory
+            shell.cd(shellInitialLocation);
         }
 
         private Optional<String> guessAppClassnameFromRestxModule(RestxShell shell) throws IOException {
