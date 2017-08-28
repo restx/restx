@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
 import restx.http.HttpStatus;
+import restx.security.RestxSessionCookieDescriptor;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -58,8 +59,8 @@ public class RestxResponseWrapper implements RestxResponse {
         return this;
     }
 
-    public RestxResponse addCookie(String cookie, String value, Duration expires) {
-        restxResponse.addCookie(cookie, value, expires);
+    public RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor, Duration expires) {
+        restxResponse.addCookie(cookie, value, cookieDescriptor, expires);
         return this;
     }
 
@@ -79,8 +80,8 @@ public class RestxResponseWrapper implements RestxResponse {
         return restxResponse.isClosed();
     }
 
-    public RestxResponse clearCookie(String cookie) {
-        restxResponse.clearCookie(cookie);
+    public RestxResponse clearCookie(String cookie, RestxSessionCookieDescriptor cookieDescriptor) {
+        restxResponse.clearCookie(cookie, cookieDescriptor);
         return this;
     }
 
@@ -94,8 +95,8 @@ public class RestxResponseWrapper implements RestxResponse {
         return restxResponse.getHeader(headerName);
     }
 
-    public RestxResponse addCookie(String cookie, String value) {
-        restxResponse.addCookie(cookie, value);
+    public RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor) {
+        restxResponse.addCookie(cookie, value, cookieDescriptor);
         return this;
     }
 

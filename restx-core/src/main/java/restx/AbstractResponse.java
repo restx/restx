@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.http.HTTP;
 import restx.http.HttpStatus;
+import restx.security.RestxSessionCookieDescriptor;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -130,8 +131,8 @@ public abstract class AbstractResponse<R> implements RestxResponse {
     }
 
     @Override
-    public RestxResponse addCookie(String cookie, String value) {
-        addCookie(cookie, value, Duration.ZERO);
+    public RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor) {
+        addCookie(cookie, value, cookieDescriptor, Duration.ZERO);
         return this;
     }
 

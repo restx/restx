@@ -6,6 +6,7 @@ import org.simpleframework.http.Response;
 import restx.AbstractResponse;
 import restx.http.HttpStatus;
 import restx.RestxResponse;
+import restx.security.RestxSessionCookieDescriptor;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,18 +25,30 @@ public class SimpleRestxResponse extends AbstractResponse<Response> {
     }
 
     @Override
-    public RestxResponse addCookie(String cookie, String value, Duration expiration) {
+    public RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor, Duration expiration) {
         Cookie c = new Cookie(cookie, value, "/");
         c.setExpiry(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
+        if(cookieDescriptor.getDomain().isPresent()) {
+            c.setDomain(cookieDescriptor.getDomain().get());
+        }
+        if(cookieDescriptor.getSecure().isPresent()) {
+            c.setSecure(cookieDescriptor.getSecure().get().booleanValue());
+        }
         response.setCookie(c);
         return this;
     }
 
     @Override
-    public RestxResponse clearCookie(String cookie) {
+    public RestxResponse clearCookie(String cookie, RestxSessionCookieDescriptor cookieDescriptor) {
         Cookie c = new Cookie(cookie, "");
         c.setPath("/");
         c.setExpiry(0);
+        if(cookieDescriptor.getDomain().isPresent()) {
+            c.setDomain(cookieDescriptor.getDomain().get());
+        }
+        if(cookieDescriptor.getSecure().isPresent()) {
+            c.setSecure(cookieDescriptor.getSecure().get().booleanValue());
+        }
         response.setCookie(c);
         return this;
     }

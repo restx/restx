@@ -4,6 +4,7 @@ import org.joda.time.Duration;
 import restx.AbstractResponse;
 import restx.http.HttpStatus;
 import restx.RestxResponse;
+import restx.security.RestxSessionCookieDescriptor;
 
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
@@ -44,9 +45,15 @@ public class HttpServletRestxResponse extends AbstractResponse<HttpServletRespon
     }
 
     @Override
-    public RestxResponse addCookie(String cookie, String value, Duration expiration) {
+    public RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor, Duration expiration) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
+            if(cookieDescriptor.getDomain().isPresent()) {
+                existingCookie.setDomain(cookieDescriptor.getDomain().get());
+            }
+            if(cookieDescriptor.getSecure().isPresent()) {
+                existingCookie.setSecure(cookieDescriptor.getSecure().get().booleanValue());
+            }
             if ("/".equals(existingCookie.getPath())
                     || existingCookie.getPath() == null // in some cases cookies set on path '/' are returned with a null path
                     ) {
@@ -70,18 +77,30 @@ public class HttpServletRestxResponse extends AbstractResponse<HttpServletRespon
             Cookie c = new Cookie(cookie, value);
             c.setPath("/");
             c.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
+            if(cookieDescriptor.getDomain().isPresent()) {
+                c.setDomain(cookieDescriptor.getDomain().get());
+            }
+            if(cookieDescriptor.getSecure().isPresent()) {
+                c.setSecure(cookieDescriptor.getSecure().get().booleanValue());
+            }
             resp.addCookie(c);
         }
         return this;
     }
 
     @Override
-    public RestxResponse clearCookie(String cookie) {
+    public RestxResponse clearCookie(String cookie, RestxSessionCookieDescriptor cookieDescriptor) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
         if (existingCookie != null) {
             existingCookie.setPath("/");
             existingCookie.setValue("");
             existingCookie.setMaxAge(0);
+            if(cookieDescriptor.getDomain().isPresent()) {
+                existingCookie.setDomain(cookieDescriptor.getDomain().get());
+            }
+            if(cookieDescriptor.getSecure().isPresent()) {
+                existingCookie.setSecure(cookieDescriptor.getSecure().get().booleanValue());
+            }
             resp.addCookie(existingCookie);
         }
         return this;

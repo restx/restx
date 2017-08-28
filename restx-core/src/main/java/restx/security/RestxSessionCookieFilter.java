@@ -155,12 +155,12 @@ public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler 
     private void updateSessionInClient(RestxResponse resp, RestxSession session) {
         ImmutableMap<String, String> cookiesMap = toCookiesMap(session);
         if (cookiesMap.isEmpty()) {
-            resp.clearCookie(restxSessionCookieDescriptor.getCookieName());
-            resp.clearCookie(restxSessionCookieDescriptor.getCookieSignatureName());
+            resp.clearCookie(restxSessionCookieDescriptor.getCookieName(), restxSessionCookieDescriptor);
+            resp.clearCookie(restxSessionCookieDescriptor.getCookieSignatureName(), restxSessionCookieDescriptor);
         } else {
             for (Map.Entry<String, String> cookie : cookiesMap.entrySet()) {
                 logger.debug("setting cookie: {} {}", cookie.getKey(), cookie.getValue());
-                resp.addCookie(cookie.getKey(), cookie.getValue(), session.getExpires());
+                resp.addCookie(cookie.getKey(), cookie.getValue(), restxSessionCookieDescriptor, session.getExpires());
             }
         }
     }

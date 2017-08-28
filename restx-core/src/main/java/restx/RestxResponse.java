@@ -3,6 +3,7 @@ package restx;
 import com.google.common.base.Optional;
 import org.joda.time.Duration;
 import restx.http.HttpStatus;
+import restx.security.RestxSessionCookieDescriptor;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,9 +57,9 @@ public interface RestxResponse extends AutoCloseable {
 
     OutputStream getOutputStream() throws IOException;
 
-    RestxResponse addCookie(String cookie, String value);
-    RestxResponse addCookie(String cookie, String value, Duration expires);
-    RestxResponse clearCookie(String cookie);
+    RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor);
+    RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor, Duration expires);
+    RestxResponse clearCookie(String cookie, RestxSessionCookieDescriptor cookieDescriptor);
 
     RestxResponse setHeader(String headerName, String header);
 
