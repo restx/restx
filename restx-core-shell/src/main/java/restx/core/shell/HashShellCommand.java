@@ -61,7 +61,7 @@ public class HashShellCommand extends StdShellCommand {
     public Iterable<Completer> getCompleters() {
         return ImmutableList.<Completer>of(new ArgumentCompleter(
                 new StringsCompleter("hash"),
-                new StringsCompleter("md5", "sha1", "bcrypt", "md5+bcrypt", "sha1+bcrypt")));
+                new StringsCompleter("md5", "sha1", "bcrypt", "md5#bcrypt", "sha1#bcrypt")));
     }
 
     private class HashCommandRunner implements ShellCommandRunner {
@@ -85,10 +85,10 @@ public class HashShellCommand extends StdShellCommand {
                 case "bcrypt":
                     shell.println(BCrypt.hashpw(plaintext, BCrypt.gensalt()));
                     break;
-                case "md5+bcrypt":
+                case "md5#bcrypt":
                     shell.println(BCrypt.hashpw(Hashing.md5().hashString(plaintext, Charsets.UTF_8).toString(), BCrypt.gensalt()));
                     break;
-                case "sha1+bcrypt":
+                case "sha1#bcrypt":
                     shell.println(BCrypt.hashpw(Hashing.sha1().hashString(plaintext, Charsets.UTF_8).toString(), BCrypt.gensalt()));
                     break;
                 default:
