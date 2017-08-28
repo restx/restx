@@ -91,13 +91,22 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
     public ResourcesRoute(String name, String baseRestPath, String baseResourcePath, ImmutableMap<String, String> aliases, List<CachedResourcePolicy> cachedResourcePolicies) {
         this.name = checkNotNull(name);
         this.baseRestPath = ("/" + checkNotNull(baseRestPath) + "/").replaceAll("/+", "/");
-        this.baseResourcePath = checkNotNull(baseResourcePath)
-                .replace('.', '/').replaceAll("^/", "").replaceAll("/$", "") + "/";
-        if("/".equals(this.baseResourcePath)){
-            throw new IllegalArgumentException("Please, avoid using '/' as ResourcesRoute's baseResourcePath as it represents serious security flaws (people will be able to read your classpath configuration files)");
-        }
+        this.baseResourcePath = this.ensureBaseResourcePathValid(baseResourcePath);
         this.aliases = checkNotNull(aliases);
         this.cachedResourcePolicies = ImmutableList.copyOf(cachedResourcePolicies);
+    }
+
+    protected String ensureBaseResourcePathValid(String baseResourcePath) {
+        String escapedBaseResourcePath = checkNotNull(baseResourcePath)
+                .replace('.', '/')
+                .replaceAll("^/", "")
+                .replaceAll("/$", "") + "/";
+
+        if("/".equals(escapedBaseResourcePath)){
+            throw new IllegalArgumentException("Please, avoid using '/' as ResourcesRoute's baseResourcePath as it represents serious security flaws (people will be able to read your classpath configuration files)");
+        }
+
+        return escapedBaseResourcePath;
     }
 
     @Override
