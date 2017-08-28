@@ -1198,8 +1198,19 @@ public class Factory implements AutoCloseable {
 
         SatisfiedBOM satisfiedBOM = buildingBox.satisfiedBOM;
         if (satisfiedBOM == null) {
-            throw new IllegalStateException("problem with dependency resolution" +
-                    " order " + buildingBox.engine.getBillOfMaterial() + " for " + name + " not yet satisfied");
+            if(buildingBox.depsToSort != null && !buildingBox.depsToSort.isEmpty()) {
+                StringBuilder circularDependencyLog = new StringBuilder();
+                for (BuildingBox<?> boxToSort : buildingBox.depsToSort) {
+                    buildCircularDependencyLog(circularDependencyLog, boxToSort, ImmutableSet.<Name>of());
+                }
+                logger.error("Circular dependency detected : \n{}\n" +
+                        "Please, fix this as current RestX DI can't handle cycles.", circularDependencyLog);
+                throw new IllegalStateException("Circular dependency detected : \n" +
+                        circularDependencyLog + "\nPlease, fix this as current RestX DI can't handle cycles.");
+            } else {
+                throw new IllegalStateException("problem with dependency resolution" +
+                        " order " + buildingBox.engine.getBillOfMaterial() + " for " + name + " not yet satisfied");
+            }
         }
 
         namedComponent = buildAndStore(name, buildingBox.engine, satisfiedBOM);
@@ -1208,6 +1219,25 @@ public class Factory implements AutoCloseable {
             buildingBox.component = namedComponent.get();
         }
         return namedComponent;
+    }
+
+    private void buildCircularDependencyLog(StringBuilder circularDependencyLog, BuildingBox buildingBox, ImmutableSet<Name> alreadyDisplayedComponents) {
+        StringBuilder indentation = new StringBuilder();
+        for(int i=0; i<alreadyDisplayedComponents.size(); i++) {
+            indentation.append("  ");
+        }
+
+        Iterator<BuildingBox<?>> buildingBoxToSortIter = buildingBox.depsToSort.iterator();
+        while(buildingBoxToSortIter.hasNext()) {
+            BuildingBox<?> buildingBoxToSort = buildingBoxToSortIter.next();
+            circularDependencyLog.append(indentation.toString()).append("-> ").append(buildingBox.engine.getName()).append("\n");
+            if(!alreadyDisplayedComponents.contains(buildingBox.engine.getName())) {
+                buildCircularDependencyLog(
+                        circularDependencyLog, buildingBoxToSort,
+                        ImmutableSet.<Name>builder().addAll(alreadyDisplayedComponents).add(buildingBox.engine.getName()).build()
+                );
+            }
+        }
     }
 
     private <T> Optional<NamedComponent<T>> buildAndStore(Name<T> name, MachineEngine<T> engine, SatisfiedBOM satisfiedBOM) {

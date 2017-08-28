@@ -190,6 +190,34 @@ public class FactoryTest {
     }
 
     @Test
+    public void should_fail_with_circular_dependencies() throws Exception {
+        Factory factory = Factory.builder()
+                .addMachine(failingSingleDepMachine("test5", "test4"))
+                .addMachine(failingSingleDepMachine("test4", "test3"))
+                .addMachine(failingSingleDepMachine("test3", "test2"))
+                .addMachine(failingSingleDepMachine("test2", "test1"))
+                .addMachine(failingSingleDepMachine("test1", "test4"))
+                .build();
+
+        try {
+            factory.queryByName(Name.of(String.class, "test5")).findOne();
+            fail("should raise exception when asking for a component with circular dependency");
+        } catch (IllegalStateException e) {
+            assertThat(e)
+                    .hasMessage(
+                            "Circular dependency detected : \n" +
+                                    "-> Name{name='test4', clazz=java.lang.String[]}\n" +
+                                    "  -> Name{name='test3', clazz=java.lang.String[]}\n" +
+                                    "    -> Name{name='test2', clazz=java.lang.String[]}\n" +
+                                    "      -> Name{name='test1', clazz=java.lang.String[]}\n" +
+                                    "        -> Name{name='test4', clazz=java.lang.String[]}\n" +
+                                    "\n" +
+                                    "Please, fix this as current RestX DI can't handle cycles.")
+            ;
+        }
+    }
+
+    @Test
     public void should_fail_with_similar_components() throws Exception {
         SingleNameFactoryMachine<String> machine = machineWithMissingDependency();
         Factory factory = Factory.builder().addMachine(machine).addMachine(testMachine("ASIMILARCOMPONENT")).build();
@@ -587,11 +615,16 @@ public class FactoryTest {
     }
 
     private SingleNameFactoryMachine<String> machineWithMissingDependency() {
+        return failingSingleDepMachine("test", "missing");
+    }
+
+    private SingleNameFactoryMachine<String> failingSingleDepMachine(final String name, final String depName) {
         return new SingleNameFactoryMachine<>(
-                0, new StdMachineEngine<String>(Name.of(String.class, "test"), BoundlessComponentBox.FACTORY) {
+                0, new StdMachineEngine<String>(Name.of(String.class, name), BoundlessComponentBox.FACTORY) {
+
             @Override
             public BillOfMaterials getBillOfMaterial() {
-                return BillOfMaterials.of(Factory.Query.byName(Name.of(String.class, "missing")));
+                return BillOfMaterials.of(Factory.Query.byName(Name.of(String.class, depName)));
             }
 
             @Override
