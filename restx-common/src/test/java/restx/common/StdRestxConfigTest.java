@@ -1,8 +1,13 @@
 package restx.common;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,5 +104,25 @@ public class StdRestxConfigTest {
         assertThat(config.getInt("key2").get()).isEqualTo(2);
         assertThat(config.getElement("key2").get()).isEqualToComparingFieldByField(
                 ConfigElement.of("restx/common/config.properties", "Doc 2\non 2 lines", "key2", "2"));
+    }
+
+    @Test
+    public void should_handle_logical_lines() throws IOException {
+        Exception ex = null;
+        RestxConfig config = null;
+        try {
+            config = StdRestxConfig.parse("test", CharSource.wrap("foo=bar\\\nbaz"));
+        } catch (Exception e) {
+            ex = e;
+        }
+
+        Assert.assertNull(ex);
+
+        Assert.assertNotNull(config);
+        Iterator<ConfigElement> configElementIterator = config.elements().iterator();
+        Assert.assertTrue(configElementIterator.hasNext());
+        ConfigElement element = configElementIterator.next();
+        Assert.assertEquals("foo", element.getKey());
+        Assert.assertEquals("barbaz", element.getValue());
     }
 }
