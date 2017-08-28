@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 import restx.common.MoreResources;
 import restx.http.HTTP;
@@ -22,7 +21,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Resources route allows to serves files from the classpath.
  *
  * Example:
- * <pre>new ResourcesRoute("myResources", "/")</pre>
+ * <pre>new ResourcesRoute("myResources", "web", "static")</pre>
+ * We will consider every urls matching /web/* will serve files into 'static' classpath's directory
+ * For instance, /web/foo/bar.json URL will serve classpath:static/foo/bar.json
  */
 public class ResourcesRoute implements RestxRoute, RestxHandler {
     /**
@@ -90,10 +91,22 @@ public class ResourcesRoute implements RestxRoute, RestxHandler {
     public ResourcesRoute(String name, String baseRestPath, String baseResourcePath, ImmutableMap<String, String> aliases, List<CachedResourcePolicy> cachedResourcePolicies) {
         this.name = checkNotNull(name);
         this.baseRestPath = ("/" + checkNotNull(baseRestPath) + "/").replaceAll("/+", "/");
-        this.baseResourcePath = checkNotNull(baseResourcePath)
-                .replace('.', '/').replaceAll("^/", "").replaceAll("/$", "") + "/";
+        this.baseResourcePath = this.ensureBaseResourcePathValid(baseResourcePath);
         this.aliases = checkNotNull(aliases);
         this.cachedResourcePolicies = ImmutableList.copyOf(cachedResourcePolicies);
+    }
+
+    protected String ensureBaseResourcePathValid(String baseResourcePath) {
+        String escapedBaseResourcePath = checkNotNull(baseResourcePath)
+                .replace('.', '/')
+                .replaceAll("^/", "")
+                .replaceAll("/$", "") + "/";
+
+        if("/".equals(escapedBaseResourcePath)){
+            throw new IllegalArgumentException("Please, avoid using '/' as ResourcesRoute's baseResourcePath as it represents serious security flaws (people will be able to read your classpath configuration files)");
+        }
+
+        return escapedBaseResourcePath;
     }
 
     @Override
