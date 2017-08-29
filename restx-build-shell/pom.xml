@@ -13,6 +13,21 @@
     <artifactId>restx-build-shell</artifactId>
     <name>restx-build-shell</name>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <restxSourcesRootDir>${project.basedir}/../</restxSourcesRootDir>
+                        <maxParallelTestThreads>10</maxParallelTestThreads>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
@@ -25,6 +40,28 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-build</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- For parallel Parameterized tests execution -->
+            <groupId>com.googlecode.junit-toolbox</groupId>
+            <artifactId>junit-toolbox</artifactId>
+            <version>2.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-verifier</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
