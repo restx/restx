@@ -22,7 +22,7 @@
         <dependency org="io.restx" name="restx-monitor-codahale" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-monitor-admin" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-servlet" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-server-simple" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-server-jetty8" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-apidocs" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-specs-admin" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-i18n-admin" rev="latest.integration" conf="default" />

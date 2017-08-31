@@ -10,10 +10,12 @@
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
-            "javax.servlet:javax.servlet-api:3.0.1",
             "org.apache.tomcat:tomcat-catalina:${embedded.tomcat.version}",
             "org.apache.tomcat.embed:tomcat-embed-core:${embedded.tomcat.version}",
             "org.apache.tomcat:tomcat-jasper:${embedded.tomcat.version}"
+        ],
+        "provided": [
+            "javax.servlet:javax.servlet-api:3.0.1"
         ]
     }
 }

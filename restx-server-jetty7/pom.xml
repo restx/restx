@@ -15,7 +15,6 @@
 
     <properties>
         <jetty7.version>7.6.21.v20160908</jetty7.version>
-        <servlet-api.version>2.5</servlet-api.version>
     </properties>
 
     <dependencies>
@@ -30,12 +29,6 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-servlet</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>${servlet-api.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- Jetty -->
@@ -68,6 +61,12 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
             <version>${jetty7.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
