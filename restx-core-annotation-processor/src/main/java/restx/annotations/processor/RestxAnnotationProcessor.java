@@ -306,11 +306,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 } else if (kind == ResourceMethodParameterKind.BODY) {
                     inEntityClass = parameter.type;
                 }
-                callParameters.add(String.format("/* [%s] %s */ %s", kind, parameter.name, kind.fetchFromReqCode(parameter, resourceMethod)));
+                callParameters.add(String.format("/* [%s] %s */ %s", kind, parameter.reqParamName, kind.fetchFromReqCode(parameter, resourceMethod)));
 
                 if(kind.resolvedWithQueryParamMapper()) {
                     queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\")",
-                            TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.name));
+                            TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.reqParamName));
                 }
 
                 if (kind != ResourceMethodParameterKind.CONTEXT) {
@@ -322,7 +322,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                             "                {PARAMETER}.schemaKey = \"%s\";\n" +
                             "                {PARAMETER}.required = %s;\n" +
                             "                operation.parameters.add({PARAMETER});\n",
-                            parameter.name,
+                            parameter.reqParamName,
                             kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
                             toSchemaKey(parameter.type),

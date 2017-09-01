@@ -53,7 +53,7 @@ public class ParameterExpressionBuilder {
                         "checkNotNull(%s, \"%s param <%s> is required\")",
                         this.parameterExpr,
                         this.kind,
-                        parameter.name
+                        parameter.reqParamName
                 );
             }
         }
