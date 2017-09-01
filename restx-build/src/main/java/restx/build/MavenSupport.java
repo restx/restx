@@ -36,16 +36,18 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             String packaging = jsonObject.has("packaging") ? jsonObject.getString("packaging") : "jar";
 
             Map<String, String> properties = new LinkedHashMap<>();
+            Map<String, String> calculatedProperties = new LinkedHashMap<>();
             if (jsonObject.has("properties")) {
                 JSONObject props = jsonObject.getJSONObject("properties");
                 for (Object o : props.keySet()) {
                     String p = (String) o;
 
                     if (p.equals("maven.compiler.target") || p.equals("maven.compiler.source")) {
-                        properties.put("java.version", String.valueOf(props.get(p)));
+                        calculatedProperties.put("java.version", String.valueOf(props.get(p)));
                     } else {
-                        properties.put(p, String.valueOf(props.get(p)));
+                        calculatedProperties.put(p, String.valueOf(props.get(p)));
                     }
+                    properties.put(p, String.valueOf(props.get(p)));
                 }
             }
 
@@ -68,8 +70,11 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                 }
             }
 
-            return new ModuleDescriptor(parent, gav, packaging,
+            ModuleDescriptor parsedMavenDescriptor = new ModuleDescriptor(parent, gav, packaging,
                     properties, Collections.<String>emptyList(), new HashMap<String,List<ModuleFragment>>(), dependencies, null);
+
+            return new ModuleDescriptor(parent, gav, packaging,
+                    calculatedProperties, Collections.<String>emptyList(), new HashMap<String,List<ModuleFragment>>(), dependencies, parsedMavenDescriptor);
         }
 
         private GAV getGav(JSONObject jsonObject, String typeKey, GAV parentGAV) {
