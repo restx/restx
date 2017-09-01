@@ -298,22 +298,22 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             String inEntityClass = "Void";
             for (ResourceMethodParameter parameter : resourceMethod.parameters) {
                 // TODO: Simplify this since it seems useless for now...
-                String getParamValueCode = parameter.kind.fetchFromReqCode(parameter, resourceMethod);
+                ResourceMethodParameterKind kind = parameter.kind;
                 if (!String.class.getName().equals(parameter.type)
-                        && parameter.kind != ResourceMethodParameterKind.BODY
-                        && parameter.kind != ResourceMethodParameterKind.CONTEXT) {
-//                    getParamValueCode = String.format("converter.convert(%s, %s.class)", getParamValueCode, parameter.type);
-                } else if (parameter.kind == ResourceMethodParameterKind.BODY) {
+                        && kind != ResourceMethodParameterKind.BODY
+                        && kind != ResourceMethodParameterKind.CONTEXT) {
+                    // Do nothing
+                } else if (kind == ResourceMethodParameterKind.BODY) {
                     inEntityClass = parameter.type;
                 }
-                callParameters.add(String.format("/* [%s] %s */ %s", parameter.kind, parameter.name, getParamValueCode));
+                callParameters.add(String.format("/* [%s] %s */ %s", kind, parameter.name, kind.fetchFromReqCode(parameter, resourceMethod)));
 
-                if(parameter.kind.resolvedWithQueryParamMapper()) {
+                if(kind.resolvedWithQueryParamMapper()) {
                     queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\")",
                             TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.name));
                 }
 
-                if (parameter.kind != ResourceMethodParameterKind.CONTEXT) {
+                if (kind != ResourceMethodParameterKind.CONTEXT) {
                     parametersDescription.add(String.format(
                             "                OperationParameterDescription {PARAMETER} = new OperationParameterDescription();\n" +
                             "                {PARAMETER}.name = \"%s\";\n" +
@@ -323,7 +323,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                             "                {PARAMETER}.required = %s;\n" +
                             "                operation.parameters.add({PARAMETER});\n",
                             parameter.name,
-                            parameter.kind.name().toLowerCase(),
+                            kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
                             toSchemaKey(parameter.type),
                             String.valueOf(!parameter.guavaOptional && !parameter.java8Optional)
