@@ -2,21 +2,16 @@ package samplest.core;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import restx.annotations.GET;
-import restx.annotations.POST;
-import restx.annotations.RestxResource;
+import restx.annotations.*;
 import restx.factory.Component;
 import restx.security.PermitAll;
 
-import javax.validation.constraints.Size;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -129,5 +124,10 @@ public class ParametersResource {
     @GET("/params/optionalArrayedJodaDatesParams")
     public DateTime[] optionalArrayedJodaDatesParams(Optional<DateTime[]> params, Optional<DateTime[]> otherParams) {
         return ObjectArrays.concat(params.or(new DateTime[0]), otherParams.or(new DateTime[0]), DateTime.class);
+    }
+
+    @GET("/params/headers")
+    public String headerParams(@Param(value = "X-A", kind = Param.Kind.HEADER) String a, @Param(value = "X-B", kind = Param.Kind.HEADER) Optional<DateTime> b) {
+        return "a=" + a + " b=" + b.orNull();
     }
 }

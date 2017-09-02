@@ -638,6 +638,14 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                         .getParameterExpr();
             }
         },
+        HEADER(true) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
+                return ParameterExpressionBuilder
+                        .createFromMapQueryObjectFromRequest(parameter, EndpointParameterKind.HEADER)
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
+            }
+        },
         BODY(false) {
             public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 return ParameterExpressionBuilder

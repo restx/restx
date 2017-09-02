@@ -37,6 +37,20 @@ public enum EndpointParameterKind {
                 }
             }).or(Collections.<String>emptyList());
         }
+    }, HEADER {
+        @Override
+        public Optional<String> extractQueryParamStringedValueFor(EndpointParamDef parameter, RestxRequest request, RestxRequestMatch match) {
+            return request.getHeader(parameter.getName());
+        }
+        @Override
+        public List<String> extractQueryParamStringedValuesFor(EndpointParamDef parameter, RestxRequest request, RestxRequestMatch match) {
+            return extractQueryParamStringedValueFor(parameter, request, match).transform(new Function<String, List<String>>() {
+                @Override
+                public List<String> apply(String headerParam) {
+                    return Lists.newArrayList(headerParam);
+                }
+            }).or(Collections.<String>emptyList());
+        }
     };
 
     public abstract Optional<String> extractQueryParamStringedValueFor(EndpointParamDef parameter, RestxRequest request, RestxRequestMatch match);

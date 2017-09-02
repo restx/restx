@@ -24,4 +24,33 @@ public class ParametersResourceTest {
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo("a=v1 b=v2 c=35 d=v4");
     }
+
+    @Test
+    public void should_return_header_params() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .GET("/api/params/headers")
+                .header("X-A", "aaa")
+                .header("X-B", "2017-09-01T09:07:46Z");
+
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("a=aaa b=2017-09-01T09:07:46.000Z");
+    }
+
+    @Test
+    public void should_return_header_params_with_absent_value() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .GET("/api/params/headers")
+                .header("X-A", "aaa");
+
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("a=aaa b=null");
+    }
+
+    @Test
+    public void should_return_header_params_with_missing_required_value() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .GET("/api/params/headers");
+
+        assertThat(httpRequest.code()).isEqualTo(500);
+    }
 }
