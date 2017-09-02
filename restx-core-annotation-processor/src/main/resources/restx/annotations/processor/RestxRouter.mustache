@@ -6,6 +6,8 @@ import com.google.common.base.Optional;
 import com.google.common.base.Suppliers;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import restx.common.Types;
 import restx.common.TypeReference;
 import restx.*;
@@ -25,6 +27,9 @@ import static restx.validation.Validations.checkValid;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import java.util.Arrays;
+
 
 @Component(priority = {{priority}})
 {{condition}}
@@ -69,6 +74,16 @@ public class {{router}} extends RestxRouter {
                 operation.inEntitySchemaKey = "{{inEntitySchemaKey}}";
                 operation.outEntitySchemaKey = "{{outEntitySchemaKey}}";
                 operation.sourceLocation = "{{sourceLocation}}";
+                operation.annotations = ImmutableList.<java.lang.annotation.Annotation>builder()
+{{#annotationDescriptions}}
+                    .add(new {{annotationClass}}() {
+                        public Class<{{annotationClass}}> annotationType() { return {{annotationClass}}.class; }
+{{#annotationFields}}
+                        public {{type}}{{#isArray}}[]{{/isArray}} {{name}}() { {{valueCodeInstanciation}}; }
+{{/annotationFields}}
+                    })
+{{/annotationDescriptions}}
+                    .build();
             }
         },
 {{/routes}}

@@ -16,10 +16,14 @@ import restx.security.PermitAll;
 import restx.security.RolesAllowed;
 import restx.validation.ValidatedFor;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.*;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -86,6 +90,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 Produces outContentTypeAnn = annotation.methodElem.getAnnotation(Produces.class);
                 Optional<String> outContentType = Optional.fromNullable(outContentTypeAnn != null ? outContentTypeAnn.value() : null);
 
+                ImmutableList.Builder<AnnotationDescription> annotationDescriptionsBuilder = ImmutableList.builder();
+                for(AnnotationMirror methodAnnotation: annotation.methodElem.getAnnotationMirrors()) {
+                    AnnotationDescription annotationDescription = createAnnotationDescriptionFrom(methodAnnotation, annotation.methodElem);
+                    annotationDescriptionsBuilder.add(annotationDescription);
+                }
+
                 ResourceMethod resourceMethod = new ResourceMethod(
                         resourceClass,
                         annotation.httpMethod, r.value + annotation.path,
@@ -94,7 +104,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                         annotation.methodElem.getThrownTypes().toString(),
                         successStatus, logLevel, permission,
                         typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString(),
-                        inContentType, outContentType
+                        inContentType, outContentType, annotationDescriptionsBuilder.build()
                 );
 
                 resourceClass.resourceMethods.add(resourceMethod);
@@ -110,6 +120,91 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             generateFiles(groups, modulesListOriginatingElements);
         }
         return true;
+    }
+
+    private enum AnnotationFieldKind {
+        PRIMITIVE() {
+            @Override
+            public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
+                String val = super.transformSingleValueToExpression(value, annotationField);
+                switch(annotationField.type.toString()) {
+                    case "float": return val+"f";
+                    case "char": return "'"+val+"'";
+                    default: return val;
+                }
+            }
+        }, STRING() {
+            @Override
+            public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
+                return "\"" + super.transformSingleValueToExpression(value, annotationField).replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+            }
+        }, CLASS() {
+            @Override
+            public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
+                return super.transformSingleValueToExpression(value, annotationField) + ".class";
+            }
+        }, ENUM() {
+            @Override
+            public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
+                return annotationField.type+"."+value.toString();
+            }
+        }, ANNOTATION() {
+            @Override
+            public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
+                return annotationField.type+"."+value.toString();
+            }
+        };
+
+        public static boolean isArrayed(TypeMirror type) {
+            return TypeKind.ARRAY.equals(type.getKind());
+        }
+
+        public static TypeMirror componentTypeOf(TypeMirror type) {
+            return (TypeKind.ARRAY.equals(type.getKind()))?((ArrayType) type).getComponentType():type;
+        }
+
+        public static AnnotationFieldKind valueOf(ProcessingEnvironment processingEnv, TypeMirror type) {
+            TypeMirror componentType = componentTypeOf(type);
+
+            if(componentType.getKind().isPrimitive()) {
+                return PRIMITIVE;
+            } else if(String.class.getCanonicalName().equals(componentType.toString())) {
+                return STRING;
+            } else if(Class.class.getCanonicalName().equals(componentType.toString())) {
+                return CLASS;
+            } else {
+                ImmutableList<String> superTypesClassNames = FluentIterable.from(processingEnv.getTypeUtils().directSupertypes(componentType))
+                        .transform(Functions.toStringFunction())
+                        .toList();
+                if(superTypesClassNames.contains(Annotation.class.getCanonicalName())) {
+                    return ANNOTATION;
+                } else {
+                    return ENUM;
+                }
+            }
+        }
+
+        public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
+            return value.toString();
+        }
+    }
+
+    private AnnotationDescription createAnnotationDescriptionFrom(AnnotationMirror methodAnnotation, ExecutableElement element) {
+        ImmutableList.Builder<AnnotationField> annotationFieldsBuilder = ImmutableList.builder();
+        for(Map.Entry<? extends ExecutableElement,? extends AnnotationValue> fieldEntry: methodAnnotation.getElementValues().entrySet()) {
+            String fieldName = fieldEntry.getKey().toString();
+            TypeMirror type = fieldEntry.getKey().getReturnType();
+            TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
+            boolean arrayed = AnnotationFieldKind.isArrayed(type);
+            AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
+
+            annotationFieldsBuilder.add(new AnnotationField(
+                    fieldName.substring(0, fieldName.length() - "()".length()),
+                    fieldEntry.getValue().getValue(),
+                    componentType, annotationFieldKind, arrayed));
+        }
+        AnnotationDescription annotationDescription = new AnnotationDescription(methodAnnotation.getAnnotationType().toString(), annotationFieldsBuilder.build());
+        return annotationDescription;
     }
 
     protected ResourceClassDef getResourceClassDef(TypeElement typeElem) {
@@ -366,6 +461,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .put("responseClass", toTypeDescription(resourceMethod.returnType))
                     .put("sourceLocation", resourceMethod.sourceLocation)
                     .put("parametersDescription", Joiner.on("\n").join(parametersDescription))
+                    .put("annotationDescriptions", resourceMethod.annotationDescriptions)
                     .put("inEntity", inEntityClass)
                     .put("inEntityType", getTypeExpressionFor(inEntityClass))
                     .put("inEntitySchemaKey", toSchemaKey(inEntityClass))
@@ -488,6 +584,42 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
+    private static class AnnotationField {
+        final String name;
+        final Object value;
+        final TypeMirror type;
+        final AnnotationFieldKind kind;
+        final boolean isArray;
+
+        public AnnotationField(String name, Object value, TypeMirror type, AnnotationFieldKind kind, boolean isArray) {
+            this.name = name;
+            this.value = value;
+            this.type = type;
+            this.kind = kind;
+            this.isArray = isArray;
+        }
+
+        String getValueCodeInstanciation() {
+            if(AnnotationFieldKind.ANNOTATION.equals(this.kind)) {
+                return "throw new java.lang.UnsupportedOperationException(\"Unsupported annotation field type\")";
+            } else if(isArray) {
+                return String.format("return new %s[]{ %s }", type, Joiner.on(", ").join((List)value));
+            } else {
+                return "return "+kind.transformSingleValueToExpression(value, this);
+            }
+        }
+    }
+
+    private static class AnnotationDescription {
+        final String annotationClass;
+        final ImmutableList<AnnotationField> annotationFields;
+
+        public AnnotationDescription(String annotationClass, ImmutableList<AnnotationField> annotationFields) {
+            this.annotationClass = annotationClass;
+            this.annotationFields = annotationFields;
+        }
+    }
+
     private static class ResourceMethod {
         final String httpMethod;
         final String path;
@@ -505,12 +637,14 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String sourceLocation;
         final Optional<String> inContentType;
         final Optional<String> outContentType;
+        final ImmutableList<AnnotationDescription> annotationDescriptions;
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
         ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
                        String thrownTypes, HttpStatus successStatus, RestxLogLevel logLevel, String permission,
-                       String sourceLocation, Optional<String> inContentType, Optional<String> outContentType) {
+                       String sourceLocation, Optional<String> inContentType, Optional<String> outContentType,
+                       ImmutableList<AnnotationDescription> annotationDescriptions) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.name = name;
@@ -540,6 +674,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.successStatus = successStatus;
             StdRestxRequestMatcher requestMatcher = new StdRestxRequestMatcher(httpMethod, path);
             pathParamNames = requestMatcher.getPathParamNames();
+
+            this.annotationDescriptions = annotationDescriptions;
         }
 
         boolean throwsIOException() {

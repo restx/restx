@@ -1,9 +1,12 @@
 package restx.description;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import restx.http.HttpStatus;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -24,6 +27,8 @@ public class OperationDescription {
     public List<OperationParameterDescription> parameters = Lists.newArrayList();
     public List<ErrorResponseDescription> errorResponses = Lists.newArrayList();
     public List<OperationReference> relatedOperations = Lists.newArrayList();
+    @JsonIgnore
+    public ImmutableList<? extends Annotation> annotations;
 
     public Optional<OperationParameterDescription> findBodyParameter() {
         for (OperationParameterDescription parameter : parameters) {
@@ -32,6 +37,15 @@ public class OperationDescription {
             }
         }
 
+        return Optional.absent();
+    }
+
+    public <T extends Annotation> Optional<T> findAnnotation(final Class<T> clazz) {
+        for(Annotation annotation: annotations) {
+            if(clazz.isAssignableFrom(annotation.getClass())) {
+                return Optional.fromNullable((T) annotation);
+            }
+        }
         return Optional.absent();
     }
 }
