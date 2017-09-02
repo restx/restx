@@ -197,10 +197,18 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         Set<String> pathParamNamesToMatch = Sets.newHashSet(resourceMethod.pathParamNames);
         for (VariableElement p : annotation.methodElem.getParameters()) {
             Param param = p.getAnnotation(Param.class);
+            HeaderParam reqHeaderAnn = p.getAnnotation(HeaderParam.class);
             String paramName = p.getSimpleName().toString();
-            String reqParamName = p.getSimpleName().toString();
             ResourceMethodParameterKind parameterKind = null;
-            if (param != null) {
+            String reqParamName;
+            if (param == null) {
+                if(reqHeaderAnn != null) {
+                    reqParamName = reqHeaderAnn.value().length() != 0?reqHeaderAnn.value():paramName;
+                    parameterKind = ResourceMethodParameterKind.HEADER;
+                } else {
+                    reqParamName = paramName;
+                }
+            } else {
                 reqParamName = param.value().length() == 0 ? paramName : param.value();
                 if (param.kind() != Param.Kind.DEFAULT) {
                     parameterKind = ResourceMethodParameterKind.valueOf(param.kind().name());

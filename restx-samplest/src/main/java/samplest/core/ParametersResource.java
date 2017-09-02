@@ -127,7 +127,7 @@ public class ParametersResource {
     }
 
     @GET("/params/headers")
-    public String headerParams(@Param(value = "X-A", kind = Param.Kind.HEADER) String a, @Param(value = "X-B", kind = Param.Kind.HEADER) Optional<DateTime> b) {
-        return "a=" + a + " b=" + b.orNull();
+    public String headerParams(@Param(value = "X-A", kind = Param.Kind.HEADER) String a, @HeaderParam("X-B") Optional<DateTime> b, @HeaderParam Optional<String> Date) {
+        return "a=" + a + " b=" + b.orNull() + " date=" + String.valueOf(Date.orNull());
     }
 }

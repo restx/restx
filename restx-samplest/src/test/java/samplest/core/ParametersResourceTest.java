@@ -30,26 +30,29 @@ public class ParametersResourceTest {
         HttpRequest httpRequest = server.client().authenticatedAs("admin")
                 .GET("/api/params/headers")
                 .header("X-A", "aaa")
-                .header("X-B", "2017-09-01T09:07:46Z");
+                .header("X-B", "2017-09-01T09:07:46Z")
+                .header("Date", "Tue, 15 Nov 1994 08:12:31 GMT");
 
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("a=aaa b=2017-09-01T09:07:46.000Z");
+        assertThat(httpRequest.body().trim()).isEqualTo("a=aaa b=2017-09-01T09:07:46.000Z date=Tue, 15 Nov 1994 08:12:31 GMT");
     }
 
     @Test
     public void should_return_header_params_with_absent_value() throws Exception {
         HttpRequest httpRequest = server.client().authenticatedAs("admin")
                 .GET("/api/params/headers")
-                .header("X-A", "aaa");
+                .header("X-A", "aaa")
+                .header("Date", "Tue, 15 Nov 1994 08:12:31 GMT");
 
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("a=aaa b=null");
+        assertThat(httpRequest.body().trim()).isEqualTo("a=aaa b=null date=Tue, 15 Nov 1994 08:12:31 GMT");
     }
 
     @Test
     public void should_return_header_params_with_missing_required_value() throws Exception {
         HttpRequest httpRequest = server.client().authenticatedAs("admin")
-                .GET("/api/params/headers");
+                .GET("/api/params/headers")
+                .header("Date", "Tue, 15 Nov 1994 08:12:31 GMT");
 
         assertThat(httpRequest.code()).isEqualTo(500);
     }
