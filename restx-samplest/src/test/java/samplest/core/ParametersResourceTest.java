@@ -20,9 +20,9 @@ public class ParametersResourceTest {
     @Test
     public void should_return_path_params() throws Exception {
         HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(
-                "/api/params/path/v1/v2/35v4");
+                "/api/params/path/v1/v2/35v4/v5");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("a=v1 b=v2 c=35 d=v4");
+        assertThat(httpRequest.body().trim()).isEqualTo("a=v1 b=v2 c=35 d=v4 e=v5");
     }
 
     @Test
@@ -55,5 +55,15 @@ public class ParametersResourceTest {
                 .header("Date", "Tue, 15 Nov 1994 08:12:31 GMT");
 
         assertThat(httpRequest.code()).isEqualTo(500);
+    }
+
+    @Test
+    public void should_params_using_annotations_returns_value() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .GET("/api/params/usingAnnotations/blah?query=bleh")
+                .contentType("text/plain");
+
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("path=blah query=bleh contentType=text/plain");
     }
 }

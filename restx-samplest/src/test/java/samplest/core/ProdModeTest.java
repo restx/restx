@@ -36,9 +36,9 @@ public class ProdModeTest {
 
         // first we do a request and check it is properly processed
         HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(
-                "/api/params/path/v1*/v2/35v4");
+                "/api/params/path/v1*/v2/35v4/v5");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("a=v1* b=v2 c=35 d=v4");
+        assertThat(httpRequest.body().trim()).isEqualTo("a=v1* b=v2 c=35 d=v4 e=v5");
 
         // then we check corresponding timer has been registered in Metrics
         MetricRegistry registry = ((CodahaleMetricRegistry) Factory.getFactory(server.getServer().getServerId()).get()
@@ -52,7 +52,7 @@ public class ProdModeTest {
         });
 
         assertThat(timers.size()).isEqualTo(1);
-        assertThat(timers.firstKey()).isEqualTo("<HTTP> GET /params/path/v1*/v2/35v4");
+        assertThat(timers.firstKey()).isEqualTo("<HTTP> GET /params/path/v1*/v2/35v4/v5");
 
         // and now we check a MBean has been created for that timer too.
         // the name of the MBean is escaped, so it is enclosed in quotes: "
