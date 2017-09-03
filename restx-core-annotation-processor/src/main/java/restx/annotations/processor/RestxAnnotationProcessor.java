@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
+import static restx.annotations.processor.TypeHelper.toTypeDescription;
 
 /**
  * User: xavierhanin
@@ -396,34 +397,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             || type.equalsIgnoreCase("void")
                 ) {
             return "";
-        } else {
-            return type;
-        }
-    }
-
-    private String toTypeDescription(String type) {
-        // see https://github.com/wordnik/swagger-core/wiki/datatypes
-        boolean isList = false;
-        Pattern p = Pattern.compile("java\\.lang\\.Iterable<(.+)>");
-        Matcher m = p.matcher(type);
-        if (m.matches()) {
-            type = m.group(1);
-            isList = true;
-        }
-        boolean primitive = type.startsWith("java.lang");
-        type =  type.substring(type.lastIndexOf('.') + 1);
-        if ("Integer".equals(type)) {
-            type = "int";
-        }
-        if (primitive) {
-            type = type.toLowerCase();
-        }
-        if ("DateTime".equals(type) || "DateMidnight".equals(type)) {
-            type = "Date";
-        }
-
-        if (isList) {
-            return "LIST[" + type + "]";
         } else {
             return type;
         }
