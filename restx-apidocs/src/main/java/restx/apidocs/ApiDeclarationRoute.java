@@ -103,9 +103,11 @@ public class ApiDeclarationRoute extends StdJsonProducerEntityRoute {
                 Set<OperationReference> related = new LinkedHashSet<>(operation.relatedOperations);
 
                 // add related by type
-                related.addAll(operationsByType.get(getTargetType(operation.responseClass)));
+                if(!"string".equals(getTargetType(operation.responseClass))){
+                    related.addAll(operationsByType.get(getTargetType(operation.responseClass)));
+                }
                 Optional<OperationParameterDescription> bodyParameter = operation.findBodyParameter();
-                if (bodyParameter.isPresent()) {
+                if (bodyParameter.isPresent() && !"string".equals(bodyParameter.get().dataType)) {
                     related.addAll(operationsByType.get(getTargetType(bodyParameter.get().dataType)));
                 }
 
