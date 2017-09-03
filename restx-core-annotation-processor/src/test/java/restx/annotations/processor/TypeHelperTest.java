@@ -65,6 +65,6 @@ public class TypeHelperTest {
 
     @Test
     public void should_produce_type_description() throws Exception {
-        assertThat(RestxAnnotationProcessor.toTypeDescription(this.stringedType)).isEqualTo(this.expectedTypeDescription);
+        assertThat(TypeHelper.toTypeDescription(this.stringedType)).isEqualTo(this.expectedTypeDescription);
     }
 }

@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 import java.util.*;
@@ -17,6 +18,11 @@ import java.util.regex.Pattern;
  */
 public class TypeHelper {
     private static ImmutableList<String> PARSED_TYPES_DELIMITERS = ImmutableList.of(",", "<", ">");
+    private static ImmutableMap<String, String> TYPE_DESCRIPTION_ALIASES = ImmutableMap.of(
+            Integer.class.getCanonicalName(), "int",
+            Iterable.class.getCanonicalName(), "LIST",
+            List.class.getCanonicalName(), "LIST",
+            Map.class.getCanonicalName(), "MAP");
     private static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
     private static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
     private static Set<String> RAW_TYPES_STR = Sets.newHashSet("byte", "short", "int", "long", "float", "double", "boolean", "char");
@@ -50,8 +56,43 @@ public class TypeHelper {
         }
     }
 
-    static String getTypeExpressionFor(String type) {
-        StringTokenizer tokenizer = new StringTokenizer(type+"\n", Joiner.on("").join(PARSED_TYPES_DELIMITERS), true);
+    static String toTypeDescription(ParsedType parsedType) {
+        boolean aliasedType = TYPE_DESCRIPTION_ALIASES.containsKey(parsedType.className);
+        String type;
+        if(aliasedType) {
+            type = TYPE_DESCRIPTION_ALIASES.get(parsedType.className);
+        } else {
+            boolean primitive = parsedType.className.startsWith("java.lang");
+            type =  parsedType.className.substring(parsedType.className.lastIndexOf('.') + 1);
+            if (primitive) {
+                type = type.toLowerCase();
+            }
+            if ("DateTime".equals(type) || "DateMidnight".equals(type)) {
+                type = "Date";
+            }
+        }
+
+        if(parsedType.parameters.isEmpty()) { // We're on a raw type
+            return type;
+        } else { // We're on a parameterized type
+            String parametersTypeDescriptions = FluentIterable.from(parsedType.parameters)
+                    .transform(new Function<ParsedType, String>() {
+                        @Override
+                        public String apply(ParsedType param) {
+                            return toTypeDescription(param);
+                        }
+                    }).join(Joiner.on(", "));
+
+            if(aliasedType) {
+                return String.format("%s[%s]", type, parametersTypeDescriptions);
+            } else {
+                return String.format("%s<%s>", type, parametersTypeDescriptions);
+            }
+        }
+    }
+
+    static ParsedType parseParameterizedType(String parameterizedType) {
+        StringTokenizer tokenizer = new StringTokenizer(parameterizedType+"\n", Joiner.on("").join(PARSED_TYPES_DELIMITERS), true);
         String[] tokens = new String[tokenizer.countTokens()];
         ParsedType rootParsedType = null;
         ParsedType currentParsedType = null;
@@ -87,8 +128,15 @@ public class TypeHelper {
                 }
             }
         }
+        return rootParsedType;
+    }
 
-        return getTypeExpressionFor(rootParsedType);
+    static String toTypeDescription(String type) {
+        return toTypeDescription(parseParameterizedType(type));
+    }
+
+    static String getTypeExpressionFor(String type) {
+        return getTypeExpressionFor(parseParameterizedType(type));
     }
 
     static boolean isParameterizedType(String type) {
