@@ -401,7 +401,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private String toTypeDescription(String type) {
+    static String toTypeDescription(String type) {
         // see https://github.com/wordnik/swagger-core/wiki/datatypes
         boolean isList = false;
         Pattern p = Pattern.compile("java\\.lang\\.Iterable<(.+)>");
