@@ -1,13 +1,13 @@
 package restx.annotations.processor;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,29 +16,79 @@ import java.util.regex.Pattern;
  * Time: 10:26
  */
 public class TypeHelper {
-    private static Pattern PARAMETERIZED_TYPE_PATTERN = Pattern.compile("([^\\<,]+)\\<(.+)\\>");
+    private static ImmutableList<String> PARSED_TYPES_DELIMITERS = ImmutableList.of(",", "<", ">");
     private static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
     private static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
     private static Set<String> RAW_TYPES_STR = Sets.newHashSet("byte", "short", "int", "long", "float", "double", "boolean", "char");
 
-    static String getTypeExpressionFor(String type) {
-        Matcher matcher = PARAMETERIZED_TYPE_PATTERN.matcher(type);
-        if (matcher.matches()) {
-            String rawType = matcher.group(1);
+    private static class ParsedType {
+        final String className;
+        final ParsedType parentParsedType;
+        final List<ParsedType> parameters;
 
-            return "Types.newParameterizedType(" + rawType + ".class, " + getTypeExpressionFor(matcher.group(2)) + ")";
-        } else {
-            if (type.contains(",")) {
-                List<String> pTypes = new ArrayList<>();
-                for (String pType : Splitter.on(",").trimResults().split(type)) {
-                    pTypes.add(getTypeExpressionFor(pType));
-                }
-                return Joiner.on(", ").join(pTypes);
-            } else {
-                return type + ".class";
-            }
-
+        public ParsedType(String className, ParsedType parentParsedType) {
+            this.className = className;
+            this.parentParsedType = parentParsedType;
+            this.parameters = new ArrayList<>();
         }
+    }
+
+    static String getTypeExpressionFor(ParsedType currentParsedType) {
+        if(currentParsedType.parameters.isEmpty()) { // We're on a raw type
+            return String.format("%s.class", currentParsedType.className);
+        } else { // We're on a parameterized type
+            return String.format("Types.newParameterizedType(%s.class, %s)",
+                    currentParsedType.className,
+                    FluentIterable.from(currentParsedType.parameters)
+                        .transform(new Function<ParsedType, String>() {
+                            @Override
+                            public String apply(ParsedType param) {
+                                return getTypeExpressionFor(param);
+                            }
+                        }).join(Joiner.on(", "))
+                    );
+        }
+    }
+
+    static String getTypeExpressionFor(String type) {
+        StringTokenizer tokenizer = new StringTokenizer(type+"\n", Joiner.on("").join(PARSED_TYPES_DELIMITERS), true);
+        String[] tokens = new String[tokenizer.countTokens()];
+        ParsedType rootParsedType = null;
+        ParsedType currentParsedType = null;
+        for(int i=0; i < tokens.length; i++) {
+            String token = tokenizer.nextToken().trim();
+            tokens[i] = token;
+
+            if(i == 0) {
+                rootParsedType = new ParsedType(token, null);
+                currentParsedType = rootParsedType;
+            } else if(PARSED_TYPES_DELIMITERS.contains(token)) {
+                // Do nothing
+            } else {
+                int delimiterIndex = i-1;
+                Stack<String> delimiters = new Stack<>();
+                while(PARSED_TYPES_DELIMITERS.contains(tokens[delimiterIndex])) {
+                    delimiters.push(tokens[delimiterIndex]);
+                    delimiterIndex--;
+                }
+
+                while(!delimiters.empty()) {
+                    String delimiter = delimiters.pop();
+                    if(",".equals(delimiter)) {
+                        // Adding current parsed type to its parent
+                        currentParsedType.parentParsedType.parameters.add(currentParsedType);
+                        currentParsedType = new ParsedType(token, currentParsedType.parentParsedType);
+                    } else if("<".equals(delimiter)) {
+                        currentParsedType = new ParsedType(token, currentParsedType);
+                    } else if(">".equals(delimiter)) {
+                        currentParsedType.parentParsedType.parameters.add(currentParsedType);
+                        currentParsedType = currentParsedType.parentParsedType;
+                    }
+                }
+            }
+        }
+
+        return getTypeExpressionFor(rootParsedType);
     }
 
     static boolean isParameterizedType(String type) {
