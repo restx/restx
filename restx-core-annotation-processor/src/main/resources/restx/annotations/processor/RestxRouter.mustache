@@ -72,7 +72,9 @@ public class {{router}} extends RestxRouter {
 
                 operation.responseClass = "{{responseClass}}";
                 operation.inEntitySchemaKey = "{{inEntitySchemaKey}}";
+                operation.inEntityType = {{inEntityType}};
                 operation.outEntitySchemaKey = "{{outEntitySchemaKey}}";
+                operation.outEntityType = {{outEntityType}};
                 operation.sourceLocation = "{{sourceLocation}}";
                 operation.annotations = ImmutableList.<java.lang.annotation.Annotation>builder()
 {{#annotationDescriptions}}

@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import restx.http.HttpStatus;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -20,7 +21,11 @@ public class OperationDescription {
     public String responseClass;
     public String sourceLocation = "";
     public String inEntitySchemaKey = "";
+    @JsonIgnore
+    public Type inEntityType;
     public String outEntitySchemaKey = "";
+    @JsonIgnore
+    public Type outEntityType;
     public String summary = "";
     public String notes = "";
     public HttpStatus.Descriptor successStatus;
