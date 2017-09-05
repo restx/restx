@@ -9,6 +9,7 @@ import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.StdRoute;
 import restx.annotations.ExpiresAfter;
+import restx.common.MorePeriods;
 import restx.description.OperationDescription;
 import restx.description.ResourceDescription;
 import restx.factory.Component;
@@ -37,25 +38,15 @@ public class ExpiresHeaderFilter extends EntityRelatedFilter {
 
         ExpiresAfter expiresAfterAnn = operationDescription.findAnnotation(ExpiresAfter.class).get();
 
-        PeriodParser parser = new PeriodFormatterBuilder()
-                .appendYears().appendSuffix("y").appendSeparatorIfFieldsAfter(" ")
-                .appendMonths().appendSuffix("mo").appendSeparatorIfFieldsAfter(" ")
-                .appendWeeks().appendSuffix("w").appendSeparatorIfFieldsAfter(" ")
-                .appendDays().appendSuffix("d").appendSeparatorIfFieldsAfter(" ")
-                .appendHours().appendSuffix("h").appendSeparatorIfFieldsAfter(" ")
-                .appendMinutes().appendSuffix("m").appendSeparatorIfFieldsAfter(" ")
-                .appendSeconds().appendSuffix("s")
-                .toParser();
-
-        MutablePeriod period = new MutablePeriod();
-        parser.parseInto(period, expiresAfterAnn.value(), 0, Locale.US);
-        String expiresHeaderValue = createRFC1123DateFormat().format(DateTime.now().plus(period).toDate());
+        Locale currentLocale = Locale.US;
+        DateTime expirationDate = DateTime.now().plus(MorePeriods.parsePeriod(expiresAfterAnn.value(), currentLocale));
+        String expiresHeaderValue = createRFC1123DateFormat(currentLocale).format(expirationDate.toDate());
 
         resp.setHeader("Expires", expiresHeaderValue);
     }
 
-    public static DateFormat createRFC1123DateFormat() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+    public static DateFormat createRFC1123DateFormat(Locale locale) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", locale);
         dateFormat.setTimeZone(DateTimeZone.UTC.toTimeZone());
         return dateFormat;
     }
