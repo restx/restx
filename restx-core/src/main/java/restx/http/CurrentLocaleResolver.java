@@ -1,7 +1,6 @@
-package restx.i18n;
+package restx.http;
 
 import restx.RestxRequest;
-import restx.StdRequest;
 
 import java.util.Locale;
 

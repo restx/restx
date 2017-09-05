@@ -7,6 +7,7 @@ import com.google.common.hash.Hashing;
 import restx.*;
 import restx.factory.Component;
 import restx.http.CacheControl;
+import restx.http.CurrentLocaleResolver;
 import restx.http.ETag;
 import restx.http.HttpStatus;
 

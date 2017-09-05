@@ -26,16 +26,6 @@ public class I18nModule {
         }
     }
 
-    @Provides @Named("CurrentLocaleResolver")
-    public CurrentLocaleResolver currentLocaleResolver(){
-        return new CurrentLocaleResolver() {
-            @Override
-            public Locale guessLocale(RestxRequest request) {
-                return request.getLocale();
-            }
-        };
-    }
-
     @Provides @Named("ROOT")
     public SupportedLocale rootSupportedLocale() {
         return new SupportedLocale(Locale.ROOT);
