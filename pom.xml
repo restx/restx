@@ -235,7 +235,12 @@
             </dependency>
             <dependency>
                 <groupId>io.restx</groupId>
-                <artifactId>restx-server-jetty</artifactId>
+                <artifactId>restx-server-jetty7</artifactId>
+                <version>${restx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.restx</groupId>
+                <artifactId>restx-server-jetty8</artifactId>
                 <version>${restx.version}</version>
             </dependency>
             <dependency>
@@ -581,7 +586,8 @@
         <module>restx-jongo</module>
         <module>restx-jongo-specs-tests</module>
         <module>restx-servlet</module>
-        <module>restx-server-jetty</module>
+        <module>restx-server-jetty7</module>
+        <module>restx-server-jetty8</module>
         <module>restx-server-tomcat</module>
         <module>restx-server-simple</module>
         <module>restx-server-testing</module>

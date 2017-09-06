@@ -1,0 +1,23 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-server-jetty7:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-factory:${restx.version}",
+            "io.restx:restx-core:${restx.version}",
+            "javax.servlet:servlet-api:2.5",
+            "io.restx:restx-servlet:${restx.version}",
+            "org.eclipse.jetty:jetty-server:${jetty7.version}",
+            "org.eclipse.jetty:jetty-servlet:${jetty7.version}",
+            "org.eclipse.jetty:jetty-security:${jetty7.version}",
+            "org.eclipse.jetty:jetty-util:${jetty7.version}",
+            "org.eclipse.jetty:jetty-webapp:${jetty7.version}",
+            "org.eclipse.jetty:jetty-servlets:${jetty7.version}"
+        ]
+    }
+}

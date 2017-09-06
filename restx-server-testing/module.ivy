@@ -14,7 +14,7 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="io.restx" name="restx-server-jetty" rev="latest.integration" conf="test->default" />
+        <dependency org="io.restx" name="restx-server-jetty8" rev="latest.integration" conf="test->default" />
         <dependency org="io.restx" name="restx-server-simple" rev="latest.integration" conf="test->default" />
         <dependency org="io.restx" name="restx-server-tomcat" rev="latest.integration" conf="test->default" />
         <dependency org="io.restx" name="restx-specs-tests" rev="latest.integration" conf="test->default" />
