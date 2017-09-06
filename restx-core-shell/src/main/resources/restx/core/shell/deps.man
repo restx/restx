@@ -1,11 +1,13 @@
 ## deps install
 
-Resolve the dependencies declared in the file `md.restx.json`, and synchronize them in `target/dependency` directory.
+Resolve dependencies declared in current module descriptor (in order: either `md.restx.json`, `pom.xml` or `module.ivy`),
+and synchronize them in `target/dependency` directory.
 
-This command uses Apache Ivy under the hood to perform dependency resolution, using settings provided by restx.
+For both `md.restx.json` and `module.ivy`, this command uses Apache Ivy under the hood to perform dependency resolution,
+using settings provided by restx. You can override these Ivy settings by placing a file named ivysettings.xml in your
+restx shell install location (usually `~/.restx`).
 
-You can override these Ivy settings by placing a file named ivysettings.xml in your restx shell install location
-(usually `~/.restx`).
+For `pom.xml`, this command will use maven-dependency-plugin:copy-dependencies goal to perform dependency resolution.
 
 Note: You need to be placed in a restx app root directory to run this command.
 

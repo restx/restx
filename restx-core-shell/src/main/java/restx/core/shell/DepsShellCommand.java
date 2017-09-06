@@ -1,9 +1,7 @@
 package restx.core.shell;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
+import com.google.common.base.*;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -13,6 +11,7 @@ import jline.console.completer.StringsCompleter;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.retrieve.RetrieveOptions;
+import restx.AppSettings;
 import restx.build.*;
 import restx.build.ModuleDescriptor;
 import restx.factory.Component;
@@ -21,7 +20,11 @@ import restx.shell.*;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,17 +70,37 @@ public class DepsShellCommand extends StdShellCommand {
                 new StringsCompleter("deps"), new StringsCompleter("install", "add")));
     }
 
-    public class InstallDepsCommandRunner implements ShellCommandRunner {
+    public static class InstallDepsCommandRunner implements ShellCommandRunner {
 
         @Override
         public void run(RestxShell shell) throws Exception {
-            File mdFile = mdFile(shell);
-            if (!mdFile.exists()) {
+            Optional<ModuleDescriptorType> moduleDescriptorTypeWithExistingFileOpt = ModuleDescriptorType.firstModuleDescriptorTypeWithExistingFile(shell.currentLocation());
+            if(!moduleDescriptorTypeWithExistingFileOpt.isPresent()) {
                 throw new IllegalStateException(
                         "md.restx.json file not found in " + shell.currentLocation() + "." +
                                 " It is required to perform deps management");
             }
-            Ivy ivy = ShellIvy.loadIvy(shell);
+
+            ModuleDescriptorType moduleDescriptorTypeWithExistingFile = moduleDescriptorTypeWithExistingFileOpt.get();
+            if(ModuleDescriptorType.RESTX.equals(moduleDescriptorTypeWithExistingFile)) {
+                shell.println("installing deps using restx module descriptor...");
+                installDepsFromModuleDescriptor(shell, ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation()));
+            } else if(ModuleDescriptorType.MAVEN.equals(moduleDescriptorTypeWithExistingFile)) {
+                shell.println("installing deps using maven descriptor...");
+                installDepsFromMavenDescriptor(shell, ModuleDescriptorType.MAVEN.resolveDescriptorFile(shell.currentLocation()));
+            } else if(ModuleDescriptorType.IVY.equals(moduleDescriptorTypeWithExistingFile)) {
+                shell.println("installing deps using ivy descriptor...");
+                installDepsFromIvyDescriptor(shell, ModuleDescriptorType.IVY.resolveDescriptorFile(shell.currentLocation()));
+            } else {
+                throw new IllegalArgumentException("Unsupported deps install for module type "+moduleDescriptorTypeWithExistingFile);
+            }
+
+            storeModuleDescriptorMD5File(shell, moduleDescriptorTypeWithExistingFile);
+
+            shell.println("DONE");
+        }
+
+        private void installDepsFromModuleDescriptor(RestxShell shell, File mdFile) throws Exception {
             File tempFile = File.createTempFile("restx-md", ".ivy");
             try (FileInputStream is = new FileInputStream(mdFile)) {
                 ModuleDescriptor descriptor = new RestxJsonSupport().parse(is);
@@ -85,28 +108,74 @@ public class DepsShellCommand extends StdShellCommand {
                     new IvySupport().generate(descriptor, w);
                 }
 
-                shell.println("resolving dependencies...");
-                ResolveReport resolveReport = ivy.resolve(tempFile);
-
-                shell.println("synchronizing dependencies in " + shell.currentLocation().resolve("target/dependency") + " ...");
-                ivy.retrieve(resolveReport.getModuleDescriptor().getModuleRevisionId(),
-                        new RetrieveOptions()
-                                .setDestArtifactPattern(
-                                        shell.currentLocation().toAbsolutePath() + "/target/dependency/[artifact]-[revision](-[classifier]).[ext]")
-                        .setSync(true)
-                );
-
-                File md5File = md5File(shell);
-                Files.write(Files.hash(mdFile, Hashing.md5()).toString(), md5File, Charsets.UTF_8);
-
-                shell.println("DONE");
+                installDepsFromIvyDescriptor(shell, tempFile);
             } finally {
                 tempFile.delete();
             }
         }
+
+        private void installDepsFromIvyDescriptor(RestxShell shell, File ivyFile) throws Exception {
+            Ivy ivy = ShellIvy.loadIvy(shell);
+
+            shell.println("resolving dependencies...");
+            ResolveReport resolveReport = ivy.resolve(ivyFile);
+
+            shell.println("synchronizing dependencies in " + shell.currentLocation().resolve("target/dependency") + " ...");
+            ivy.retrieve(resolveReport.getModuleDescriptor().getModuleRevisionId(),
+                    new RetrieveOptions()
+                            .setDestArtifactPattern(
+                                    shell.currentLocation().toAbsolutePath() + "/target/dependency/[artifact]-[revision](-[classifier]).[ext]")
+                            .setSync(true)
+            );
+        }
+
+        private void installDepsFromMavenDescriptor(RestxShell shell, File pomFile) throws Exception {
+            AppSettings appSettings = shell.getFactory().getComponent(AppSettings.class);
+
+            Path dependenciesDir = Paths.get(appSettings.targetDependency());
+
+            // Emptying target dependencies directory first
+            if(dependenciesDir.toFile().exists()) {
+                java.nio.file.Files.walkFileTree(dependenciesDir, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        java.nio.file.Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        java.nio.file.Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+
+            dependenciesDir.toFile().mkdirs();
+
+            // Then copying dependencies through copy-dependencies plugin
+            ProcessBuilder mavenCmd = new ProcessBuilder(
+                    "mvn", "org.apache.maven.plugins:maven-dependency-plugin:3.0.1:copy-dependencies",
+                    "-DoutputDirectory=" + dependenciesDir.toAbsolutePath(), "-DincludeScope=runtime"
+            );
+
+            shell.println("Executing `"+mavenCmd+"` ...");
+            mavenCmd.redirectErrorStream(true)
+             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+             .directory(shell.currentLocation().toFile().getAbsoluteFile())
+             .start()
+             .waitFor();
+        }
+
+        private static void storeModuleDescriptorMD5File(RestxShell shell, ModuleDescriptorType mdType) throws IOException {
+            File mdFile = mdType.resolveDescriptorFile(shell.currentLocation());
+            File md5File = ModuleDescriptorType.MAVEN.resolveDescriptorMd5File(shell.currentLocation());
+
+            shell.println(String.format("Storing md5 file %s for module descriptor %s...", md5File.getAbsolutePath(), mdFile.getAbsolutePath()));
+            Files.write(Files.hash(mdFile, Hashing.md5()).toString(), md5File, Charsets.UTF_8);
+        }
     }
 
-    class AddDepsCommandRunner implements ShellCommandRunner {
+    static class AddDepsCommandRunner implements ShellCommandRunner {
         private final String scope;
         private Optional<List<String>> pluginIds;
 
@@ -129,7 +198,7 @@ public class DepsShellCommand extends StdShellCommand {
 
         @Override
         public void run(RestxShell shell) throws Exception {
-            File mdFile = mdFile(shell);
+            File mdFile = ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation());
             if (!mdFile.exists()) {
                 throw new IllegalStateException(
                         "md.restx.json file not found in " + shell.currentLocation() + "." +
@@ -190,31 +259,24 @@ public class DepsShellCommand extends StdShellCommand {
     }
 
     public static boolean depsUpToDate(RestxShell shell) {
-        File mdFile = mdFile(shell);
-        if (!mdFile.exists()) {
+        Optional<ModuleDescriptorType> moduleDescriptorTypeWithExistingFileOpt = ModuleDescriptorType.firstModuleDescriptorTypeWithExistingFile(shell.currentLocation());
+        if(!moduleDescriptorTypeWithExistingFileOpt.isPresent()) {
             // no dependency management at all
             return true;
         }
 
-        File md5File = md5File(shell);
-
-        if (!md5File.exists()) {
+        ModuleDescriptorType moduleDescriptorTypeWithExistingFile = moduleDescriptorTypeWithExistingFileOpt.get();
+        File descriptorFile = moduleDescriptorTypeWithExistingFile.resolveDescriptorFile(shell.currentLocation());
+        File moduleDescriptorMd5 = moduleDescriptorTypeWithExistingFile.resolveDescriptorMd5File(shell.currentLocation());
+        if(!moduleDescriptorMd5.exists()) {
             return false;
         }
 
         try {
-            String md5 = Files.hash(mdFile, Hashing.md5()).toString();
-            return md5.equals(Files.toString(md5File, Charsets.UTF_8));
+            String md5 = Files.hash(descriptorFile, Hashing.md5()).toString();
+            return md5.equals(Files.toString(moduleDescriptorMd5, Charsets.UTF_8));
         } catch (IOException e) {
             return false;
         }
-    }
-
-    private static File mdFile(RestxShell shell) {
-        return shell.currentLocation().resolve("md.restx.json").toFile();
-    }
-
-    public static File md5File(RestxShell shell) {
-        return shell.currentLocation().resolve("target/dependency/md.restx.json.md5").toFile();
     }
 }
