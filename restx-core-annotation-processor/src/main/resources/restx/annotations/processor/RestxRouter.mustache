@@ -56,7 +56,7 @@ public class {{router}} extends RestxRouter {
 {{queryParametersDefinition}}
                 }) {
             @Override
-            protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxRequestMatch match, {{inEntity}} body) throws IOException {
+            protected Optional<{{outEntity}}> doRoute(RestxRequest request, RestxResponse response, RestxRequestMatch match, {{inEntity}} body) throws IOException {
                 {{securityCheck}}
                 try {
                     {{call}}

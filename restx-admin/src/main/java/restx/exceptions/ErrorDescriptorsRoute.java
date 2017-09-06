@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
+import restx.RestxResponse;
 import restx.endpoint.Endpoint;
 import restx.endpoint.EndpointParameterMapperRegistry;
 import restx.admin.AdminModule;
@@ -51,7 +52,7 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxResponse response, RestxRequestMatch match, Object i) throws IOException {
         securityManager.check(restxRequest, match, permissionFactory.hasRole(AdminModule.RESTX_ADMIN_ROLE));
         return Optional.of(errorDescriptors.values());
     }

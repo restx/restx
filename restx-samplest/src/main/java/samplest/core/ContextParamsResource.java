@@ -1,6 +1,7 @@
 package samplest.core;
 
 import restx.RestxRequest;
+import restx.RestxResponse;
 import restx.annotations.GET;
 import restx.annotations.Param;
 import restx.annotations.RestxResource;
@@ -30,6 +31,14 @@ public class ContextParamsResource {
     @GET("/contextParams/request")
     public String getRequest(@Param(kind = Param.Kind.CONTEXT, value = "request") RestxRequest request) {
         return request.toString();
+    }
+    @PermitAll
+    @GET("/contextParams/response")
+    // response CONTEXT param is discouraged, please avoid it as much as possible as it smells like bad design
+    // particularly if you need to set some header, please have a look to different HeadersFilters around there
+    // which will be the prefered way to implement response headers management in restx
+    public String getResponse(@Param(kind = Param.Kind.CONTEXT, value = "response") RestxResponse response) {
+        return response.toString();
     }
     @PermitAll
     @GET("/contextParams/locale")
