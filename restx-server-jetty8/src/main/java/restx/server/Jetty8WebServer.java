@@ -19,17 +19,17 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.common.MoreFiles.checkFileExists;
 
-public class JettyWebServer extends WebServerBase {
-    private static final Logger logger = LoggerFactory.getLogger(JettyWebServer.class);
+public class Jetty8WebServer extends WebServerBase {
+    private static final Logger logger = LoggerFactory.getLogger(Jetty8WebServer.class);
 
     private Server server;
     private String webInfLocation;
 
-    public JettyWebServer(String appBase, int aPort) {
+    public Jetty8WebServer(String appBase, int aPort) {
         this(null, appBase, aPort, null);
     }
 
-    public JettyWebServer(String webInfLocation, String appBase, int port, String bindInterface) {
+    public Jetty8WebServer(String webInfLocation, String appBase, int port, String bindInterface) {
         super(checkNotNull(appBase), port, bindInterface, "Jetty8", "org.eclipse.jetty", "jetty-server");
 
         if (webInfLocation != null) {
@@ -115,7 +115,7 @@ public class JettyWebServer extends WebServerBase {
         return new WebServerSupplier() {
             @Override
             public WebServer newWebServer(int port) {
-                return new JettyWebServer(webInfLocation, appBase, port, "0.0.0.0");
+                return new Jetty8WebServer(webInfLocation, appBase, port, "0.0.0.0");
             }
         };
     }
@@ -128,6 +128,6 @@ public class JettyWebServer extends WebServerBase {
 
         String appBase = args[0];
         int port = args.length > 1 ? Integer.parseInt(args[1]) : 8086;
-        new JettyWebServer(appBase + "WEB-INF/web.xml", appBase, port, "0.0.0.0").startAndAwait();
+        new Jetty8WebServer(appBase + "WEB-INF/web.xml", appBase, port, "0.0.0.0").startAndAwait();
     }
 }
