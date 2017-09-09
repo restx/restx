@@ -607,8 +607,31 @@ public class AppShellCommand extends StdShellCommand {
 
         @Override
         public void run(final RestxShell shell) throws Exception {
+            Path shellInitialLocation = shell.currentLocation();
             if(appNameArg.isPresent()) {
                 shell.cd(standardCachedAppPath(appNameArg.get()));
+            }
+
+            if(!ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation()).exists()) {
+
+                Path srvDir = shell.currentLocation().resolve("srv");
+                if(srvDir.toFile().exists()) {
+                    shell.cd(srvDir);
+                    if(!ModuleDescriptorType.RESTX.resolveDescriptorFile(shell.currentLocation()).exists()) {
+                        shell.println(String.format("Cannot find %s in both %s and %s",
+                                ModuleDescriptorType.RESTX.getDescriptorFileName(),
+                                shell.currentLocation().getParent().toAbsolutePath(),
+                                shell.currentLocation().toAbsolutePath()));
+                        shell.println("=> Cannot run application");
+                        return;
+                    }
+                } else {
+                    shell.println(String.format("Cannot find %s in %s",
+                            ModuleDescriptorType.RESTX.getDescriptorFileName(),
+                            shell.currentLocation().toAbsolutePath()));
+                    shell.println("=> Cannot run application");
+                    return;
+                }
             }
 
             boolean sourcesAvailable = Apps.with(shell.getFactory().getComponent(AppSettings.class)).sourcesAvailableIn(shell.currentLocation());
@@ -669,6 +692,9 @@ public class AppShellCommand extends StdShellCommand {
                     .getComponent(AppSettings.class);
             new ShellAppRunner(appSettings, appClassName, compileMode, quiet, daemon, vmOptions)
                 .run(shell);
+
+            // Moving back to initial location in case we either moved in cached apps or srv directory
+            shell.cd(shellInitialLocation);
         }
 
         private Optional<String> guessAppClassnameFromRestxModule(RestxShell shell) throws IOException {
