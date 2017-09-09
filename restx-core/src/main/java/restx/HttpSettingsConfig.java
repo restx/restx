@@ -39,4 +39,9 @@ public class HttpSettingsConfig implements HttpSettings {
         return Splitter.on(",").trimResults().splitToList(
                 config.getString("restx.http.gzip.paths").or("/{s:.+}"));
     }
+
+    @Override
+    public boolean decodeURLPathParams() {
+        return config.getBoolean("restx.http.decode.url.path.params").or(Boolean.TRUE).booleanValue();
+    }
 }

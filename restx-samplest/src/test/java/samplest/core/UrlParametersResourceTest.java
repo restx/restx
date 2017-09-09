@@ -27,7 +27,7 @@ public class UrlParametersResourceTest {
     @Parameterized.Parameters(name="{0}")
     public static Iterable<Object[]> data(){
         return Arrays.asList(new Object[][]{
-                {"/v1/v2/35v4/v5", "a=v1 b=v2 c=35 d=v4 e=v5"}
+                {"/v1/hello%20world/35v4/v5", "a=v1 b=hello world c=35 d=v4 e=v5"},
         });
     }
 

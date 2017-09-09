@@ -1,6 +1,7 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 import com.google.common.collect.*;
 import restx.AbstractRequest;
 import restx.HttpSettings;
@@ -11,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -48,7 +51,15 @@ public class HttpServletRestxRequest extends AbstractRequest {
 
     @Override
     public String getRestxPath() {
-        return request.getRequestURI().substring((getBaseApiPath()).length());
+        String restxPath = request.getRequestURI().substring((getBaseApiPath()).length());
+        if(this.httpSettings.decodeURLPathParams()) {
+            try {
+                restxPath = URLDecoder.decode(restxPath, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+        return restxPath;
     }
 
     @Override

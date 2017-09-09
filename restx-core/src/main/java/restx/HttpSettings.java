@@ -21,4 +21,8 @@ public interface HttpSettings {
 
     @SettingsKey(key = "restx.http.gzip.paths", defaultValue = "/{s:.+}")
     Collection<String> gzipPaths();
+
+    @SettingsKey(key = "restx.http.decode.url.path.params", defaultValue = "true",
+            doc="Will issue a URLDecoder.decode() on every PATH parameters if true")
+    boolean decodeURLPathParams();
 }
