@@ -37,6 +37,8 @@ import static java.util.Arrays.asList;
  */
 @Component
 public class DepsShellCommand extends StdShellCommand {
+    private static final String MVN_COMMAND = "mvn";
+
     public DepsShellCommand() {
         super(ImmutableList.of("deps"), "deps related commands: install / update / manage app dependencies");
     }
@@ -154,16 +156,25 @@ public class DepsShellCommand extends StdShellCommand {
 
             // Then copying dependencies through copy-dependencies plugin
             ProcessBuilder mavenCmd = new ProcessBuilder(
-                    "mvn", "org.apache.maven.plugins:maven-dependency-plugin:3.0.1:copy-dependencies",
+                    MVN_COMMAND, "org.apache.maven.plugins:maven-dependency-plugin:3.0.1:copy-dependencies",
                     "-DoutputDirectory=" + dependenciesDir.toAbsolutePath(), "-DincludeScope=runtime"
             );
 
             shell.println("Executing `"+mavenCmd+"` ...");
-            mavenCmd.redirectErrorStream(true)
-             .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-             .directory(shell.currentLocation().toFile().getAbsoluteFile())
-             .start()
-             .waitFor();
+            try {
+                mavenCmd.redirectErrorStream(true)
+                        .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                        .directory(shell.currentLocation().toFile().getAbsoluteFile())
+                        .start()
+                        .waitFor();
+            } catch(IOException e) {
+                if(e.getMessage().startsWith(String.format("Cannot run program \"%s\"", MVN_COMMAND))) {
+                    shell.println("Looks like mvn is not installed here ... trying to fallback installing pom.xml file with Ivy...");
+                    installDepsFromIvyDescriptor(shell, pomFile);
+                } else {
+                    Throwables.propagate(e);
+                }
+            }
         }
 
         private static void storeModuleDescriptorMD5File(RestxShell shell, ModuleDescriptorType mdType) throws IOException {
