@@ -65,6 +65,16 @@ adminApp.controller('OperationController', function OperationController(
         return path;
     }
 
+    function bindHeaders() {
+        return _.chain($scope.operation.parameters)
+            .filter(function(p){ return p.paramType === 'header'; })
+            .reduce(function(headers, param) {
+                headers[param.name] = param.value;
+                return headers;
+            }, {})
+            .value();
+    }
+
     function bodyParamValue(value) {
         var bodyParam = _.find($scope.operation.parameters, function(p) { return p.paramType === 'body' });
         if (value) {
@@ -125,7 +135,7 @@ adminApp.controller('OperationController', function OperationController(
         return {
             httpMethod: $scope.operation.httpMethod,
             path: bindParams($scope.opApi.stdPath),
-            headers: {},
+            headers: bindHeaders(),
             body: bodyParamValue(),
             response: { status: '', body: '' }
         };

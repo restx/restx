@@ -2,21 +2,17 @@ package samplest.core;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import restx.annotations.GET;
-import restx.annotations.POST;
-import restx.annotations.RestxResource;
+import restx.RestxRequest;
+import restx.annotations.*;
 import restx.factory.Component;
 import restx.security.PermitAll;
 
-import javax.validation.constraints.Size;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -46,9 +42,9 @@ public class ParametersResource {
         }
     }
 
-    @GET("/params/path/{a}/:_b/{c:\\d+}:d")
-    public String pathparams(String a, String _b, String c, String d) {
-        return "a=" + a + " b=" + _b + " c=" + c + " d=" + d;
+    @GET("/params/path/{a}/:_b/{c:\\d+}:d/{e}")
+    public String pathparams(String a, String _b, @Param(kind=Param.Kind.PATH) String c, @Param(kind=Param.Kind.PATH, value="d") String _d, @PathParam String e) {
+        return "a=" + a + " b=" + _b + " c=" + c + " d=" + _d + " e=" + e;
     }
 
     @GET("/params/query/withOptionalString")
@@ -129,5 +125,15 @@ public class ParametersResource {
     @GET("/params/optionalArrayedJodaDatesParams")
     public DateTime[] optionalArrayedJodaDatesParams(Optional<DateTime[]> params, Optional<DateTime[]> otherParams) {
         return ObjectArrays.concat(params.or(new DateTime[0]), otherParams.or(new DateTime[0]), DateTime.class);
+    }
+
+    @GET("/params/headers")
+    public String headerParams(@Param(value = "X-A", kind = Param.Kind.HEADER) String a, @HeaderParam("X-B") Optional<DateTime> b, @HeaderParam Optional<String> Date) {
+        return "a=" + a + " b=" + b.orNull() + " date=" + String.valueOf(Date.orNull());
+    }
+
+    @GET("/params/usingAnnotations/{path}")
+    public String paramsUsingAnnotations(@PathParam String path, @QueryParam String query, @ContextParam("request") RestxRequest request) {
+        return "path="+path+" query="+query+" contentType="+request.getContentType();
     }
 }

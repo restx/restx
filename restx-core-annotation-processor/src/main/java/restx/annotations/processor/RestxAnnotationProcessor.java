@@ -194,19 +194,49 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         return combinatorialInterpolatedRoles;
     }
 
+    private Param createParam(final String value, final Param.Kind kind) {
+        return new Param() {
+            @Override
+            public Class<? extends Annotation> annotationType() { return Param.class; }
+            @Override
+            public String value() { return value; }
+            @Override
+            public Kind kind() { return kind; }
+        };
+    }
+
     private void buildResourceMethodParams(ResourceMethodAnnotation annotation, ResourceMethod resourceMethod) {
         Set<String> pathParamNamesToMatch = Sets.newHashSet(resourceMethod.pathParamNames);
         for (VariableElement p : annotation.methodElem.getParameters()) {
             Param param = p.getAnnotation(Param.class);
-            String paramName = p.getSimpleName().toString();
-            String reqParamName = p.getSimpleName().toString();
+            String variableName = p.getSimpleName().toString();
             ResourceMethodParameterKind parameterKind = null;
-            if (param != null) {
-                reqParamName = param.value().length() == 0 ? paramName : param.value();
+            String reqParamName;
+            if (param == null) {
+                final QueryParam queryParamAnn = p.getAnnotation(QueryParam.class);
+                final PathParam pathParamAnn = p.getAnnotation(PathParam.class);
+                final ContextParam contextParamAnn = p.getAnnotation(ContextParam.class);
+                final HeaderParam reqHeaderAnn = p.getAnnotation(HeaderParam.class);
+                if (queryParamAnn != null) {
+                    param = createParam(queryParamAnn.value(), Param.Kind.QUERY);
+                } else if (pathParamAnn != null) {
+                    param = createParam(pathParamAnn.value(), Param.Kind.PATH);
+                } else if (contextParamAnn != null) {
+                    param = createParam(contextParamAnn.value(), Param.Kind.CONTEXT);
+                } else if (reqHeaderAnn != null) {
+                    param = createParam(reqHeaderAnn.value(), Param.Kind.HEADER);
+                }
+            }
+
+            if(param != null) {
+                reqParamName = param.value().length() == 0 ? variableName : param.value();
                 if (param.kind() != Param.Kind.DEFAULT) {
                     parameterKind = ResourceMethodParameterKind.valueOf(param.kind().name());
                 }
+            } else {
+                reqParamName = variableName;
             }
+
             if (pathParamNamesToMatch.contains(reqParamName)) {
                 if (parameterKind != null && parameterKind != ResourceMethodParameterKind.PATH) {
                     error(
@@ -233,7 +263,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
             resourceMethod.parameters.add(new ResourceMethodParameter(
                 p.asType().toString(),
-                paramName,
+                variableName,
                 reqParamName,
                 parameterKind,
                 validationGroups));
@@ -607,6 +637,14 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
                 return ParameterExpressionBuilder
                         .createFromMapQueryObjectFromRequest(parameter, EndpointParameterKind.PATH)
+                        .surroundWithCheckValid(parameter)
+                        .getParameterExpr();
+            }
+        },
+        HEADER(true) {
+            public String fetchFromReqCode(ResourceMethodParameter parameter, ResourceMethod method) {
+                return ParameterExpressionBuilder
+                        .createFromMapQueryObjectFromRequest(parameter, EndpointParameterKind.HEADER)
                         .surroundWithCheckValid(parameter)
                         .getParameterExpr();
             }

@@ -7,7 +7,7 @@ package restx.description;
  */
 public class OperationParameterDescription {
     public static enum ParamType {
-        body, path, query
+        body, path, query, header
     }
 
     public ParamType paramType;
