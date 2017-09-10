@@ -8,6 +8,7 @@ import restx.factory.Module;
 import restx.factory.Provides;
 import restx.i18n.SupportedLocale;
 import restx.security.*;
+import samplest.security.CompanyAndSubCompanyRoles;
 
 import javax.inject.Named;
 import java.util.Locale;
@@ -21,10 +22,10 @@ public class AppModule {
     private ImmutableMap<String, RestxPrincipal> principals = ImmutableMap.<String, RestxPrincipal>builder()
             .put("admin", AdminModule.RESTX_ADMIN_PRINCIPAL)
             .put("user1", new StdUser("user1", ImmutableSet.<String>of("hello")))
-            .put("user-belonging-to-1234-5678", new StdUser("user-belonging-to-1234-5678", ImmutableSet.<String>of("EDIT_COMPANY_1234_5678")))
-            .put("user-managing-1234-subcompanies", new StdUser("user-managing-1234-subcompanies", ImmutableSet.<String>of("EDIT_COMPANY_1234_*")))
-            .put("user-managing-all-companies", new StdUser("user-managing-companies", ImmutableSet.<String>of("EDIT_COMPANY_*_*")))
-            .put("user-managing-all-parents-for-a-given-subcompany", new StdUser("user-managing-all-parents-for-a-given-subcompany", ImmutableSet.<String>of("EDIT_COMPANY_*_5678")))
+            .put("user-belonging-to-1234-5678", new StdUser("user-belonging-to-1234-5678", ImmutableSet.<String>of(CompanyAndSubCompanyRoles.CAN_EDIT_COMPANY.getFor("1234", "5678"))))
+            .put("user-managing-1234-subcompanies", new StdUser("user-managing-1234-subcompanies", ImmutableSet.<String>of(CompanyAndSubCompanyRoles.CAN_EDIT_COMPANY.getEverySubCompaniesForCompany("1234"))))
+            .put("user-managing-all-companies", new StdUser("user-managing-companies", ImmutableSet.<String>of(CompanyAndSubCompanyRoles.CAN_EDIT_COMPANY.getForEveryCompanies())))
+            .put("user-managing-all-parents-for-a-given-subcompany", new StdUser("user-managing-all-parents-for-a-given-subcompany", ImmutableSet.<String>of("CAN_EDIT_COMPANY_*_SUBCOMPANY_5678")))
             .build();
 
     @Provides @Named("restx.app.package")

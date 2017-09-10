@@ -18,7 +18,7 @@ public class SecuredResource {
     }
 
     @GET("/security/{companyId}/{subCompanyId}")
-    @RolesAllowed("EDIT_COMPANY_{companyId}_{subCompanyId}")
+    @RolesAllowed(CompanyAndSubCompanyRoles.Constants.CAN_EDIT_COMPANY__$COMPANY_ID__SUBCOMPANY__$SUBCOMPANY_ID__)
     public String editSubCompany(String companyId, String subCompanyId){
         return RestxSession.current().getPrincipal().get().getName();
     }
