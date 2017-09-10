@@ -6,11 +6,23 @@
         "@files": ["../restx.build.properties.json"]
     },
 
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/testing-build-shell.xml"
+        ]
+    },
+
     "dependencies": {
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-shell:${restx.version}",
             "io.restx:restx-build:${restx.version}"
+        ],
+        "test": [
+            "junit:junit:4.11",
+            "com.googlecode.junit-toolbox:junit-toolbox:2.3",
+            "org.assertj:assertj-core:1.6.0",
+            "org.apache.maven.shared:maven-verifier:${maven-verifier.version}"
         ]
     }
 }

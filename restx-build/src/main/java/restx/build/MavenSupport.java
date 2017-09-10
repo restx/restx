@@ -36,16 +36,18 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             String packaging = jsonObject.has("packaging") ? jsonObject.getString("packaging") : "jar";
 
             Map<String, String> properties = new LinkedHashMap<>();
+            Map<String, String> calculatedProperties = new LinkedHashMap<>();
             if (jsonObject.has("properties")) {
                 JSONObject props = jsonObject.getJSONObject("properties");
                 for (Object o : props.keySet()) {
                     String p = (String) o;
 
                     if (p.equals("maven.compiler.target") || p.equals("maven.compiler.source")) {
-                        properties.put("java.version", String.valueOf(props.get(p)));
+                        calculatedProperties.put("java.version", String.valueOf(props.get(p)));
                     } else {
-                        properties.put(p, String.valueOf(props.get(p)));
+                        calculatedProperties.put(p, String.valueOf(props.get(p)));
                     }
+                    properties.put(p, String.valueOf(props.get(p)));
                 }
             }
 
@@ -68,8 +70,11 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
                 }
             }
 
+            ModuleDescriptor parsedMavenDescriptor = new ModuleDescriptor(parent, gav, packaging,
+                    properties, Collections.<String>emptyList(), new HashMap<String,List<ModuleFragment>>(), dependencies, null);
+
             return new ModuleDescriptor(parent, gav, packaging,
-                    properties, new HashMap<String,List<ModuleFragment>>(), dependencies);
+                    calculatedProperties, Collections.<String>emptyList(), new HashMap<String,List<ModuleFragment>>(), dependencies, parsedMavenDescriptor);
         }
 
         private GAV getGav(JSONObject jsonObject, String typeKey, GAV parentGAV) {
@@ -117,7 +122,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
 
             w.write("    <dependencies>\n");
             for (String scope : md.getDependencyScopes()) {
-                for (ModuleDependency dependency : md.getDependencies(scope)) {
+                for (ModuleDependency dependency : md.getParsedModuleDescriptor().getDependencies(scope)) {
                     w.write("        <dependency>\n");
                     toMavenGAV(dependency.getGav(), "            ", w);
                     if (!"compile".equals(scope)) {
@@ -139,7 +144,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
             for (ModuleFragment fragment : md.getFragments("maven")) {
                 if (fragment.matches(PLUGIN_PATTERN)) {
                     fragment.write(md, plugins);
-                } else {
+                } else if(fragment.resolvedContent()) {
                     fragment.write(md, others);
                 }
             }
@@ -160,7 +165,7 @@ public class MavenSupport implements RestxBuild.Parser, RestxBuild.Generator {
 
         private boolean isVersionPropertyUsed(ModuleDescriptor md, String property) {
             for (String scope : md.getDependencyScopes()) {
-                for (ModuleDependency dependency : md.getDependencies(scope)) {
+                for (ModuleDependency dependency : md.getParsedModuleDescriptor().getDependencies(scope)) {
                     if (dependency.getGav().getVersion().indexOf("${" + property + "}") != -1) {
                         return true;
                     }

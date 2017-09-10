@@ -23,7 +23,7 @@
             "io.restx:restx-monitor-codahale:${restx.version}",
             "io.restx:restx-monitor-admin:${restx.version}",
             "io.restx:restx-servlet:${restx.version}",
-            "io.restx:restx-server-simple:${restx.version}",
+            "io.restx:restx-server-jetty8:${restx.version}!optional",
             "io.restx:restx-apidocs:${restx.version}",
             "io.restx:restx-specs-admin:${restx.version}",
             "io.restx:restx-i18n-admin:${restx.version}",

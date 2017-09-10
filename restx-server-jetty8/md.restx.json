@@ -10,7 +10,6 @@
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
-            "javax.servlet:javax.servlet-api:3.0.1",
             "io.restx:restx-servlet:${restx.version}",
             "org.eclipse.jetty:jetty-server:${jetty8.version}",
             "org.eclipse.jetty:jetty-servlet:${jetty8.version}",
@@ -18,6 +17,9 @@
             "org.eclipse.jetty:jetty-util:${jetty8.version}",
             "org.eclipse.jetty:jetty-webapp:${jetty8.version}",
             "org.eclipse.jetty:jetty-servlets:${jetty8.version}"
+        ],
+        "provided": [
+            "javax.servlet:javax.servlet-api:3.0.1"
         ]
     }
 }

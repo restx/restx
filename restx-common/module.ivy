@@ -14,7 +14,7 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="com.google.guava" name="guava" rev="17.0" conf="default" />
+        <dependency org="com.google.guava" name="guava" rev="18.0" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.3" conf="default" />
         <dependency org="org.reflections" name="reflections" rev="0.9.9-RC1" conf="default" />
         <dependency org="com.samskivert" name="jmustache" rev="1.8" conf="default" />

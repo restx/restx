@@ -17,5 +17,9 @@
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-shell" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-build" rev="latest.integration" conf="default" />
+        <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
+        <dependency org="com.googlecode.junit-toolbox" name="junit-toolbox" rev="2.3" conf="test->default" />
+        <dependency org="org.assertj" name="assertj-core" rev="1.6.0" conf="test->default" />
+        <dependency org="org.apache.maven.shared" name="maven-verifier" rev="1.4" conf="test->default" />
     </dependencies>
 </ivy-module>
