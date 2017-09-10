@@ -97,17 +97,6 @@ Here is a brief summary of each module:
 If you want to deploy in a web server, you will ` restx-servlet `
 
 
-### Shell modules:
-
-- `restx-shell`: The pluggable shell.
-- `restx-shell-manager`: Plugin to manage the shell: install plugins, upgrade shell version.
-- `restx-build`: The very simple tool which generates POM / Ivy files from `md.restx.json` files
-- `restx-core-shell`: Plugin providing RESTX core support in the shell: app comilation and running, ...
-- `restx-build-shell`: Plugin prodividing build support in the shell, especially to generate POM/Ivy files from `md.restx.json` files.
-- `restx-specs-shell`: Plugin providing RESTX specs based HTTP mock server.
-- `restx-package`: assembly module to package the shell
-
-
 ### Metrics:
 
 - `restx-monitor-codahale`: Codahale metrics for monitor module. Not compatible with Google App Engine.

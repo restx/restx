@@ -66,7 +66,6 @@
         <jna.version>3.2.7</jna.version>
         <slf4j-api.version>1.7.5</slf4j-api.version>
         <logback.version>1.0.13</logback.version>
-        <joda-time.version>2.3</joda-time.version>
         <javax.inject.version>1</javax.inject.version>
         <mustache.version>1.8</mustache.version>
         <reflections.version>0.9.9-RC1</reflections.version>
@@ -135,27 +134,12 @@
             </dependency>
             <dependency>
                 <groupId>io.restx</groupId>
-                <artifactId>restx-shell</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
-                <artifactId>restx-build</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
                 <artifactId>restx-classloader</artifactId>
                 <version>${restx.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.restx</groupId>
                 <artifactId>restx-apidocs-doclet</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
-                <artifactId>restx-shell-manager</artifactId>
                 <version>${restx.version}</version>
             </dependency>
             <dependency>
@@ -246,11 +230,6 @@
             <dependency>
                 <groupId>io.restx</groupId>
                 <artifactId>restx-server-tomcat</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
-                <artifactId>restx-core-shell</artifactId>
                 <version>${restx.version}</version>
             </dependency>
             <dependency>
@@ -353,13 +332,6 @@
                 <version>${reflections.version}</version>
             </dependency>
 
-            <!-- Ivy -->
-            <dependency>
-                <groupId>org.apache.ivy</groupId>
-                <artifactId>ivy</artifactId>
-                <version>${ivy.version}</version>
-            </dependency>
-
             <!-- JBcrypt -->
             <dependency>
                 <groupId>org.mindrot</groupId>
@@ -422,13 +394,6 @@
                 <version>${janino.version}</version>
             </dependency>
 
-            <!-- JLine -->
-            <dependency>
-                <groupId>jline</groupId>
-                <artifactId>jline</artifactId>
-                <version>${jline.version}</version>
-            </dependency>
-
             <!-- Mongo modules -->
             <dependency>
                 <groupId>de.undercouch</groupId>
@@ -475,11 +440,6 @@
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj-core.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven.shared</groupId>
-                <artifactId>maven-verifier</artifactId>
-                <version>${maven-verifier.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
@@ -565,8 +525,6 @@
         <module>restx-barbarywatch</module>
         <module>restx-classloader</module>
         <module>restx-security-basic</module>
-        <module>restx-package</module>
-        <module>restx-build</module>
         <module>restx-core</module>
         <module>restx-core-annotation-processor</module>
         <module>restx-annotation-processors-package</module>
@@ -592,17 +550,6 @@
         <module>restx-server-simple</module>
         <module>restx-server-testing</module>
         <module>restx-samplest</module>
-        <!--
-        Shell modules should be built in the end because
-        they will have to generate some restx apps during tests
-        (every restx modules should have been installed when testing
-        these generated aps)
-        -->
-        <module>restx-core-shell</module>
-        <module>restx-shell</module>
-        <module>restx-shell-manager</module>
-        <module>restx-build-shell</module>
-        <module>restx-specs-shell</module>
         <module>restx-validation</module>
         <module>restx-webjars</module>
     </modules>
