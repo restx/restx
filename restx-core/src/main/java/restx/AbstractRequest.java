@@ -18,7 +18,7 @@ import java.util.Map;
  * Time: 18:38
  */
 public abstract class AbstractRequest implements RestxRequest {
-    private final HttpSettings httpSettings;
+    protected final HttpSettings httpSettings;
 
     protected AbstractRequest(HttpSettings httpSettings) {
         this.httpSettings = httpSettings;

@@ -18,14 +18,6 @@ public class ParametersResourceTest {
     public static RestxServerRule server = new RestxServerRule();
 
     @Test
-    public void should_return_path_params() throws Exception {
-        HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(
-                "/api/params/path/v1/v2/35v4/v5");
-        assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("a=v1 b=v2 c=35 d=v4 e=v5");
-    }
-
-    @Test
     public void should_return_header_params() throws Exception {
         HttpRequest httpRequest = server.client().authenticatedAs("admin")
                 .GET("/api/params/headers")

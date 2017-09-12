@@ -52,7 +52,7 @@ adminApp.controller('OperationController', function OperationController(
         var queryParams = [];
         _.each($scope.operation.parameters, function(p) {
             if (p.paramType == 'path') {
-                path = path.replace('{' + p.name + '}', encodeURIComponent(p.value));
+                path = path.replace('{' + p.name + '}', p.value);
             } else if (p.paramType == 'query') {
                 if (p.value !== undefined && p.value !== '') {
                     queryParams.push(encodeURIComponent(p.name) + '=' + encodeURIComponent(p.value));
