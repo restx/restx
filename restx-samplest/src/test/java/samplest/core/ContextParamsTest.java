@@ -67,6 +67,14 @@ public class ContextParamsTest {
     }
 
     @Test
+    public void should_access_response() throws Exception {
+        HttpRequest httpRequest = server.client().GET(
+                "/api/contextParams/response");
+        assertThat(httpRequest.code()).isEqualTo(200);
+        assertThat(httpRequest.body().trim()).isEqualTo("[RESTX RESPONSE] OK");
+    }
+
+    @Test
     public void should_access_locale() throws Exception {
         HttpRequest httpRequest = server.client().GET(
                 "/api/contextParams/locale").header("Accept-Language", "fr-FR");

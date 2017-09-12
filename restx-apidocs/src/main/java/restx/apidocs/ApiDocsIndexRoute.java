@@ -61,7 +61,7 @@ public class ApiDocsIndexRoute extends StdJsonProducerEntityRoute {
     }
 
     @Override
-    protected Optional<?> doRoute(RestxRequest restxRequest, RestxRequestMatch match, Object i) throws IOException {
+    protected Optional<?> doRoute(RestxRequest restxRequest, RestxResponse response, RestxRequestMatch match, Object i) throws IOException {
         securityManager.check(restxRequest, match, hasRole(AdminModule.RESTX_ADMIN_ROLE));
         return Optional.of(ImmutableMap.builder()
                 .put("apiVersion", "0.1") // TODO

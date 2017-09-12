@@ -27,10 +27,23 @@ public class Mustaches {
 
     public static Template compile(String name, CharSource charSource) {
         try (Reader reader = charSource.openBufferedStream()) {
-            return Mustache.compiler().escapeHTML(false).compile(reader);
+            return createCompiler().compile(reader);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Template compileTemplate(String template) {
+        return createCompiler().compile(template);
+    }
+
+    private static Mustache.Compiler createCompiler() {
+        return Mustache.compiler().escapeHTML(false);
+    }
+
+    public static Template compileTemplateWithSingleBrackets(String templateWithSingleBrackets) {
+        String templateWithDoubleBrackets = templateWithSingleBrackets.replaceAll("\\{", "{{").replaceAll("}", "}}");
+        return compileTemplate(templateWithDoubleBrackets);
     }
 
     public static String execute(Template mustache, Object scope) {
