@@ -1,7 +1,6 @@
 package restx.server.simple.simple;
 
 import com.google.common.base.Optional;
-import com.google.common.eventbus.EventBus;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.core.Container;
@@ -14,33 +13,27 @@ import org.slf4j.LoggerFactory;
 import restx.HttpSettings;
 import restx.RestxMainRouter;
 import restx.RestxMainRouterFactory;
-import restx.common.MoreIO;
-import restx.common.Version;
 import restx.factory.Factory;
 import restx.server.WebServer;
+import restx.server.WebServerBase;
 import restx.server.WebServerSupplier;
 import restx.server.WebServers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static restx.common.MoreIO.checkCanOpenSocket;
 
 /**
  * User: xavierhanin
  * Date: 2/16/13
  * Time: 1:34 PM
  */
-public abstract class SimpleWebServer implements WebServer {
-    private static final AtomicLong SERVER_ID = new AtomicLong();
+public abstract class SimpleWebServer extends WebServerBase {
     public static class SimpleWebServerBuilder {
-
         private int port;
         private String routerPath = "/api";
         private String appBase = null;
-        private String serverId;
+        private String bindInterface = "0.0.0.0";
         private RestxMainRouter router;
         public SimpleWebServerBuilder setPort(int port) {
             this.port = port;
@@ -57,8 +50,8 @@ public abstract class SimpleWebServer implements WebServer {
             return this;
         }
 
-        public SimpleWebServerBuilder setServerId(String serverId) {
-            this.serverId = serverId;
+        public SimpleWebServerBuilder setBindInterface(String bindInterface) {
+            this.bindInterface = bindInterface;
             return this;
         }
 
@@ -68,17 +61,13 @@ public abstract class SimpleWebServer implements WebServer {
         }
 
         public SimpleWebServer build() {
-            if (serverId == null) {
-                serverId = "SimpleWebServer#" + SERVER_ID.incrementAndGet();
-            }
-
             if (router == null) {
-                return new SimpleWebServer(serverId, routerPath, appBase, port) {
+                return new SimpleWebServer(routerPath, appBase, port, bindInterface) {
                     @Override
                     protected RestxMainRouter setupRouter() {
                         return RestxMainRouterFactory.newInstance(
                                 serverId,
-                                Optional.of(WebServers.baseUri("0.0.0.0", port, routerPath)));
+                                Optional.of(WebServers.baseUri(bindInterface, port, routerPath)));
                     }
 
                     @Override
@@ -89,7 +78,7 @@ public abstract class SimpleWebServer implements WebServer {
                     }
                 };
             } else {
-                return new SimpleWebServer(serverId, routerPath, appBase, port) {
+                return new SimpleWebServer(routerPath, appBase, port, bindInterface) {
                     @Override
                     protected RestxMainRouter setupRouter() {
                         return router;
@@ -105,31 +94,17 @@ public abstract class SimpleWebServer implements WebServer {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleWebServer.class);
 
-    private final String serverId;
-
     private final String routerPath;
     private final HttpSettings httpSettings;
-    private final String appBase;
-    private final int port;
 
     private RestxMainRouter router;
     private Connection connection;
 
-    private SimpleWebServer(String serverId, String routerPath, String appBase, int port) {
-        this.serverId = serverId;
+    private SimpleWebServer(String routerPath, String appBase, int port, String bindInterface) {
+        super(appBase, port, bindInterface, "SimpleFrameowkr", "org.simpleframework", "simple");
+
         this.routerPath = routerPath;
-        this.appBase = appBase;
-        this.port = port;
         this.httpSettings = Factory.getInstance().getComponent(HttpSettings.class);
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    @Override
-    public String getServerType() {
-        return "SimpleFramework " + Version.getVersion("org.simpleframework", "simple") + ", embedded";
     }
 
     public RestxMainRouter getRouter() {
@@ -137,10 +112,8 @@ public abstract class SimpleWebServer implements WebServer {
     }
 
     @Override
-    public synchronized void start() throws Exception {
-        checkCanOpenSocket(port);
+    protected void _start() throws Exception {
         logger.debug("starting web server");
-        WebServers.register(this);
 
         router = setupRouter();
 
@@ -170,48 +143,25 @@ public abstract class SimpleWebServer implements WebServer {
     protected abstract RestxMainRouter setupRouter();
 
     @Override
-    public void startAndAwait() throws Exception {
-        start();
-        // this doesn't await but since the simple thread is not a daemon thread it will keep the jvm alive
-    }
-
-    @Override
-    public void await() throws Exception {
+    public void await() {
         // does nothing, simple is started in daemon mode which keeps jvm alive
     }
 
     @Override
-    public synchronized void stop() throws Exception {
+    protected void _stop() throws Exception {
         if (router instanceof AutoCloseable) {
             ((AutoCloseable) router).close();
         }
         connection.close();
         connection = null;
-        WebServers.unregister(serverId);
-    }
-
-    @Override
-    public synchronized boolean isStarted() {
-        return connection != null;
-    }
-
-    @Override
-    public String baseUrl() {
-        return String.format("http://localhost:%s", port);
-    }
-
-    @Override
-    public int getPort() {
-        return port;
     }
 
     public static WebServerSupplier simpleWebServerSupplier() {
         return new WebServerSupplier() {
             @Override
             public WebServer newWebServer(int port) {
-                return SimpleWebServer.builder().setPort(port).build();
+                return SimpleWebServer.builder().setPort(port).setBindInterface("0.0.0.0").build();
             }
         };
     }
-
 }

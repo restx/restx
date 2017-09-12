@@ -1,7 +1,7 @@
 package samplest;
 
 import com.google.common.base.Optional;
-import restx.server.JettyWebServer;
+import restx.server.Jetty8WebServer;
 import restx.server.WebServer;
 //import restx.server.simple.simple.SimpleWebServer;
 
@@ -15,7 +15,7 @@ public class AppServer {
 
     public static void main(String[] args) throws Exception {
         int port = Integer.valueOf(Optional.fromNullable(System.getenv("PORT")).or("8080"));
-        WebServer server = new JettyWebServer(WEB_INF_LOCATION, WEB_APP_LOCATION, port, "0.0.0.0");
+        WebServer server = new Jetty8WebServer(WEB_INF_LOCATION, WEB_APP_LOCATION, port, "0.0.0.0");
 
         /*
          * load mode from system property if defined, or default to dev

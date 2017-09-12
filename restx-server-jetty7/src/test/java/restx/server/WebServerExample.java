@@ -5,7 +5,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import restx.*;
 import restx.entity.MatchedEntityOutputRoute;
-import restx.entity.MatchedEntityRoute;
 import restx.servlet.AbstractRestxMainRouterServlet;
 
 import java.io.IOException;
@@ -46,7 +45,7 @@ public class WebServerExample {
 
 
     public static void main(String[] args) throws Exception {
-      WebServer webServer = new JettyWebServer(
+      WebServer webServer = new Jetty7WebServer(
               "src/test/resources/restx/server/WebServerExample-web.xml",
               ".", 8080, "localhost");
       webServer.startAndAwait();

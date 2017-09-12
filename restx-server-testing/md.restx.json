@@ -10,6 +10,7 @@
         "compile": [
         ],
         "test": [
+            "io.restx:restx-server-jetty7:${restx.version}",
             "io.restx:restx-server-jetty8:${restx.version}",
             "io.restx:restx-server-simple:${restx.version}",
             "io.restx:restx-server-tomcat:${restx.version}",
