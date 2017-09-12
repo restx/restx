@@ -1,1 +1,0 @@
-This is where restx will put the shell plugins.
