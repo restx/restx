@@ -6,6 +6,9 @@ import restx.RestxRequestMatch;
 import restx.endpoint.EndpointParamDef;
 import restx.endpoint.EndpointParameterKind;
 import restx.factory.Component;
+import restx.jackson.FrontObjectMapperFactory;
+
+import javax.inject.Named;
 
 /**
  * @author fcamblor
@@ -15,7 +18,7 @@ public class ComplexTypeEndpointParameterMapper implements EndpointParameterMapp
 
     final ObjectMapper converter;
 
-    public ComplexTypeEndpointParameterMapper(ObjectMapper converter) {
+    public ComplexTypeEndpointParameterMapper(@Named(FrontObjectMapperFactory.MAPPER_NAME) ObjectMapper converter) {
         this.converter = converter;
     }
 
