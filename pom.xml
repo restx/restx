@@ -24,7 +24,7 @@
     </parent>
     <groupId>io.restx</groupId>
     <artifactId>restx-parent</artifactId>
-    <version>0.35-rc2</version>
+    <version>0.35-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>http://restx.io</url>
     <licenses>
