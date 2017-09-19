@@ -24,7 +24,7 @@
     </parent>
     <groupId>io.restx</groupId>
     <artifactId>restx-parent</artifactId>
-    <version>0.35-SNAPSHOT</version>
+    <version>0.35-rc2</version>
     <packaging>pom</packaging>
     <url>http://restx.io</url>
     <licenses>
@@ -53,7 +53,7 @@
 
     <properties>
         <!-- RestX -->
-        <restx.version>0.35-SNAPSHOT</restx.version>
+        <restx.version>0.35-rc2</restx.version>
 
         <!-- Compiler -->
         <maven.compiler.source>1.7</maven.compiler.source>
