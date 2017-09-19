@@ -519,6 +519,7 @@
     </build>
 
     <modules>
+        <module>restx-md-fragments</module>
         <module>restx-common</module>
         <module>restx-factory</module>
         <module>restx-factory-testing</module>
