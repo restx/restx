@@ -691,7 +691,7 @@ public class RestxMainRouterFactory {
         if (!hotColdFound) {
             String msg =
                     "Error when loading Factory to process your request.\n" +
-                            "One or more dependency injections can be sastifed.\n\n" +
+                            "One or more dependency injections can be satisfied.\n\n" +
                             indent(ex.getMessage(), 2);
             logger.error(msg);
             writer.println(msg);
