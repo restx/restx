@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-samplest" revision="0.35" status="integration">
+    <info organisation="io.restx" module="restx-samplest" revision="0.35-rc3" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-webapp-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -14,21 +14,21 @@
         <artifact type="war"/>
     </publications>
     <dependencies>
-        <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-validation" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-core-annotation-processor" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-factory-admin" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-monitor-codahale" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-monitor-admin" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-servlet" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-server-jetty8" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-apidocs" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-specs-admin" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-i18n-admin" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-core" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-validation" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-core-annotation-processor" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-factory" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-factory-admin" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-monitor-codahale" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-monitor-admin" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-servlet" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-server-jetty8" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-apidocs" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-specs-admin" rev="0.35-rc3" conf="default" />
+        <dependency org="io.restx" name="restx-i18n-admin" rev="0.35-rc3" conf="default" />
         <dependency org="ch.qos.logback" name="logback-classic" rev="1.0.13" conf="default" />
-        <dependency org="io.restx" name="restx-barbarywatch" rev="latest.integration" conf="runtime->default" />
-        <dependency org="io.restx" name="restx-specs-tests" rev="latest.integration" conf="test->default" />
+        <dependency org="io.restx" name="restx-barbarywatch" rev="0.35-rc3" conf="runtime->default" />
+        <dependency org="io.restx" name="restx-specs-tests" rev="0.35-rc3" conf="test->default" />
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
     </dependencies>
 </ivy-module>
