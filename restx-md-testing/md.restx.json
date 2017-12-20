@@ -1,0 +1,22 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-md-testing:${restx.version}",
+
+    "properties": {
+        "@files": ["../restx.build.properties.json"]
+    },
+
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/testing-modules-discrepancies.xml"
+        ]
+    },
+
+    "dependencies": {
+        "test": [
+            "junit:junit:4.11",
+            "io.restx:restx-build-testing:${restx.shell.version}",
+            "io.restx:restx-md-fragments:${restx.version}"
+        ]
+    }
+}
