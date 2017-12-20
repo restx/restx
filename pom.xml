@@ -531,8 +531,6 @@
     </build>
 
     <modules>
-        <module>restx-md-fragments</module>
-        <module>restx-md-testing</module>
         <module>restx-common</module>
         <module>restx-factory</module>
         <module>restx-factory-testing</module>
@@ -566,6 +564,8 @@
         <module>restx-samplest</module>
         <module>restx-validation</module>
         <module>restx-webjars</module>
+        <module>restx-md-fragments</module>
+        <module>restx-md-testing</module>
     </modules>
 
 
