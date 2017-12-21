@@ -1,6 +1,6 @@
 {
     "restx.version": "0.35-SNAPSHOT",
-    "restx.shell.version": "1.0-rc1",
+    "restx.shell.version": "1.0",
     "java.version": "1.7",
 
     "slf4j-api.version": "1.7.5",
