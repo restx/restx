@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>0.35-SNAPSHOT</version>
+        <version>0.35-rc4</version>
     </parent>
 
     <artifactId>restx-factory</artifactId>
