@@ -3,9 +3,6 @@ package restx.md;
 import com.googlecode.junittoolbox.ParallelParameterized;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import restx.build.testing.AbstractRestxModuleDescriptorsDiscrepanciesDetectorWithPomAndIvyTest;
-
-import java.util.Arrays;
 
 import static java.util.Collections.EMPTY_LIST;
 

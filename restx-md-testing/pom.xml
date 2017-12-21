@@ -28,19 +28,33 @@
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-build</artifactId>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-build-testing</artifactId>
-            <scope>test</scope>
+            <artifactId>restx-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-verifier</artifactId>
+        </dependency>
+        <dependency>
+            <!-- For parallel Parameterized tests execution -->
+            <groupId>com.googlecode.junit-toolbox</groupId>
+            <artifactId>junit-toolbox</artifactId>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-md-fragments</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
