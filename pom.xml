@@ -53,7 +53,7 @@
 
     <properties>
         <!-- RestX -->
-        <restx.version>0.35-rc5</restx.version>
+        <restx.version>0.35-SNAPSHOT</restx.version>
         <restx.shell.version>1.0</restx.shell.version>
 
         <!-- Compiler -->
