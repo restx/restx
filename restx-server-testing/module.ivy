@@ -14,12 +14,12 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="io.restx" name="restx-server-jetty7" rev="latest.integration" conf="test->default" />
-        <dependency org="io.restx" name="restx-server-jetty8" rev="latest.integration" conf="test->default" />
-        <dependency org="io.restx" name="restx-server-simple" rev="latest.integration" conf="test->default" />
-        <dependency org="io.restx" name="restx-server-tomcat" rev="latest.integration" conf="test->default" />
-        <dependency org="io.restx" name="restx-specs-tests" rev="latest.integration" conf="test->default" />
-        <dependency org="io.restx" name="restx-admin" rev="latest.integration" conf="test->default" />
+        <dependency org="io.restx" name="restx-server-jetty7" rev="0.35" conf="test->default" />
+        <dependency org="io.restx" name="restx-server-jetty8" rev="0.35" conf="test->default" />
+        <dependency org="io.restx" name="restx-server-simple" rev="0.35" conf="test->default" />
+        <dependency org="io.restx" name="restx-server-tomcat" rev="0.35" conf="test->default" />
+        <dependency org="io.restx" name="restx-specs-tests" rev="0.35" conf="test->default" />
+        <dependency org="io.restx" name="restx-admin" rev="0.35" conf="test->default" />
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
     </dependencies>
 </ivy-module>

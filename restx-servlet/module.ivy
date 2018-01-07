@@ -14,7 +14,7 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-core" rev="0.35" conf="default" />
         <dependency org="org.codehaus.janino" name="janino" rev="2.6.1" conf="default" />
         <dependency org="javax.servlet" name="servlet-api" rev="2.5" conf="provided->default" />
     </dependencies>

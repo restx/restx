@@ -14,7 +14,7 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-jongo" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-factory" rev="0.35" conf="default" />
+        <dependency org="io.restx" name="restx-jongo" rev="0.35" conf="default" />
     </dependencies>
 </ivy-module>
