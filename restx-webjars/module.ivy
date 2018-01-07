@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-webjars" revision="0.35" status="integration">
+    <info organisation="io.restx" module="restx-webjars" revision="0.36" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -14,9 +14,9 @@
         <artifact type="jar"/>
     </publications>
     <dependencies>
-        <dependency org="io.restx" name="restx-factory" rev="0.35" conf="default" />
-        <dependency org="io.restx" name="restx-core" rev="0.35" conf="default" />
-        <dependency org="io.restx" name="restx-core-annotation-processor" rev="0.35" conf="default" />
+        <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-core-annotation-processor" rev="latest.integration" conf="default" />
         <dependency org="org.slf4j" name="slf4j-api" rev="1.7.5" conf="default" />
         <dependency org="junit" name="junit" rev="4.11" conf="test->default" />
         <dependency org="org.assertj" name="assertj-core" rev="1.6.0" conf="test->default" />
