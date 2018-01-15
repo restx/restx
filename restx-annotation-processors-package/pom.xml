@@ -55,7 +55,7 @@
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-factory</artifactId>
+            <artifactId>restx-factory-annotation-processor</artifactId>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>

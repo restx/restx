@@ -118,7 +118,7 @@
                                 <!-- Specify your annotation processors here. -->
                                 <annotationProcessorPath>
                                     <groupId>io.restx</groupId>
-                                    <artifactId>restx-factory</artifactId>
+                                    <artifactId>restx-factory-annotation-processor</artifactId>
                                     <version>${restx.version}</version>
                                 </annotationProcessorPath>
                                 <annotationProcessorPath>
@@ -160,17 +160,6 @@
                         <id>java-compile</id>
                         <phase>compile</phase>
                         <goals> <goal>compile</goal> </goals>
-                        <!-- disable default annotation processing -->
-                        <configuration>
-                            <annotationProcessorPaths>
-                                <annotationProcessorPath>
-                                    <groupId>org.jetbrains.kotlin</groupId>
-                                    <artifactId>kotlin-stdlib</artifactId>
-                                    <version>${kotlin.version}</version>
-                                </annotationProcessorPath>
-                            </annotationProcessorPaths>
-                        </configuration>
-
                     </execution>
                     <execution>
                         <id>java-test-compile</id>

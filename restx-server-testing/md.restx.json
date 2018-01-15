@@ -6,6 +6,12 @@
         "@files": ["../restx.build.properties.json"]
     },
 
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/factory-annotation-processing.xml"
+        ]
+    },
+
     "dependencies": {
         "compile": [
         ],

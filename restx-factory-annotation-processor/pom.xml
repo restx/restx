@@ -8,14 +8,13 @@
         <version>0.36-SNAPSHOT</version>
     </parent>
 
-    <artifactId>restx-factory-testing</artifactId>
-    <name>restx-factory-testing</name>
+    <artifactId>restx-factory-annotation-processor</artifactId>
+    <name>restx-factory-annotation-processor</name>
 
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -28,20 +27,13 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <annotationProcessorPaths>
-                        <annotationProcessorPath>
-                            <groupId>io.restx</groupId>
-                            <artifactId>restx-factory-annotation-processor</artifactId>
-                            <version>${project.version}</version>
-                        </annotationProcessorPath>
-                    </annotationProcessorPaths>
+                    <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
         </plugins>
