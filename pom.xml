@@ -216,6 +216,11 @@
             </dependency>
             <dependency>
                 <groupId>io.restx</groupId>
+                <artifactId>restx-jongo-specs-tests</artifactId>
+                <version>${restx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.restx</groupId>
                 <artifactId>restx-specs-tests-java8</artifactId>
                 <version>${restx.version}</version>
             </dependency>
