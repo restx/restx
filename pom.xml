@@ -596,6 +596,7 @@
                 <module>restx-jongo-java8</module>
                 <module>restx-specs-tests-java8</module>
                 <module>restx-samplest-java8</module>
+                <module>restx-kotlin-compiler</module>
                 <module>restx-samplest-kotlin</module>
             </modules>
         </profile>
