@@ -73,6 +73,7 @@ public class CoreResource {
             // Complex types
             aString="AAA{\\\"'$AA",
             aClass=CoreResource.class,
+            aParameterizedTypeClass=Long.class,
             anEnum=MyEnum.A,
 
             // Another annotation

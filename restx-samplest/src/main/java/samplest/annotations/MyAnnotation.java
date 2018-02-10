@@ -16,6 +16,7 @@ public @interface MyAnnotation {
     // Complex types
     String aString();
     Class aClass();
+    Class<? extends Number> aParameterizedTypeClass();
     MyEnum anEnum();
 
     // Another annotation
