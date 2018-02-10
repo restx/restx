@@ -633,7 +633,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             if(AnnotationFieldKind.ANNOTATION.equals(this.kind)) {
                 return "throw new java.lang.UnsupportedOperationException(\"Unsupported annotation field type\")";
             } else if(isArray) {
-                return String.format("return new %s[]{ %s }", type, Joiner.on(", ").join((List)value));
+                return String.format("return new %s[]{ %s }",
+                        // Arrays cannot be parameterized
+                        TypeHelper.rawTypeFrom(type.toString()),
+                        Joiner.on(", ").join((List)value));
             } else {
                 return "return "+kind.transformSingleValueToExpression(value, this);
             }
