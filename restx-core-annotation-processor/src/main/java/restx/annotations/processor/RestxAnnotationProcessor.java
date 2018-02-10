@@ -170,7 +170,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 return PRIMITIVE;
             } else if(String.class.getCanonicalName().equals(componentType.toString())) {
                 return STRING;
-            } else if(Class.class.getCanonicalName().equals(componentType.toString())) {
+            } else if(Class.class.getCanonicalName().equals(TypeHelper.rawTypeFrom(componentType.toString()))) {
                 return CLASS;
             } else {
                 ImmutableList<String> superTypesClassNames = FluentIterable.from(processingEnv.getTypeUtils().directSupertypes(componentType))
