@@ -103,4 +103,10 @@ public class CoreResource {
     public String testingAnnotations() {
         return "hello blah";
     }
+
+    @GET("/testingAnnotationsWithDefaultValues")
+    @MyAnnotation
+    public String testingAnnotationsWithDefaultValues() {
+        return "hello blah";
+    }
 }
