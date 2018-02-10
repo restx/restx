@@ -91,6 +91,7 @@ public class CoreResource {
 
             severalStrings={ "AAA{\\\"'$AA", "BBB", "CCC" },
             severalClasses={ Integer.class, String.class },
+            severalParameterizedTypeClasses={ Integer.class, Short.class },
             severalEnums={ MyEnum.A, MyEnum.B },
 
             // Not supported (yet)

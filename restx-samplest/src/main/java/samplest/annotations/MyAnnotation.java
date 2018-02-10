@@ -33,6 +33,7 @@ public @interface MyAnnotation {
 
     String[] severalStrings();
     Class[] severalClasses();
+    Class<? extends Number>[] severalParameterizedTypeClasses();
     MyEnum[] severalEnums();
 
     MyNestedAnnotation[] severalAnnotations();
