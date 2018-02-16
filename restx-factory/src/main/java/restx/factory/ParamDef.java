@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import restx.common.TypeReference;
 import restx.common.Types;
-import restx.common.AggregateType;
+import restx.types.AggregateType;
 
 import java.lang.reflect.Type;
 

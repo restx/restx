@@ -1,7 +1,8 @@
-package restx.common;
+package restx.types;
 
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
+import restx.common.Types;
 
 import java.lang.reflect.Array;
 import java.util.Collection;

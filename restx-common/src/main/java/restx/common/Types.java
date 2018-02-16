@@ -8,12 +8,14 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import restx.types.AggregateType;
 
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.*;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 /**
  * Date: 23/10/13
@@ -21,13 +23,10 @@ import java.util.Map;
  */
 public class Types {
 
-	public static final ImmutableList<AggregateType> DECLARED_AGGREGATED_TYPES = ImmutableList.of(
-			new AggregateType.ITERABLE(),
-			new AggregateType.ARRAY(),
-			new AggregateType.COLLECTION(),
-			new AggregateType.LIST(),
-			new AggregateType.SET()
-	);
+	public static final ImmutableList<AggregateType> DECLARED_AGGREGATED_TYPES;
+	static {
+		DECLARED_AGGREGATED_TYPES = ImmutableList.copyOf(ServiceLoader.load(AggregateType.class));
+	}
 
     public static ParameterizedType newParameterizedType(final Class<?> rawType, final Type... arguments) {
         return new ParameterizedType() {

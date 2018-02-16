@@ -6,7 +6,7 @@ import com.google.common.collect.FluentIterable;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
 import restx.common.Types;
-import restx.common.AggregateType;
+import restx.types.AggregateType;
 import restx.endpoint.EndpointParamDef;
 import restx.endpoint.EndpointParameterKind;
 import restx.factory.Component;
