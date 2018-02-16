@@ -2,8 +2,8 @@ package restx.factory;
 
 import java.util.Objects;
 
-import restx.common.TypeReference;
-import restx.common.Types;
+import restx.types.TypeReference;
+import restx.types.Types;
 import restx.types.AggregateType;
 
 import java.lang.reflect.Type;

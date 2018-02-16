@@ -5,7 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
-import restx.common.Types;
+import restx.types.Types;
 import restx.types.AggregateType;
 import restx.endpoint.EndpointParamDef;
 import restx.endpoint.EndpointParameterKind;

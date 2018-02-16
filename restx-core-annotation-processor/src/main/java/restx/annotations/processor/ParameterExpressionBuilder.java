@@ -1,7 +1,7 @@
 package restx.annotations.processor;
 
 import com.google.common.base.Optional;
-import restx.common.Types;
+import restx.types.Types;
 import restx.endpoint.EndpointParameterKind;
 
 /**

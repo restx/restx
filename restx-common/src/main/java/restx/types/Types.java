@@ -1,4 +1,4 @@
-package restx.common;
+package restx.types;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
@@ -8,7 +8,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import restx.types.AggregateType;
 
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
