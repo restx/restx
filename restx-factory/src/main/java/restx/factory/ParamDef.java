@@ -1,8 +1,10 @@
 package restx.factory;
 
 import java.util.Objects;
+
 import restx.common.TypeReference;
 import restx.common.Types;
+import restx.common.AggregateType;
 
 import java.lang.reflect.Type;
 
@@ -14,6 +16,7 @@ public class ParamDef<T> {
     private final TypeReference<T> typeRef;
     private final Class<T> primitiveType;
     private final Class rawType;
+    private final AggregateType aggregateType;
 
     public ParamDef(TypeReference<T> typeRef, String name) {
         this(name, typeRef, null);
@@ -32,6 +35,7 @@ public class ParamDef<T> {
         this.typeRef = typeRef;
         this.primitiveType = primitiveType;
         this.rawType = Types.getRawType(getType());
+        this.aggregateType = Types.aggregateTypeFrom(this.rawType.getCanonicalName()).orNull();
     }
 
     public static <T> ParamDef<T> of(TypeReference<T> type, String name) {
@@ -56,6 +60,14 @@ public class ParamDef<T> {
 
     public Class getRawType() {
         return rawType;
+    }
+
+    public boolean isAggregateType() {
+        return this.aggregateType != null;
+    }
+
+    public AggregateType getAggregateType() {
+        return this.aggregateType;
     }
 
     @Override

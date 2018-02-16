@@ -1,7 +1,6 @@
 package restx.entity;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import restx.*;
 import restx.endpoint.*;
 import restx.endpoint.mappers.EndpointParameterMapper;
@@ -22,31 +21,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Time: 8:10 AM
  */
 public abstract class StdEntityRoute<I,O> extends StdRoute {
-    protected static final Supplier<List> EMPTY_LIST_SUPPLIER = new Supplier<List>() {
-        @Override
-        public List get() {
-            return Collections.emptyList();
-        }
-    };
-    protected static final Supplier<Set> EMPTY_SET_SUPPLIER = new Supplier<Set>() {
-        @Override
-        public Set get() {
-            return Collections.emptySet();
-        }
-    };
-    protected static final Supplier<Iterable> EMPTY_ITERABLE_SUPPLIER = new Supplier<Iterable>() {
-        @Override
-        public Iterable get() {
-            return Collections.emptyList();
-        }
-    };
-    protected static final Supplier<Collection> EMPTY_COLLECTION_SUPPLIER = new Supplier<Collection>() {
-        @Override
-        public Collection get() {
-            return Collections.emptySet();
-        }
-    };
-
     public static class Builder<I,O> {
         protected EntityRequestBodyReader<I> entityRequestBodyReader;
         protected EntityResponseWriter<O> entityResponseWriter;
@@ -217,10 +191,6 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
     }
 
     protected <T> T mapQueryObjectFromRequest(Class<T> targetType, String parameterName, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind){
-        return mapQueryObjectFromRequest(targetType, parameterName, request, match, endpointParameterKind, null);
-    }
-
-    protected <T> T mapQueryObjectFromRequest(Class<T> targetType, String parameterName, RestxRequest request, RestxRequestMatch match, EndpointParameterKind endpointParameterKind, Supplier<T> nullResultDefaultValueSupplier){
         EndpointParameterMapperAndDef endpointParameterMapperAndDef = cachedQueryParameterMappers.get(parameterName);
         if(endpointParameterMapperAndDef == null) {
             throw new IllegalStateException("No cachedQueryParameterMappers for parameter "+parameterName+" : please provide corresponding ParamDef at instanciation time !");
@@ -231,8 +201,8 @@ public abstract class StdEntityRoute<I,O> extends StdRoute {
                 request, match, endpointParameterKind);
 
         // In case we have a null result *and* a null result default value supplier, let's use it
-        if(nullResultDefaultValueSupplier != null && result == null) {
-            result = nullResultDefaultValueSupplier.get();
+        if(result == null && endpointParameterMapperAndDef.endpointParamDef.isAggregateType()) {
+            result = (T) endpointParameterMapperAndDef.endpointParamDef.getAggregateType().immutableEmptyInstance(endpointParameterMapperAndDef.endpointParamDef.getRawType());
         }
 
         return result;

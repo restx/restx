@@ -4,8 +4,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.*;
 import java.util.Map;
 
@@ -14,6 +20,15 @@ import java.util.Map;
  * Time: 11:02
  */
 public class Types {
+
+	public static final ImmutableList<AggregateType> DECLARED_AGGREGATED_TYPES = ImmutableList.of(
+			new AggregateType.ITERABLE(),
+			new AggregateType.ARRAY(),
+			new AggregateType.COLLECTION(),
+			new AggregateType.LIST(),
+			new AggregateType.SET()
+	);
+
     public static ParameterizedType newParameterizedType(final Class<?> rawType, final Type... arguments) {
         return new ParameterizedType() {
             @Override
@@ -211,5 +226,44 @@ public class Types {
 			}
 		}
 		return false;
+	}
+
+	public static boolean matchesParameterizedFQCN(Class c, String fqcn) {
+		return fqcn.startsWith(c.getCanonicalName());
+	}
+
+	public static Class aggregatedTypeOf(Type type) {
+		if(type instanceof ParameterizedType) {
+			return (Class)((ParameterizedType)type).getActualTypeArguments()[0];
+		} else if(type instanceof Class && ((Class)type).isArray()){
+			return ((Class)type).getComponentType();
+		} else {
+			throw new IllegalArgumentException("Call to aggregatedTypeOf() is not supported for type : "+type);
+		}
+	}
+
+	public static TypeMirror aggregatedTypeOf(TypeMirror type) {
+		if (type instanceof ArrayType) {
+			ArrayType arrayType = (ArrayType) type;
+			return arrayType.getComponentType();
+		} else if (type instanceof DeclaredType) {
+			DeclaredType declaredType = (DeclaredType) type;
+			return Iterables.getOnlyElement(declaredType.getTypeArguments());
+		} else {
+			throw new IllegalArgumentException("Call to aggregatedTypeOf() is not supported for type : " + type);
+		}
+	}
+
+	public static Optional<AggregateType> aggregateTypeFrom(String fqcn) {
+		for(AggregateType aggregateType : DECLARED_AGGREGATED_TYPES){
+			if(aggregateType.isApplicableTo(fqcn)) {
+				return Optional.of(aggregateType);
+			}
+		}
+
+		return Optional.absent();
+	}
+	public static boolean isAggregateType(String fqcn) {
+		return aggregateTypeFrom(fqcn).isPresent();
 	}
 }

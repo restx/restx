@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
+import restx.common.Types;
 import restx.common.AggregateType;
 import restx.endpoint.EndpointParamDef;
 import restx.endpoint.EndpointParameterKind;
@@ -35,12 +36,12 @@ public class BaseTypeAggregateEndpointParameterMapper implements EndpointParamet
             return null;
         }
 
-        final Optional<AggregateType> aggregateType = AggregateType.fromType(endpointParamDef.getRawType().getCanonicalName());
+        final Optional<AggregateType> aggregateType = Types.aggregateTypeFrom(endpointParamDef.getRawType().getCanonicalName());
         if(!aggregateType.isPresent()) {
             throw new IllegalStateException("Called mapRequest() on base type aggregate whereas it is not considered as an aggregate !");
         }
 
-        final Class aggregatedType = AggregateType.aggregatedTypeOf(endpointParamDef.getType());
+        final Class aggregatedType = Types.aggregatedTypeOf(endpointParamDef.getType());
         List convertedValues = FluentIterable.from(values).transform(new Function<String, Object>() {
             @Override
             public Object apply(String requestValue) {
@@ -52,6 +53,6 @@ public class BaseTypeAggregateEndpointParameterMapper implements EndpointParamet
     }
 
     public boolean isBaseTypeAggregateParam(EndpointParamDef endpointParamDef) {
-        return AggregateType.isAggregate(endpointParamDef.getRawType().getCanonicalName());
+        return Types.isAggregateType(endpointParamDef.getRawType().getCanonicalName());
     }
 }
