@@ -9,6 +9,8 @@ import com.sun.tools.javac.code.Type;
 import restx.RestxLogLevel;
 import restx.StdRestxRequestMatcher;
 import restx.annotations.*;
+import restx.types.OptionalTypeDefinition;
+import restx.types.Types;
 import restx.common.Mustaches;
 import restx.common.processor.RestxAbstractProcessor;
 import restx.endpoint.EndpointParameterKind;
@@ -477,7 +479,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                             kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
                             toSchemaKey(parameter.type),
-                            String.valueOf(!parameter.guavaOptional && !parameter.java8Optional)
+                            String.valueOf(!parameter.optionalTypeMatcher.isOptionalType())
                     ).replaceAll("\\{PARAMETER}", parameter.name));
                 }
             }
@@ -491,10 +493,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 call = call + ";\n" +
                         "                    return Optional.of(Empty.EMPTY);";
             } else {
-                if (resourceMethod.returnTypeGuavaOptional) {
-                    call = call ;
-                } else if (resourceMethod.returnTypeJava8Optional) {
-                    call = "Optional.fromNullable(" + call + ".orElse(null))";
+                if (resourceMethod.optionalReturnTypeMatcher.isOptionalType()) {
+                    call = resourceMethod.optionalReturnTypeMatcher.getCurrentOptionalExpressionToGuavaOptionalCodeExpressionTransformer().apply(call);
                 } else {
                     call = "Optional.of(" + call + ")";
                 }
@@ -683,8 +683,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String path;
         final String name;
         final String realReturnType;
-        final boolean returnTypeGuavaOptional;
-        final boolean returnTypeJava8Optional;
+        final OptionalTypeDefinition.Matcher optionalReturnTypeMatcher;
         final String returnType;
         final String thrownTypes;
         final String id;
@@ -715,18 +714,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.thrownTypes = thrownTypes;
             this.realReturnType = returnType;
 
-            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(returnType);
-            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
-                this.returnTypeGuavaOptional = true;
-                this.returnTypeJava8Optional = false;
-            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
-                this.returnTypeGuavaOptional = false;
-                this.returnTypeJava8Optional = true;
-            } else {
-                this.returnTypeGuavaOptional = false;
-                this.returnTypeJava8Optional = false;
-            }
-            this.returnType = optionalMatchingReturnType.getUnderlyingType();
+            this.optionalReturnTypeMatcher = Types.optionalMatchingTypeOf(returnType);
+            this.returnType = this.optionalReturnTypeMatcher.getUnderlyingType();
 
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             this.successStatus = successStatus;
@@ -744,8 +733,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     static class ResourceMethodParameter {
         final String type;
         final String realType;
-        final boolean guavaOptional;
-        final boolean java8Optional;
+        final OptionalTypeDefinition.Matcher optionalTypeMatcher;
         final String name;
         final String reqParamName;
         final ResourceMethodParameterKind kind;
@@ -759,19 +747,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         };
 
         private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
-            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(type);
-            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
-                this.guavaOptional = true;
-                this.java8Optional = false;
-            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
-                this.guavaOptional = false;
-                this.java8Optional = true;
-            } else {
-                this.guavaOptional = false;
-                this.java8Optional = false;
-            }
-            this.type = optionalMatchingReturnType.getUnderlyingType();
             this.realType = type;
+
+            this.optionalTypeMatcher = Types.optionalMatchingTypeOf(this.realType);
+            this.type = optionalTypeMatcher.getUnderlyingType();
 
             this.name = name;
             this.reqParamName = reqParamName;

@@ -22,9 +22,8 @@ public class ParameterExpressionBuilder {
     public ParameterExpressionBuilder surroundWithCheckValid(
             RestxAnnotationProcessor.ResourceMethodParameter parameter) {
 
-        boolean isOptionalType = parameter.guavaOptional || parameter.java8Optional;
         // If we don't have any optional type, we should check for non nullity *before* calling checkValid()
-        if(!isOptionalType) {
+        if(!parameter.optionalTypeMatcher.isOptionalType()) {
             // In case we're on an aggregate interface, parameterExpr will always return a non-null value
             // (see createFromMapQueryObjectFromRequest() method) so we don't need to add checkNotNull() check on this
             if(Types.isAggregateType(parameter.type)) {
@@ -46,16 +45,8 @@ public class ParameterExpressionBuilder {
                 validationGroupsExpr.isPresent()?","+validationGroupsExpr.get():""
         );
 
-        if(parameter.guavaOptional) {
-            this.parameterExpr = String.format(
-                    "Optional.fromNullable(%s)",
-                    this.parameterExpr
-            );
-        } else if(parameter.java8Optional) {
-            this.parameterExpr = String.format(
-                    "java.util.Optional.ofNullable(%s)",
-                    this.parameterExpr
-            );
+        if(parameter.optionalTypeMatcher.isOptionalType()) {
+            this.parameterExpr = parameter.optionalTypeMatcher.getFromNullableExpressionTransformer().apply(this.parameterExpr);
         }
 
         return this;

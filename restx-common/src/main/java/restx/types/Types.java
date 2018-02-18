@@ -23,8 +23,10 @@ import java.util.ServiceLoader;
 public class Types {
 
 	public static final ImmutableList<AggregateType> DECLARED_AGGREGATED_TYPES;
+	public static final ImmutableList<OptionalTypeDefinition> DECLARED_OPTIONAL_TYPES;
 	static {
 		DECLARED_AGGREGATED_TYPES = ImmutableList.copyOf(ServiceLoader.load(AggregateType.class));
+		DECLARED_OPTIONAL_TYPES = ImmutableList.copyOf(ServiceLoader.load(OptionalTypeDefinition.class));
 	}
 
     public static ParameterizedType newParameterizedType(final Class<?> rawType, final Type... arguments) {
@@ -263,5 +265,17 @@ public class Types {
 	}
 	public static boolean isAggregateType(String fqcn) {
 		return aggregateTypeFrom(fqcn).isPresent();
+	}
+
+	public static OptionalTypeDefinition.Matcher optionalMatchingTypeOf(String fqcn) {
+		OptionalTypeDefinition.Matcher lastMatcher = null;
+		for(OptionalTypeDefinition optionalDefinition: DECLARED_OPTIONAL_TYPES) {
+			lastMatcher = optionalDefinition.matches(fqcn);
+			if(lastMatcher.isOptionalType()) {
+				return lastMatcher;
+			}
+		}
+
+		return lastMatcher;
 	}
 }
