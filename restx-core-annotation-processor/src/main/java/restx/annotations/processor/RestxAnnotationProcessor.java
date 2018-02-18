@@ -57,6 +57,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     };
 
     public RestxAnnotationProcessor() {
+        super();
         routerTpl = Mustaches.compile(RestxAnnotationProcessor.class, "RestxRouter.mustache");
     }
 
