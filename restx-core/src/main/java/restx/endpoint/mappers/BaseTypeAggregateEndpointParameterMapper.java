@@ -51,8 +51,4 @@ public class BaseTypeAggregateEndpointParameterMapper implements EndpointParamet
 
         return (T) aggregateType.get().createFrom(convertedValues, aggregatedType);
     }
-
-    public boolean isBaseTypeAggregateParam(EndpointParamDef endpointParamDef) {
-        return Types.isAggregateType(endpointParamDef.getRawType().getCanonicalName());
-    }
 }

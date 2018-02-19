@@ -30,9 +30,4 @@ public class ComplexTypeEndpointParameterMapper implements EndpointParameterMapp
 
         throw new IllegalArgumentException("Complex type deserialization on query parameters is not supported yet");
     }
-
-    public boolean isComplexTypeParam(EndpointParamDef endpointParamDef) {
-        // Everything is a complex type
-        return true;
-    }
 }
