@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -24,9 +25,11 @@ public class Types {
 
 	public static final ImmutableList<AggregateType> DECLARED_AGGREGATED_TYPES;
 	public static final ImmutableList<OptionalTypeDefinition> DECLARED_OPTIONAL_TYPES;
+	public static final ImmutableList<RawTypesDefinition> DECLARED_RAW_TYPES_DEFINITIONS;
 	static {
 		DECLARED_AGGREGATED_TYPES = ImmutableList.copyOf(ServiceLoader.load(AggregateType.class));
 		DECLARED_OPTIONAL_TYPES = ImmutableList.copyOf(ServiceLoader.load(OptionalTypeDefinition.class));
+		DECLARED_RAW_TYPES_DEFINITIONS = ImmutableList.copyOf(ServiceLoader.load(RawTypesDefinition.class));
 	}
 
     public static ParameterizedType newParameterizedType(final Class<?> rawType, final Type... arguments) {
@@ -277,5 +280,23 @@ public class Types {
 		}
 
 		return lastMatcher;
+	}
+
+	public static boolean isRawType(Type type) {
+		for (RawTypesDefinition rawTypesDefinition : DECLARED_RAW_TYPES_DEFINITIONS) {
+			if (rawTypesDefinition.accepts(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isRawType(TypeMirror type, ProcessingEnvironment processingEnvironment) {
+		for (RawTypesDefinition rawTypesDefinition : DECLARED_RAW_TYPES_DEFINITIONS) {
+			if (rawTypesDefinition.accepts(type, processingEnvironment)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
