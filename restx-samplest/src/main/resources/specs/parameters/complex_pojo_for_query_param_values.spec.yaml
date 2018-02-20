@@ -1,0 +1,29 @@
+title: Complex POJO for Query Param Values
+given:
+  - time: 2014-12-24T17:01:21.795+02:00
+wts:
+  - when: |
+       GET params/complexParams?v0=aaa&v1=aaa&v2=123&v3=456&v4=2018-02-12T23:42:31.795Z&v5=789
+    then: |
+       {"v0":"aaa","v1": "aaa", "v2": 123, "v3": 456, "v4": "2018-02-12T23:42:31.795Z", "v5": 789}
+  - when: |
+       GET params/complexParams?multipleV5=bbb&multipleV5=ccc&multipleV6=ddd&multipleV7=eee&multipleV8=2018-02-12T23:42:31.795Z
+    then: |
+       {"multipleV5": ["bbb", "ccc"], "multipleV6": ["ddd"], "multipleV7": ["eee"], "multipleV8": ["2018-02-12T23:42:31.795Z"]}
+  - when: |
+       GET params/complexParams?nestedCriteria.v0=aaa&nestedCriteria.v1=aaa&nestedCriteria.v2=123&nestedCriteria.v3=456&nestedCriteria.v4=2018-02-12T23:42:31.795Z&nestedCriteria.v5=789
+    then: |
+       { "nestedCriteria": {"v0":"aaa", "v1": "aaa", "v2": 123, "v3": 456, "v4": "2018-02-12T23:42:31.795Z", "v5": 789} }
+  - when: |
+       GET params/complexParams?nestedCriteria.multipleV5=bbb&nestedCriteria.multipleV5=ccc&nestedCriteria.multipleV6=ddd&nestedCriteria.multipleV7=eee&nestedCriteria.multipleV8=2018-02-12T23:42:31.795Z
+    then: |
+       { "nestedCriteria": {"multipleV5": ["bbb", "ccc"], "multipleV6": ["ddd"], "multipleV7": ["eee"], "multipleV8": ["2018-02-12T23:42:31.795Z"]} }
+  - when: |
+       GET params/multipleComplexParams?v0=aaa&v1=bbb&str=ccc
+    then: |
+       { "criteria":{"v0":"aaa","v1":"bbb"}, "v1":"bbb", "allRawTypesCriteria":{"str":"ccc"} }
+  - when: |
+       GET params/complexParams?unknownProperty=foo
+    then: |
+       200
+       {}
