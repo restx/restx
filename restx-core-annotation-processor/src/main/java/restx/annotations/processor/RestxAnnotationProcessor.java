@@ -9,6 +9,8 @@ import com.sun.tools.javac.code.Type;
 import restx.RestxLogLevel;
 import restx.StdRestxRequestMatcher;
 import restx.annotations.*;
+import restx.common.MoreFunctions;
+import restx.common.MoreStrings;
 import restx.types.OptionalTypeDefinition;
 import restx.types.Types;
 import restx.common.Mustaches;
@@ -26,6 +28,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
@@ -462,8 +465,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 callParameters.add(String.format("/* [%s] %s */ %s", kind, parameter.reqParamName, kind.fetchFromReqCode(parameter, resourceMethod)));
 
                 if(kind.resolvedWithQueryParamMapper()) {
-                    queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\")",
-                            TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.reqParamName));
+                    queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\"%s)",
+                            TypeHelper.getTypeReferenceExpressionFor(parameter.type),
+                            parameter.reqParamName,
+                            createSpecialParamsHandlingExpression(parameter, "                    ")
+                    ));
                 }
 
                 if (kind != ResourceMethodParameterKind.CONTEXT) {
@@ -533,6 +539,87 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .put("logLevelName", resourceMethod.logLevel.name())
                     .build()
             );
+        }
+    }
+
+    private boolean isComplexType(TypeMirror typeMirror) {
+        return !Types.optionalMatchingTypeOf(typeMirror.toString()).isOptionalType()
+                && !Types.isRawType(typeMirror, this.processingEnv)
+                && !Types.isAggregateType(typeMirror.toString());
+    }
+
+    private String createSpecialParamsHandlingExpression(ResourceMethodParameter parameter, final String indentation) {
+        List<String> specialParamHandlingDeclarations = new ArrayList<>();
+
+        if(isComplexType(parameter.typeMirror)) {
+            fillSpecialParamsHandlingDeclarations(specialParamHandlingDeclarations, parameter.typeMirror, "", 0);
+        }
+
+        return specialParamHandlingDeclarations.isEmpty()?
+                ""
+                :", ImmutableMap.<String, ParamDef.SpecialParamHandling>builder()\n"+Joiner.on("").join(Lists.transform(specialParamHandlingDeclarations, new Function<String, String>() {
+                    @Override
+                    public String apply(String input) {
+                        return indentation+"  "+input+"\n";
+                    }
+                }))+indentation+".build()";
+    }
+
+    private void fillSpecialParamsHandlingDeclarations(List<String> specialParamHandlingDeclarations, TypeMirror typeMirror, String path, int depth) {
+        // Limiting depth of nested field declaration sa we may hit infinite loops here when a nested type
+        // is of same complex type of container type
+        if(depth >= 4) {
+            return;
+        }
+        // No need to fill any declaration on arrays (no matter if it is an array of raw or complex types)
+        if(!(typeMirror instanceof DeclaredType)) {
+            return;
+        }
+
+        TypeElement typeElement = (TypeElement) ((DeclaredType)typeMirror).asElement();
+        // Calling fillSpecialParamsHandlingDeclarations() on super type (except when super type is java.lang.Object)
+        if(!"java.lang.Object".equals(typeElement.getSuperclass().toString())) {
+            fillSpecialParamsHandlingDeclarations(specialParamHandlingDeclarations, typeElement.getSuperclass(), path, depth);
+        }
+
+        // Identifying setters in current type
+        ImmutableList<ExecutableElement> setters = FluentIterable.from(typeElement.getEnclosedElements())
+                .filter(new Predicate<Element>() {
+                    @Override
+                    public boolean apply(Element elem) {
+                        if (!(elem instanceof ExecutableElement)) {
+                            return false;
+                        }
+
+                        ExecutableElement executableElem = (ExecutableElement) elem;
+                        return executableElem.getSimpleName().toString().startsWith("set")
+                                && executableElem.getParameters().size() == 1;
+                    }
+                }).transform(MoreFunctions.cast(ExecutableElement.class)).toList();
+
+        for(ExecutableElement setter: setters) {
+            TypeMirror propertyType = Iterables.getOnlyElement(setter.getParameters()).asType();
+            String propertyName = MoreStrings.lowerFirstLetter(setter.getSimpleName().toString().substring("set".length()));
+            String propertyPath = path+(path.isEmpty()?"":".")+propertyName;
+
+            if(Types.isRawType(propertyType, processingEnv)) {
+                // Current setter represents a RAW type => no special handling here
+            } else if(Types.isAggregateType(propertyType.toString())) {
+                TypeMirror aggregateType = Types.aggregatedTypeOf(propertyType);
+                // Aggregates of RAW types should be handled with ParamDef.SpecialParamHandling.ARRAYS
+                if(Types.isRawType(aggregateType, processingEnv)) {
+                    specialParamHandlingDeclarations.add(String.format(".put(\"%s\", ParamDef.SpecialParamHandling.ARRAYS)", propertyPath));
+                // Aggregates of COMPLEX types should not be supported
+                // Note that it will throw an error ONLY if request param contains a key targetting your Aggregate<COMPLEX> type
+                } else {
+                    specialParamHandlingDeclarations.add(String.format(".put(\"%s\", ParamDef.SpecialParamHandling.UNSUPPORTED)", propertyPath));
+                }
+            } else if(isComplexType(propertyType)) {
+                // Current setter represents a COMPLEX type => calling fillSpecialParamsHandlingDeclarations() on nested node
+                fillSpecialParamsHandlingDeclarations(specialParamHandlingDeclarations, propertyType, propertyPath, depth+1);
+            } else {
+                throw new IllegalStateException(String.format("Property type %s not identified as a RAW/AGGREGATE/COMPLEX type (weird !)", propertyType));
+            }
         }
     }
 
