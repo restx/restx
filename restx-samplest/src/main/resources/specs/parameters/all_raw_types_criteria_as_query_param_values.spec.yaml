@@ -19,6 +19,10 @@ wts:
     then: |
        {"jodaDateTime":"2018-02-20T16:39:20.123Z","jodaInstant":"2018-02-20T16:39:20.123Z","jodaLocalDate":"2018-02-20","jodaLocalDateTime":"2018-02-20T16:39:20.123","jodaLocalTime":"16:39:20.123","jodaTimeZone":"Europe/Paris"}
   - when: |
+       GET params/allRawTypesCriteria?objectId=5167cec5856107c479739654
+    then: |
+       {"objectId":"5167cec5856107c479739654"}
+  - when: |
        GET params/allRawTypesCriteria?aByte=123&aShort=123&anInt=123&aLong=123&aFloat=123.45&aDouble=123.45&aBoolean=false&aChar=Z
     then: |
        {"aByte":123,"aShort":123,"anInt":123,"aLong":123,"aFloat":123.45,"aDouble":123.45,"aBoolean":false,"aChar":"Z"}

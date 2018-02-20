@@ -1,5 +1,6 @@
 package samplest.models;
 
+import org.bson.types.ObjectId;
 import org.joda.time.*;
 
 import javax.validation.constraints.Size;
@@ -36,6 +37,8 @@ public class AllRawTypesCriteria {
     Pattern pattern;
     URI uri;
     URL url;
+
+    ObjectId objectId;
 
     DateTime jodaDateTime;
     Instant jodaInstant;
@@ -236,6 +239,17 @@ public class AllRawTypesCriteria {
 
     public void setJodaTimeZone(DateTimeZone jodaTimeZone) {
         this.jodaTimeZone = jodaTimeZone;
+    }
+
+    public String getObjectId() {
+        if(objectId == null) {
+            return null;
+        }
+        return objectId.toString();
+    }
+
+    public void setObjectId(ObjectId objectId) {
+        this.objectId = objectId;
     }
 
     public byte getaByte() {
