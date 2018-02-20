@@ -384,7 +384,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
 
             resourceMethod.parameters.add(new ResourceMethodParameter(
-                p.asType().toString(),
+                p,
                 variableName,
                 reqParamName,
                 parameterKind,
@@ -731,6 +731,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     static class ResourceMethodParameter {
+        final TypeMirror typeMirror;
         final String type;
         final String realType;
         final OptionalTypeDefinition.Matcher optionalTypeMatcher;
@@ -746,8 +747,9 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
         };
 
-        private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
-            this.realType = type;
+        private ResourceMethodParameter(VariableElement element, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
+            this.typeMirror = element.asType();
+            this.realType = this.typeMirror.toString();
 
             this.optionalTypeMatcher = Types.optionalMatchingTypeOf(this.realType);
             this.type = optionalTypeMatcher.getUnderlyingType();
