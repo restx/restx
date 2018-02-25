@@ -63,7 +63,11 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
         @Override
         public void onTearDown(Factory.LocalMachines localMachines) {
             System.out.println("dropping database " + uri + "/" + db);
-            new MongoClient(new MongoClientURI(uri)).dropDatabase(db);
+            try {
+                new MongoClient(new MongoClientURI(uri)).dropDatabase(db);
+            } catch (UnknownHostException e) {
+                throw new IllegalStateException("got unknown host exception while contacting mongo db on localhost", e);
+            }
         }
     }
 }
