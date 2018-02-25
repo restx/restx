@@ -3,8 +3,6 @@ package samplest.jongo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.types.ObjectId;
 import org.jongo.marshall.jackson.oid.Id;
-import org.jongo.marshall.jackson.oid.MongoId;
-import org.jongo.marshall.jackson.oid.MongoObjectId;
 import restx.annotations.POST;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
@@ -17,7 +15,7 @@ import javax.inject.Named;
 public class MongoResource {
     public static class ObjectWithIdAnnotation {
         // @Id // 0.34 -> OK ; 0.35 -> KO!
-        @MongoId @JsonProperty("_id") // 0.35 -> KO!
+        @Id @JsonProperty("_id") // 0.35 -> KO!
         private String id;
         private String label;
 
@@ -28,7 +26,7 @@ public class MongoResource {
     }
     public static class ObjectWithObjectIdAnnotation {
         // @org.jongo.marshall.jackson.oid.ObjectId @Id // 0.34 -> OK ; 0.35 -> KO!
-        @MongoId @MongoObjectId @JsonProperty("_id") // 0.35 -> KO!
+        @Id @org.jongo.marshall.jackson.oid.ObjectId @JsonProperty("_id") // 0.35 -> KO!
         private String id;
         private String label;
 
@@ -39,7 +37,7 @@ public class MongoResource {
     }
     public static class ObjectWithObjectIdType {
         // @Id // 0.34 -> OK ; 0.35 -> OK
-        @MongoId @JsonProperty("_id") // 0.35 -> OK
+        @Id @JsonProperty("_id") // 0.35 -> OK
         private ObjectId id;
         private String label;
 
