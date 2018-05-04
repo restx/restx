@@ -1,0 +1,11 @@
+title: objectsWithObjectId persistence
+given:
+  - time: 2018-02-07T17:01:21.795+02:00
+  - collection: objectWithObjectIdTypeCollection
+    sequence: 5167cec5856107c479739654
+wts:
+  - when: |
+       POST mongo/objectsWithObjectIdType
+       {"label": "BLAH"}
+    then: |
+       {"_id":"5167cec5856107c479739654","label": "BLAH"}

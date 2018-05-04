@@ -31,6 +31,10 @@
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
+            <artifactId>restx-jongo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
             <artifactId>restx-factory-admin</artifactId>
         </dependency>
         <dependency>
@@ -74,6 +78,11 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-specs-tests</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-jongo-specs-tests</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

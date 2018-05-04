@@ -59,4 +59,8 @@ public class AppModule {
         }, securitySettings);
     }
 
+    @Provides @Named("mongo.db") String mongoDb() {
+        return "testing-mongo";
+    }
+
 }
