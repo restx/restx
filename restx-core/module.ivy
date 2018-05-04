@@ -1,5 +1,5 @@
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org">
-    <info organisation="io.restx" module="restx-core" revision="0.35.1" status="integration">
+    <info organisation="io.restx" module="restx-core" revision="0.35.2" status="integration">
         <ea:build organisation="org.apache.easyant.buildtypes" module="build-std-java" revision="0.9"
             compile.java.source.version="1.7"
             compile.java.target.version="1.7"
@@ -19,9 +19,9 @@
         <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.8.10" conf="default" />
         <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-joda" rev="2.8.10" conf="default" />
         <dependency org="com.fasterxml.jackson.datatype" name="jackson-datatype-guava" rev="2.8.10" conf="default" />
-        <dependency org="io.restx" name="restx-factory" rev="0.35.1" conf="default" />
-        <dependency org="io.restx" name="restx-classloader" rev="0.35.1" conf="default" />
-        <dependency org="io.restx" name="restx-apidocs-doclet" rev="0.35.1" conf="default" />
+        <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-classloader" rev="latest.integration" conf="default" />
+        <dependency org="io.restx" name="restx-apidocs-doclet" rev="latest.integration" conf="default" />
         <dependency org="javax.inject" name="javax.inject" rev="1" conf="default" />
         <dependency org="com.google.guava" name="guava" rev="18.0" conf="default" />
         <dependency org="joda-time" name="joda-time" rev="2.3" conf="default" />
