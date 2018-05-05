@@ -61,7 +61,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
 
         <!-- 3rd party libs -->
-        <jackson.version>2.8.10</jackson.version>
+        <jackson.version>2.9.5</jackson.version>
         <guava.version>18.0</guava.version>
         <joda-time.version>2.3</joda-time.version>
         <jna.version>3.2.7</jna.version>
@@ -84,7 +84,7 @@
 
         <!-- Mongo modules -->
         <mongo-java-driver.version>3.4.0</mongo-java-driver.version>
-        <bson4jackson.version>2.3.1</bson4jackson.version>
+        <bson4jackson.version>2.9.0</bson4jackson.version>
         <jongo.version>1.4.0</jongo.version>
         <de.flapdoodle.embed.version>1.42</de.flapdoodle.embed.version>
 
