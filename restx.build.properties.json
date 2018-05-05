@@ -28,7 +28,7 @@
     "javax.inject.version": "1",
 
     "mongo-java-driver.version": "3.4.0",
-    "bson4jackson.version": "2.3.1",
+    "bson4jackson.version": "2.9.0",
     "jongo.version": "1.4.0",
 
     "servlet-api.version": "2.5",
