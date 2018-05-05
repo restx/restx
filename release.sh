@@ -13,13 +13,6 @@ then
   exit 1
 fi
 
-sedi(){
-  case "`uname`" in
-    Darwin*) sed -i '' "$1" "$2" ;;
-    *) sed -i "$1" "$2" ;;
-  esac
-}
-
 RELVERSION=$1
 DEVVERSION=$2
 
@@ -30,16 +23,12 @@ then
   git stash
 fi
 
-sedi "s/\"restx.version\"[[:space:]]*:[[:space:]]*\"[0-9\\.a-zA-Z\\-]*\",/\"restx.version\": \"$RELVERSION\",/g" restx.build.properties.json
-restx build generate ivy
+./setVersion.sh $RELVERSION
 git add . && git commit -m "preparing $RELVERSION"
 
 mvn "-DreleaseVersion=$RELVERSION" "-DdevelopmentVersion=$DEVVERSION" -B release:prepare release:perform
 
-sedi "s/\"restx.version\"[[:space:]]*:[[:space:]]*\"[0-9\\.a-zA-Z\\-]*\",/\"restx.version\": \"$DEVVERSION\",/g" restx.build.properties.json
-sedi "s/<restx.version>[0-9\\.a-zA-Z\\-]*</<restx.version>$DEVVERSION</g" pom.xml
-restx build generate ivy
-
+./setVersion.sh $DEVVERSION
 git add . && git commit -m "re-snapshoted restx.version property"
 
 if [ "$pendingChangesInIndex" != "0" ]
