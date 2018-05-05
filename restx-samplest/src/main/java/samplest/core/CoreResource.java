@@ -73,6 +73,7 @@ public class CoreResource {
             // Complex types
             aString="AAA{\\\"'$AA",
             aClass=CoreResource.class,
+            aParameterizedTypeClass=Long.class,
             anEnum=MyEnum.A,
 
             // Another annotation
@@ -90,6 +91,7 @@ public class CoreResource {
 
             severalStrings={ "AAA{\\\"'$AA", "BBB", "CCC" },
             severalClasses={ Integer.class, String.class },
+            severalParameterizedTypeClasses={ Integer.class, Short.class },
             severalEnums={ MyEnum.A, MyEnum.B },
 
             // Not supported (yet)
@@ -99,6 +101,12 @@ public class CoreResource {
             }
     )
     public String testingAnnotations() {
+        return "hello blah";
+    }
+
+    @GET("/testingAnnotationsWithDefaultValues")
+    @MyAnnotation
+    public String testingAnnotationsWithDefaultValues() {
         return "hello blah";
     }
 }
