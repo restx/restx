@@ -27,7 +27,7 @@
     "metrics.version": "3.1.0",
     "javax.inject.version": "1",
 
-    "mongo-java-driver.version": "2.11.3",
+    "mongo-java-driver.version": "3.4.0",
     "bson4jackson.version": "2.3.1",
     "jongo.version": "1.4.0",
 
