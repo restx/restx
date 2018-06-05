@@ -1,3 +1,4 @@
 restx.types.RawTypesDefinition$PrimitiveRawTypesDefinition
+restx.types.RawTypesDefinition$IsEnumRawTypeDefinition
 restx.types.RawTypesDefinition$CommonJDKRawTypesDefinition
 restx.types.RawTypesDefinition$JodaTimeRawTypesDefinition

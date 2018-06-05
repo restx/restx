@@ -10,16 +10,22 @@ public class SearchCriteria<T> extends ParentSearchCriteria {
     // Declaring a SearchCriteria<BigDecimal> as method parameter doesn't work (Jacksong deserializes node to a String, everytime)
     public static class ConcreteSearchCriteria extends SearchCriteria<BigDecimal> {
     }
+    public enum SearchType {
+        SIMPLE, COMPLEX
+    }
 
     String v1;
     Integer v2;
     BigDecimal v3;
     DateTime v4;
     T v5;
+    SearchType v6;
     String[] multipleV5;
     List<String> multipleV6;
     Iterable<String> multipleV7;
     DateTime[] multipleV8;
+    SearchType[] multipleV9;
+    List<SearchType> multipleV10;
     SearchCriteria<T> nestedCriteria;
     // An iterable/array of "complex" (by "complex", I mean not a "value" type) type should not be mapped
     // and should trigger an error when provided in request params
@@ -113,5 +119,29 @@ public class SearchCriteria<T> extends ParentSearchCriteria {
 
     public void setUnsupportedNestedMultipleCriteria(SearchCriteria<T>[] unsupportedNestedMultipleCriteria) {
         this.unsupportedNestedMultipleCriteria = unsupportedNestedMultipleCriteria;
+    }
+
+    public SearchType getV6() {
+        return v6;
+    }
+
+    public void setV6(SearchType v6) {
+        this.v6 = v6;
+    }
+
+    public SearchType[] getMultipleV9() {
+        return multipleV9;
+    }
+
+    public void setMultipleV9(SearchType[] multipleV9) {
+        this.multipleV9 = multipleV9;
+    }
+
+    public List<SearchType> getMultipleV10() {
+        return multipleV10;
+    }
+
+    public void setMultipleV10(List<SearchType> multipleV10) {
+        this.multipleV10 = multipleV10;
     }
 }

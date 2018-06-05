@@ -99,4 +99,14 @@ public interface RawTypesDefinition {
             );
         }
     }
+    class IsEnumRawTypeDefinition implements RawTypesDefinition {
+        @Override
+        public boolean accepts(Type type) {
+            return Types.isAssignableFrom(Enum.class, type);
+        }
+        @Override
+        public boolean accepts(TypeMirror type, ProcessingEnvironment processingEnvironment) {
+            return Types.isEnum(type, processingEnvironment.getTypeUtils());
+        }
+    }
 }

@@ -602,18 +602,18 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             String propertyName = MoreStrings.lowerFirstLetter(setter.getSimpleName().toString().substring("set".length()));
             String propertyPath = path+(path.isEmpty()?"":".")+propertyName;
 
-            if(Types.isRawType(propertyType, processingEnv)) {
-                // Current setter represents a RAW type => no special handling here
-            } else if(Types.isAggregateType(propertyType.toString())) {
+            if(Types.isAggregateType(propertyType.toString())) {
                 TypeMirror aggregateType = Types.aggregatedTypeOf(propertyType);
                 // Aggregates of RAW types should be handled with ParamDef.SpecialParamHandling.ARRAYS
-                if(Types.isRawType(aggregateType, processingEnv)) {
+                if (Types.isRawType(aggregateType, processingEnv)) {
                     specialParamHandlingDeclarations.add(String.format(".put(\"%s\", ParamDef.SpecialParamHandling.ARRAYS)", propertyPath));
                 // Aggregates of COMPLEX types should not be supported
                 // Note that it will throw an error ONLY if request param contains a key targetting your Aggregate<COMPLEX> type
                 } else {
                     specialParamHandlingDeclarations.add(String.format(".put(\"%s\", ParamDef.SpecialParamHandling.UNSUPPORTED)", propertyPath));
                 }
+            } else if(Types.isRawType(propertyType, processingEnv)) {
+                // Current setter represents a RAW type => no special handling here
             } else if(isComplexType(propertyType)) {
                 // Current setter represents a COMPLEX type => calling fillSpecialParamsHandlingDeclarations() on nested node
                 fillSpecialParamsHandlingDeclarations(specialParamHandlingDeclarations, propertyType, propertyPath, depth+1);

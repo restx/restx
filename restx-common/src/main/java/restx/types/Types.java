@@ -282,6 +282,14 @@ public class Types {
 		return lastMatcher;
 	}
 
+	public static boolean isEnum(TypeMirror typeMirror, javax.lang.model.util.Types typeUtils) {
+		TypeMirror firstAncestor = Iterables.getFirst(typeUtils.directSupertypes(typeMirror), null);
+		if(firstAncestor == null) {
+			return false;
+		}
+		return firstAncestor.toString().startsWith("java.lang.Enum<");
+	}
+
 	public static boolean isRawType(Type type) {
 		for (RawTypesDefinition rawTypesDefinition : DECLARED_RAW_TYPES_DEFINITIONS) {
 			if (rawTypesDefinition.accepts(type)) {
