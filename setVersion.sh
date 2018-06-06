@@ -25,5 +25,5 @@ sedi(){
 sedi "s/\"restx.version\"[[:space:]]*:[[:space:]]*\"[0-9\\.a-zA-Z\\-]*\",/\"restx.version\": \"$VERSION\",/g" restx.build.properties.json
 sedi "s/<restx.version>[0-9\\.a-zA-Z\\-]*</<restx.version>$VERSION</g" pom.xml
 restx build generate ivy
-mvn versions:set -DnewVersion=$VERSION
+mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
 
