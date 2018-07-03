@@ -3,21 +3,21 @@ given:
   - time: 2014-12-24T17:01:21.795+02:00
 wts:
   - when: |
-       GET params/complexParams?v0=aaa&v1=aaa&v2=123&v3=456&v4=2018-02-12T23:42:31.795Z&v5=789&v6=SIMPLE
+       GET params/complexParams?v0=aaa&v1=aaa&v2=123&v3=456&v4=2018-02-12T23:42:31.795Z&v5=789&v6=SIMPLE&v7=blah
     then: |
-       {"v0":"aaa","v1": "aaa", "v2": 123, "v3": 456, "v4": "2018-02-12T23:42:31.795Z", "v5": 789, "v6": "SIMPLE"}
+       {"v0":"aaa","v1": "aaa", "v2": 123, "v3": 456, "v4": "2018-02-12T23:42:31.795Z", "v5": 789, "v6": "SIMPLE", "v7":"blah"}
   - when: |
-       GET params/complexParams?multipleV5=bbb&multipleV5=ccc&multipleV6=ddd&multipleV7=eee&multipleV8=2018-02-12T23:42:31.795Z&multipleV9=COMPLEX&multipleV10=COMPLEX
+       GET params/complexParams?multipleV5=bbb&multipleV5=ccc&multipleV6=ddd&multipleV7=eee&multipleV8=2018-02-12T23:42:31.795Z&multipleV9=COMPLEX&multipleV10=COMPLEX&multipleV11=blah
     then: |
-       {"multipleV5": ["bbb", "ccc"], "multipleV6": ["ddd"], "multipleV7": ["eee"], "multipleV8": ["2018-02-12T23:42:31.795Z"], "multipleV9": ["COMPLEX"], "multipleV10": ["COMPLEX"]}
+       {"multipleV5": ["bbb", "ccc"], "multipleV6": ["ddd"], "multipleV7": ["eee"], "multipleV8": ["2018-02-12T23:42:31.795Z"], "multipleV9": ["COMPLEX"], "multipleV10": ["COMPLEX"], "multipleV11": ["blah"]}
   - when: |
-       GET params/complexParams?nestedCriteria.v0=aaa&nestedCriteria.v1=aaa&nestedCriteria.v2=123&nestedCriteria.v3=456&nestedCriteria.v4=2018-02-12T23:42:31.795Z&nestedCriteria.v5=789&nestedCriteria.v6=SIMPLE
+       GET params/complexParams?nestedCriteria.v0=aaa&nestedCriteria.v1=aaa&nestedCriteria.v2=123&nestedCriteria.v3=456&nestedCriteria.v4=2018-02-12T23:42:31.795Z&nestedCriteria.v5=789&nestedCriteria.v6=SIMPLE&nestedCriteria.v7=blah
     then: |
-       { "nestedCriteria": {"v0":"aaa", "v1": "aaa", "v2": 123, "v3": 456, "v4": "2018-02-12T23:42:31.795Z", "v5": 789, "v6": "SIMPLE"} }
+       { "nestedCriteria": {"v0":"aaa", "v1": "aaa", "v2": 123, "v3": 456, "v4": "2018-02-12T23:42:31.795Z", "v5": 789, "v6": "SIMPLE", "v7": "blah"} }
   - when: |
-       GET params/complexParams?nestedCriteria.multipleV5=bbb&nestedCriteria.multipleV5=ccc&nestedCriteria.multipleV6=ddd&nestedCriteria.multipleV7=eee&nestedCriteria.multipleV8=2018-02-12T23:42:31.795Z&nestedCriteria.multipleV9=COMPLEX&nestedCriteria.multipleV10=COMPLEX
+       GET params/complexParams?nestedCriteria.multipleV5=bbb&nestedCriteria.multipleV5=ccc&nestedCriteria.multipleV6=ddd&nestedCriteria.multipleV7=eee&nestedCriteria.multipleV8=2018-02-12T23:42:31.795Z&nestedCriteria.multipleV9=COMPLEX&nestedCriteria.multipleV10=COMPLEX&nestedCriteria.multipleV11=blah
     then: |
-       { "nestedCriteria": {"multipleV5": ["bbb", "ccc"], "multipleV6": ["ddd"], "multipleV7": ["eee"], "multipleV8": ["2018-02-12T23:42:31.795Z"], "multipleV9": ["COMPLEX"], "multipleV10": ["COMPLEX"]} }
+       { "nestedCriteria": {"multipleV5": ["bbb", "ccc"], "multipleV6": ["ddd"], "multipleV7": ["eee"], "multipleV8": ["2018-02-12T23:42:31.795Z"], "multipleV9": ["COMPLEX"], "multipleV10": ["COMPLEX"], "multipleV11": ["blah"]} }
   - when: |
        GET params/multipleComplexParams?v0=aaa&v1=bbb&str=ccc
     then: |

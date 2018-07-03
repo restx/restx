@@ -67,6 +67,10 @@
             <artifactId>restx-i18n-admin</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-samplest-custom-types-testing</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
