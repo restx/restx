@@ -3,21 +3,17 @@ package restx.types;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.joda.time.*;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.io.File;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -29,13 +25,16 @@ public interface RawTypesDefinition {
     boolean accepts(Type type);
     boolean accepts(TypeMirror type, ProcessingEnvironment processingEnvironment);
 
-    class ClassBasedRawTypesDefinition implements RawTypesDefinition {
-        final ImmutableList<Class> acceptableClasses;
+    abstract class AbstractValueBasedRawTypesDefinition<T> implements RawTypesDefinition {
+        final ImmutableList<T> acceptableValues;
         ImmutableList<TypeMirror> acceptableTypeMirrors = null;
 
-        public ClassBasedRawTypesDefinition(Class... acceptableClasses) {
-            this.acceptableClasses = ImmutableList.copyOf(acceptableClasses);
+        public AbstractValueBasedRawTypesDefinition(T... acceptableValues) {
+            this.acceptableValues = ImmutableList.copyOf(acceptableValues);
         }
+
+        protected abstract boolean isApplicableTo(T value, Class type);
+        protected abstract TypeMirror createTypeMirrorFrom(T value, ProcessingEnvironment processingEnvironment);
 
         @Override
         public boolean accepts(final Type type) {
@@ -43,10 +42,10 @@ public interface RawTypesDefinition {
                 return false;
             }
 
-            return Iterables.tryFind(acceptableClasses, new Predicate<Class>() {
+            return Iterables.tryFind(acceptableValues, new Predicate<T>() {
                 @Override
-                public boolean apply(Class clazz) {
-                    return clazz.isAssignableFrom((Class)type);
+                public boolean apply(T value) {
+                    return isApplicableTo(value, (Class)type);
                 }
             }).isPresent();
         }
@@ -54,14 +53,10 @@ public interface RawTypesDefinition {
         @Override
         public boolean accepts(final TypeMirror type, final ProcessingEnvironment processingEnvironment) {
             if(acceptableTypeMirrors == null) {
-                this.acceptableTypeMirrors = ImmutableList.copyOf(Lists.transform(acceptableClasses, new Function<Class, TypeMirror>() {
+                this.acceptableTypeMirrors = ImmutableList.copyOf(Lists.transform(acceptableValues, new Function<T, TypeMirror>() {
                     @Override
-                    public TypeMirror apply(Class input) {
-                        if(input.isPrimitive()) {
-                            return processingEnvironment.getTypeUtils().getPrimitiveType(TypeKind.valueOf(input.toString().toUpperCase()));
-                        } else {
-                            return processingEnvironment.getElementUtils().getTypeElement(input.getCanonicalName()).asType();
-                        }
+                    public TypeMirror apply(T value) {
+                        return createTypeMirrorFrom(value, processingEnvironment);
                     }
                 }));
             }
@@ -69,9 +64,46 @@ public interface RawTypesDefinition {
             return Iterables.tryFind(acceptableTypeMirrors, new Predicate<TypeMirror>() {
                 @Override
                 public boolean apply(TypeMirror acceptableTypeMirror) {
-                    return processingEnvironment.getTypeUtils().isAssignable(acceptableTypeMirror, type);
+                    return processingEnvironment.getTypeUtils().isAssignable(acceptableTypeMirror, type)
+                            || Types.rawTypeFrom(acceptableTypeMirror.toString()).equals(Types.rawTypeFrom(type.toString()));
                 }
             }).isPresent();
+        }
+    }
+
+    class ClassBasedRawTypesDefinition extends AbstractValueBasedRawTypesDefinition<Class> {
+        public ClassBasedRawTypesDefinition(Class... acceptableClasses) {
+            super(acceptableClasses);
+        }
+
+        @Override
+        protected boolean isApplicableTo(Class clazz, Class type) {
+            return clazz.isAssignableFrom(type);
+        }
+
+        @Override
+        protected TypeMirror createTypeMirrorFrom(Class clazz, ProcessingEnvironment processingEnvironment) {
+            if(clazz.isPrimitive()) {
+                return processingEnvironment.getTypeUtils().getPrimitiveType(TypeKind.valueOf(clazz.toString().toUpperCase()));
+            } else {
+                return processingEnvironment.getElementUtils().getTypeElement(clazz.getCanonicalName()).asType();
+            }
+        }
+    }
+
+    class FQCNBasedRawTypesDefinition extends AbstractValueBasedRawTypesDefinition<String> {
+        public FQCNBasedRawTypesDefinition(String... acceptableFQCNs) {
+            super(acceptableFQCNs);
+        }
+
+        @Override
+        protected boolean isApplicableTo(String fqcn, Class type) {
+            return type.getCanonicalName().equals(fqcn);
+        }
+
+        @Override
+        protected TypeMirror createTypeMirrorFrom(String fqcn, ProcessingEnvironment processingEnvironment) {
+            return processingEnvironment.getElementUtils().getTypeElement(fqcn).asType();
         }
     }
 
