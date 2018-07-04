@@ -307,4 +307,12 @@ public class Types {
 		}
 		return false;
 	}
+
+	public static boolean isParameterizedType(String type) {
+		return type.contains("<");
+	}
+
+	public static String rawTypeFrom(String type) {
+		return isParameterizedType(type)?type.substring(0, type.indexOf("<")):type;
+	}
 }

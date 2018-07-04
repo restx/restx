@@ -178,7 +178,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 return PRIMITIVE;
             } else if(String.class.getCanonicalName().equals(componentType.toString())) {
                 return STRING;
-            } else if(Class.class.getCanonicalName().equals(TypeHelper.rawTypeFrom(componentType.toString()))) {
+            } else if(Class.class.getCanonicalName().equals(Types.rawTypeFrom(componentType.toString()))) {
                 return CLASS;
             } else {
                 ImmutableList<String> superTypesClassNames = FluentIterable.from(processingEnv.getTypeUtils().directSupertypes(componentType))
@@ -747,7 +747,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             } else if(isArray) {
                 return String.format("return new %s[]{ %s }",
                         // Arrays cannot be parameterized
-                        TypeHelper.rawTypeFrom(type.toString()),
+                        Types.rawTypeFrom(type.toString()),
                         Joiner.on(", ").join((List)value));
             } else {
                 return "return "+kind.transformSingleValueToExpression(value, this);

@@ -6,6 +6,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import restx.types.Types;
 
 import java.util.*;
 
@@ -132,14 +133,6 @@ public class TypeHelper {
 
     static String getTypeExpressionFor(String type) {
         return getTypeExpressionFor(parseParameterizedType(type));
-    }
-
-    static boolean isParameterizedType(String type) {
-        return type.contains("<");
-    }
-
-    static String rawTypeFrom(String type) {
-        return isParameterizedType(type)?type.substring(0, type.indexOf("<")):type;
     }
 
     static String getTypeReferenceExpressionFor(String type) {
