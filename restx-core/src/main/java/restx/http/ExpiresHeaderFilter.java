@@ -41,7 +41,7 @@ public class ExpiresHeaderFilter extends EntityRelatedFilter {
 
         ExpiresAfter expiresAfterAnn = operationDescription.findAnnotation(ExpiresAfter.class).get();
 
-        Locale currentLocale = currentLocaleResolver.guessLocale(req);
+        Locale currentLocale = Locale.US;
         DateTime expirationDate = DateTime.now().plus(MorePeriods.parsePeriod(expiresAfterAnn.value(), currentLocale));
         String expiresHeaderValue = createRFC1123DateFormat(currentLocale).format(expirationDate.toDate());
 
