@@ -2,9 +2,8 @@ package restx.http;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
-import org.joda.time.*;
-import org.joda.time.format.PeriodFormatterBuilder;
-import org.joda.time.format.PeriodParser;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import restx.RestxRequest;
 import restx.RestxResponse;
 import restx.StdRoute;
@@ -14,20 +13,17 @@ import restx.description.OperationDescription;
 import restx.description.ResourceDescription;
 import restx.factory.Component;
 
-import javax.inject.Named;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 @Component
 public class ExpiresHeaderFilter extends EntityRelatedFilter {
-    private CurrentLocaleResolver currentLocaleResolver;
 
-    public ExpiresHeaderFilter(@Named("CurrentLocaleResolver") CurrentLocaleResolver currentLocaleResolver) {
+    public ExpiresHeaderFilter() {
         super(Predicates.<StdRoute>alwaysTrue(), Predicates.<ResourceDescription>alwaysTrue(),
                 new OperationDescription.Matcher().havingAnyAnnotations(ExpiresAfter.class)
         );
-        this.currentLocaleResolver = currentLocaleResolver;
     }
 
     @Override
