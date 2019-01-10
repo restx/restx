@@ -2,12 +2,16 @@ package samplest.security;
 
 import com.github.kevinsawicki.http.HttpRequest;
 import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.hash.Hashing;
 import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Test;
+import restx.factory.Factory;
+import restx.factory.NamedComponent;
 import restx.security.HttpAuthenticationFilter;
 import restx.security.RestxSessionBareFilter;
+import restx.security.RestxSessionCookieDescriptor;
 import restx.security.RestxSessionCookieFilter;
 import restx.tests.HttpTestClient;
 import restx.tests.RestxServerRule;
@@ -51,9 +55,28 @@ public class SecuredResourceTest {
         HttpTestClient client = server.client();
         HttpRequest httpRequest = client.GET("/api/security/user")
                 .basic("admin", Hashing.md5().hashString("juma", Charsets.UTF_8).toString());
+
+        Optional<NamedComponent<RestxSessionCookieDescriptor>> restxSessionCookieDescriptorNamedComponentOptional =
+                Factory.getInstance().queryByClass(RestxSessionCookieDescriptor.class).findOne();
+
+        if(!restxSessionCookieDescriptorNamedComponentOptional.isPresent()) {
+            throw new IllegalStateException();
+        }
+
+        String headerPrincipalDecode = decodeRestxSession(httpRequest, restxSessionCookieDescriptorNamedComponentOptional);
+
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertResponseSetCookieContainsKeyAndValue(httpRequest.headers("Set-Cookie")[1], "principal", "admin");
+        assertResponseSetCookieContainsKeyAndValue(headerPrincipalDecode, "principal", "admin");
         assertThat(httpRequest.body().trim()).isEqualTo("admin");
+    }
+
+    private String decodeRestxSession(final HttpRequest httpRequest, final Optional<NamedComponent<RestxSessionCookieDescriptor>> restxSessionCookieDescriptorNamedComponentOptional) {
+        RestxSessionCookieDescriptor restxSessionCookieDescriptor = restxSessionCookieDescriptorNamedComponentOptional
+                .get()
+                .getComponent();
+        String headerPrincipal = httpRequest.headers("Set-Cookie")[1];
+        String headerPrincipalValue = headerPrincipal.substring(headerPrincipal.indexOf("RestxSession=") + 13, headerPrincipal.lastIndexOf(";Path"));
+        return restxSessionCookieDescriptor.decodeValueIfNeeded(headerPrincipalValue);
     }
 
     private void assertResponseSetCookieContainsKeyAndValue(String responseSetCookieHeader, String key, String value) {

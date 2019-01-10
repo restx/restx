@@ -4,7 +4,10 @@ import com.google.common.base.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import restx.common.ConfigElement;
+import restx.common.StdRestxConfig;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -41,7 +44,7 @@ public class SecurityFactoryTest {
 
     @Test
     public void should_app_named_dependent_cookie_be_correctly_generated(){
-        RestxSessionCookieDescriptor cookieDescriptor = new SecurityFactory().restxSessionCookieDescriptor(Optional.fromNullable(this.appName));
+        RestxSessionCookieDescriptor cookieDescriptor = new SecurityFactory().restxSessionCookieDescriptor(Optional.fromNullable(this.appName), StdRestxConfig.of(new ArrayList<ConfigElement>()));
         assertThat(cookieDescriptor.getCookieName(), is(equalTo(this.expectedCookieName)));
         assertThat(cookieDescriptor.getCookieSignatureName(), is(equalTo(this.expectedCookieSignatureName)));
     }
