@@ -38,83 +38,75 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
     }
 
     public GivenCleaner run(final GivenJongoCollection given, final ImmutableMap<String, String> params) {
+        MongoClientURI mongoClientURI = new MongoClientURI(
+                checkNotNull(params.get(DB_URI),
+                        DB_URI + " param is required"));
+        Jongo jongo = new Jongo(new MongoClient(mongoClientURI).getDB(mongoClientURI.getDatabase()));
         try {
-            MongoClientURI mongoClientURI = new MongoClientURI(
-                    checkNotNull(params.get(DB_URI),
-                            DB_URI + " param is required"));
-            Jongo jongo = new Jongo(new MongoClient(mongoClientURI).getDB(mongoClientURI.getDatabase()));
-            try {
-                Stopwatch stopwatch = Stopwatch.createStarted();
-                MongoCollection collection = jongo.getCollection(given.getCollection());
-                Iterable<String> items = Splitter.on("\n").trimResults().omitEmptyStrings().split(given.getData());
-                int count = 0;
-                for (String item : items) {
-                    collection.insert(item);
-                    count++;
-                }
-                System.out.printf("imported %s[%d] -- %s%n", given.getCollection(), count, stopwatch.stop().toString());
-            } finally {
-                jongo.getDatabase().getMongo().close();
+            Stopwatch stopwatch = Stopwatch.createStarted();
+            MongoCollection collection = jongo.getCollection(given.getCollection());
+            Iterable<String> items = Splitter.on("\n").trimResults().omitEmptyStrings().split(given.getData());
+            int count = 0;
+            for (String item : items) {
+                collection.insert(item);
+                count++;
+            }
+            System.out.printf("imported %s[%d] -- %s%n", given.getCollection(), count, stopwatch.stop().toString());
+        } finally {
+            jongo.getDatabase().getMongo().close();
+        }
+
+        final UnmodifiableIterator<String> it = given.getSequence().iterator();
+        final CollectionSequence iteratingSequence = new CollectionSequence() {
+            @Override
+            public Optional<String> next() {
+                return it.hasNext() ? Optional.of(it.next()) : Optional.<String>absent();
+            }
+        };
+
+        final SingleNameFactoryMachine<ComponentCustomizerEngine> customizerMachine =
+                new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
+                    Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplierOf"
+                                                                        + given.getCollection()),
+                    BoundlessComponentBox.FACTORY) {
+            @Override
+            public BillOfMaterials getBillOfMaterial() {
+                return BillOfMaterials.of();
             }
 
-            final UnmodifiableIterator<String> it = given.getSequence().iterator();
-            final CollectionSequence iteratingSequence = new CollectionSequence() {
-                @Override
-                public Optional<String> next() {
-                    return it.hasNext() ? Optional.of(it.next()) : Optional.<String>absent();
-                }
-            };
-
-            final SingleNameFactoryMachine<ComponentCustomizerEngine> customizerMachine =
-                    new SingleNameFactoryMachine<>(0, new StdMachineEngine<ComponentCustomizerEngine>(
-                        Name.of(ComponentCustomizerEngine.class, "JongoCollectionSequenceSupplierOf"
-                                                                            + given.getCollection()),
-                        BoundlessComponentBox.FACTORY) {
-                @Override
-                public BillOfMaterials getBillOfMaterial() {
-                    return BillOfMaterials.of();
-                }
-
-                @Override
-                protected ComponentCustomizerEngine doNewComponent(final SatisfiedBOM satisfiedBOM) {
-                    return new SingleComponentNameCustomizerEngine<JongoCollection>(
-                                                        0, Name.of(JongoCollection.class, given.getCollection())) {
-                        @Override
-                        public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
-                            if (namedComponent.getName().getName().equals(given.getCollection())) {
-                                return new NamedComponent<>(namedComponent.getName(),
-                                        new SequencedJongoCollection(namedComponent.getComponent(),iteratingSequence));
-                            } else {
-                                return namedComponent;
-                            }
-
+            @Override
+            protected ComponentCustomizerEngine doNewComponent(final SatisfiedBOM satisfiedBOM) {
+                return new SingleComponentNameCustomizerEngine<JongoCollection>(
+                                                    0, Name.of(JongoCollection.class, given.getCollection())) {
+                    @Override
+                    public NamedComponent<JongoCollection> customize(NamedComponent<JongoCollection> namedComponent) {
+                        if (namedComponent.getName().getName().equals(given.getCollection())) {
+                            return new NamedComponent<>(namedComponent.getName(),
+                                    new SequencedJongoCollection(namedComponent.getComponent(),iteratingSequence));
+                        } else {
+                            return namedComponent;
                         }
-                    };
-                }
-            });
-            final Factory.LocalMachines localMachines = threadLocal();
-            localMachines.addMachine(customizerMachine);
 
-            return new GivenCleaner() {
-                @Override
-                public void cleanUp() {
-                    try {
-                        localMachines.removeMachine(customizerMachine);
-                        MongoClientURI mongoClientURI = new MongoClientURI(
-                                checkNotNull(params.get(DB_URI),
-                                        DB_URI + " param is required"));
-                        Jongo jongo = new Jongo(new MongoClient(mongoClientURI).getDB(mongoClientURI.getDatabase()));
-                        Stopwatch stopwatch = Stopwatch.createStarted();
-                        jongo.getCollection(given.getCollection()).drop();
-                        System.out.printf("dropped %s -- %s%n", given.getCollection(), stopwatch.stop().toString());
-                    } catch (UnknownHostException e) {
-                        throw new RuntimeException(e);
                     }
-                }
-            };
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+                };
+            }
+        });
+        final Factory.LocalMachines localMachines = threadLocal();
+        localMachines.addMachine(customizerMachine);
+
+        return new GivenCleaner() {
+            @Override
+            public void cleanUp() {
+                localMachines.removeMachine(customizerMachine);
+                MongoClientURI mongoClientURI = new MongoClientURI(
+                        checkNotNull(params.get(DB_URI),
+                                DB_URI + " param is required"));
+                Jongo jongo = new Jongo(new MongoClient(mongoClientURI).getDB(mongoClientURI.getDatabase()));
+                Stopwatch stopwatch = Stopwatch.createStarted();
+                jongo.getCollection(given.getCollection()).drop();
+                System.out.printf("dropped %s -- %s%n", given.getCollection(), stopwatch.stop().toString());
+            }
+        };
     }
 
     public static interface CollectionSequence {
