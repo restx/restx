@@ -16,7 +16,6 @@
             "com.fasterxml.jackson.core:jackson-annotations:${jackson.version}",
             "com.fasterxml.jackson.core:jackson-databind:${jackson.version}",
             "com.fasterxml.jackson.datatype:jackson-datatype-joda:${jackson.version}",
-            "de.undercouch:bson4jackson:${bson4jackson.version}",
             "org.mongodb:mongo-java-driver:${mongo-java-driver.version}",
             "org.jongo:jongo:${jongo.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}"
