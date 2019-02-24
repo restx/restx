@@ -84,7 +84,6 @@
 
         <!-- Mongo modules -->
         <mongo-java-driver.version>2.11.3</mongo-java-driver.version>
-        <bson4jackson.version>2.4.0</bson4jackson.version>
         <jongo.version>1.1</jongo.version>
         <de.flapdoodle.embed.version>1.42</de.flapdoodle.embed.version>
 
@@ -407,11 +406,6 @@
             </dependency>
 
             <!-- Mongo modules -->
-            <dependency>
-                <groupId>de.undercouch</groupId>
-                <artifactId>bson4jackson</artifactId>
-                <version>${bson4jackson.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongo-java-driver</artifactId>
