@@ -575,6 +575,7 @@
         <module>restx-webjars</module>
         <module>restx-md-fragments</module>
         <module>restx-md-testing</module>
+        <module>restx-api-doclet-test</module>
     </modules>
 
 

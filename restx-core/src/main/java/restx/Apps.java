@@ -1,5 +1,21 @@
 package restx;
 
+import static com.google.common.collect.Iterables.transform;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
@@ -7,21 +23,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.ByteStreams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import restx.apidocs.doclet.ApidocsDocletRunner;
+
 import restx.classloader.CompilationFinishedEvent;
 import restx.classloader.CompilationManager;
 import restx.classloader.CompilationSettings;
 import restx.common.MoreFiles;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
-
-import static com.google.common.collect.Iterables.transform;
 
 /**
  * User: xavierhanin
@@ -50,17 +56,28 @@ public class Apps {
                             "Use hasSystemJavaCompiler() to check that before calling this method.");
         }
         if (hasJavadocTools()) {
-            eventBus.register(new Object() {
-                @Subscribe
-                public void onCompilationFinished(
-                        CompilationFinishedEvent event) {
-                    new ApidocsDocletRunner()
-                            .setTargetDir(getTargetClasses())
-                            .addSources(event.getSources())
-                            .run();
-                    ;
-                }
-            });
+        	try {
+				final Class<?> apiDocsRunnerClass = Class.forName("restx.apidocs.doclet.ApidocsDocletRunner");
+				eventBus.register(new Object() {
+				    @Subscribe
+				    public void onCompilationFinished(
+				            CompilationFinishedEvent event) {
+				        try {
+							Object apiDocsInstance = apiDocsRunnerClass.newInstance();
+							apiDocsRunnerClass.getMethod("setTargetDir", Path.class).invoke(apiDocsInstance, getTargetClasses());
+							apiDocsRunnerClass.getMethod("addSources", Path.class).invoke(apiDocsInstance, event.getSources());
+							apiDocsRunnerClass.getMethod("run").invoke(apiDocsInstance);
+						} catch (InstantiationException | IllegalAccessException
+								| IllegalArgumentException
+								| InvocationTargetException
+								| NoSuchMethodException | SecurityException e) {
+							logger.info("Failed to initialize and call restx.apidocs.doclet.ApidocsDocletRunner ", e);
+						}
+				    }
+				});
+			} catch (ClassNotFoundException e) {
+				logger.info("can't enable Apidocs doclet: restx-api-doclet is your classpath");
+			}
         } else {
             logger.info("can't enable Apidocs doclet: make sure tools.jar is in your classpath");
         }
