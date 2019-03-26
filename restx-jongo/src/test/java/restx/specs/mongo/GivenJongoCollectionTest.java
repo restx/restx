@@ -10,6 +10,9 @@ import restx.specs.RestxSpecLoader;
 import restx.specs.WhenHttpRequest;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
 
 /**
  * User: xavierhanin
@@ -19,7 +22,9 @@ import static org.assertj.core.api.Assertions.*;
 public class GivenJongoCollectionTest {
 
     private RestxSpecLoader restxSpecLoader = new RestxSpecLoader(Factory.getInstance());
-
+    public static String replaceNewLine(String string) {
+    	return string.replaceAll("\r", "");
+    }
     @Test
     public void should_load_from_yaml() throws Exception {
         RestxSpec testCase = restxSpecLoader.load(
@@ -29,7 +34,13 @@ public class GivenJongoCollectionTest {
         assertThat(testCase.getTitle()).isEqualTo("should validate salary for casual reception 1st month");
         assertThat(extractProperty("collection").from(testCase.getGiven()))
                 .containsExactly("contracts", "events", "salaries");
-        assertThat(extractProperty("data").from(testCase.getGiven()))
+        List<Object> from = extractProperty("data").from(testCase.getGiven());
+        List<Object> from2 = new java.util.ArrayList<>(); 
+        for(int i=0;i<from.size();i++) {
+        	from2.add(replaceNewLine((String) from.get(i)));
+        }
+//        assertEquals(from.get(0), "[ { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"test1\" } ]\n");
+        assertThat(from2)
                 .containsExactly(
                         "[ { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"test1\" } ]\n",
                         "[\n" +
@@ -75,8 +86,8 @@ public class GivenJongoCollectionTest {
 
         String actual = testCase.toString();
         System.out.println("actual = " + actual);
-        assertThat(actual).isEqualTo(Resources.toString(
+        assertThat(replaceNewLine(actual)).isEqualTo(replaceNewLine(Resources.toString(
                                 Resources.getResource("restx/tests/expected_restx_case_example_1.yaml"),
-                                Charsets.UTF_8));
+                                Charsets.UTF_8)));
     }
 }
