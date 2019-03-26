@@ -1,5 +1,8 @@
 package restx.tests.json;
 
+import static org.junit.Assert.assertEquals;
+import static restx.tests.json.JsonMergerTest.replaceNewLine;
+
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +57,7 @@ public class JsonAssertionsTest {
                     .isSameJsonAs("{\"key1\": [{\"key2\": \"val22\"}]}");
             fail("should throw error when not same");
         } catch (AssertionError e) {
-            assertThat(e).hasMessage(
+            assertEquals(
                     "Expecting:\n" +
                             "  {\"key1\": [{\"key2\": \"val21\", \"key3\": \"val31\"}, {\"key2\": \"val22\", \"key3\": \"val32\"}]}\n" +
                             "to be same json as:\n" +
@@ -78,7 +81,8 @@ public class JsonAssertionsTest {
                             "      \"key2\" : \"val22\"\n" +
                             "    } ]\n" +
                             "  }\n" +
-                            "\n"
+                            "\n",
+                            replaceNewLine(e.getMessage())
             );
         }
     }
@@ -128,7 +132,7 @@ public class JsonAssertionsTest {
             JsonAssertions.assertThat("{\"key1\": [{\"key2\": \"val2\"}]}").isSameJsonAs("{\"key1\": []}");
             fail("should throw error when not same");
         } catch (AssertionError e) {
-            assertThat(e).hasMessage(
+            assertEquals(
                     "Expecting:\n" +
                             "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
                             "to be same json as:\n" +
@@ -139,8 +143,7 @@ public class JsonAssertionsTest {
                             "01) extra element(s) in array at position 0 at path './key1' with value(s):\n" +
                             "      [ {\n" +
                             "        \"key2\" : \"val2\"\n" +
-                            "      } ]\n"
-            );
+                            "      } ]\n", replaceNewLine(e.getMessage()));
         }
     }
 
@@ -150,19 +153,18 @@ public class JsonAssertionsTest {
             JsonAssertions.assertThat("{\"key1\": []}").isSameJsonAs("{\"key1\": [{\"key2\": \"val2\"}]}");
             fail("should throw error when not same");
         } catch (AssertionError e) {
-            assertThat(e).hasMessage(
-                    "Expecting:\n" +
-                            "  {\"key1\": []}\n" +
-                            "to be same json as:\n" +
-                            "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
-                            "but following differences were found:\n" +
-                            "- within [L1C11]-[L1C12]:\n" +
-                            "  []\n" +
-                            "01) missing element(s) in array at position 0 at path './key1' expected value(s):\n" +
-                            "      [ {\n" +
-                            "        \"key2\" : \"val2\"\n" +
-                            "      } ]\n"
-            );
+            assertEquals("Expecting:\n" +
+                    "  {\"key1\": []}\n" +
+                    "to be same json as:\n" +
+                    "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
+                    "but following differences were found:\n" +
+                    "- within [L1C11]-[L1C12]:\n" +
+                    "  []\n" +
+                    "01) missing element(s) in array at position 0 at path './key1' expected value(s):\n" +
+                    "      [ {\n" +
+                    "        \"key2\" : \"val2\"\n" +
+                    "      } ]\n", JsonMergerTest.replaceNewLine(e.getMessage()));
+                    
         }
     }
 

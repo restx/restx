@@ -14,6 +14,19 @@
     <properties>
         <diffutils.version>1.3.0</diffutils.version>
     </properties>
+    <build>
+    	<testResources>
+    		<testResource>
+    		 	<directory>src/test/webapp</directory>
+    		 	<includes> <include>**/*</include></includes>
+    		</testResource>
+    		<testResource>
+    		 	<directory>src/test/resources</directory>
+    		 	<includes> <include>**/*</include></includes>
+    		</testResource>
+    	</testResources>
+    
+    </build>
 
     <dependencies>
         <dependency>
