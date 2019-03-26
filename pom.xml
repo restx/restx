@@ -576,6 +576,7 @@
         <module>restx-md-fragments</module>
         <module>restx-md-testing</module>
         <module>restx-api-doclet-test</module>
+        <module>restx-annotation-processor-tests-java8</module>
     </modules>
 
 
