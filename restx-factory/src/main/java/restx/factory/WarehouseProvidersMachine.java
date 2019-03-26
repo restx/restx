@@ -1,13 +1,13 @@
 package restx.factory;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * Date: 16/11/13
@@ -24,10 +24,12 @@ public class WarehouseProvidersMachine implements FactoryMachine {
     @SuppressWarnings("unchecked")
     public boolean canBuild(Name<?> name) {
         for (Warehouse provider : providers) {
-            if (Iterables.tryFind(provider.listNames(),
-                    (Predicate<? super Name<?>>) Predicates.equalTo(name)).isPresent()) {
-                return true;
-            }
+        	for (Name n: provider.listNames()) {
+        		if(Predicates.equalTo(name).apply(n))
+        			return true;
+        		
+        	}
+            
         }
 
         return false;
