@@ -234,8 +234,9 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         ImmutableSet.Builder<String> annotationFieldNamesBuilder = ImmutableSet.builder();
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> fieldEntry : methodAnnotation
                 .getElementValues().entrySet()) {
-            String fieldName = fieldEntry.getKey().toString().substring(0,
-                    fieldEntry.getKey().toString().length() - "()".length());
+            String fieldName = fieldEntry.getKey().getSimpleName().toString();
+//            .toString().substring(0,
+//                    fieldEntry.getKey().toString().length() - "()".length());
             TypeMirror type = fieldEntry.getKey().getReturnType();
             TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
             boolean arrayed = AnnotationFieldKind.isArrayed(type);
