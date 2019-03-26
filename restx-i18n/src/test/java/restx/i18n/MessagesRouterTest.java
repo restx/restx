@@ -20,10 +20,14 @@ public class MessagesRouterTest {
         HttpRequest request = server.client().GET("/api/i18n/labels.json");
 
         assertThat(request.code()).isEqualTo(200);
-        assertThat(request.body()).isEqualTo("{\n" +
+        assertThat(replaceNewLine(request.body())).isEqualTo("{\n" +
                 "  \"key1\" : \"value1\",\n" +
                 "  \"key2\" : \"hello {{test}}\"\n" +
                 "}\n");
+    }
+    
+    public static String replaceNewLine(String string) {
+    	return string.replaceAll("\r", "");
     }
 
     @Test
@@ -31,7 +35,7 @@ public class MessagesRouterTest {
         HttpRequest request = server.client().GET("/api/i18n/labels.js");
 
         assertThat(request.code()).isEqualTo(200);
-        assertThat(request.body()).isEqualTo(
+        assertThat(replaceNewLine(request.body())).isEqualTo(
                 "// RESTX Labels - customize this with restx.i18n.labelsJsTemplate named String\n" +
                 "window.labels = {\n" +
                 "  \"key1\" : \"value1\",\n" +
