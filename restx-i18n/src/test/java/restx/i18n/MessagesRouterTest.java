@@ -1,11 +1,13 @@
 package restx.i18n;
 
-import com.github.kevinsawicki.http.HttpRequest;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.ClassRule;
 import org.junit.Test;
-import restx.tests.RestxServerRule;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.github.kevinsawicki.http.HttpRequest;
+
+import restx.tests.RestxServerRule;
 
 /**
  * Date: 2/2/14
@@ -20,26 +22,22 @@ public class MessagesRouterTest {
         HttpRequest request = server.client().GET("/api/i18n/labels.json");
 
         assertThat(request.code()).isEqualTo(200);
-        assertThat(replaceNewLine(request.body())).isEqualTo("{\n" +
+        assertThat(request.body()).isEqualTo(String.format("{%n" +
                 "  \"key1\" : \"value1\",\n" +
                 "  \"key2\" : \"hello {{test}}\"\n" +
-                "}\n");
+                "}%n"));
     }
     
-    public static String replaceNewLine(String string) {
-    	return string.replaceAll("\r", "");
-    }
-
     @Test
     public void should_get_labels_js() throws Exception {
         HttpRequest request = server.client().GET("/api/i18n/labels.js");
 
         assertThat(request.code()).isEqualTo(200);
-        assertThat(replaceNewLine(request.body())).isEqualTo(
+        assertThat(request.body()).isEqualTo(String.format(
                 "// RESTX Labels - customize this with restx.i18n.labelsJsTemplate named String\n" +
-                "window.labels = {\n" +
+                "window.labels = {%n" +
                 "  \"key1\" : \"value1\",\n" +
                 "  \"key2\" : \"hello {{test}}\"\n" +
-                "};\n");
+                "};%n"));
     }
 }
