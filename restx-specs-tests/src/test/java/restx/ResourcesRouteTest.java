@@ -23,7 +23,7 @@ public class ResourcesRouteTest {
     public void should_static_content_be_served_from_classpath() throws IOException {
         HttpRequest httpRequest = HttpRequest.get(restxServer.getServer().baseUrl() + "/web/hello.txt");
 
-//        Assertions.assertThat(httpRequest.code()).isEqualTo(200);
-//        Assertions.assertThat(httpRequest.body().trim()).isEqualTo("Hello world !");
+        Assertions.assertThat(httpRequest.code()).isEqualTo(200);
+        Assertions.assertThat(httpRequest.body().trim()).isEqualTo("Hello world !");
     }
 }
