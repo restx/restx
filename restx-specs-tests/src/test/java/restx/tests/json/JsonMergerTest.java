@@ -1,14 +1,9 @@
 package restx.tests.json;
 
-import com.google.common.collect.ImmutableMap;
-import org.assertj.core.groups.Tuple;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
 
 /**
  * Date: 3/2/14
@@ -16,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class JsonMergerTest {
     JsonMerger merger = new JsonMerger();
-	private String originalSeparator;
 
     @Test
     public void should_merge_added_key_to_right() throws Exception {
