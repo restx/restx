@@ -113,14 +113,14 @@ public class RestxSpec {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("title: ").append(title).append("\n");
+        sb.append("title: ").append(title).append(System.lineSeparator());
         if (!given.isEmpty()) {
-            sb.append("given:\n");
+            sb.append("given:").append(System.lineSeparator());
             for (Given g : given) {
                 g.toString(sb);
             }
         }
-        sb.append("wts:\n");
+        sb.append("wts:").append(System.lineSeparator());
         for (When when : whens) {
             when.toString(sb);
         }

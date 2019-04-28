@@ -28,10 +28,10 @@ public class ThenHttpResponse implements Then {
     }
 
     public void toString(StringBuilder sb) {
-        sb.append("    then: |\n");
+        sb.append("    then: |").append(System.lineSeparator());
         if (expectedCode != 200) {
-            sb.append("       ").append(expectedCode).append("\n\n");
+            sb.append("       ").append(expectedCode).append(System.lineSeparator()).append(System.lineSeparator());
         }
-        sb.append(indent(expected, 8)).append("\n");
+        sb.append(indent(expected, 8)).append(System.lineSeparator());
     }
 }

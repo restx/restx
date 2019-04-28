@@ -83,7 +83,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
                 }
             });
 
-            givens.put(key, new GivenJongoCollection(mongoCollection.getName(), "", "       " + Joiner.on("\n       ").join(items), ImmutableList.<String>of()));
+            givens.put(key, new GivenJongoCollection(mongoCollection.getName(), "", "       " + Joiner.on(String.format("%n       ")).join(items), ImmutableList.<String>of()));
             System.out.println(" >> recorded " + mongoCollection.getName() + " -- " + stopwatch.toString());
         }
 

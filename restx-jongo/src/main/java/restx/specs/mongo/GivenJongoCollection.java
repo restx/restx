@@ -29,17 +29,17 @@ public class GivenJongoCollection implements Given {
 
     @Override
     public void toString(StringBuilder sb) {
-        sb.append("  - collection: ").append(collection).append("\n");
+        sb.append("  - collection: ").append(collection).append(System.lineSeparator());
         if (!Strings.isNullOrEmpty(path) && !path.equals("data://")) {
-            sb.append("    path: ").append(path).append("\n");
+            sb.append("    path: ").append(path).append(System.lineSeparator());
         }
         if (!data.isEmpty()) {
-            sb.append("    data: |\n").append(reindent(data.trim(), 8)).append("\n");
+            sb.append("    data: |").append(System.lineSeparator()).append(reindent(data.trim(), 8)).append(System.lineSeparator());
         }
         if (!sequence.isEmpty()) {
                 sb.append("    sequence: ");
                 Joiner.on(", ").appendTo(sb, sequence);
-                sb.append("\n");
+                sb.append(System.lineSeparator());
         }
     }
 

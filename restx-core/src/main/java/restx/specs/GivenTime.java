@@ -19,6 +19,6 @@ public class GivenTime implements Given {
 
     @Override
     public void toString(StringBuilder sb) {
-        sb.append("  - time: ").append(time.toString()).append("\n");
+        sb.append("  - time: ").append(time.toString()).append(System.lineSeparator());
     }
 }

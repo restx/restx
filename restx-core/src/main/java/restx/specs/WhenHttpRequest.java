@@ -31,20 +31,20 @@ public class WhenHttpRequest extends When<ThenHttpResponse> {
     @Override
     public void toString(StringBuilder sb) {
         if (Strings.isNullOrEmpty(body) && cookies.isEmpty()) {
-            sb.append("  - when: ").append(method).append(" ").append(path).append("\n");
+            sb.append("  - when: ").append(method).append(" ").append(path).append(System.lineSeparator());
         } else {
-            sb.append("  - when: |\n")
-                    .append("       ").append(method).append(" ").append(path).append("\n");
+            sb.append("  - when: |").append(System.lineSeparator())
+                    .append("       ").append(method).append(" ").append(path).append(System.lineSeparator());
             if (!cookies.isEmpty()) {
                 sb.append("       Cookie: ");
                 for (Map.Entry<String, String> entry : cookies.entrySet()) {
                     sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
                 }
                 sb.setLength(sb.length() - 2);
-                sb.append("\n");
+                sb.append(System.lineSeparator());
             }
             if (!Strings.isNullOrEmpty(body)) {
-                sb.append("\n").append(indent(body.trim(), 8)).append("\n");
+                sb.append(System.lineSeparator()).append(indent(body.trim(), 8)).append(System.lineSeparator());
             }
         }
         getThen().toString(sb);
