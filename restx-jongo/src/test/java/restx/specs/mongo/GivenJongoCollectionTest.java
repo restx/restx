@@ -31,7 +31,7 @@ public class GivenJongoCollectionTest {
                 .containsExactly("contracts", "events", "salaries");
         assertThat(extractProperty("data").from(testCase.getGiven()))
                 .containsExactly(
-                        "[ { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"test1\" } ]\n",
+                        "[ { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"test1\" } ]",
                         "[\n" +
                                 "{ \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"example1\" },\n" +
                                 "{ \"_id\": \"511bd1297638b9481a66f386\", \"title\": \"example2\" }\n" +
