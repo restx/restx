@@ -21,10 +21,10 @@ public class PolymorphicResourceTest {
         HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(
                 "/api/polymorphic/single/A");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n" +
-                "  \"@class\" : \".PolymorphicResource$A\",\n" +
-                "  \"a\" : \"a\"\n" +
-                "}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n" +
+                "  \"@class\" : \".PolymorphicResource$A\",%n" +
+                "  \"a\" : \"a\"%n" +
+                "}"));
     }
 
     @Test
@@ -32,11 +32,11 @@ public class PolymorphicResourceTest {
         HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(
                 "/api/polymorphic/single/B");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n" +
-                "  \"@class\" : \".PolymorphicResource$B\",\n" +
-                "  \"a\" : \"a\",\n" +
-                "  \"b\" : \"b\"\n" +
-                "}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n" +
+                "  \"@class\" : \".PolymorphicResource$B\",%n" +
+                "  \"a\" : \"a\",%n" +
+                "  \"b\" : \"b\"%n" +
+                "}"));
     }
 
     @Test
@@ -44,14 +44,14 @@ public class PolymorphicResourceTest {
         HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(
                 "/api/polymorphic/list/B");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("[ {\n" +
-                "  \"@class\" : \".PolymorphicResource$A\",\n" +
-                "  \"a\" : \"a1\"\n" +
-                "}, {\n" +
-                "  \"@class\" : \".PolymorphicResource$B\",\n" +
-                "  \"a\" : \"a2\",\n" +
-                "  \"b\" : \"b\"\n" +
-                "} ]");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("[ {%n" +
+                "  \"@class\" : \".PolymorphicResource$A\",%n" +
+                "  \"a\" : \"a1\"%n" +
+                "}, {%n" +
+                "  \"@class\" : \".PolymorphicResource$B\",%n" +
+                "  \"a\" : \"a2\",%n" +
+                "  \"b\" : \"b\"%n" +
+                "} ]"));
     }
 
     @Test
@@ -63,10 +63,10 @@ public class PolymorphicResourceTest {
                 .contentType("application/json")
                 .send("{\"@class\":\".PolymorphicResource$A\",\"a\":\"a3\"}");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n" +
-                "  \"@class\" : \".PolymorphicResource$A\",\n" +
-                "  \"a\" : \"a3\"\n" +
-                "}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n" +
+                "  \"@class\" : \".PolymorphicResource$A\",%n" +
+                "  \"a\" : \"a3\"%n" +
+                "}"));
     }
 
     @Test
@@ -76,10 +76,10 @@ public class PolymorphicResourceTest {
                 .contentType("application/json")
                 .send("{\"@class\":\".PolymorphicResource$B\",\"a\":\"a3\",\"b\":\"b\"}");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n" +
-                "  \"@class\" : \".PolymorphicResource$B\",\n" +
-                "  \"a\" : \"a3\",\n" +
-                "  \"b\" : \"b\"\n" +
-                "}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n" +
+                "  \"@class\" : \".PolymorphicResource$B\",%n" +
+                "  \"a\" : \"a3\",%n" +
+                "  \"b\" : \"b\"%n" +
+                "}"));
     }
 }

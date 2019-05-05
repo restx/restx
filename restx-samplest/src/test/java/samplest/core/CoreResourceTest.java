@@ -35,7 +35,7 @@ public class CoreResourceTest {
         HttpRequest httpRequest = server.client().authenticatedAs("admin").GET(
                 "/api/core/hellomsg?who=restx");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n  \"msg\" : \"hello restx\"\n}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n  \"msg\" : \"hello restx\"%n}"));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class CoreResourceTest {
                 .contentType("application/json")
                 .send("{\"msg\": \"restx\"}");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n  \"msg\" : \"hello restx\"\n}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n  \"msg\" : \"hello restx\"%n}"));
     }
 
     @Test
@@ -77,7 +77,7 @@ public class CoreResourceTest {
                 "/api/core/hellomsg?who=restx");
 
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n  \"msg\" : \"hello restx\"\n}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n  \"msg\" : \"hello restx\"%n}"));
 
         assertLifecycleMethods(filter, "[Optional.absent()]", "[Optional.of(Message{msg='hello restx'})]");
     }
@@ -92,7 +92,7 @@ public class CoreResourceTest {
                 .send("{\"msg\": \"restx\"}");
 
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("{\n  \"msg\" : \"hello restx\"\n}");
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format("{%n  \"msg\" : \"hello restx\"%n}"));
 
         assertLifecycleMethods(filter, "[Optional.of(Message{msg='restx'})]", "[Optional.of(Message{msg='hello restx'})]");
     }

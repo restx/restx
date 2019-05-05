@@ -49,9 +49,9 @@ public class PerRequestRecordingTest {
 
         assertThat(Files.contentOf(record, Charsets.UTF_8))
                 .startsWith("title: 001 GET uuids/random")
-                .contains("wts:\n" +
-                        "  - when: |\n" +
-                        "       GET uuids/random\n")
+                .contains(String.format("wts:%n" +
+                        "  - when: |%n" +
+                        "       GET uuids/random%n"))
                 .contains("- time: ")
                 .contains("- uuids: ")
         ;

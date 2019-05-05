@@ -19,7 +19,7 @@ public class SampleETagResourceTest {
     @Test
     public void should_provide_etag() throws Exception {
         HttpRequest request = client().GET("/api/etag/test1");
-        assertHttpResponse(request, 200, "{\n  \"name\" : \"test1\"\n}");
+        assertHttpResponse(request, 200, "{%n  \"name\" : \"test1\"%n}");
         assertThat(request.header("ETag")).isEqualTo("5a105e8b9d40e1329780d62ea2265d8a");
     }
 
@@ -32,13 +32,13 @@ public class SampleETagResourceTest {
     @Test
     public void should_reply_on_bad_provided_etag() throws Exception {
         HttpRequest request = client().GET("/api/etag/test1").header("If-None-Match", "123456");
-        assertHttpResponse(request, 200, "{\n  \"name\" : \"test1\"\n}");
+        assertHttpResponse(request, 200, "{%n  \"name\" : \"test1\"%n}");
     }
 
 
     protected HttpRequest assertHttpResponse(HttpRequest httpRequest, int expectedStatus, String expectedBody) {
         assertThat(httpRequest.code()).isEqualTo(expectedStatus);
-        assertThat(httpRequest.body().trim()).isEqualTo(expectedBody);
+        assertThat(httpRequest.body().trim()).isEqualTo(String.format(expectedBody));
         return httpRequest;
     }
 

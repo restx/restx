@@ -21,41 +21,41 @@ public class JacksonViewsTest {
         HttpRequest httpRequest = server.client().GET("/api/jacksonviews/carsDetails");
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo(
-                "[ {\n" +
-                        "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"samplest-Model1\",\n" +
-                        "  \"status\" : {\n" +
-                        "    \"status\" : \"ko\",\n" +
-                        "    \"details\" : \"\"\n" +
-                        "  },\n" +
-                        "  \"details\" : \"Detail1\"\n" +
-                        "}, {\n" +
-                        "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"samplest-Model2\",\n" +
-                        "  \"status\" : {\n" +
-                        "    \"status\" : \"ok\",\n" +
-                        "    \"details\" : \"status detail 2\"\n" +
-                        "  },\n" +
-                        "  \"details\" : \"Detail2\"\n" +
-                        "} ]");
+                String.format("[ {%n" +
+                        "  \"brand\" : \"Brand1\",%n" +
+                        "  \"model\" : \"samplest-Model1\",%n" +
+                        "  \"status\" : {%n" +
+                        "    \"status\" : \"ko\",%n" +
+                        "    \"details\" : \"\"%n" +
+                        "  },%n" +
+                        "  \"details\" : \"Detail1\"%n" +
+                        "}, {%n" +
+                        "  \"brand\" : \"Brand1\",%n" +
+                        "  \"model\" : \"samplest-Model2\",%n" +
+                        "  \"status\" : {%n" +
+                        "    \"status\" : \"ok\",%n" +
+                        "    \"details\" : \"status detail 2\"%n" +
+                        "  },%n" +
+                        "  \"details\" : \"Detail2\"%n" +
+                        "} ]"));
     }
     @Test
     public void should_retrieve_default_view() throws Exception {
         HttpRequest httpRequest = server.client().GET("/api/jacksonviews/cars");
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo(
-                "[ {\n" +
-                        "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"samplest-Model1\",\n" +
-                        "  \"status\" : {\n" +
-                        "    \"status\" : \"ko\"\n" +
-                        "  }\n" +
-                        "}, {\n" +
-                        "  \"brand\" : \"Brand1\",\n" +
-                        "  \"model\" : \"samplest-Model2\",\n" +
-                        "  \"status\" : {\n" +
-                        "    \"status\" : \"ok\"\n" +
-                        "  }\n" +
-                        "} ]");
+                String.format("[ {%n" +
+                        "  \"brand\" : \"Brand1\",%n" +
+                        "  \"model\" : \"samplest-Model1\",%n" +
+                        "  \"status\" : {%n" +
+                        "    \"status\" : \"ko\"%n" +
+                        "  }%n" +
+                        "}, {%n" +
+                        "  \"brand\" : \"Brand1\",%n" +
+                        "  \"model\" : \"samplest-Model2\",%n" +
+                        "  \"status\" : {%n" +
+                        "    \"status\" : \"ok\"%n" +
+                        "  }%n" +
+                        "} ]"));
     }
 }
