@@ -29,7 +29,12 @@ public final class GivenJongoCollectionLoader implements RestxSpecLoader.GivenLo
         String path = given.containsKey("path") ? checkInstanceOf("path", given.get("path"), String.class) : "data://";
         String data;
         if (given.containsKey("data")) {
-            data = checkInstanceOf("data", given.get("data"), String.class);
+            data = checkInstanceOf("data", given.get("data"), String.class)
+                    // Being consistent in loaded line ending in order to have platform-specific line ending
+                    // Note that Yaml() always loads nodes in a consistent way, using \n everytime
+                    // but we need to convert this to platform specific entries otherwise, spec files eol would have to
+                    // be defined in git repo (through .gitattributes for instance) to work properly
+                    .replaceAll("\n", System.lineSeparator());
         } else if (given.containsKey("path")) {
             if (path.startsWith("/")) {
                 try {

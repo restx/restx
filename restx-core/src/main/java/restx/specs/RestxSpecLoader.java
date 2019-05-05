@@ -73,25 +73,32 @@ public class RestxSpecLoader {
             if (w instanceof String) {
                 WhenHttpRequest.Builder whenHttpBuilder = WhenHttpRequest.builder();
 
-                String ws = (String) w;
+                String ws = ((String) w)
+                        // Being consistent in loaded line ending in order to have platform-specific line ending
+                        // Note that Yaml() always loads nodes in a consistent way, using \n everytime
+                        // but we need to convert this to platform specific entries otherwise, spec files eol would have to
+                        // be defined in git repo (through .gitattributes for instance) to work properly
+                        .replaceAll("\n", System.lineSeparator());
+
                 String definition;
                 String body;
 
-                int nlIndex = ws.indexOf("\n");
+                int nlIndex = ws.indexOf(System.lineSeparator());
                 if (nlIndex != -1) {
                     definition = ws.substring(0, nlIndex);
-                    body = ws.substring(nlIndex + 1).trim();
+                    body = ws.substring(nlIndex + System.lineSeparator().length()).trim();
+
 
                     Optional<WhenHeaderLoader> whenHeader = resolveFromBody(body);
                     while (whenHeader.isPresent()) {
-                        nlIndex = body.indexOf("\n");
+                        nlIndex = body.indexOf(System.lineSeparator());
                         String headerValue;
                         if (nlIndex == -1) {
                             headerValue = body.substring(whenHeader.get().detectionPattern().length(), body.length());
                             body = "";
                         } else {
                             headerValue = body.substring(whenHeader.get().detectionPattern().length(), nlIndex);
-                            body = body.substring(nlIndex + 1).trim();
+                            body = body.substring(nlIndex + System.lineSeparator().length()).trim();
                         }
 
                         whenHeader.get().loadHeader(headerValue, whenHttpBuilder);
@@ -106,9 +113,15 @@ public class RestxSpecLoader {
                 Matcher methodAndPathMatcher = Pattern.compile("(GET|POST|PUT|DELETE|HEAD|OPTIONS) (.+)").matcher(definition);
 
                 if (methodAndPathMatcher.matches()) {
-                    String then = checkInstanceOf("then", whenThen.get("then"), String.class).trim();
+                    String then = checkInstanceOf("then", whenThen.get("then"), String.class)
+                            // Being consistent in loaded line ending in order to have platform-specific line ending
+                            // Note that Yaml() always loads nodes in a consistent way, using \n everytime
+                            // but we need to convert this to platform specific entries otherwise, spec files eol would have to
+                            // be defined in git repo (through .gitattributes for instance) to work properly
+                            .replaceAll("\n", System.lineSeparator())
+                            .trim();
                     HttpStatus code = HttpStatus.OK;
-                    int endLineIndex = then.indexOf("\n");
+                    int endLineIndex = then.indexOf(System.lineSeparator());
                     if (endLineIndex == -1) {
                         endLineIndex = then.length();
                     }
