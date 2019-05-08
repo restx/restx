@@ -56,15 +56,15 @@ public class FSRouter {
                             resp.setStatus(HttpStatus.OK);
                             resp.setContentType("application/json");
                             PrintWriter writer = resp.getWriter();
-                            writer.println("[");
+                            writer.print("[\n");
                             Path dir = file.toPath();
                             for (Iterator<Path> iterator = java.nio.file.Files.newDirectoryStream(dir).iterator(); iterator.hasNext(); ) {
                                 Path s = iterator.next();
                                 boolean isDirectory = s.toFile().isDirectory();
-                                writer.println("\"" + dir.relativize(s) + (isDirectory ? "/" : "") + "\""
-                                        + (iterator.hasNext() ? "," : "") +"");
+                                writer.print("\"" + dir.relativize(s) + (isDirectory ? "/" : "") + "\""
+                                        + (iterator.hasNext() ? "," : "") +"\n");
                             }
-                            writer.println("]");
+                            writer.print("]\n");
                         } else {
                             throw new WebException(HttpStatus.UNAUTHORIZED);
                         }
