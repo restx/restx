@@ -1,9 +1,10 @@
 package restx.tests.json;
 
-import org.junit.Test;
-
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+
+import org.junit.Test;
 
 /**
  * Date: 4/2/14
@@ -55,7 +56,7 @@ public class JsonAssertionsTest {
             fail("should throw error when not same");
         } catch (AssertionError e) {
             assertThat(e).hasMessage(
-                    "Expecting:\n" +
+                    format("Expecting:\n" +
                             "  {\"key1\": [{\"key2\": \"val21\", \"key3\": \"val31\"}, {\"key2\": \"val22\", \"key3\": \"val32\"}]}\n" +
                             "to be same json as:\n" +
                             "  {\"key1\": [{\"key2\": \"val22\"}]}\n" +
@@ -63,22 +64,22 @@ public class JsonAssertionsTest {
                             "- within [L1C11]-[L1C82]:\n" +
                             "  [{\"key2\": \"val21\", \"key3\": \"val31\"}, {\"key2\": \"val22\", \"key3\": \"val32\"}]\n" +
                             "01) extra element(s) in array at position 0 at path './key1' with value(s):\n" +
-                            "      [ {\n" +
-                            "        \"key2\" : \"val21\",\n" +
-                            "        \"key3\" : \"val31\"\n" +
+                            "      [ {%n" +
+                            "        \"key2\" : \"val21\",%n" +
+                            "        \"key3\" : \"val31\"%n" +
                             "      } ]\n" +
                             "\n" +
                             "\n" +
                             "if the expectation is not up to date, here is a merged expect that you can use to fix your test:\n" +
-                            "  {\n" +
-                            "    \"key1\" : [ {\n" +
-                            "      \"key2\" : \"val21\",\n" +
-                            "      \"key3\" : \"val31\"\n" +
-                            "    }, {\n" +
-                            "      \"key2\" : \"val22\"\n" +
-                            "    } ]\n" +
+                            "  {%n" +
+                            "    \"key1\" : [ {%n" +
+                            "      \"key2\" : \"val21\",%n" +
+                            "      \"key3\" : \"val31\"%n" +
+                            "    }, {%n" +
+                            "      \"key2\" : \"val22\"%n" +
+                            "    } ]%n" +
                             "  }\n" +
-                            "\n"
+                            "\n")
             );
         }
     }
@@ -129,7 +130,7 @@ public class JsonAssertionsTest {
             fail("should throw error when not same");
         } catch (AssertionError e) {
             assertThat(e).hasMessage(
-                    "Expecting:\n" +
+                    format("Expecting:\n" +
                             "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
                             "to be same json as:\n" +
                             "  {\"key1\": []}\n" +
@@ -137,10 +138,9 @@ public class JsonAssertionsTest {
                             "- within [L1C11]-[L1C28]:\n" +
                             "  [{\"key2\": \"val2\"}]\n" +
                             "01) extra element(s) in array at position 0 at path './key1' with value(s):\n" +
-                            "      [ {\n" +
-                            "        \"key2\" : \"val2\"\n" +
-                            "      } ]\n"
-            );
+                            "      [ {%n" +
+                            "        \"key2\" : \"val2\"%n" +
+                            "      } ]\n"));
         }
     }
 
@@ -150,19 +150,18 @@ public class JsonAssertionsTest {
             JsonAssertions.assertThat("{\"key1\": []}").isSameJsonAs("{\"key1\": [{\"key2\": \"val2\"}]}");
             fail("should throw error when not same");
         } catch (AssertionError e) {
-            assertThat(e).hasMessage(
-                    "Expecting:\n" +
-                            "  {\"key1\": []}\n" +
-                            "to be same json as:\n" +
-                            "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
-                            "but following differences were found:\n" +
-                            "- within [L1C11]-[L1C12]:\n" +
-                            "  []\n" +
-                            "01) missing element(s) in array at position 0 at path './key1' expected value(s):\n" +
-                            "      [ {\n" +
-                            "        \"key2\" : \"val2\"\n" +
-                            "      } ]\n"
-            );
+            assertThat(e).hasMessage(format("Expecting:\n" +
+                    "  {\"key1\": []}\n" +
+                    "to be same json as:\n" +
+                    "  {\"key1\": [{\"key2\": \"val2\"}]}\n" +
+                    "but following differences were found:\n" +
+                    "- within [L1C11]-[L1C12]:\n" +
+                    "  []\n" +
+                    "01) missing element(s) in array at position 0 at path './key1' expected value(s):\n" +
+                    "      [ {%n" +
+                    "        \"key2\" : \"val2\"%n" +
+                    "      } ]\n"));
+                    
         }
     }
 

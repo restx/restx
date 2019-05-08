@@ -1,23 +1,30 @@
 package restx.server.simple;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.kevinsawicki.http.HttpRequest;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
-import org.assertj.core.util.Files;
-import org.junit.Test;
-import restx.*;
-import restx.entity.MatchedEntityOutputRoute;
-import restx.entity.MatchedEntityRoute;
-import restx.http.HttpStatus;
-import restx.server.WebServers;
-import restx.server.simple.simple.SimpleWebServer;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.util.Files;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.kevinsawicki.http.HttpRequest;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
+
+import restx.FSRouter;
+import restx.RestxRequest;
+import restx.RestxRequestMatch;
+import restx.RestxRouter;
+import restx.StdRestxMainRouter;
+import restx.entity.MatchedEntityOutputRoute;
+import restx.entity.MatchedEntityRoute;
+import restx.http.HttpStatus;
+import restx.server.WebServers;
+import restx.server.simple.simple.SimpleWebServer;
 
 /**
  * Date: 27/11/13
@@ -93,9 +100,9 @@ public class SimpleWebServerTest {
         try {
             HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo("[\n" +
-                    "\"test.txt\"\n" +
-                    "]");
+            assertThat(httpRequest.body().trim()).isEqualTo(format("[%n" +
+                    "\"test.txt\"%n" +
+                    "]"));
         } finally {
             server.stop();
         }
@@ -117,7 +124,7 @@ public class SimpleWebServerTest {
         try {
             HttpRequest httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo("[\n]");
+            assertThat(httpRequest.body().trim()).isEqualTo(format("[%n]"));
 
             httpRequest = HttpRequest.put(server.baseUrl() + "/api/test/test.txt").send("bonjour");
             assertThat(httpRequest.code()).isEqualTo(HttpStatus.CREATED.getCode());
@@ -128,9 +135,9 @@ public class SimpleWebServerTest {
 
             httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo("[\n" +
-                    "\"test.txt\"\n" +
-                    "]");
+            assertThat(httpRequest.body().trim()).isEqualTo(format("[%n" +
+                    "\"test.txt\"%n" +
+                    "]"));
 
             httpRequest = HttpRequest.put(server.baseUrl() + "/api/test/test.txt").send("hello");
             assertThat(httpRequest.code()).isEqualTo(HttpStatus.ACCEPTED.getCode());
@@ -144,13 +151,13 @@ public class SimpleWebServerTest {
 
             httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isIn("[\n" +
-                    "\"test.txt\",\n" +
-                    "\"test2.txt\"\n" +
-                    "]", "[\n" +
-                    "\"test2.txt\",\n" +
-                    "\"test.txt\"\n" +
-                    "]");
+            assertThat(httpRequest.body().trim()).isIn(format("[%n" +
+                    "\"test.txt\",%n" +
+                    "\"test2.txt\"%n" +
+                    "]"), String.format("[%n" +
+                    "\"test2.txt\",%n" +
+                    "\"test.txt\"%n" +
+                    "]"));
 
             httpRequest = HttpRequest.delete(server.baseUrl() + "/api/test/test.txt");
             assertThat(httpRequest.code()).isEqualTo(HttpStatus.NO_CONTENT.getCode());
@@ -159,20 +166,21 @@ public class SimpleWebServerTest {
 
             httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo("[\n]");
+            assertThat(httpRequest.body().trim()).isEqualTo(format("[%n]"));
 
             httpRequest = HttpRequest.put(server.baseUrl() + "/api/test/dir/").send("[]");
             assertThat(httpRequest.code()).isEqualTo(HttpStatus.CREATED.getCode());
 
             httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo("[\n" +
-                    "\"dir/\"\n" +
-                    "]");
+            assertThat(httpRequest.body().trim()).isEqualTo(format("[%n" +
+                    "\"dir/\"%n" +
+                    "]"));
 
             httpRequest = HttpRequest.get(server.baseUrl() + "/api/test/dir/");
             assertThat(httpRequest.code()).isEqualTo(200);
-            assertThat(httpRequest.body().trim()).isEqualTo("[\n]");
+            assertThat(httpRequest.body().trim()).isEqualTo(format("[%n]"));
+
 
             httpRequest = HttpRequest.delete(server.baseUrl() + "/api/test/dir/");
             assertThat(httpRequest.code()).isEqualTo(HttpStatus.NO_CONTENT.getCode());
@@ -184,7 +192,7 @@ public class SimpleWebServerTest {
             // making test/dir/ directory deletion not effective at that moment (listing test/ directory will show dir/
             // subdirectory instead of an empty directory)
             if(!isWindowsOS()) {
-                assertThat(httpRequest.body().trim()).isEqualTo("[\n]");
+                assertThat(httpRequest.body().trim()).isEqualTo(format("[%n]"));
 
                 httpRequest = HttpRequest.put(server.baseUrl() + "/api/test/dir/test.txt").send("bonjour");
                 assertThat(httpRequest.code()).isEqualTo(HttpStatus.CREATED.getCode());
@@ -201,5 +209,4 @@ public class SimpleWebServerTest {
     private static boolean isWindowsOS() {
         return System.getProperty("os.name").toLowerCase().contains("windows");
     }
-
 }

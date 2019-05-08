@@ -74,7 +74,6 @@ public class GivenJongoCollectionTest {
                 "restx/tests/restx_test_case_example_1.yaml");
 
         String actual = testCase.toString();
-        System.out.println("actual = " + actual);
         assertThat(actual).isEqualTo(Resources.toString(
                                 Resources.getResource("restx/tests/expected_restx_case_example_1.yaml"),
                                 Charsets.UTF_8));
