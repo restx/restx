@@ -104,7 +104,8 @@ public abstract class AbstractResponse<R> implements RestxResponse {
         }
         try {
             if (writer != null) {
-                writer.println();
+                writer.print("\n");
+                writer.flush();
                 writer.close();
             }
             if (outputStream != null) {
