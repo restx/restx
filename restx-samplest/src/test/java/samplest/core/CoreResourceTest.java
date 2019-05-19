@@ -48,8 +48,10 @@ public class CoreResourceTest {
 
     @Test
     public void should_post_hello() throws Exception {
-        HttpRequest httpRequest = server.client().authenticatedAs("admin").POST(
-                "/api/core/hellomsg").send("{\"msg\": \"restx\"}");
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .POST("/api/core/hellomsg")
+                .contentType("application/json")
+                .send("{\"msg\": \"restx\"}");
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo("{\n  \"msg\" : \"hello restx\"\n}");
     }
@@ -84,8 +86,10 @@ public class CoreResourceTest {
     public void should_lifecycle_post_hello_msg() throws Exception {
         LifecycleListenerFilter filter = new LifecycleListenerFilter();
         Factory.LocalMachines.overrideComponents().set("LifecycleListenerFilter", filter);
-        HttpRequest httpRequest = server.client().authenticatedAs("admin").POST(
-                "/api/core/hellomsg").send("{\"msg\": \"restx\"}");
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .POST("/api/core/hellomsg")
+                .contentType("application/json")
+                .send("{\"msg\": \"restx\"}");
 
         assertThat(httpRequest.code()).isEqualTo(200);
         assertThat(httpRequest.body().trim()).isEqualTo("{\n  \"msg\" : \"hello restx\"\n}");

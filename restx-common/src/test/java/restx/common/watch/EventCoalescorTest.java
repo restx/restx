@@ -35,7 +35,7 @@ public class EventCoalescorTest {
         coalescor.post("test1");
         coalescor.post("test3");
 
-        Thread.sleep(40);
+        Thread.sleep(100);
 
         assertThat(messages).containsExactly("test1", "test2", "test3");
 
@@ -45,7 +45,7 @@ public class EventCoalescorTest {
         coalescor.post("test1");
         coalescor.post("test1");
         coalescor.post("test1");
-        Thread.sleep(40);
+        Thread.sleep(100);
 
         assertThat(messages).containsExactly("test2", "test1");
     }

@@ -3,6 +3,7 @@ package restx.tests.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Ordering;
+import restx.common.MoreFiles;
 
 import java.util.Comparator;
 
@@ -55,11 +56,7 @@ public class JsonMerger {
             difference.mergeToRight(diff);
         }
 
-        try {
-            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return serializeNodeAsString(root);
     }
 
     public String mergeToLeft(JsonDiff diff) {
@@ -69,8 +66,12 @@ public class JsonMerger {
             difference.mergeToLeft(diff);
         }
 
+        return serializeNodeAsString(root);
+    }
+
+    private String serializeNodeAsString(Object root) {
         try {
-            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
+            return MoreFiles.removeWindowsCarriageReturnsBeforeLF(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

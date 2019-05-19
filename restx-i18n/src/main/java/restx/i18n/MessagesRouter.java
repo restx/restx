@@ -96,7 +96,7 @@ public class MessagesRouter extends RestxRouter {
     }
 
     protected static void writeLabelsJson(PrintWriter writer, Iterable<Entry<String, String>> labels) {
-        writer.println("{");
+        writer.print("{\n");
 
         boolean firstKey = true;
         for (Entry<String, String> entry : labels) {
