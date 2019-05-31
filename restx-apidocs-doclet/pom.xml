@@ -15,13 +15,13 @@
     </properties>
 
     <dependencies>
-        <dependency>
+        <!-- <dependency>
             <groupId>com.sun.tools</groupId>
             <artifactId>tools</artifactId>
             <version>${java.version}</version>
             <scope>system</scope>
-            <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
+            <systemPath>${java.home}/lib/tools.jar</systemPath>
+        </dependency> -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
@@ -53,4 +53,43 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <profiles>
+    <profile>
+      <id>tools-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <file>
+          <exists>${java.home}/../lib/tools.jar</exists>
+        </file>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>${java.version}</version>
+          <scope>system</scope>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+    	<!-- when using eclipse and defining a jdk folder to be the home instead of the jre folder -->
+      <id>jdk-tools-jar</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <file>
+          <exists>${java.home}/lib/tools.jar</exists>
+        </file>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>${java.version}</version>
+          <scope>system</scope>
+          <systemPath>${java.home}/lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+    </profiles>
 </project>
