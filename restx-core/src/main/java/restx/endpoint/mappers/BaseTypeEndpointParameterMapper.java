@@ -1,6 +1,5 @@
 package restx.endpoint.mappers;
 
-import com.fasterxml.jackson.databind.type.SimpleType;
 import com.google.common.base.Optional;
 import restx.RestxRequest;
 import restx.RestxRequestMatch;
@@ -44,9 +43,5 @@ public class BaseTypeEndpointParameterMapper implements EndpointParameterMapper 
                 return null;
             }
         }
-    }
-
-    public boolean isBaseTypeParam(EndpointParamDef endpointParamDef) {
-        return converter.canDeserialize(SimpleType.construct(endpointParamDef.getRawType()));
     }
 }

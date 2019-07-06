@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import restx.common.Types;
+import restx.types.Types;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;

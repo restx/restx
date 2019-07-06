@@ -1,7 +1,7 @@
 package restx.endpoint;
 
 import java.util.Objects;
-import restx.common.TypeReference;
+import restx.types.TypeReference;
 import restx.factory.ParamDef;
 
 /**

@@ -33,6 +33,7 @@ public class ErrorAnnotationProcessor extends RestxAbstractProcessor {
     final Template errorDescriptorTpl;
 
     public ErrorAnnotationProcessor() {
+        super();
         errorDescriptorTpl = Mustaches.compile(ErrorAnnotationProcessor.class, "ErrorDescriptor.mustache");
     }
 

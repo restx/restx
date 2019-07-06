@@ -1,0 +1,14 @@
+{
+    "parent": "io.restx:restx-parent:${restx.version}",
+    "module": "io.restx:restx-samplest-custom-types-testing:${restx.version}",
+
+    "properties": {
+      "@files": ["../restx.build.properties.json"]
+    },
+
+    "dependencies": {
+        "compile": [
+            "io.restx:restx-common:${restx.version}"
+        ]
+    }
+}

@@ -1,19 +1,37 @@
-package restx.common;
+package restx.types;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.*;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 /**
  * Date: 23/10/13
  * Time: 11:02
  */
 public class Types {
+
+	public static final ImmutableList<AggregateType> DECLARED_AGGREGATED_TYPES;
+	public static final ImmutableList<OptionalTypeDefinition> DECLARED_OPTIONAL_TYPES;
+	public static final ImmutableList<RawTypesDefinition> DECLARED_RAW_TYPES_DEFINITIONS;
+	static {
+		DECLARED_AGGREGATED_TYPES = ImmutableList.copyOf(ServiceLoader.load(AggregateType.class));
+		DECLARED_OPTIONAL_TYPES = ImmutableList.copyOf(ServiceLoader.load(OptionalTypeDefinition.class));
+		DECLARED_RAW_TYPES_DEFINITIONS = ImmutableList.copyOf(ServiceLoader.load(RawTypesDefinition.class));
+	}
+
     public static ParameterizedType newParameterizedType(final Class<?> rawType, final Type... arguments) {
         return new ParameterizedType() {
             @Override
@@ -211,5 +229,90 @@ public class Types {
 			}
 		}
 		return false;
+	}
+
+	public static boolean matchesParameterizedFQCN(Class c, String fqcn) {
+		return fqcn.startsWith(c.getCanonicalName());
+	}
+
+	public static Class aggregatedTypeOf(Type type) {
+		if(type instanceof ParameterizedType) {
+			return (Class)((ParameterizedType)type).getActualTypeArguments()[0];
+		} else if(type instanceof Class && ((Class)type).isArray()){
+			return ((Class)type).getComponentType();
+		} else {
+			throw new IllegalArgumentException("Call to aggregatedTypeOf() is not supported for type : "+type);
+		}
+	}
+
+	public static TypeMirror aggregatedTypeOf(TypeMirror type) {
+		if (type instanceof ArrayType) {
+			ArrayType arrayType = (ArrayType) type;
+			return arrayType.getComponentType();
+		} else if (type instanceof DeclaredType) {
+			DeclaredType declaredType = (DeclaredType) type;
+			return Iterables.getOnlyElement(declaredType.getTypeArguments());
+		} else {
+			throw new IllegalArgumentException("Call to aggregatedTypeOf() is not supported for type : " + type);
+		}
+	}
+
+	public static Optional<AggregateType> aggregateTypeFrom(String fqcn) {
+		for(AggregateType aggregateType : DECLARED_AGGREGATED_TYPES){
+			if(aggregateType.isApplicableTo(fqcn)) {
+				return Optional.of(aggregateType);
+			}
+		}
+
+		return Optional.absent();
+	}
+	public static boolean isAggregateType(String fqcn) {
+		return aggregateTypeFrom(fqcn).isPresent();
+	}
+
+	public static OptionalTypeDefinition.Matcher optionalMatchingTypeOf(String fqcn) {
+		OptionalTypeDefinition.Matcher lastMatcher = null;
+		for(OptionalTypeDefinition optionalDefinition: DECLARED_OPTIONAL_TYPES) {
+			lastMatcher = optionalDefinition.matches(fqcn);
+			if(lastMatcher.isOptionalType()) {
+				return lastMatcher;
+			}
+		}
+
+		return lastMatcher;
+	}
+
+	public static boolean isEnum(TypeMirror typeMirror, javax.lang.model.util.Types typeUtils) {
+		TypeMirror firstAncestor = Iterables.getFirst(typeUtils.directSupertypes(typeMirror), null);
+		if(firstAncestor == null) {
+			return false;
+		}
+		return firstAncestor.toString().startsWith("java.lang.Enum<");
+	}
+
+	public static boolean isRawType(Type type) {
+		for (RawTypesDefinition rawTypesDefinition : DECLARED_RAW_TYPES_DEFINITIONS) {
+			if (rawTypesDefinition.accepts(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isRawType(TypeMirror type, ProcessingEnvironment processingEnvironment) {
+		for (RawTypesDefinition rawTypesDefinition : DECLARED_RAW_TYPES_DEFINITIONS) {
+			if (rawTypesDefinition.accepts(type, processingEnvironment)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isParameterizedType(String type) {
+		return type.contains("<");
+	}
+
+	public static String rawTypeFrom(String type) {
+		return isParameterizedType(type)?type.substring(0, type.indexOf("<")):type;
 	}
 }

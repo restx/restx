@@ -25,4 +25,8 @@ public class MoreStrings {
     public static String reindent(String s, int i) {
         return Pattern.compile("^\\s*", Pattern.MULTILINE).matcher(s).replaceAll(Strings.repeat(" ", i));
     }
+
+    public static String lowerFirstLetter(String str) {
+        return str.substring(0, 1).toLowerCase()+str.substring(1);
+    }
 }

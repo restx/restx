@@ -1,6 +1,6 @@
 package restx.common;
 
-import static restx.common.Types.isAssignableFrom;
+import static restx.types.Types.isAssignableFrom;
 
 
 import com.google.common.collect.ImmutableList;
@@ -8,6 +8,8 @@ import com.google.common.collect.ImmutableMap;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.Rule;
 import org.junit.Test;
+import restx.types.TypeReference;
+import restx.types.Types;
 
 import java.util.AbstractList;
 import java.util.AbstractMap;

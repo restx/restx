@@ -1,0 +1,32 @@
+title: All Raw Types Criteria as Query Param Values
+given:
+  - time: 2014-12-24T17:01:21.795+02:00
+wts:
+  - when: |
+       GET params/allRawTypesCriteria?str=aaa&clazz=java.lang.String&myEnum=foo&file=/tmp/foo&bigDecimal=123.45&bigInteger=123
+    then: |
+       {"str":"aaa","clazz":"java.lang.String","file":"/tmp/foo","bigDecimal":123.45,"bigInteger":123}
+  - when: |
+       GET params/allRawTypesCriteria?currency=EUR&date=2018-02-20T16:39:20.123Z&locale=fr_FR&timeZone=UTC&uuid=56f71fcc-42d3-422f-9458-8ad37fc4a0b5&charset=UTF-8&path=/tmp/foo
+    then: |
+       {"currency":"EUR","date":"2018-02-20T16:39:20.123+0000","locale":"fr_FR","timeZone":"UTC","uuid":"56f71fcc-42d3-422f-9458-8ad37fc4a0b5","charset":"UTF-8","path":"file:///tmp/foo"}
+  - when: |
+       GET params/allRawTypesCriteria?pattern=[a-zA-Z0-9]*&uri=http://www.restx.io&url=http://www.restx.io
+    then: |
+       {"pattern":"[a-zA-Z0-9]*","uri":"http://www.restx.io","url":"http://www.restx.io"}
+  - when: |
+       GET params/allRawTypesCriteria?jodaDateTime=2018-02-20T17:39:20.123%2B0100&jodaInstant=2018-02-20T17:39:20.123%2B0100&jodaLocalDate=2018-02-20&jodaLocalDateTime=2018-02-20T16:39:20.123&jodaLocalTime=16:39:20.123&jodaTimeZone=Europe/Paris
+    then: |
+       {"jodaDateTime":"2018-02-20T16:39:20.123Z","jodaInstant":"2018-02-20T16:39:20.123Z","jodaLocalDate":"2018-02-20","jodaLocalDateTime":"2018-02-20T16:39:20.123","jodaLocalTime":"16:39:20.123","jodaTimeZone":"Europe/Paris"}
+  - when: |
+       GET params/allRawTypesCriteria?objectId=5167cec5856107c479739654
+    then: |
+       {"objectId":"5167cec5856107c479739654"}
+  - when: |
+       GET params/allRawTypesCriteria?aByte=123&aShort=123&anInt=123&aLong=123&aFloat=123.45&aDouble=123.45&aBoolean=false&aChar=Z
+    then: |
+       {"aByte":123,"aShort":123,"anInt":123,"aLong":123,"aFloat":123.45,"aDouble":123.45,"aBoolean":false,"aChar":"Z"}
+  - when: |
+       GET params/allRawTypesCriteria?aByteWrapper=123&aShortWrapper=123&anIntegerWrapper=123&aLongWrapper=123&aFloatWrapper=123.45&aDoubleWrapper=123.45&aBooleanWrapper=false&aCharacterWrapper=Z
+    then: |
+       {"aByteWrapper":123,"aShortWrapper":123,"anIntegerWrapper":123,"aLongWrapper":123,"aFloatWrapper":123.45,"aDoubleWrapper":123.45,"aBooleanWrapper":false,"aCharacterWrapper":"Z"}
