@@ -1,4 +1,4 @@
-package restx.common;
+package restx.types;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

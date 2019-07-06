@@ -1,0 +1,5 @@
+restx.types.AggregateType$ITERABLE
+restx.types.AggregateType$LIST
+restx.types.AggregateType$SET
+restx.types.AggregateType$COLLECTION
+restx.types.AggregateType$ARRAY
