@@ -1,5 +1,6 @@
 package restx.tests;
 
+import com.chrylis.codec.base58.Base58Codec;
 import com.github.kevinsawicki.http.HttpRequest;
 import com.google.common.base.Charsets;
 import com.google.common.base.Stopwatch;
@@ -10,6 +11,8 @@ import restx.factory.Component;
 import restx.specs.WhenHttpRequest;
 import restx.tests.json.JsonAssertions;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -19,6 +22,7 @@ import static restx.specs.WhenHttpRequest.BASE_URL;
 
 @Component
 public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
+    private List<String> headersSession = Arrays.asList("RestxSession", "RestxSessionSignature");
 
     @Override
     public Class<WhenHttpRequest> getWhenClass() {
@@ -46,7 +50,11 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
         if (!cookies.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, String> entry : cookies.entrySet()) {
-                sb.append(entry.getKey()).append("=\"").append(entry.getValue().replace("\"", "\\\"")).append("\"; ");
+                String valueCookie = headersSession.contains(entry.getKey())
+                        ? Base58Codec.doEncode(entry.getValue().getBytes())
+                        : entry.getValue();
+
+                sb.append(entry.getKey()).append("=\"").append(valueCookie.replace("\"", "\\\"")).append("\"; ");
             }
             sb.setLength(sb.length() - 2);
             httpRequest.header("Cookie", sb.toString());

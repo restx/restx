@@ -2,8 +2,8 @@ package restx.servlet;
 
 import org.joda.time.Duration;
 import restx.AbstractResponse;
-import restx.http.HttpStatus;
 import restx.RestxResponse;
+import restx.http.HttpStatus;
 import restx.security.RestxSessionCookieDescriptor;
 
 import javax.servlet.ServletResponse;
@@ -12,8 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * User: xavierhanin
@@ -47,6 +45,8 @@ public class HttpServletRestxResponse extends AbstractResponse<HttpServletRespon
     @Override
     public RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor, Duration expiration) {
         Cookie existingCookie = HttpServletRestxRequest.getCookie(request.getCookies(), cookie);
+        String encodeValue = cookieDescriptor.encodeValueIfNeeded(value);
+
         if (existingCookie != null) {
             if(cookieDescriptor.getDomain().isPresent()) {
                 existingCookie.setDomain(cookieDescriptor.getDomain().get());
@@ -59,7 +59,7 @@ public class HttpServletRestxResponse extends AbstractResponse<HttpServletRespon
                     ) {
                 // update existing cookie
                 existingCookie.setPath("/");
-                existingCookie.setValue(value);
+                existingCookie.setValue(encodeValue);
                 existingCookie.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
                 resp.addCookie(existingCookie);
             } else {
@@ -68,13 +68,13 @@ public class HttpServletRestxResponse extends AbstractResponse<HttpServletRespon
                 existingCookie.setMaxAge(0);
                 resp.addCookie(existingCookie);
 
-                Cookie c = new Cookie(cookie, value);
+                Cookie c = new Cookie(cookie, encodeValue);
                 c.setPath("/");
                 c.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
                 resp.addCookie(c);
             }
         } else {
-            Cookie c = new Cookie(cookie, value);
+            Cookie c = new Cookie(cookie, encodeValue);
             c.setPath("/");
             c.setMaxAge(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
             if(cookieDescriptor.getDomain().isPresent()) {

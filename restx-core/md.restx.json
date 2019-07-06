@@ -22,7 +22,8 @@
             "org.slf4j:slf4j-api:${slf4j-api.version}",
             "javax.validation:validation-api:${validation-api.version}",
             "org.reflections:reflections:${reflections.version}",
-            "org.yaml:snakeyaml:${snakeyaml.version}"
+            "org.yaml:snakeyaml:${snakeyaml.version}",
+            "io.restx:restx-base58-codec:1.2.1"
         ],
         "test": [
             "junit:junit:${junit.version}",

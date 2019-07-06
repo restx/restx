@@ -48,10 +48,14 @@ public class HttpTestClient {
         ImmutableMap.Builder<String, String> cookiesBuilder = ImmutableMap.<String, String>builder().putAll(cookies);
         String uuid = factory.getComponent(UUIDGenerator.class).doGenerate();
         String expires = DateTime.now().plusHours(1).toString();
+
         String sessionContent = String.format(
-                "{\"_expires\":\"%s\",\"principal\":\"%s\",\"sessionKey\":\"%s\"}", expires, principal, uuid);
-        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieName(), sessionContent);
-        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieSignatureName(), signer.sign(sessionContent));
+                "{\"_expires\":\"%s\",\"principal\":\"%s\",\"sessionKey\":\"%s\"}", expires, principal, uuid);;
+        String sessionEncode = restxSessionCookieDescriptor.encodeValueIfNeeded(sessionContent);
+        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieName(), sessionEncode);
+
+        String signEncode = restxSessionCookieDescriptor.encodeValueIfNeeded(signer.sign(sessionContent));
+        cookiesBuilder.put(restxSessionCookieDescriptor.getCookieSignatureName(), signEncode);
 
         return new HttpTestClient(baseUrl, principal, cookiesBuilder.build());
     }

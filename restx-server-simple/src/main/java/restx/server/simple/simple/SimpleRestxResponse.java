@@ -26,7 +26,8 @@ public class SimpleRestxResponse extends AbstractResponse<Response> {
 
     @Override
     public RestxResponse addCookie(String cookie, String value, RestxSessionCookieDescriptor cookieDescriptor, Duration expiration) {
-        Cookie c = new Cookie(cookie, value, "/");
+        String encodeValue = cookieDescriptor.encodeValueIfNeeded(value);
+        Cookie c = new Cookie(cookie, encodeValue, "/");
         c.setExpiry(expiration.getStandardSeconds() > 0 ? (int) expiration.getStandardSeconds() : -1);
         if(cookieDescriptor.getDomain().isPresent()) {
             c.setDomain(cookieDescriptor.getDomain().get());
