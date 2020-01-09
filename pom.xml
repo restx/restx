@@ -580,7 +580,6 @@
         <module>restx-validation</module>
         <module>restx-webjars</module>
         <module>restx-md-fragments</module>
-        <module>restx-md-testing</module>
     </modules>
 
 
