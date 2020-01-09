@@ -57,8 +57,8 @@
         <restx.shell.version>1.0</restx.shell.version>
 
         <!-- Compiler -->
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
 
         <!-- 3rd party libs -->
         <jackson.version>2.10.1</jackson.version>
@@ -580,22 +580,11 @@
         <module>restx-validation</module>
         <module>restx-webjars</module>
         <module>restx-md-fragments</module>
+
+        <module>restx-core-java8</module>
+        <module>restx-jongo-java8</module>
+        <module>restx-specs-tests-java8</module>
+        <module>restx-samplest-java8</module>
+        <module>restx-samplest-kotlin</module>
     </modules>
-
-
-    <profiles>
-        <profile>
-            <id>java8</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <modules>
-                <module>restx-core-java8</module>
-                <module>restx-jongo-java8</module>
-                <module>restx-specs-tests-java8</module>
-                <module>restx-samplest-java8</module>
-                <module>restx-samplest-kotlin</module>
-            </modules>
-        </profile>
-    </profiles>
 </project>
