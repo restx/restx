@@ -28,10 +28,6 @@
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-core-annotation-processor</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.restx</groupId>
             <artifactId>restx-factory</artifactId>
         </dependency>
         <dependency>
@@ -83,4 +79,27 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <annotationProcessorPath>
+                            <groupId>io.restx</groupId>
+                            <artifactId>restx-factory-annotation-processor</artifactId>
+                            <version>${project.version}</version>
+                        </annotationProcessorPath>
+                        <annotationProcessorPath>
+                            <groupId>io.restx</groupId>
+                            <artifactId>restx-core-annotation-processor</artifactId>
+                            <version>${project.version}</version>
+                        </annotationProcessorPath>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

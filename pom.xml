@@ -110,6 +110,11 @@
             </dependency>
             <dependency>
                 <groupId>io.restx</groupId>
+                <artifactId>restx-factory-annotation-processor</artifactId>
+                <version>${restx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.restx</groupId>
                 <artifactId>restx-core</artifactId>
                 <version>${restx.version}</version>
             </dependency>
@@ -477,7 +482,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.1</version>
+                    <version>3.7.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -542,6 +547,7 @@
     <modules>
         <module>restx-common</module>
         <module>restx-factory</module>
+        <module>restx-factory-annotation-processor</module>
         <module>restx-factory-testing</module>
         <module>restx-barbarywatch</module>
         <module>restx-classloader</module>
@@ -589,6 +595,8 @@
                 <module>restx-jongo-java8</module>
                 <module>restx-specs-tests-java8</module>
                 <module>restx-samplest-java8</module>
+                <module>restx-kotlin-compiler</module>
+                <module>restx-samplest-kotlin</module>
             </modules>
         </profile>
     </profiles>

@@ -16,7 +16,6 @@
     <dependencies>
         <dependency org="io.restx" name="restx-core" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-core-java8" rev="latest.integration" conf="default" />
-        <dependency org="io.restx" name="restx-core-annotation-processor" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-factory" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-factory-admin" rev="latest.integration" conf="default" />
         <dependency org="io.restx" name="restx-monitor-admin" rev="latest.integration" conf="default" />

@@ -94,6 +94,9 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
                 ImmutableList.Builder<AnnotationDescription> annotationDescriptionsBuilder = ImmutableList.builder();
                 for(AnnotationMirror methodAnnotation: annotation.methodElem.getAnnotationMirrors()) {
+                    if ("org.jetbrains.annotations.NotNull".equals(methodAnnotation.getAnnotationType().toString())) {
+                        continue;
+                    }
                     AnnotationDescription annotationDescription = createAnnotationDescriptionFrom(methodAnnotation, annotation.methodElem);
                     annotationDescriptionsBuilder.add(annotationDescription);
                 }

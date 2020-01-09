@@ -9,6 +9,7 @@
 
     "fragments": {
         "maven": [
+            "classpath:///restx/build/fragments/maven/core-annotation-processing.xml",
             "classpath:///restx/build/fragments/maven/javadoc-apidoclet.xml"
         ]
     },
@@ -17,7 +18,6 @@
         "compile": [
             "io.restx:restx-core:${restx.version}",
             "io.restx:restx-validation:${restx.version}",
-            "io.restx:restx-core-annotation-processor:${restx.version}",
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-jongo:${restx.version}",
             "io.restx:restx-factory-admin:${restx.version}",

@@ -6,11 +6,16 @@
         "@files": ["../restx.build.properties.json"]
     },
 
+    "fragments": {
+        "maven": [
+            "classpath:///restx/build/fragments/maven/core-annotation-processing.xml"
+        ]
+    },
+
     "dependencies": {
         "compile": [
             "io.restx:restx-factory:${restx.version}",
             "io.restx:restx-core:${restx.version}",
-            "io.restx:restx-core-annotation-processor:${restx.version}",
             "org.slf4j:slf4j-api:${slf4j-api.version}"
         ],
         "test": [
