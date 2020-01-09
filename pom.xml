@@ -63,19 +63,19 @@
         <!-- 3rd party libs -->
         <jackson.version>2.10.1</jackson.version>
         <guava.version>18.0</guava.version>
-        <joda-time.version>2.3</joda-time.version>
+        <joda-time.version>2.10.5</joda-time.version>
         <jna.version>3.2.7</jna.version>
-        <slf4j-api.version>1.7.5</slf4j-api.version>
-        <logback.version>1.0.13</logback.version>
+        <slf4j-api.version>1.7.30</slf4j-api.version>
+        <logback.version>1.2.3</logback.version>
         <javax.inject.version>1</javax.inject.version>
-        <mustache.version>1.8</mustache.version>
+        <mustache.version>1.15</mustache.version>
         <reflections.version>0.9.9-RC1</reflections.version>
-        <snakeyaml.version>1.13</snakeyaml.version>
+        <snakeyaml.version>1.25</snakeyaml.version>
         <validation-api.version>1.1.0.Final</validation-api.version>
         <ivy.version>2.3.0</ivy.version>
-        <jbcrypt.version>0.3m</jbcrypt.version>
+        <jbcrypt.version>0.4</jbcrypt.version>
         <metrics.version>3.1.0</metrics.version>
-        <http-request.version>5.5</http-request.version>
+        <http-request.version>6.0</http-request.version>
         <janino.version>2.6.1</janino.version>
         <jline.version>2.11</jline.version>
         <diffutils.version>1.3.0</diffutils.version>
@@ -88,7 +88,7 @@
         <de.flapdoodle.embed.version>2.2.0</de.flapdoodle.embed.version>
 
         <!-- Test libs -->
-        <junit.version>4.11</junit.version>
+        <junit.version>4.13</junit.version>
         <junit.toolbox.version>2.3</junit.toolbox.version>
         <assertj-core.version>1.6.0</assertj-core.version>
         <maven-verifier.version>1.4</maven-verifier.version>
