@@ -1,8 +1,9 @@
 package samplest.jongo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.types.ObjectId;
 import org.jongo.marshall.jackson.oid.Id;
+import org.jongo.marshall.jackson.oid.MongoId;
+import org.jongo.marshall.jackson.oid.MongoObjectId;
 import restx.annotations.POST;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
@@ -13,9 +14,20 @@ import javax.inject.Named;
 
 @RestxResource @Component
 public class MongoResource {
+    public static class ObjectWithNewJongoAnnotations {
+        @MongoId @MongoObjectId
+        private String id;
+        private String label;
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+    }
     public static class ObjectWithIdAnnotation {
-        // @Id // 0.34 -> OK ; 0.35 -> KO!
-        @Id @JsonProperty("_id") // 0.35 -> KO!
+        // WARN: using only @Id was enough in jongo 1.1, but 1.4 requires to use @MongoObjectId also
+        // (and deprecates @Id in favor of @MongoObjectId)
+        @Id @MongoObjectId
         private String id;
         private String label;
 
@@ -25,8 +37,8 @@ public class MongoResource {
         public void setLabel(String label) { this.label = label; }
     }
     public static class ObjectWithObjectIdAnnotation {
-        // @org.jongo.marshall.jackson.oid.ObjectId @Id // 0.34 -> OK ; 0.35 -> KO!
-        @Id @org.jongo.marshall.jackson.oid.ObjectId @JsonProperty("_id") // 0.35 -> KO!
+        // using deprecated jongo annotations
+        @Id @org.jongo.marshall.jackson.oid.ObjectId
         private String id;
         private String label;
 
@@ -36,8 +48,8 @@ public class MongoResource {
         public void setLabel(String label) { this.label = label; }
     }
     public static class ObjectWithObjectIdType {
-        // @Id // 0.34 -> OK ; 0.35 -> OK
-        @Id @JsonProperty("_id") // 0.35 -> OK
+        // using deprecated jongo annotations
+        @Id
         private ObjectId id;
         private String label;
 
@@ -48,14 +60,17 @@ public class MongoResource {
     }
 
     private final JongoCollection objectWithIdAnnotationCollection;
+    private final JongoCollection objectWithMongoIdAnnotationCollection;
     private final JongoCollection objectWithObjectIdAnnotationCollection;
     private final JongoCollection objectWithObjectIdTypeCollection;
 
     public MongoResource(
             @Named("objectWithIdAnnotationCollection") JongoCollection objectWithIdAnnotationCollection,
+            @Named("objectWithMongoIdAnnotationCollection") JongoCollection objectWithMongoIdAnnotationCollection,
             @Named("objectWithObjectIdAnnotationCollection") JongoCollection objectWithObjectIdAnnotationCollection,
             @Named("objectWithObjectIdTypeCollection") JongoCollection objectWithObjectIdTypeCollection) {
         this.objectWithIdAnnotationCollection = objectWithIdAnnotationCollection;
+        this.objectWithMongoIdAnnotationCollection = objectWithMongoIdAnnotationCollection;
         this.objectWithObjectIdAnnotationCollection = objectWithObjectIdAnnotationCollection;
         this.objectWithObjectIdTypeCollection = objectWithObjectIdTypeCollection;
     }
@@ -65,6 +80,13 @@ public class MongoResource {
     public ObjectWithIdAnnotation createFoo(ObjectWithIdAnnotation foo) {
         this.objectWithIdAnnotationCollection.get().insert(foo);
         return foo;
+    }
+
+    @POST("/mongo/objectsWithMongoIdAnnotation")
+    @PermitAll
+    public ObjectWithNewJongoAnnotations createObjectWithMongoIdAnnotation(ObjectWithNewJongoAnnotations o) {
+        this.objectWithMongoIdAnnotationCollection.get().insert(o);
+        return o;
     }
 
     @POST("/mongo/objectsWithObjectIdAnnotation")

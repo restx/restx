@@ -1,13 +1,14 @@
 package restx.jongo;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import de.undercouch.bson4jackson.BsonGenerator;
-import de.undercouch.bson4jackson.serializers.BsonSerializer;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -17,14 +18,16 @@ public class BsonJSR310Module extends SimpleModule {
     public BsonJSR310Module() {
         super("BsonJSR310Module");
 
-        addSerializer(Instant.class, new BsonSerializer<Instant>() {
+        addSerializer(Instant.class, new JsonSerializer<Instant>() {
             @Override
-            public void serialize(Instant date, BsonGenerator bsonGenerator, SerializerProvider serializerProvider)
-                    throws IOException {
+            public void serialize(Instant date, JsonGenerator gen, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
                 if (date == null) {
-                    serializerProvider.defaultSerializeNull(bsonGenerator);
+                    serializerProvider.defaultSerializeNull(gen);
+                } else if (gen instanceof BsonGenerator) {
+                    BsonGenerator bgen = (BsonGenerator)gen;
+                    bgen.writeDateTime(new Date(date.toEpochMilli()));
                 } else {
-                    bsonGenerator.writeDateTime(new Date(date.toEpochMilli()));
+                    gen.writeString(date.toString());
                 }
             }
         });
