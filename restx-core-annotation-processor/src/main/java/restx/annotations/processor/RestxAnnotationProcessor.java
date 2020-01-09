@@ -212,20 +212,24 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
         // Filling annotation default values (not provided in annotation declaration)
         ImmutableSet<String> declaredAnnotationFieldNames = annotationFieldNamesBuilder.build();
-        for(Symbol annotationMember: ((Symbol.ClassSymbol) methodAnnotation.getAnnotationType().asElement()).members().getElements()) {
-            if(annotationMember instanceof Symbol.MethodSymbol) {
-                Symbol.MethodSymbol annotationMemberAsMethod = (Symbol.MethodSymbol)annotationMember;
-                String fieldName = annotationMemberAsMethod.getSimpleName().toString();
-                if(!declaredAnnotationFieldNames.contains(fieldName)) {
-                    Type type = annotationMemberAsMethod.getReturnType();
-                    TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
-                    boolean arrayed = AnnotationFieldKind.isArrayed(type);
-                    AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
+        Element methodAnnotationElement = methodAnnotation.getAnnotationType().asElement();
+        // check its a class symbol before going on - in Kotlin it seems this may not be the case
+        if (methodAnnotationElement instanceof Symbol.ClassSymbol) {
+            for (Symbol annotationMember : ((Symbol.ClassSymbol) methodAnnotationElement).members().getElements()) {
+                if (annotationMember instanceof Symbol.MethodSymbol) {
+                    Symbol.MethodSymbol annotationMemberAsMethod = (Symbol.MethodSymbol) annotationMember;
+                    String fieldName = annotationMemberAsMethod.getSimpleName().toString();
+                    if (!declaredAnnotationFieldNames.contains(fieldName)) {
+                        Type type = annotationMemberAsMethod.getReturnType();
+                        TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
+                        boolean arrayed = AnnotationFieldKind.isArrayed(type);
+                        AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
 
-                    annotationFieldsBuilder.add(new AnnotationField(
-                            fieldName,
-                            annotationMemberAsMethod.getDefaultValue()==null?null:annotationMemberAsMethod.getDefaultValue().getValue(),
-                            componentType, annotationFieldKind, arrayed));
+                        annotationFieldsBuilder.add(new AnnotationField(
+                                fieldName,
+                                annotationMemberAsMethod.getDefaultValue() == null ? null : annotationMemberAsMethod.getDefaultValue().getValue(),
+                                componentType, annotationFieldKind, arrayed));
+                    }
                 }
             }
         }
