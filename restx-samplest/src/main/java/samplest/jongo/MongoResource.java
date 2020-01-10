@@ -62,7 +62,7 @@ public class MongoResource {
         private ObjectId id;
         private String label;
 
-        public String getId() { return id.toString(); }
+        public String getId() { return id == null ? null : id.toString(); }
         public void setId(ObjectId id) { this.id = id; }
         public String getLabel() { return label; }
         public void setLabel(String label) { this.label = label; }
