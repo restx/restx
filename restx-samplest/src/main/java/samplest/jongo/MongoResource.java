@@ -24,10 +24,19 @@ public class MongoResource {
         public String getLabel() { return label; }
         public void setLabel(String label) { this.label = label; }
     }
+    public static class ObjectWithMongoIdAnnotations {
+        @MongoId
+        private String id;
+        private String label;
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+    }
     public static class ObjectWithIdAnnotation {
-        // WARN: using only @Id was enough in jongo 1.1, but 1.4 requires to use @MongoObjectId also
-        // (and deprecates @Id in favor of @MongoObjectId)
-        @Id @MongoObjectId
+        // using deprecated jongo annotations
+        @Id
         private String id;
         private String label;
 
@@ -60,16 +69,19 @@ public class MongoResource {
     }
 
     private final JongoCollection objectWithIdAnnotationCollection;
+    private final JongoCollection objectWithNewJongoAnnotationCollection;
     private final JongoCollection objectWithMongoIdAnnotationCollection;
     private final JongoCollection objectWithObjectIdAnnotationCollection;
     private final JongoCollection objectWithObjectIdTypeCollection;
 
     public MongoResource(
             @Named("objectWithIdAnnotationCollection") JongoCollection objectWithIdAnnotationCollection,
+            @Named("objectWithNewJongoAnnotationCollection") JongoCollection objectWithNewJongoAnnotationCollection,
             @Named("objectWithMongoIdAnnotationCollection") JongoCollection objectWithMongoIdAnnotationCollection,
             @Named("objectWithObjectIdAnnotationCollection") JongoCollection objectWithObjectIdAnnotationCollection,
             @Named("objectWithObjectIdTypeCollection") JongoCollection objectWithObjectIdTypeCollection) {
         this.objectWithIdAnnotationCollection = objectWithIdAnnotationCollection;
+        this.objectWithNewJongoAnnotationCollection = objectWithNewJongoAnnotationCollection;
         this.objectWithMongoIdAnnotationCollection = objectWithMongoIdAnnotationCollection;
         this.objectWithObjectIdAnnotationCollection = objectWithObjectIdAnnotationCollection;
         this.objectWithObjectIdTypeCollection = objectWithObjectIdTypeCollection;
@@ -84,8 +96,15 @@ public class MongoResource {
 
     @POST("/mongo/objectsWithMongoIdAnnotation")
     @PermitAll
-    public ObjectWithNewJongoAnnotations createObjectWithMongoIdAnnotation(ObjectWithNewJongoAnnotations o) {
+    public ObjectWithMongoIdAnnotations createObjectWithMongoIdAnnotation(ObjectWithMongoIdAnnotations o) {
         this.objectWithMongoIdAnnotationCollection.get().insert(o);
+        return o;
+    }
+
+    @POST("/mongo/objectsWithNewJongoAnnotation")
+    @PermitAll
+    public ObjectWithNewJongoAnnotations createObjectWithNewJongoAnnotation(ObjectWithNewJongoAnnotations o) {
+        this.objectWithNewJongoAnnotationCollection.get().insert(o);
         return o;
     }
 
