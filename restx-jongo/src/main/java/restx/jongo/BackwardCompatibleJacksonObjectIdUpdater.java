@@ -45,7 +45,9 @@ public class BackwardCompatibleJacksonObjectIdUpdater implements ObjectIdUpdater
             if (idSelector.isId(def)) {
                 AnnotatedMember accessor = def.getAccessor();
                 accessor.fixAccess(true);
-                return idSelector.isObjectId(def) && accessor.getValue(pojo) == null;
+                return (ObjectId.class.isAssignableFrom(accessor.getRawType())
+                        || String.class.isAssignableFrom(accessor.getRawType()))
+                        && accessor.getValue(pojo) == null;
             }
         }
         return false;
@@ -81,7 +83,7 @@ public class BackwardCompatibleJacksonObjectIdUpdater implements ObjectIdUpdater
                 Class<?> type = field.getRawType();
                 if (ObjectId.class.isAssignableFrom(type)) {
                     field.setValue(target, id);
-                } else if (type.equals(String.class) && idSelector.isObjectId(def)) {
+                } else if (type.equals(String.class)) {
                     field.setValue(target, id.toString());
                 }
                 return;
