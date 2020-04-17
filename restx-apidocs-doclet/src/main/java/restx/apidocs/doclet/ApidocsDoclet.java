@@ -7,7 +7,6 @@ import com.google.common.io.Files;
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.AnnotationDesc.ElementValuePair;
 import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.DocErrorReporter;
 import com.sun.javadoc.Doclet;
 import com.sun.javadoc.LanguageVersion;
 import com.sun.javadoc.MethodDoc;
@@ -166,20 +165,6 @@ public class ApidocsDoclet extends Doclet {
         }
 
         return Standard.optionLength(option);
-    }
-
-    /**
-     * Processes the input options by delegating to the standard handler.
-     *
-     * _Javadoc spec requirement._
-     *
-     * @param options input option array
-     * @param errorReporter error handling
-     * @return success
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public static boolean validOptions(String[][] options, DocErrorReporter errorReporter) {
-        return Standard.validOptions(options, errorReporter);
     }
 
     static enum Options {
