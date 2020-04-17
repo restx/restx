@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.Arrays.asList;
 
@@ -27,13 +28,17 @@ public class ApidocsDocletRunner {
 
 
     public void run() {
-        List<String> javadocargs = new ArrayList<>(asList(new String[] {
-                "-d", targetDir.toAbsolutePath().toString(),
-                "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
-                "-restx-target-dir", targetDir.toAbsolutePath().toString(),
-                "-disable-standard-doclet",
-                "-quiet"
-        }));
+        List<String> javadocargs = new ArrayList<>();
+        String javaSpecificationVersion = System.getProperty("java.specification.version");
+
+        if (isLegacyDocletAvailable(javaSpecificationVersion)) {
+            javadocargs.addAll(asList("-d", targetDir.toAbsolutePath().toString()));
+        }
+
+        javadocargs.addAll(asList("-doclet", "restx.apidocs.doclet.ApidocsDoclet",
+                    "-restx-target-dir", targetDir.toAbsolutePath().toString(),
+                    "-disable-standard-doclet",
+                    "-quiet"));
 
         for (Path source : sources) {
             javadocargs.add(source.toAbsolutePath().toString());
@@ -46,5 +51,10 @@ public class ApidocsDocletRunner {
     public ApidocsDocletRunner addSources(Collection<Path> sources) {
         this.sources.addAll(sources);
         return this;
+    }
+
+    boolean isLegacyDocletAvailable(String javaSpecificationVersion) {
+        return Objects.nonNull(javaSpecificationVersion) && javaSpecificationVersion.startsWith("1.") ||
+                "9".equals(javaSpecificationVersion);
     }
 }
