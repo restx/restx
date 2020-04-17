@@ -22,7 +22,6 @@ public class ApidocsDocletTest {
     public void should_generate_notes() throws Exception {
         File target = testFolder.newFolder();
         String[] javadocargs = {
-                "-d", testFolder.newFolder().getAbsolutePath(),
                 "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
                 "-restx-target-dir", target.getAbsolutePath(),
                 "-disable-standard-doclet",
@@ -54,21 +53,19 @@ public class ApidocsDocletTest {
     public void should_generate_standard_doc_by_default() throws Exception {
         File dir = testFolder.newFolder();
         String[] javadocargs = {
-                "-d", dir.getAbsolutePath(),
                 "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
                 "-restx-target-dir", dir.getAbsolutePath(),
                 "src/test/resources/test/DocletTestResource.java" };
         com.sun.tools.javadoc.Main.execute(javadocargs);
 
         // should have generated standard javadoc
-        assertThat(new File(dir, "index.html")).exists();
+        assertThat(new File("index.html")).exists();
     }
 
     @Test
     public void should_be_able_to_disable_standard_doclet() throws Exception {
         File dir = testFolder.newFolder();
         String[] javadocargs = {
-                "-d", dir.getAbsolutePath(),
                 "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
                 "-restx-target-dir", dir.getAbsolutePath(),
                 "-disable-standard-doclet",
@@ -83,10 +80,8 @@ public class ApidocsDocletTest {
 
     @Test
     public void should_trace_in_file_when_enabled() throws Exception {
-        File dir = testFolder.newFolder();
         File target = testFolder.newFolder();
         String[] javadocargs = {
-                "-d", dir.getAbsolutePath(),
                 "-doclet", "restx.apidocs.doclet.ApidocsDoclet",
                 "-restx-target-dir", target.getAbsolutePath(),
                 "-restx-enable-trace",
