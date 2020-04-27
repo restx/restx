@@ -1,11 +1,11 @@
-title: objectsWithNewJongoAnnotations persistence
+title: objectsWithMongoIdAnnotation persistence
 given:
   - time: 2018-02-07T17:01:21.795+02:00
-  - collection: objectWithNewJongoAnnotationCollection
+  - collection: objectWithMongoIdAnnotationCollection
     sequence: 5167cec5856107c479739654
 wts:
   - when: |
-       POST mongo/objectsWithNewJongoAnnotation
+       POST mongo/objectsWithMongoIdAnnotation
        {"label": "BAR"}
     then: |
        {"id":"5167cec5856107c479739654","label": "BAR"}
