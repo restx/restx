@@ -551,9 +551,9 @@
         <module>restx-factory-testing</module>
         <module>restx-barbarywatch</module>
         <module>restx-classloader</module>
+        <module>restx-core-annotation-processor</module>
         <module>restx-security-basic</module>
         <module>restx-core</module>
-        <module>restx-core-annotation-processor</module>
         <module>restx-annotation-processors-package</module>
         <module>restx-admin</module>
         <module>restx-i18n</module>
