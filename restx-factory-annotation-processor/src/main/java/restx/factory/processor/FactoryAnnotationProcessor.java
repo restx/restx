@@ -6,7 +6,13 @@ import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
 import com.samskivert.mustache.Template;
 import restx.common.processor.RestxAbstractProcessor;
-import restx.factory.*;
+import restx.factory.Alternative;
+import restx.factory.Component;
+import restx.factory.Machine;
+import restx.factory.Module;
+import restx.factory.NamedComponent;
+import restx.factory.Provides;
+import restx.factory.When;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
