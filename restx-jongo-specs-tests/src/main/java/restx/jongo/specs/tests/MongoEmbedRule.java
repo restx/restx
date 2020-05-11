@@ -5,7 +5,6 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.distribution.Version;

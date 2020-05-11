@@ -4,14 +4,12 @@ import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmbedMongoFactoryTest {
 
     @Test
-    public void should_getPoolKey_return_the_same_instance_when_called_twice_with_same_version() throws IOException {
+    public void should_getPoolKey_return_the_same_instance_when_called_twice_with_same_version() {
         // Given
         Version.Main version = Version.Main.PRODUCTION;
 
@@ -28,7 +26,7 @@ public class EmbedMongoFactoryTest {
     }
 
     @Test
-    public void should_getPoolKey_return_the_different_uri_when_called_twice_with_different_version() throws IOException {
+    public void should_getPoolKey_return_the_different_uri_when_called_twice_with_different_version() {
         // Given
         Version.Main production = Version.Main.PRODUCTION;
 
@@ -46,8 +44,7 @@ public class EmbedMongoFactoryTest {
     }
 
     @Test
-    public void should_getEmbedMongoClientPool_return_the_same_instance_when_called_with_same_param_MongodExecutable()
-            throws IOException {
+    public void should_getEmbedMongoClientPool_return_the_same_instance_when_called_with_same_param_MongodExecutable() {
 
         // Given
         EmbedMongoFactory factory = new EmbedMongoFactory();
@@ -68,8 +65,7 @@ public class EmbedMongoFactoryTest {
     }
 
     @Test
-    public void should_getEmbedMongoClientPool_return_the_different_instance_when_called_with_different_key()
-            throws IOException {
+    public void should_getEmbedMongoClientPool_return_the_different_instance_when_called_with_different_key() {
 
         // Given
         EmbedMongoFactory factory = new EmbedMongoFactory();

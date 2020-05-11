@@ -9,8 +9,6 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
 import restx.mongo.MongoModule;
 
-import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -27,7 +25,7 @@ public class MongoRestxSpecTestsListenerTest {
     }
 
     @Test
-    public void should_testRunStarted_set_mongo_uri_property() throws Exception {
+    public void should_testRunStarted_set_mongo_uri_property() {
         // Given
         try (MongoRestxSpecTestsListener listener = new MongoRestxSpecTestsListener()) {
             Description description = mock(Description.class);
@@ -43,7 +41,7 @@ public class MongoRestxSpecTestsListenerTest {
     }
 
     @Test
-    public void should_testRunStarted_prepare_a_mongod_executable() throws Exception {
+    public void should_testRunStarted_prepare_a_mongod_executable() {
         // Given
         EmbedMongoClientPool pool = mock(EmbedMongoClientPool.class);
         EmbedMongoFactory factory = newEmbedMongoFactory(pool);
@@ -59,7 +57,7 @@ public class MongoRestxSpecTestsListenerTest {
     }
 
     @Test
-    public void should_testRunStarted_checkin_the_pool() throws Exception {
+    public void should_testRunStarted_checkin_the_pool() {
         // Given
         EmbedMongoClientPool pool = mock(EmbedMongoClientPool.class);
 
@@ -76,7 +74,7 @@ public class MongoRestxSpecTestsListenerTest {
         }
     }
 
-    private EmbedMongoFactory newEmbedMongoFactory(EmbedMongoClientPool pool) throws IOException {
+    private EmbedMongoFactory newEmbedMongoFactory(EmbedMongoClientPool pool) {
         MongoClientURI mongoClientURI = mock(MongoClientURI.class);
         when(mongoClientURI.getURI()).thenReturn("mongodb://localhost:21017");
 
@@ -107,7 +105,7 @@ public class MongoRestxSpecTestsListenerTest {
     }
 
     @Test
-    public void should_close_checkout_from_pool() throws Exception {
+    public void should_close_checkout_from_pool() {
         // Given
         EmbedMongoClientPool pool = mock(EmbedMongoClientPool.class);
 
@@ -124,7 +122,7 @@ public class MongoRestxSpecTestsListenerTest {
     }
 
     @Test
-    public void should_testRunFinished_checkout_from_pool() throws Exception {
+    public void should_testRunFinished_checkout_from_pool() {
         // Given
         EmbedMongoClientPool pool = mock(EmbedMongoClientPool.class);
 

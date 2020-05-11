@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 class EmbedMongoFactory {
@@ -21,41 +20,31 @@ class EmbedMongoFactory {
     private static final Map<Version.Main, PoolKey> keys = new ConcurrentHashMap<>();
     private static final Map<PoolKey, EmbedMongoClientPool> pools = new ConcurrentHashMap<>();
 
-    private static synchronized void newPoolKey(Version.Main version) throws IOException {
-        if (Objects.isNull(keys.get(version))) {
+    private static PoolKey newPoolKey(Version.Main version) {
+        try {
             InetAddress addr = Network.getLocalHost();
             int port = Network.getFreeServerPort(addr);
             String uri = "mongodb://" + addr.getHostName() + ":" + port;
 
             MongoClientURI mongoClientURI = new MongoClientURI(uri);
-            PoolKey key = new PoolKey(version, mongoClientURI);
-            keys.put(version, key);
+            return new PoolKey(version, mongoClientURI);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    PoolKey getPoolKey(Version.Main version) throws IOException {
-        if (Objects.isNull(keys.get(version))) {
-            newPoolKey(version);
-        }
-        return keys.get(version);
+    PoolKey getPoolKey(Version.Main version) {
+        return keys.computeIfAbsent(version, EmbedMongoFactory::newPoolKey);
     }
 
-    synchronized EmbedMongoClientPool getEmbedMongoClientPool(MongodStarter starter, PoolKey key) {
-        EmbedMongoClientPool pool = pools.get(key);
-
-        if (Objects.nonNull(pool)) {
-            return pool;
-        }
-
-        return newPool(starter, key);
+    EmbedMongoClientPool getEmbedMongoClientPool(MongodStarter starter, PoolKey key) {
+        return pools.computeIfAbsent(key, k -> newPool(starter, k));
     }
 
     private EmbedMongoClientPool newPool(MongodStarter starter, PoolKey key) {
         try {
             MongodExecutable executable = prepareExecutable(starter, key);
-            EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
-            pools.put(key, pool);
-            return pool;
+            return new EmbedMongoClientPool(executable);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -24,7 +24,7 @@ public final class MongoRestxSpecTestsListener extends RunListener implements Cl
     }
 
     @Override
-    public void testRunStarted(Description description) throws Exception {
+    public void testRunStarted(Description description) {
         Version.Main version = Version.Main.PRODUCTION;
         PoolKey key = factory.getPoolKey(version);
         System.setProperty(MongoModule.MONGO_URI, key.getUri().getURI());
