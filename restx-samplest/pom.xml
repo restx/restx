@@ -134,6 +134,18 @@
                     <additionalparam>-restx-target-dir ${project.basedir}/target/classes</additionalparam>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>restx.jongo.specs.tests.MongoRestxSpecTestsListener</value>
+                        </property>
+                    </properties>
+                </configuration>
+            </plugin>
             <!-- Uncomment to debug annotation processing on samplest...
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
