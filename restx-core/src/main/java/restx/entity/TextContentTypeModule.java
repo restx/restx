@@ -1,6 +1,7 @@
 package restx.entity;
 
 import com.google.common.base.Optional;
+import org.apache.commons.io.IOUtils;
 import restx.RestxContext;
 import restx.RestxRequest;
 import restx.RestxResponse;
@@ -33,6 +34,39 @@ public class TextContentTypeModule {
                 } else {
                     return Optional.absent();
                 }
+            }
+        };
+    }
+
+    @Provides
+    public EntityRequestBodyReaderFactory testEntityRequestBodyReaderFactory() {
+        return new EntityRequestBodyReaderFactory() {
+            @Override
+            public Optional<? extends EntityRequestBodyReader> mayBuildFor(Type valueType, String contentType) {
+                if (!contentType.toLowerCase(Locale.ENGLISH).startsWith("text/plain")) {
+                    return Optional.absent();
+                }
+
+                return Optional.of(
+                    new EntityRequestBodyReader<String>() {
+
+                        @Override
+                        public Type getType() {
+                            return String.class;
+                        }
+
+                        @Override
+                        public String readBody(RestxRequest req, RestxContext ctx) throws IOException {
+                            String body;
+                            try {
+                                body = IOUtils.toString(req.getContentStream(), "UTF8");
+                            } finally {
+                                IOUtils.closeQuietly(req.getContentStream());
+                            }
+                            return body;
+                        }
+                    }
+                );
             }
         };
     }
