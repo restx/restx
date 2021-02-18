@@ -61,7 +61,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <!-- 3rd party libs -->
-        <jackson.version>2.10.1</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
         <guava.version>28.2-jre</guava.version>
         <joda-time.version>2.10.5</joda-time.version>
         <jna.version>3.2.7</jna.version>
