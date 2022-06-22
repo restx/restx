@@ -83,7 +83,7 @@
         <el.api.version>2.2</el.api.version>
 
         <!-- Mongo modules -->
-        <mongo-java-driver.version>3.12.0</mongo-java-driver.version>
+        <mongo-java-driver.version>3.12.8</mongo-java-driver.version>
         <jongo.version>1.4.0</jongo.version>
         <de.flapdoodle.embed.version>2.2.0</de.flapdoodle.embed.version>
 
