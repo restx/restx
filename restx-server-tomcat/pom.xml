@@ -12,7 +12,7 @@
     <name>restx-server-tomcat</name>
 
     <properties>
-        <embedded.tomcat.version>7.0.47</embedded.tomcat.version>
+        <embedded.tomcat.version>7.0.81</embedded.tomcat.version>
     </properties>
 
     <dependencies>
