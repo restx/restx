@@ -12,7 +12,7 @@
     <name>restx-server-jetty7</name>
 
     <properties>
-        <jetty7.version>7.6.21.v20160908</jetty7.version>
+        <jetty7.version>10.0.10</jetty7.version>
     </properties>
 
     <dependencies>
