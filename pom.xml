@@ -79,7 +79,7 @@
         <janino.version>2.6.1</janino.version>
         <jline.version>2.11</jline.version>
         <diffutils.version>1.3.0</diffutils.version>
-        <hibernate-validator.version>5.0.1.Final</hibernate-validator.version>
+        <hibernate-validator.version>6.0.23.Final</hibernate-validator.version>
         <el.api.version>2.2</el.api.version>
 
         <!-- Mongo modules -->
