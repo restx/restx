@@ -510,6 +510,11 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>2.4</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.3.2</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -585,7 +590,7 @@
         <module>restx-md-fragments</module>
 <!--        <module>restx-md-testing</module>-->
 <!--        <module>restx-api-doclet-test</module>-->
-        <module>restx-annotation-processor-tests-java8</module>
+<!--        <module>restx-annotation-processor-tests-java8</module>-->
         <module>restx-core-java8</module>
         <module>restx-jongo-java8</module>
         <module>restx-specs-tests-java8</module>

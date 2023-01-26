@@ -1,5 +1,9 @@
 package restx.annotations.processor;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.*;
 import com.google.common.collect.*;
@@ -15,6 +19,35 @@ import restx.http.HttpStatus;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
 import restx.validation.ValidatedFor;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
+import static restx.annotations.processor.TypeHelper.toTypeDescription;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -126,7 +159,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         return true;
     }
 
-    private enum AnnotationFieldKind {
+    enum AnnotationFieldKind {
         PRIMITIVE() {
             @Override
             public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
@@ -217,10 +250,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         // Filling annotation default values (not provided in annotation
         // declaration)
         ImmutableSet<String> declaredAnnotationFieldNames = annotationFieldNamesBuilder.build();
-//        Element methodAnnotationElement = methodAnnotation.getAnnotationType().asElement();
-//        System.out.println("#######"+methodAnnotationElement.getClass().getName());
-        // check its a class symbol before going on - in Kotlin it seems this may not be the case
-        //if (methodAnnotationElement instanceof Symbol.ClassSymbol) {
         for (Element annotationMember : methodAnnotation.getAnnotationType().asElement().getEnclosedElements()) {
             if (annotationMember.getKind() == ElementKind.METHOD) {
                 ExecutableElement annotationMemberAsMethod = (ExecutableElement) annotationMember;
@@ -236,7 +265,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 }
             }
         //}
-        }
 
         AnnotationDescription annotationDescription = new AnnotationDescription(
                 methodAnnotation.getAnnotationType().toString(), annotationFieldsBuilder.build());
@@ -256,7 +284,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                             return name;
                         })
                         .collect(Collectors.toList());
-                System.out.println("value 3: " + ((List<?>) value).get(0));
             }
         }
         return value;
@@ -681,10 +708,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String name;
         final Object value;
         final TypeMirror type;
-        final AnnotationFieldKind kind;
+        final RestxAnnotationProcessor.AnnotationFieldKind kind;
         final boolean isArray;
 
-        public AnnotationField(String name, Object value, TypeMirror type, AnnotationFieldKind kind, boolean isArray) {
+        public AnnotationField(String name, Object value, TypeMirror type, RestxAnnotationProcessor.AnnotationFieldKind kind, boolean isArray) {
             this.name = name;
             this.value = value;
             this.type = type;
@@ -693,7 +720,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         String getValueCodeInstanciation() {
-            if (AnnotationFieldKind.ANNOTATION.equals(this.kind)) {
+            if (RestxAnnotationProcessor.AnnotationFieldKind.ANNOTATION.equals(this.kind)) {
                 return "throw new java.lang.UnsupportedOperationException(\"Unsupported annotation field type\")";
             } else if (isArray) {
                 return String.format("return new %s[]{ %s }",
