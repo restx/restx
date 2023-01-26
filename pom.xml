@@ -57,8 +57,8 @@
         <restx.shell.version>1.0</restx.shell.version>
 
         <!-- Compiler -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
 
         <!-- 3rd party libs -->
         <jackson.version>2.14.1</jackson.version>
@@ -146,11 +146,11 @@
                 <artifactId>restx-classloader</artifactId>
                 <version>${restx.version}</version>
             </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
-                <artifactId>restx-apidocs-doclet</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>io.restx</groupId>-->
+<!--                <artifactId>restx-apidocs-doclet</artifactId>-->
+<!--                <version>${restx.version}</version>-->
+<!--            </dependency>-->
             <dependency>
                 <groupId>io.restx</groupId>
                 <artifactId>restx-specs-tests</artifactId>
@@ -583,6 +583,10 @@
         <module>restx-validation</module>
         <module>restx-webjars</module>
         <module>restx-md-fragments</module>
+        <module>restx-md-testing</module>
+<!--        <module>restx-api-doclet-test</module>-->
+        <module>restx-annotation-processor-tests-java8</module>
+    </modules>
 
         <module>restx-core-java8</module>
         <module>restx-jongo-java8</module>

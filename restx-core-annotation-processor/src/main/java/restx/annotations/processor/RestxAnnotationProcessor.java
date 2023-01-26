@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -81,13 +82,13 @@ import restx.validation.ValidatedFor;
 @SupportedAnnotationTypes({
         "restx.annotations.RestxResource"
 })
-@SupportedOptions({ "debug" })
+@SupportedOptions({"debug"})
 public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     private static final Pattern ROLE_PARAM_INTERPOLATOR_REGEX = Pattern.compile("\\{(.+?)\\}");
 
     final Template routerTpl;
 
-    private static final Function<Class,String> FQN_EXTRACTOR = new Function<Class,String>(){
+    private static final Function<Class, String> FQN_EXTRACTOR = new Function<Class, String>() {
         @Override
         public String apply(Class clazz) {
             return clazz.getCanonicalName();
@@ -109,13 +110,13 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 ResourceClassDef r = getResourceClassDef(typeElem);
                 if (r == null) {
                     error(
-                        String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
-                                annotation.methodElem.getSimpleName(), typeElem.getSimpleName()), typeElem);
+                            String.format("%s rest method found - enclosing class %s must be annotated with @RestxResource",
+                                    annotation.methodElem.getSimpleName(), typeElem.getSimpleName()), typeElem);
                     continue;
                 }
 
                 SuccessStatus successStatusAnn = annotation.methodElem.getAnnotation(SuccessStatus.class);
-                HttpStatus successStatus = successStatusAnn==null?HttpStatus.OK:successStatusAnn.value();
+                HttpStatus successStatus = successStatusAnn == null ? HttpStatus.OK : successStatusAnn.value();
 
                 Verbosity verbosity = annotation.methodElem.getAnnotation(Verbosity.class);
                 RestxLogLevel logLevel = verbosity == null ? RestxLogLevel.DEFAULT : verbosity.value();
@@ -131,7 +132,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 Optional<String> outContentType = Optional.fromNullable(outContentTypeAnn != null ? outContentTypeAnn.value() : null);
 
                 ImmutableList.Builder<AnnotationDescription> annotationDescriptionsBuilder = ImmutableList.builder();
-                for(AnnotationMirror methodAnnotation: annotation.methodElem.getAnnotationMirrors()) {
+                for (AnnotationMirror methodAnnotation : annotation.methodElem.getAnnotationMirrors()) {
                     if ("org.jetbrains.annotations.NotNull".equals(methodAnnotation.getAnnotationType().toString())) {
                         continue;
                     }
@@ -170,10 +171,13 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             @Override
             public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
                 String val = super.transformSingleValueToExpression(value, annotationField);
-                switch(annotationField.type.toString()) {
-                    case "float": return val+"f";
-                    case "char": return "'"+val+"'";
-                    default: return val;
+                switch (annotationField.type.toString()) {
+                    case "float":
+                        return val + "f";
+                    case "char":
+                        return "'" + val + "'";
+                    default:
+                        return val;
                 }
             }
         }, STRING() {
@@ -189,12 +193,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }, ENUM() {
             @Override
             public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
-                return annotationField.type+"."+value.toString();
+                return annotationField.type + "." + value.toString();
             }
         }, ANNOTATION() {
             @Override
             public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
-                return annotationField.type+"."+value.toString();
+                return annotationField.type + "." + value.toString();
             }
         };
 
@@ -203,23 +207,23 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         public static TypeMirror componentTypeOf(TypeMirror type) {
-            return (TypeKind.ARRAY.equals(type.getKind()))?((ArrayType) type).getComponentType():type;
+            return (TypeKind.ARRAY.equals(type.getKind())) ? ((ArrayType) type).getComponentType() : type;
         }
 
         public static AnnotationFieldKind valueOf(ProcessingEnvironment processingEnv, TypeMirror type) {
             TypeMirror componentType = componentTypeOf(type);
 
-            if(componentType.getKind().isPrimitive()) {
+            if (componentType.getKind().isPrimitive()) {
                 return PRIMITIVE;
-            } else if(String.class.getCanonicalName().equals(componentType.toString())) {
+            } else if (String.class.getCanonicalName().equals(componentType.toString())) {
                 return STRING;
-            } else if(Class.class.getCanonicalName().equals(TypeHelper.rawTypeFrom(componentType.toString()))) {
+            } else if (Class.class.getCanonicalName().equals(TypeHelper.rawTypeFrom(componentType.toString()))) {
                 return CLASS;
             } else {
                 ImmutableList<String> superTypesClassNames = FluentIterable.from(processingEnv.getTypeUtils().directSupertypes(componentType))
                         .transform(Functions.toStringFunction())
                         .toList();
-                if(superTypesClassNames.contains(Annotation.class.getCanonicalName())) {
+                if (superTypesClassNames.contains(Annotation.class.getCanonicalName())) {
                     return ANNOTATION;
                 } else {
                     return ENUM;
@@ -233,7 +237,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     private AnnotationDescription createAnnotationDescriptionFrom(AnnotationMirror methodAnnotation,
-            ExecutableElement element) {
+                                                                  ExecutableElement element) {
         ImmutableList.Builder<AnnotationField> annotationFieldsBuilder = ImmutableList.builder();
         ImmutableSet.Builder<String> annotationFieldNamesBuilder = ImmutableSet.builder();
         for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> fieldEntry : methodAnnotation
@@ -245,9 +249,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
             boolean arrayed = AnnotationFieldKind.isArrayed(type);
             AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
-
-            annotationFieldsBuilder.add(new AnnotationField(fieldName, fieldEntry.getValue().getValue(), componentType,
-                    annotationFieldKind, arrayed));
+            Object value = fixEnumFQN(componentType, arrayed, annotationFieldKind, fieldEntry.getValue().getValue());
+            annotationFieldsBuilder.add(new AnnotationField(fieldName, value, componentType, annotationFieldKind, arrayed));
             annotationFieldNamesBuilder.add(fieldName);
         }
 
@@ -266,11 +269,9 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                         TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
                         boolean arrayed = AnnotationFieldKind.isArrayed(type);
                         AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
-
-                    annotationFieldsBuilder.add(new AnnotationField(fieldName,
-                            annotationMemberAsMethod.getDefaultValue() == null ? null
-                                    : annotationMemberAsMethod.getDefaultValue().getValue(),
-                                componentType, annotationFieldKind, arrayed));
+                    Object value = annotationMemberAsMethod.getDefaultValue() == null ? null : annotationMemberAsMethod.getDefaultValue().getValue();
+                    value = fixEnumFQN(componentType, arrayed, annotationFieldKind, value);
+                    annotationFieldsBuilder.add(new AnnotationField(fieldName, value, componentType, annotationFieldKind, arrayed));
                     }
                 }
             }
@@ -279,6 +280,25 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         AnnotationDescription annotationDescription = new AnnotationDescription(
                 methodAnnotation.getAnnotationType().toString(), annotationFieldsBuilder.build());
         return annotationDescription;
+    }
+
+    private static Object fixEnumFQN(TypeMirror componentType, boolean arrayed, AnnotationFieldKind annotationFieldKind, Object value) {
+        if (AnnotationFieldKind.ENUM.equals(annotationFieldKind) && arrayed) {
+            if (value instanceof List) {
+                value = ((List<?>) value)
+                        .stream()
+                        .map(v -> {
+                            String name = v.toString();
+                            if (name.indexOf('.') == -1) {
+                                name = componentType.toString() + "." + name;
+                            }
+                            return name;
+                        })
+                        .collect(Collectors.toList());
+                System.out.println("value 3: " + ((List<?>) value).get(0));
+            }
+        }
+        return value;
     }
 
     protected ResourceClassDef getResourceClassDef(TypeElement typeElem) {
@@ -304,7 +324,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             if (rolesAllowed != null) {
                 List<String> roles = new ArrayList<>();
                 for (String role : rolesAllowed.value()) {
-                    for(String wildcardedRole : generateWildcardRolesFor(role)){
+                    for (String wildcardedRole : generateWildcardRolesFor(role)) {
                         roles.add("hasRole(\"" + wildcardedRole + "\")");
                     }
                 }
@@ -334,7 +354,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         String[] roleChunks = Splitter.on(ROLE_PARAM_INTERPOLATOR_REGEX).splitToList(role).toArray(new String[0]);
 
         List<String> combinatorialInterpolatedRoles = new ArrayList<>();
-        if(roleChunks.length == 1){
+        if (roleChunks.length == 1) {
             combinatorialInterpolatedRoles.add(role);
         } else {
             List<ImmutableSet<String>> variablePotentialValues = new ArrayList<>();
@@ -342,16 +362,16 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             // Generating cartesian product with [variableName, "*"] on every variables in role
             // It will allow to check for wildcards on every variable chunk in role
             Matcher matcher = ROLE_PARAM_INTERPOLATOR_REGEX.matcher(role);
-            while(matcher.find()) {
+            while (matcher.find()) {
                 String variableName = matcher.group(1);
-                variablePotentialValues.add(ImmutableSet.of("*", "{"+variableName+"}"));
+                variablePotentialValues.add(ImmutableSet.of("*", "{" + variableName + "}"));
             }
 
             Set<List<String>> variableCombinations = Sets.cartesianProduct(variablePotentialValues);
-            for(List<String> variableCombination : variableCombinations){
+            for (List<String> variableCombination : variableCombinations) {
                 StringBuilder interpolatedRole = new StringBuilder(roleChunks[0]);
-                int i=1;
-                for(String value : variableCombination){
+                int i = 1;
+                for (String value : variableCombination) {
                     interpolatedRole.append(value).append(roleChunks[i]);
                     i++;
                 }
@@ -366,11 +386,19 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     private Param createParam(final String value, final Param.Kind kind) {
         return new Param() {
             @Override
-            public Class<? extends Annotation> annotationType() { return Param.class; }
+            public Class<? extends Annotation> annotationType() {
+                return Param.class;
+            }
+
             @Override
-            public String value() { return value; }
+            public String value() {
+                return value;
+            }
+
             @Override
-            public Kind kind() { return kind; }
+            public Kind kind() {
+                return kind;
+            }
         };
     }
 
@@ -397,7 +425,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 }
             }
 
-            if(param != null) {
+            if (param != null) {
                 reqParamName = param.value().length() == 0 ? variableName : param.value();
                 if (param.kind() != Param.Kind.DEFAULT) {
                     parameterKind = ResourceMethodParameterKind.valueOf(param.kind().name());
@@ -409,7 +437,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             if (pathParamNamesToMatch.contains(reqParamName)) {
                 if (parameterKind != null && parameterKind != ResourceMethodParameterKind.PATH) {
                     error(
-                        String.format("%s param %s matches a Path param name", parameterKind.name(), reqParamName),
+                            String.format("%s param %s matches a Path param name", parameterKind.name(), reqParamName),
                             annotation.methodElem);
                     continue;
                 }
@@ -426,20 +454,20 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             ValidatedFor validatedFor = p.getAnnotation(ValidatedFor.class);
 
             String[] validationGroups = new String[0];
-            if(validatedFor != null) {
+            if (validatedFor != null) {
                 validationGroups = Annotations.getAnnotationClassValuesAsFQCN(p, ValidatedFor.class, "value");
             }
 
             resourceMethod.parameters.add(new ResourceMethodParameter(
-                p.asType().toString(),
-                variableName,
-                reqParamName,
-                parameterKind,
-                validationGroups));
+                    p.asType().toString(),
+                    variableName,
+                    reqParamName,
+                    parameterKind,
+                    validationGroups));
         }
         if (!pathParamNamesToMatch.isEmpty()) {
             error(
-                String.format("path param(s) %s not found among method parameters", pathParamNamesToMatch),
+                    String.format("path param(s) %s not found among method parameters", pathParamNamesToMatch),
                     annotation.methodElem);
         }
     }
@@ -468,7 +496,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
     private void generateFiles(Map<String, ResourceGroup> groups, Set<Element> modulesListOriginatingElements) throws IOException {
         for (ResourceGroup group : groups.values()) {
-            for (ResourceClass resourceClass: group.resourceClasses.values()) {
+            for (ResourceClass resourceClass : group.resourceClasses.values()) {
                 List<ImmutableMap<String, Object>> routes = Lists.newArrayList();
 
                 buildResourceRoutesCodeChunks(resourceClass, routes);
@@ -508,7 +536,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 }
                 callParameters.add(String.format("/* [%s] %s */ %s", kind, parameter.reqParamName, kind.fetchFromReqCode(parameter, resourceMethod)));
 
-                if(kind.resolvedWithQueryParamMapper()) {
+                if (kind.resolvedWithQueryParamMapper()) {
                     queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\")",
                             TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.reqParamName));
                 }
@@ -516,12 +544,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 if (kind != ResourceMethodParameterKind.CONTEXT) {
                     parametersDescription.add(String.format(
                             "                OperationParameterDescription {PARAMETER} = new OperationParameterDescription();\n" +
-                            "                {PARAMETER}.name = \"%s\";\n" +
-                            "                {PARAMETER}.paramType = OperationParameterDescription.ParamType.%s;\n" +
-                            "                {PARAMETER}.dataType = \"%s\";\n" +
-                            "                {PARAMETER}.schemaKey = \"%s\";\n" +
-                            "                {PARAMETER}.required = %s;\n" +
-                            "                operation.parameters.add({PARAMETER});\n",
+                                    "                {PARAMETER}.name = \"%s\";\n" +
+                                    "                {PARAMETER}.paramType = OperationParameterDescription.ParamType.%s;\n" +
+                                    "                {PARAMETER}.dataType = \"%s\";\n" +
+                                    "                {PARAMETER}.schemaKey = \"%s\";\n" +
+                                    "                {PARAMETER}.required = %s;\n" +
+                                    "                operation.parameters.add({PARAMETER});\n",
                             parameter.reqParamName,
                             kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
@@ -541,7 +569,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                         "                    return Optional.of(Empty.EMPTY);";
             } else {
                 if (resourceMethod.returnTypeGuavaOptional) {
-                    call = call ;
+                    call = call;
                 } else if (resourceMethod.returnTypeJava8Optional) {
                     call = "Optional.fromNullable(" + call + ".orElse(null))";
                 } else {
@@ -590,12 +618,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         Pattern p = Pattern.compile("java\\.lang\\.Iterable<(.+)>");
         Matcher m = p.matcher(type);
         if (m.matches()) {
-            type =  m.group(1);
+            type = m.group(1);
         }
         if (type.startsWith("java.lang")
-            || type.startsWith("java.util")
-            || type.equalsIgnoreCase("void")
-                ) {
+                || type.startsWith("java.util")
+                || type.equalsIgnoreCase("void")
+        ) {
             return "";
         } else {
             return type;
@@ -605,10 +633,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     private Collection<ResourceMethodAnnotation> getResourceMethodAnnotationsInRound(RoundEnvironment roundEnv) {
         Collection<ResourceMethodAnnotation> methodAnnotations = Lists.newArrayList();
         for (Element resourceElem : roundEnv.getElementsAnnotatedWith(getRestAnnotationClass())) {
-            if (! (resourceElem instanceof TypeElement)) {
+            if (!(resourceElem instanceof TypeElement)) {
                 error(
-                    String.format("Only a class can be annotated with @RestxResource. Found %s",
-                            resourceElem.getSimpleName()), resourceElem);
+                        String.format("Only a class can be annotated with @RestxResource. Found %s",
+                                resourceElem.getSimpleName()), resourceElem);
                 continue;
             }
 
@@ -704,15 +732,15 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         String getValueCodeInstanciation() {
-            if(AnnotationFieldKind.ANNOTATION.equals(this.kind)) {
+            if (AnnotationFieldKind.ANNOTATION.equals(this.kind)) {
                 return "throw new java.lang.UnsupportedOperationException(\"Unsupported annotation field type\")";
-            } else if(isArray) {
+            } else if (isArray) {
                 return String.format("return new %s[]{ %s }",
                         // Arrays cannot be parameterized
                         TypeHelper.rawTypeFrom(type.toString()),
-                        Joiner.on(", ").join((List)value));
+                        Joiner.on(", ").join((List) value));
             } else {
-                return "return "+kind.transformSingleValueToExpression(value, this);
+                return "return " + kind.transformSingleValueToExpression(value, this);
             }
         }
     }
@@ -765,10 +793,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.realReturnType = returnType;
 
             TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(returnType);
-            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
+            if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
                 this.returnTypeGuavaOptional = true;
                 this.returnTypeJava8Optional = false;
-            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
+            } else if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
                 this.returnTypeGuavaOptional = false;
                 this.returnTypeJava8Optional = true;
             } else {
@@ -803,16 +831,16 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         private static final Function<String, String> CLASS_APPENDER_FCT = new Function<String, String>() {
             @Override
             public String apply(String fqn) {
-                return fqn+".class";
+                return fqn + ".class";
             }
         };
 
         private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
             TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(type);
-            if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
+            if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
                 this.guavaOptional = true;
                 this.java8Optional = false;
-            } else if(optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
+            } else if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
                 this.guavaOptional = false;
                 this.java8Optional = true;
             } else {
@@ -828,8 +856,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.validationGroupsFQNs = Arrays.asList(validationGroupsFQNs);
         }
 
-        public Optional<String> joinedValidationGroupFQNExpression(){
-            if(this.validationGroupsFQNs == null || this.validationGroupsFQNs.isEmpty()) {
+        public Optional<String> joinedValidationGroupFQNExpression() {
+            if (this.validationGroupsFQNs == null || this.validationGroupsFQNs.isEmpty()) {
                 return Optional.absent();
             } else {
                 return Optional.of(Joiner.on(", ").join(Iterables.transform(this.validationGroupsFQNs, CLASS_APPENDER_FCT)));

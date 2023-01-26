@@ -2,7 +2,12 @@ package restx.factory.processor;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.samskivert.mustache.Template;
 import restx.common.processor.RestxAbstractProcessor;
@@ -19,11 +24,17 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +54,7 @@ import static restx.common.Mustaches.compile;
         "restx.factory.Alternative",
         "restx.factory.Machine"
 })
-@SupportedOptions({ "debug" })
+@SupportedOptions({"debug"})
 public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     final Template componentMachineTpl;
     final Template conditionalMachineTpl;
@@ -74,15 +85,15 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     private void processModules(RoundEnvironment roundEnv) throws IOException {
-        for (Element annotation : roundEnv.getElementsAnnotatedWith(Module.class)) {
+        for (Element annotation : roundEnv.getElementsAnnotatedWith(restx.factory.Module.class)) {
             try {
                 if (!(annotation instanceof TypeElement)) {
                     error("annotating element " + annotation + " of type " + annotation.getKind().name()
-                                    + " with @Module is not supported", annotation);
+                            + " with @Module is not supported", annotation);
                     continue;
                 }
                 TypeElement typeElem = (TypeElement) annotation;
-                Module mod = typeElem.getAnnotation(Module.class);
+                restx.factory.Module mod = typeElem.getAnnotation(restx.factory.Module.class);
                 When classWhen = typeElem.getAnnotation(When.class);
 
                 ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
@@ -181,13 +192,13 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private void processProviderMethod(Module mod, ModuleClass module, Provides provides, ExecutableElement exec) {
+    private void processProviderMethod(restx.factory.Module mod, ModuleClass module, Provides provides, ExecutableElement exec) {
         ProviderMethod m = new ProviderMethod(
-				exec.getReturnType().toString(),
-				exec.getSimpleName().toString(),
-				provides.priority() == 0 ? mod.priority() : provides.priority(),
-				getInjectionName(exec.getAnnotation(Named.class)),
-				exec);
+                exec.getReturnType().toString(),
+                exec.getSimpleName().toString(),
+                provides.priority() == 0 ? mod.priority() : provides.priority(),
+                getInjectionName(exec.getAnnotation(Named.class)),
+                exec);
 
         buildInjectableParams(exec, m.parameters);
 
@@ -196,8 +207,8 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         module.providerMethods.add(m);
     }
 
-    private void processConditionalProviderMethod(Module mod, ModuleClass module, String componentType,
-            String componentName, int priority, When when, String factoryMachineNameSuffix, ExecutableElement exec) {
+    private void processConditionalProviderMethod(restx.factory.Module mod, ModuleClass module, String componentType,
+                                                  String componentName, int priority, When when, String factoryMachineNameSuffix, ExecutableElement exec) {
         ConditionalProviderMethod m = new ConditionalProviderMethod(
                 componentType,
                 componentName,
@@ -220,7 +231,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             try {
                 if (!(annotation instanceof TypeElement)) {
                     error("annotating element " + annotation + " of type " + annotation.getKind().name()
-                                    + " with @Machine is not supported", annotation);
+                            + " with @Machine is not supported", annotation);
                     continue;
                 }
                 TypeElement typeElem = (TypeElement) annotation;
@@ -236,7 +247,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             try {
                 if (!(elem instanceof TypeElement)) {
                     error("annotating element " + elem + " of type " + elem.getKind().name()
-                                    + " with @Component is not supported", elem);
+                            + " with @Component is not supported", elem);
                     continue;
                 }
                 TypeElement component = (TypeElement) elem;
@@ -289,7 +300,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
                 if (!(elem instanceof TypeElement)) {
                     error("annotating element " + elem + " of type " + elem.getKind().name()
-                                    + " with @Alternative is not supported", elem);
+                            + " with @Alternative is not supported", elem);
                     continue;
                 }
                 TypeElement component = (TypeElement) elem;
@@ -372,13 +383,13 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     private void buildCheckedExceptions(ExecutableElement executableElement, List<String> exceptions) {
-    	for (TypeMirror e : executableElement.getThrownTypes()) {
+        for (TypeMirror e : executableElement.getThrownTypes()) {
             // Assuming Exceptions never have type arguments. Qualified names include type arguments.
-    		String exception = ((TypeElement) ((DeclaredType) e).asElement()).getQualifiedName().toString();
-    		exceptions.add(exception);
-    	}
+            String exception = ((TypeElement) ((DeclaredType) e).asElement()).getQualifiedName().toString();
+            exceptions.add(exception);
+        }
     }
-    
+
     private void buildInjectableParams(ExecutableElement executableElement, List<InjectableParameter> parameters) {
         for (VariableElement p : executableElement.getParameters()) {
             parameters.add(new InjectableParameter(
@@ -540,8 +551,8 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final Optional<String> injectionName;
 
         ComponentClass(String fqcn,
-                String pack, String name,
-                Optional<String> injectionName, int priority, Element originatingElement) {
+                       String pack, String name,
+                       Optional<String> injectionName, int priority, Element originatingElement) {
             this(fqcn, pack, name, name, injectionName, priority, originatingElement);
         }
 
@@ -624,10 +635,10 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             if (isGuavaOptionalType(type) || isJava8OptionalType(type)
                     || isMultiType(type) || isNamedComponentType(type)) {
                 Optional<TypeMirror> pType = parameterType(type);
-                if (!pType.isPresent()){
+                if (!pType.isPresent()) {
                     throw new RuntimeException(
                             "Optional | Collection | NamedComponent type for parameter " + name + " needs" +
-                            " parameterized type (generics) to be processed correctly");
+                                    " parameterized type (generics) to be processed correctly");
                 }
                 return targetType(pType.get());
             } else {
@@ -638,7 +649,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         private Optional<TypeMirror> parameterType(TypeMirror type) {
             if (type instanceof DeclaredType) {
                 DeclaredType declaredBaseType = (DeclaredType) type;
-                if(declaredBaseType.getTypeArguments().isEmpty()){
+                if (declaredBaseType.getTypeArguments().isEmpty()) {
                     return Optional.absent();
                 }
                 return (Optional<TypeMirror>) Optional.of(declaredBaseType.getTypeArguments().get(0));
@@ -650,9 +661,11 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         private boolean isGuavaOptionalType(TypeMirror type) {
             return type.toString().startsWith(Optional.class.getCanonicalName());
         }
+
         private boolean isJava8OptionalType(TypeMirror type) {
             return type.toString().startsWith("java.util.Optional");
         }
+
         private boolean isNamedComponentType(TypeMirror type) {
             return type.toString().startsWith(NamedComponent.class.getCanonicalName());
         }
@@ -717,8 +730,8 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         final List<String> exceptions = Lists.newArrayList();
 
         ConditionalProviderMethod(String componentType,
-                String componentName, String methodName, int priority,
-                String whenName, String whenValue, String factoryMachineNameSuffix, Element originatingElement) {
+                                  String componentName, String methodName, int priority,
+                                  String whenName, String whenValue, String factoryMachineNameSuffix, Element originatingElement) {
             this.componentType = componentType;
             this.componentName = componentName;
             this.methodName = methodName;
@@ -735,32 +748,32 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         private final Set<String> declaredServices = Sets.newHashSet();
 
         private ServicesDeclaration(String targetFile) {
-			super("META-INF/services/" + targetFile);
-		}
+            super("META-INF/services/" + targetFile);
+        }
 
-		@Override
-		protected boolean requireGeneration() {
-			return declaredServices.size() > 0;
-		}
+        @Override
+        protected boolean requireGeneration() {
+            return declaredServices.size() > 0;
+        }
 
-		@Override
-		protected void clearContent() {
-			declaredServices.clear();
-		}
+        @Override
+        protected void clearContent() {
+            declaredServices.clear();
+        }
 
-		@Override
-		protected void writeContent(Writer writer) throws IOException {
-			for (String declaredService : Ordering.natural().sortedCopy(declaredServices)) {
-				writer.write(declaredService + "\n");
-			}
-		}
+        @Override
+        protected void writeContent(Writer writer) throws IOException {
+            for (String declaredService : Ordering.natural().sortedCopy(declaredServices)) {
+                writer.write(declaredService + "\n");
+            }
+        }
 
-		@Override
-		protected void readContent(Reader reader) throws IOException {
-			declaredServices.addAll(CharStreams.readLines(reader));
-		}
+        @Override
+        protected void readContent(Reader reader) throws IOException {
+            declaredServices.addAll(CharStreams.readLines(reader));
+        }
 
-		void declareService(String service) {
+        void declareService(String service) {
             declaredServices.add(service);
         }
     }

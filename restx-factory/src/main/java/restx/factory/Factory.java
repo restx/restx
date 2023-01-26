@@ -1227,9 +1227,9 @@ public class Factory implements AutoCloseable {
             indentation.append("  ");
         }
 
-        Iterator<BuildingBox<?>> buildingBoxToSortIter = buildingBox.depsToSort.iterator();
+        Iterator buildingBoxToSortIter = buildingBox.depsToSort.iterator();
         while(buildingBoxToSortIter.hasNext()) {
-            BuildingBox<?> buildingBoxToSort = buildingBoxToSortIter.next();
+            BuildingBox<?> buildingBoxToSort = (BuildingBox<?>) buildingBoxToSortIter.next();
             circularDependencyLog.append(indentation.toString()).append("-> ").append(buildingBox.engine.getName()).append("\n");
             if(!alreadyDisplayedComponents.contains(buildingBox.engine.getName())) {
                 buildCircularDependencyLog(
