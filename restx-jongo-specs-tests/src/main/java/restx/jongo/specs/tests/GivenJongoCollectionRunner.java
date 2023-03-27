@@ -53,7 +53,7 @@ public class GivenJongoCollectionRunner implements GivenRunner<GivenJongoCollect
             }
             System.out.printf("imported %s[%d] -- %s%n", given.getCollection(), count, stopwatch.stop().toString());
         } finally {
-            jongo.getDatabase().getMongo().close();
+            jongo.getDatabase().getMongoClient().close();
         }
 
         final UnmodifiableIterator<String> it = given.getSequence().iterator();

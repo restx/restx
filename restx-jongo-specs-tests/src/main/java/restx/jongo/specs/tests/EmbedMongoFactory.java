@@ -24,7 +24,7 @@ class EmbedMongoFactory {
         try {
             InetAddress addr = Network.getLocalHost();
             int port = Network.getFreeServerPort(addr);
-            String uri = "mongodb://" + addr.getHostName() + ":" + port;
+            String uri = "mongodb://" + "localhost" + ":" + port;
 
             MongoClientURI mongoClientURI = new MongoClientURI(uri);
             return new PoolKey(version, mongoClientURI);

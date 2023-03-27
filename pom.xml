@@ -61,7 +61,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <!-- 3rd party libs -->
-        <jackson.version>2.10.1</jackson.version>
+        <jackson.version>2.14.1</jackson.version>
         <guava.version>28.2-jre</guava.version>
         <joda-time.version>2.10.5</joda-time.version>
         <jna.version>3.2.7</jna.version>
@@ -83,8 +83,8 @@
         <el.api.version>2.2</el.api.version>
 
         <!-- Mongo modules -->
-        <mongo-java-driver.version>3.12.0</mongo-java-driver.version>
-        <jongo.version>1.4.0</jongo.version>
+        <mongo-java-driver.version>4.8.0</mongo-java-driver.version>
+        <jongo.version>1.5.1</jongo.version>
         <de.flapdoodle.embed.version>2.2.0</de.flapdoodle.embed.version>
 
         <!-- Test libs -->
@@ -416,7 +416,7 @@
             <!-- Mongo modules -->
             <dependency>
                 <groupId>org.mongodb</groupId>
-                <artifactId>mongo-java-driver</artifactId>
+                <artifactId>mongodb-driver-legacy</artifactId>
                 <version>${mongo-java-driver.version}</version>
             </dependency>
             <dependency>
