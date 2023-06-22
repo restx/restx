@@ -3,12 +3,12 @@ package restx.servlet;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.*;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import restx.AbstractRequest;
 import restx.HttpSettings;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
