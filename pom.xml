@@ -562,7 +562,7 @@
         <module>restx-i18n</module>
         <module>restx-i18n-admin</module>
         <module>restx-apidocs</module>
-        <module>restx-apidocs-doclet</module>
+<!--        <module>restx-apidocs-doclet</module>-->
         <module>restx-monitor-admin</module>
         <module>restx-monitor-codahale</module>
         <module>restx-factory-admin</module>
@@ -572,7 +572,7 @@
         <module>restx-specs-admin</module>
         <module>restx-specs-server</module>
         <module>restx-jongo</module>
-        <module>restx-jongo-specs-tests</module>
+<!--        <module>restx-jongo-specs-tests</module>-->
         <module>restx-servlet</module>
         <module>restx-server-jetty7</module>
         <module>restx-server-jetty8</module>
@@ -588,6 +588,6 @@
         <module>restx-jongo-java8</module>
         <module>restx-specs-tests-java8</module>
         <module>restx-samplest-java8</module>
-        <module>restx-samplest-kotlin</module>
+<!--        <module>restx-samplest-kotlin</module>-->
     </modules>
 </project>
