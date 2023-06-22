@@ -3,6 +3,7 @@ package restx.server;
 import com.google.common.base.Strings;
 import org.eclipse.jetty.security.DefaultIdentityService;
 import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.UserStore;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -94,10 +95,12 @@ public class Jetty11WebServer extends WebServerBase {
         // but I've found no way to get rid of LoginService=xxx log on system err :(
         HashLoginService loginService = new HashLoginService();
         loginService.setIdentityService(new DefaultIdentityService());
+        loginService.setUserStore(new UserStore());
+
         ctx.getSecurityHandler().setLoginService(loginService);
         ctx.getSecurityHandler().setIdentityService(loginService.getIdentityService());
 
-        ctx.getServletContext().addListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
+        ctx.addEventListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
             @Override
             public void lifeCycleStarting(LifeCycle event) {
                 ctx.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
