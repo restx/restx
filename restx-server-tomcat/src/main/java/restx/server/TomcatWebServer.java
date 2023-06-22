@@ -30,7 +30,11 @@ public class TomcatWebServer extends WebServerBase {
         tomcat.setBaseDir(".");
         tomcat.getHost().setAppBase(".");
 
-        String contextPath = "/";
+        // Create default connector with port
+        // Do not remove as Tomcat open the port only if getConnector is called at least once
+        tomcat.getConnector();
+
+        String contextPath = "";
 
         // Add AprLifecycleListener
         StandardServer server = (StandardServer) tomcat.getServer();
@@ -42,8 +46,8 @@ public class TomcatWebServer extends WebServerBase {
 
     @Override
     protected void _start() throws LifecycleException {
-        context.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
-        context.getServletContext().setInitParameter("restx.serverId", serverId);
+        context.addParameter("restx.baseServerUri", baseUrl());
+        context.addParameter("restx.serverId", serverId);
 
         tomcat.start();
     }
