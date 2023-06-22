@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.inject.Named;
 
+import com.google.common.base.Function;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -106,11 +107,24 @@ public class RestxSessionCookieFilter implements RestxRouteFilter, RestxHandler 
 
     public RestxSession buildContextFromRequest(RestxRequest req) throws IOException {
         String restxSessionCookieName = restxSessionCookieDescriptor.getCookieName();
-        String cookie = req.getCookieValue(restxSessionCookieName).or("");
+        String cookie = req.getCookieValue(restxSessionCookieName)
+                .transform(new Function<String, String>() {
+                    @Override
+                    public String apply(final String input) {
+                        return restxSessionCookieDescriptor.decodeValueIfNeeded(input);
+                    }})
+                .or("");
         if (cookie.trim().isEmpty()) {
             return emptySession;
         } else {
-            String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName()).or("");
+            String sig = req.getCookieValue(restxSessionCookieDescriptor.getCookieSignatureName())
+                    .transform(new Function<String, String>() {
+                        @Override
+                        public String apply(final String input) {
+                            return restxSessionCookieDescriptor.decodeValueIfNeeded(input);
+                        }
+                    })
+                    .or("");
 			if (!signer.verify(cookie, sig)) {
 				logger.warn("invalid restx session signature. session was: {}. Ignoring session cookie.", cookie);
                 return emptySession;
