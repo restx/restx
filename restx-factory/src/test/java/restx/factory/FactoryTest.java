@@ -502,8 +502,8 @@ public class FactoryTest {
         Set<NamedComponent<String>> components = factory.queryByClass(String.class).find();
 
         assertThat(components).containsExactly(
-                NamedComponent.of(String.class, "test 2", "value 2"),
-                NamedComponent.of(String.class, "test 1", "value 1"));
+                NamedComponent.of(String.class, "test 2", 0, "value 2"),
+                NamedComponent.of(String.class, "test 1", 1, "value 1"));
     }
 
     @Test
