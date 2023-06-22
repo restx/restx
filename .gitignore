@@ -7,4 +7,7 @@
 dependency-reduced-pom.xml
 tmp
 target
+.classpath
+.settings/
+.factorypath
 

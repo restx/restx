@@ -641,7 +641,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 if(declaredBaseType.getTypeArguments().isEmpty()){
                     return Optional.absent();
                 }
-                return Optional.of(declaredBaseType.getTypeArguments().get(0));
+                return (Optional<TypeMirror>) Optional.of(declaredBaseType.getTypeArguments().get(0));
             } else {
                 return Optional.absent();
             }

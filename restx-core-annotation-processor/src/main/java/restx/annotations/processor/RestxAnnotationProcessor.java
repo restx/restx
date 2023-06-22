@@ -1,14 +1,69 @@
 package restx.annotations.processor;
 
-import com.google.common.base.*;
+import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
+import static restx.annotations.processor.TypeHelper.toTypeDescription;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.*;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.samskivert.mustache.Template;
+
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
 import restx.RestxLogLevel;
 import restx.StdRestxRequestMatcher;
-import restx.annotations.*;
+import restx.annotations.Annotations;
+import restx.annotations.Consumes;
+import restx.annotations.ContextParam;
+import restx.annotations.DELETE;
+import restx.annotations.GET;
+import restx.annotations.HEAD;
+import restx.annotations.HeaderParam;
+import restx.annotations.POST;
+import restx.annotations.PUT;
+import restx.annotations.Param;
+import restx.annotations.PathParam;
+import restx.annotations.Produces;
+import restx.annotations.QueryParam;
+import restx.annotations.RestxResource;
+import restx.annotations.SuccessStatus;
+import restx.annotations.Verbosity;
 import restx.common.Mustaches;
 import restx.common.processor.RestxAbstractProcessor;
 import restx.endpoint.EndpointParameterKind;
@@ -17,23 +72,6 @@ import restx.http.HttpStatus;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
 import restx.validation.ValidatedFor;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedOptions;
-import javax.lang.model.element.*;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
-import static restx.annotations.processor.TypeHelper.toTypeDescription;
 
 /**
  * User: xavierhanin
@@ -194,47 +232,52 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private AnnotationDescription createAnnotationDescriptionFrom(AnnotationMirror methodAnnotation, ExecutableElement element) {
+    private AnnotationDescription createAnnotationDescriptionFrom(AnnotationMirror methodAnnotation,
+            ExecutableElement element) {
         ImmutableList.Builder<AnnotationField> annotationFieldsBuilder = ImmutableList.builder();
         ImmutableSet.Builder<String> annotationFieldNamesBuilder = ImmutableSet.builder();
-        for(Map.Entry<? extends ExecutableElement,? extends AnnotationValue> fieldEntry: methodAnnotation.getElementValues().entrySet()) {
-            String fieldName = fieldEntry.getKey().toString().substring(0, fieldEntry.getKey().toString().length() - "()".length());
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> fieldEntry : methodAnnotation
+                .getElementValues().entrySet()) {
+            String fieldName = fieldEntry.getKey().getSimpleName().toString();
+//            .toString().substring(0,
+//                    fieldEntry.getKey().toString().length() - "()".length());
             TypeMirror type = fieldEntry.getKey().getReturnType();
             TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
             boolean arrayed = AnnotationFieldKind.isArrayed(type);
             AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
 
-            annotationFieldsBuilder.add(new AnnotationField(
-                    fieldName, fieldEntry.getValue().getValue(),
-                    componentType, annotationFieldKind, arrayed));
+            annotationFieldsBuilder.add(new AnnotationField(fieldName, fieldEntry.getValue().getValue(), componentType,
+                    annotationFieldKind, arrayed));
             annotationFieldNamesBuilder.add(fieldName);
         }
 
-        // Filling annotation default values (not provided in annotation declaration)
+        // Filling annotation default values (not provided in annotation
+        // declaration)
         ImmutableSet<String> declaredAnnotationFieldNames = annotationFieldNamesBuilder.build();
         Element methodAnnotationElement = methodAnnotation.getAnnotationType().asElement();
         // check its a class symbol before going on - in Kotlin it seems this may not be the case
         if (methodAnnotationElement instanceof Symbol.ClassSymbol) {
-            for (Symbol annotationMember : ((Symbol.ClassSymbol) methodAnnotationElement).members().getElements()) {
-                if (annotationMember instanceof Symbol.MethodSymbol) {
-                    Symbol.MethodSymbol annotationMemberAsMethod = (Symbol.MethodSymbol) annotationMember;
-                    String fieldName = annotationMemberAsMethod.getSimpleName().toString();
-                    if (!declaredAnnotationFieldNames.contains(fieldName)) {
-                        Type type = annotationMemberAsMethod.getReturnType();
+        for(Element annotationMember : methodAnnotation.getAnnotationType().asElement().getEnclosedElements()) {
+            if (annotationMember.getKind() == ElementKind.METHOD) {
+                ExecutableElement annotationMemberAsMethod = (ExecutableElement) annotationMember;
+                String fieldName = annotationMemberAsMethod.getSimpleName().toString();
+                if (!declaredAnnotationFieldNames.contains(fieldName)) {
+                    TypeMirror type = annotationMemberAsMethod.getReturnType();
                         TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
                         boolean arrayed = AnnotationFieldKind.isArrayed(type);
                         AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
 
-                        annotationFieldsBuilder.add(new AnnotationField(
-                                fieldName,
-                                annotationMemberAsMethod.getDefaultValue() == null ? null : annotationMemberAsMethod.getDefaultValue().getValue(),
+                    annotationFieldsBuilder.add(new AnnotationField(fieldName,
+                            annotationMemberAsMethod.getDefaultValue() == null ? null
+                                    : annotationMemberAsMethod.getDefaultValue().getValue(),
                                 componentType, annotationFieldKind, arrayed));
                     }
                 }
             }
         }
 
-        AnnotationDescription annotationDescription = new AnnotationDescription(methodAnnotation.getAnnotationType().toString(), annotationFieldsBuilder.build());
+        AnnotationDescription annotationDescription = new AnnotationDescription(
+                methodAnnotation.getAnnotationType().toString(), annotationFieldsBuilder.build());
         return annotationDescription;
     }
 
