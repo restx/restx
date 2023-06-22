@@ -49,23 +49,6 @@ import java.util.stream.Collectors;
 import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
 import static restx.annotations.processor.TypeHelper.toTypeDescription;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedOptions;
-import javax.lang.model.element.*;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static restx.annotations.processor.TypeHelper.getTypeExpressionFor;
-import static restx.annotations.processor.TypeHelper.toTypeDescription;
 
 /**
  * User: xavierhanin
@@ -264,7 +247,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     annotationFieldsBuilder.add(new AnnotationField(fieldName, value, componentType, annotationFieldKind, arrayed));
                 }
             }
-        //}
+        }
 
         AnnotationDescription annotationDescription = new AnnotationDescription(
                 methodAnnotation.getAnnotationType().toString(), annotationFieldsBuilder.build());
