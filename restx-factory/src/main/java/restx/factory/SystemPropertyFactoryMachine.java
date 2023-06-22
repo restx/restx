@@ -1,10 +1,8 @@
 package restx.factory;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
-
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -23,7 +21,7 @@ public class SystemPropertyFactoryMachine implements FactoryMachine {
             protected T doNewComponent(SatisfiedBOM satisfiedBOM) {
                 // in case the system property has been nullified, we return an empty string as value, rather than null
                 // which would break the component building
-                return (T) Objects.firstNonNull(System.getProperty(name.getName()), "");
+                return (T) Optional.ofNullable(System.getProperty(name.getName())).orElse( "");
             }
         };
     }

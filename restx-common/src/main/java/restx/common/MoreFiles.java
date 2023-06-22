@@ -119,4 +119,8 @@ public class MoreFiles {
             }
         }
     }
+
+    public static String removeWindowsCarriageReturnsBeforeLF(String str) {
+        return str.replaceAll("\r\n", "\n");
+    }
 }

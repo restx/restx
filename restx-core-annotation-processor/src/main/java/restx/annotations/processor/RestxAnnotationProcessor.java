@@ -45,6 +45,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.samskivert.mustache.Template;
 
+import com.sun.tools.javac.code.Symbol;
 import restx.RestxLogLevel;
 import restx.StdRestxRequestMatcher;
 import restx.annotations.Annotations;
@@ -131,6 +132,9 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
                 ImmutableList.Builder<AnnotationDescription> annotationDescriptionsBuilder = ImmutableList.builder();
                 for(AnnotationMirror methodAnnotation: annotation.methodElem.getAnnotationMirrors()) {
+                    if ("org.jetbrains.annotations.NotNull".equals(methodAnnotation.getAnnotationType().toString())) {
+                        continue;
+                    }
                     AnnotationDescription annotationDescription = createAnnotationDescriptionFrom(methodAnnotation, annotation.methodElem);
                     annotationDescriptionsBuilder.add(annotationDescription);
                 }
@@ -250,20 +254,24 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         // Filling annotation default values (not provided in annotation
         // declaration)
         ImmutableSet<String> declaredAnnotationFieldNames = annotationFieldNamesBuilder.build();
-        for (Element annotationMember : methodAnnotation.getAnnotationType().asElement().getEnclosedElements()) {
+        Element methodAnnotationElement = methodAnnotation.getAnnotationType().asElement();
+        // check its a class symbol before going on - in Kotlin it seems this may not be the case
+        if (methodAnnotationElement instanceof Symbol.ClassSymbol) {
+        for(Element annotationMember : methodAnnotation.getAnnotationType().asElement().getEnclosedElements()) {
             if (annotationMember.getKind() == ElementKind.METHOD) {
                 ExecutableElement annotationMemberAsMethod = (ExecutableElement) annotationMember;
                 String fieldName = annotationMemberAsMethod.getSimpleName().toString();
                 if (!declaredAnnotationFieldNames.contains(fieldName)) {
                     TypeMirror type = annotationMemberAsMethod.getReturnType();
-                    TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
-                    boolean arrayed = AnnotationFieldKind.isArrayed(type);
-                    AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
+                        TypeMirror componentType = AnnotationFieldKind.componentTypeOf(type);
+                        boolean arrayed = AnnotationFieldKind.isArrayed(type);
+                        AnnotationFieldKind annotationFieldKind = AnnotationFieldKind.valueOf(processingEnv, type);
 
                     annotationFieldsBuilder.add(new AnnotationField(fieldName,
                             annotationMemberAsMethod.getDefaultValue() == null ? null
                                     : annotationMemberAsMethod.getDefaultValue().getValue(),
-                            componentType, annotationFieldKind, arrayed));
+                                componentType, annotationFieldKind, arrayed));
+                    }
                 }
             }
         }

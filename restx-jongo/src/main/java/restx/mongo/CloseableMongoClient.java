@@ -36,7 +36,7 @@ public class CloseableMongoClient extends MongoClient implements AutoCloseable {
 	}
 
 	public CloseableMongoClient(ServerAddress addr, List<MongoCredential> credentialsList) {
-		super(addr, credentialsList);
+		super(addr, credentialsList.get(0), new MongoClientOptions.Builder().build());
 	}
 
 	public CloseableMongoClient(ServerAddress addr, MongoClientOptions options) {
@@ -44,7 +44,7 @@ public class CloseableMongoClient extends MongoClient implements AutoCloseable {
 	}
 
 	public CloseableMongoClient(ServerAddress addr, List<MongoCredential> credentialsList, MongoClientOptions options) {
-		super(addr, credentialsList, options);
+		super(addr, credentialsList.get(0), options);
 	}
 
 	public CloseableMongoClient(List<ServerAddress> seeds) {
@@ -52,7 +52,7 @@ public class CloseableMongoClient extends MongoClient implements AutoCloseable {
 	}
 
 	public CloseableMongoClient(List<ServerAddress> seeds, List<MongoCredential> credentialsList) {
-		super(seeds, credentialsList);
+		super(seeds, credentialsList.get(0), new MongoClientOptions.Builder().build());
 	}
 
 	public CloseableMongoClient(List<ServerAddress> seeds, MongoClientOptions options) {
@@ -60,7 +60,7 @@ public class CloseableMongoClient extends MongoClient implements AutoCloseable {
 	}
 
 	public CloseableMongoClient(List<ServerAddress> seeds, List<MongoCredential> credentialsList, MongoClientOptions options) {
-		super(seeds, credentialsList, options);
+		super(seeds, credentialsList.get(0), options);
 	}
 
 	public CloseableMongoClient(MongoClientURI uri) throws UnknownHostException {

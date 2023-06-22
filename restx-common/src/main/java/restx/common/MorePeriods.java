@@ -63,7 +63,13 @@ public class MorePeriods {
             });
 
     /**
-     * Parses a period from a string looking like "1y 2mo 1w 2d 1h 2m 10s"
+     * Parses a period from a String looking like "1y 2mo 1w 2d 1h 2m 10s".
+     *
+     * <p>Each time unit is optional and must be separated by a space.</p>
+     *
+     * @param duration the String representing the duration
+     * @param currentLocale the locale the String needs to be parsed to
+     * @return a Period representing the {@code duration} in parameter
      */
     public static Period parsePeriod(String duration, Locale currentLocale){
         return PARSED_PERIODS_CACHE.getUnchecked(new ParseableDurationForLocale(duration, currentLocale));

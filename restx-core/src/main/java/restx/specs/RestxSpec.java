@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -60,12 +61,17 @@ public class RestxSpec {
         }
 
         public File getStoreFile(String path) {
-            if (path.startsWith("/")) {
+            if (pathLooksAbsolute(path)) {
                 return new File(path);
             } else {
                 String basePath = settings.recorderBasePath();
                 return new File(basePath + "/" + path);
             }
+        }
+
+        private static final Pattern WINDOWS_PATH_PATTERN = Pattern.compile("^[A-Z]:\\\\.*");
+        private static boolean pathLooksAbsolute(String path) {
+            return path.startsWith("/") || WINDOWS_PATH_PATTERN.matcher(path).matches();
         }
 
         public File store(RestxSpec spec) throws IOException {

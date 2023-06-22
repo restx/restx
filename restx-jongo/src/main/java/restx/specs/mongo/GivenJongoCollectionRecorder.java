@@ -3,8 +3,8 @@ package restx.specs.mongo;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import org.bson.types.ObjectId;
 import org.jongo.Mapper;
 import org.jongo.MongoCollection;
@@ -13,7 +13,6 @@ import org.jongo.ResultHandler;
 import org.jongo.marshall.Marshaller;
 import org.jongo.marshall.Unmarshaller;
 import org.jongo.query.QueryFactory;
-import restx.RestxContext;
 import restx.factory.*;
 import restx.jongo.JongoCollection;
 import restx.specs.Given;
@@ -79,7 +78,7 @@ public class GivenJongoCollectionRecorder implements RestxSpecRecorder.GivenReco
             Iterable<String> items = mongoCollection.find().map(new ResultHandler<String>() {
                 @Override
                 public String map(DBObject result) {
-                    return JSON.serialize(result);
+                    return ((BasicDBObject) result).toJson();
                 }
             });
 

@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
+import restx.common.MoreFiles;
 import restx.common.Mustaches;
 
 import java.io.File;
@@ -306,7 +307,7 @@ public class JsonAssertions {
         }
 
         try {
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(o);
+            return MoreFiles.removeWindowsCarriageReturnsBeforeLF(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(o));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return o.toString();

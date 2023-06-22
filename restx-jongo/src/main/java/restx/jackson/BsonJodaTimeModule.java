@@ -1,13 +1,16 @@
 package restx.jackson;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.joda.cfg.FormatConfig;
 import de.undercouch.bson4jackson.BsonGenerator;
-import de.undercouch.bson4jackson.serializers.BsonSerializer;
+import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -23,25 +26,29 @@ public class BsonJodaTimeModule extends SimpleModule {
     public BsonJodaTimeModule() {
         super("BsonJodaTimeModule");
 
-        addSerializer(org.joda.time.DateMidnight.class, new BsonSerializer<org.joda.time.DateMidnight>() {
+        addSerializer(org.joda.time.DateMidnight.class, new JsonSerializer<DateMidnight>() {
             @Override
-            public void serialize(org.joda.time.DateMidnight date, BsonGenerator bsonGenerator, SerializerProvider serializerProvider)
-                    throws IOException {
+            public void serialize(DateMidnight date, JsonGenerator gen, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
                 if (date == null) {
-                    serializerProvider.defaultSerializeNull(bsonGenerator);
+                    serializerProvider.defaultSerializeNull(gen);
+                } else if (gen instanceof BsonGenerator) {
+                    BsonGenerator bgen = (BsonGenerator)gen;
+                    bgen.writeDateTime(date.toDate());
                 } else {
-                    bsonGenerator.writeDateTime(date.toDate());
+                    gen.writeString(FormatConfig.DEFAULT_DATEONLY_FORMAT.createFormatter(serializerProvider).print(date));
                 }
             }
         });
-        addSerializer(DateTime.class, new BsonSerializer<DateTime>() {
+        addSerializer(DateTime.class, new JsonSerializer<DateTime>() {
             @Override
-            public void serialize(DateTime date, BsonGenerator bsonGenerator, SerializerProvider serializerProvider)
-                    throws IOException {
+            public void serialize(DateTime date, JsonGenerator gen, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
                 if (date == null) {
-                    serializerProvider.defaultSerializeNull(bsonGenerator);
+                    serializerProvider.defaultSerializeNull(gen);
+                } else if (gen instanceof BsonGenerator) {
+                    BsonGenerator bgen = (BsonGenerator)gen;
+                    bgen.writeDateTime(date.toDate());
                 } else {
-                    bsonGenerator.writeDateTime(date.toDate());
+                    gen.writeString(FormatConfig.DEFAULT_DATETIME_PRINTER.createFormatter(serializerProvider).print(date));
                 }
             }
         });

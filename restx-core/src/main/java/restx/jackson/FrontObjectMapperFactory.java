@@ -1,5 +1,7 @@
 package restx.jackson;
 
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.cfg.HandlerInstantiator;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
@@ -35,6 +37,11 @@ public class FrontObjectMapperFactory {
         ObjectMapper mapper = new ObjectMapper()
                 .registerModule(new JodaModule())
                 .registerModule(new GuavaModule())
+                .setDefaultPrettyPrinter(new DefaultPrettyPrinter()
+                        // This allows to "enforce" that \n will be used in generated JSON, instead of platform-specific eol
+                        // (windows, I'm looking at your \r\n here)
+                        .withObjectIndenter(new DefaultIndenter("  ", "\n"))
+                )
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .disable(DeserializationFeature.EAGER_DESERIALIZER_FETCH)

@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import org.assertj.core.data.MapEntry;
 import org.junit.Test;
+import restx.common.MoreFiles;
 import restx.factory.Factory;
 import restx.specs.RestxSpec;
 import restx.specs.RestxSpecLoader;
@@ -31,7 +32,7 @@ public class GivenJongoCollectionTest {
                 .containsExactly("contracts", "events", "salaries");
         assertThat(extractProperty("data").from(testCase.getGiven()))
                 .containsExactly(
-                        "[ { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"test1\" } ]\n",
+                        "[ { \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"test1\" } ]",
                         "[\n" +
                                 "{ \"_id\": \"511bd1267638b9481a66f385\", \"title\": \"example1\" },\n" +
                                 "{ \"_id\": \"511bd1297638b9481a66f386\", \"title\": \"example2\" }\n" +
@@ -75,8 +76,8 @@ public class GivenJongoCollectionTest {
 
         String actual = testCase.toString();
         System.out.println("actual = " + actual);
-        assertThat(actual).isEqualTo(Resources.toString(
-                                Resources.getResource("restx/tests/expected_restx_case_example_1.yaml"),
-                                Charsets.UTF_8));
+        assertThat(actual).isEqualTo(MoreFiles.removeWindowsCarriageReturnsBeforeLF(
+                Resources.toString(Resources.getResource("restx/tests/expected_restx_case_example_1.yaml"), Charsets.UTF_8)
+        ));
     }
 }

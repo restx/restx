@@ -17,6 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutoStartableTest {
     @Test
     public void should_handle_auto_startable_in_dev_mode() throws Exception {
+        int started = AutoStartableTestComponent.getStarted() + 1;
+        int closed = AutoStartableTestComponent.getClosed();
+        int instantiated = AutoStartableTestComponent.getInstanciated() + 1;
+
         Factory.LocalMachines.threadLocal().addMachine(
                 new SingletonFactoryMachine<>(-1000, NamedComponent.of(String.class, "restx.mode", "dev")));
 
@@ -29,16 +33,18 @@ public class AutoStartableTest {
                 HttpRequest httpRequest = client.GET("/api/autostartable/test");
                 assertThat(httpRequest.code()).isEqualTo(200);
                 assertThat(httpRequest.body().trim()).isEqualTo(
-                        "called: 1 - autostartable: called: 1 started: 1 closed: 0 instanciated: 1" +
-                                " serverId: "+server.getServerId()+" baseUrl: "+server.baseUrl()+" routerPresent: true");
+                        "called: 1 - autostartable: called: 1 started: " + started + " closed: " + closed +
+                                " instanciated: " + instantiated + " serverId: " + server.getServerId() + " baseUrl: " +
+                                server.baseUrl() + " routerPresent: true");
 
                 httpRequest = client.GET("/api/autostartable/test");
                 assertThat(httpRequest.code()).isEqualTo(200);
                 // called should be only one in test mode, components are dropped at each request
                 // but autostartable should be reused
                 assertThat(httpRequest.body().trim()).isEqualTo(
-                        "called: 1 - autostartable: called: 2 started: 1 closed: 0 instanciated: 1" +
-                                " serverId: "+server.getServerId()+" baseUrl: "+server.baseUrl()+" routerPresent: true");
+                        "called: 1 - autostartable: called: 2 started: " + started + " closed: " + closed +
+                                " instanciated: " + instantiated + " serverId: " + server.getServerId() + " baseUrl: " +
+                                server.baseUrl() + " routerPresent: true");
             } finally {
                 server.stop();
             }

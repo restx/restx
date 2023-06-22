@@ -44,7 +44,7 @@ public class ErrorAnnotationProcessor extends RestxAbstractProcessor {
                 TypeElement typeElement = (TypeElement) elem;
 
                 String fqcn = typeElement.getQualifiedName().toString();
-                int i = CharMatcher.JAVA_UPPER_CASE.indexIn(fqcn);
+                int i = CharMatcher.javaUpperCase().indexIn(fqcn);
                 String pack = fqcn.substring(0, i - 1);
                 String name = fqcn.substring(i).replace(".", "");
                 String descriptor = name + "Descriptor";
