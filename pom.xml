@@ -64,7 +64,7 @@
         <jackson.version>2.15.2</jackson.version>
         <guava.version>32.0.1-jre</guava.version>
         <joda-time.version>2.10.5</joda-time.version>
-        <jna.version>3.2.7</jna.version>
+        <jna.version>5.13.0</jna.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
         <logback.version>1.2.3</logback.version>
         <javax.inject.version>1</javax.inject.version>
