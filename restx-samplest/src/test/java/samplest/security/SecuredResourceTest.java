@@ -16,6 +16,8 @@ import restx.security.RestxSessionCookieFilter;
 import restx.tests.HttpTestClient;
 import restx.tests.RestxServerRule;
 
+import java.util.Arrays;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -74,8 +76,18 @@ public class SecuredResourceTest {
         RestxSessionCookieDescriptor restxSessionCookieDescriptor = restxSessionCookieDescriptorNamedComponentOptional
                 .get()
                 .getComponent();
-        String headerPrincipal = httpRequest.headers("Set-Cookie")[1];
-        String headerPrincipalValue = headerPrincipal.substring(headerPrincipal.indexOf("RestxSession=") + 13, headerPrincipal.lastIndexOf(";Path"));
+        String headerSetCookie = httpRequest.headers("Set-Cookie")[1];
+
+        String cookieSeparator = headerSetCookie.contains(";\\s") ? ";\\s" : ";";
+        java.util.Optional<String> headerPrincipalOptional = Arrays.stream(headerSetCookie.split(cookieSeparator))
+                .filter(assign -> assign.startsWith("RestxSession="))
+                .findFirst();
+
+        assertThat(headerPrincipalOptional).isPresent();
+
+        final String headerPrincipal = headerPrincipalOptional.get();
+        final String headerPrincipalValue = headerPrincipal.split("=")[1];
+
         return restxSessionCookieDescriptor.decodeValueIfNeeded(headerPrincipalValue);
     }
 
