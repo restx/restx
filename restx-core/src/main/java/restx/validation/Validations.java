@@ -2,10 +2,10 @@ package restx.validation;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import jakarta.validation.groups.Default;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import javax.validation.groups.Default;
 import java.util.Set;
 
 /**

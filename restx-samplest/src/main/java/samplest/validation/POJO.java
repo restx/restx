@@ -1,11 +1,10 @@
 package samplest.validation;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.Email;
 import restx.validation.stereotypes.FormValidations;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 public class POJO {
     @NotNull(groups={FormValidations.Update.class})

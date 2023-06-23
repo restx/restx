@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.annotations.POST;
 import restx.annotations.PUT;
-import restx.annotations.Param;
 import restx.annotations.RestxResource;
 import restx.factory.Component;
 import restx.security.PermitAll;

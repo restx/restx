@@ -4,10 +4,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Path;
-import javax.validation.metadata.ConstraintDescriptor;
-import java.lang.annotation.ElementType;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Path;
+
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
