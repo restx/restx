@@ -15,7 +15,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <kotlin.version>1.6.21</kotlin.version>
+        <kotlin.version>1.8.22</kotlin.version>
         <kotlin.compiler.incremental>false</kotlin.compiler.incremental>
     </properties>
 
