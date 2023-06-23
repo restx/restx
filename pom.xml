@@ -88,7 +88,7 @@
         <de.flapdoodle.embed.version>2.2.0</de.flapdoodle.embed.version>
 
         <!-- Test libs -->
-        <junit.version>4.13</junit.version>
+        <junit.version>4.13.2</junit.version>
         <junit.toolbox.version>2.3</junit.toolbox.version>
         <assertj-core.version>3.24.2</assertj-core.version>
         <maven-verifier.version>1.4</maven-verifier.version>
