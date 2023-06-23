@@ -57,8 +57,8 @@
         <restx.shell.version>1.0</restx.shell.version>
 
         <!-- Compiler -->
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
 
         <!-- 3rd party libs -->
         <jackson.version>2.14.1</jackson.version>
@@ -233,12 +233,7 @@
             </dependency>
             <dependency>
                 <groupId>io.restx</groupId>
-                <artifactId>restx-server-jetty7</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
-                <artifactId>restx-server-jetty8</artifactId>
+                <artifactId>restx-server-jetty11</artifactId>
                 <version>${restx.version}</version>
             </dependency>
             <dependency>
@@ -579,8 +574,7 @@
         <module>restx-jongo</module>
 <!--        <module>restx-jongo-specs-tests</module>-->
         <module>restx-servlet</module>
-        <module>restx-server-jetty7</module>
-        <module>restx-server-jetty8</module>
+        <module>restx-server-jetty11</module>
         <module>restx-server-tomcat</module>
         <module>restx-server-simple</module>
         <module>restx-server-testing</module>

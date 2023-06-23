@@ -12,7 +12,7 @@
     <name>restx-servlet</name>
 
     <properties>
-        <servlet-api.version>2.5</servlet-api.version>
+        <servlet-api.version>5.0.0</servlet-api.version>
     </properties>
 
     <dependencies>
@@ -25,9 +25,9 @@
             <artifactId>janino</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>${servlet-api.version}</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>5.0.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

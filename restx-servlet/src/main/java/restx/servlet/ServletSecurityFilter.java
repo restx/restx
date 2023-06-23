@@ -1,6 +1,7 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.*;
@@ -9,7 +10,6 @@ import restx.security.RestxPrincipal;
 import restx.security.RestxSession;
 
 import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
 

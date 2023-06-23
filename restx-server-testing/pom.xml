@@ -14,12 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-server-jetty7</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.restx</groupId>
-            <artifactId>restx-server-jetty8</artifactId>
+            <artifactId>restx-server-jetty11</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

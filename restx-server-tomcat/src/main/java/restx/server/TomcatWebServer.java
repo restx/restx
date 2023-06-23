@@ -1,6 +1,7 @@
 package restx.server;
 
 import com.google.common.base.Throwables;
+import jakarta.servlet.ServletException;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;
@@ -8,8 +9,6 @@ import org.apache.catalina.core.StandardServer;
 import org.apache.catalina.startup.Tomcat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.ServletException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -31,7 +30,11 @@ public class TomcatWebServer extends WebServerBase {
         tomcat.setBaseDir(".");
         tomcat.getHost().setAppBase(".");
 
-        String contextPath = "/";
+        // Create default connector with port
+        // Do not remove as Tomcat open the port only if getConnector is called at least once
+        tomcat.getConnector();
+
+        String contextPath = "";
 
         // Add AprLifecycleListener
         StandardServer server = (StandardServer) tomcat.getServer();
@@ -43,8 +46,8 @@ public class TomcatWebServer extends WebServerBase {
 
     @Override
     protected void _start() throws LifecycleException {
-        context.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
-        context.getServletContext().setInitParameter("restx.serverId", serverId);
+        context.addParameter("restx.baseServerUri", baseUrl());
+        context.addParameter("restx.serverId", serverId);
 
         tomcat.start();
     }

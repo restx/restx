@@ -1,6 +1,8 @@
 package restx.servlet;
 
 import com.google.common.base.Optional;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.ExpressionEvaluator;
 import org.codehaus.janino.JaninoRuntimeException;
@@ -11,8 +13,6 @@ import restx.factory.Factory;
 import restx.server.WebServer;
 import restx.server.WebServers;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Set;

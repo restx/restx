@@ -3,11 +3,12 @@ package restx.server;
 import com.google.common.base.Strings;
 import org.eclipse.jetty.security.DefaultIdentityService;
 import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.UserStore;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -19,18 +20,18 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.common.MoreFiles.checkFileExists;
 
-public class Jetty7WebServer extends WebServerBase {
-    private static final Logger logger = LoggerFactory.getLogger(Jetty7WebServer.class);
+public class Jetty11WebServer extends WebServerBase {
+    private static final Logger logger = LoggerFactory.getLogger(Jetty11WebServer.class);
 
     private Server server;
     private String webInfLocation;
 
-    public Jetty7WebServer(String appBase, int aPort) {
+    public Jetty11WebServer(String appBase, int aPort) {
         this(null, appBase, aPort, null);
     }
 
-    public Jetty7WebServer(String webInfLocation, String appBase, int port, String bindInterface) {
-        super(checkNotNull(appBase), port, bindInterface, "Jetty7", "org.eclipse.jetty", "jetty-server");
+    public Jetty11WebServer(String webInfLocation, String appBase, int port, String bindInterface) {
+        super(checkNotNull(appBase), port, bindInterface, "Jetty8", "org.eclipse.jetty", "jetty-server");
 
         if (webInfLocation != null) {
             checkFileExists(webInfLocation);
@@ -40,13 +41,10 @@ public class Jetty7WebServer extends WebServerBase {
 
     @Override
     protected void _start() throws Exception {
-        server = new Server();
-
-        server.setThreadPool(createThreadPool());
-        server.addConnector(createConnector());
-        server.setHandler(createHandlers(createContext()));
+        server = new Server(createThreadPool());
+        server.addConnector(createConnector(server));
         server.setStopAtShutdown(true);
-
+        server.setHandler(createHandlers(createContext()));
         server.start();
     }
 
@@ -68,8 +66,8 @@ public class Jetty7WebServer extends WebServerBase {
         return threadPool;
     }
 
-    protected SelectChannelConnector createConnector() {
-        SelectChannelConnector connector = new SelectChannelConnector();
+    protected ServerConnector createConnector(Server server) {
+        ServerConnector connector = new ServerConnector(server);
         connector.setPort(port);
         connector.setHost(bindInterface);
         return connector;
@@ -90,17 +88,19 @@ public class Jetty7WebServer extends WebServerBase {
         final WebAppContext ctx = new WebAppContext();
         ctx.setContextPath("/");
         ctx.setWar(appBase);
-        if(!Strings.isNullOrEmpty(webInfLocation)) {
+        if (!Strings.isNullOrEmpty(webInfLocation)) {
             ctx.setDescriptor(webInfLocation);
         }
         // configure security to avoid err println "Null identity service, trying login service:"
         // but I've found no way to get rid of LoginService=xxx log on system err :(
         HashLoginService loginService = new HashLoginService();
         loginService.setIdentityService(new DefaultIdentityService());
+        loginService.setUserStore(new UserStore());
+
         ctx.getSecurityHandler().setLoginService(loginService);
         ctx.getSecurityHandler().setIdentityService(loginService.getIdentityService());
 
-        ctx.addLifeCycleListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
+        ctx.addEventListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
             @Override
             public void lifeCycleStarting(LifeCycle event) {
                 ctx.getServletContext().setInitParameter("restx.baseServerUri", baseUrl());
@@ -115,7 +115,7 @@ public class Jetty7WebServer extends WebServerBase {
         return new WebServerSupplier() {
             @Override
             public WebServer newWebServer(int port) {
-                return new Jetty7WebServer(webInfLocation, appBase, port, "0.0.0.0");
+                return new Jetty11WebServer(webInfLocation, appBase, port, "0.0.0.0");
             }
         };
     }
@@ -128,6 +128,6 @@ public class Jetty7WebServer extends WebServerBase {
 
         String appBase = args[0];
         int port = args.length > 1 ? Integer.parseInt(args[1]) : 8086;
-        new Jetty7WebServer(appBase + "WEB-INF/web.xml", appBase, port, "0.0.0.0").startAndAwait();
+        new Jetty11WebServer(appBase + "WEB-INF/web.xml", appBase, port, "0.0.0.0").startAndAwait();
     }
 }

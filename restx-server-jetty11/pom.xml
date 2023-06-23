@@ -8,11 +8,11 @@
         <version>0.36-SNAPSHOT</version>
     </parent>
 
-    <artifactId>restx-server-jetty8</artifactId>
-    <name>restx-server-jetty8</name>
+    <artifactId>restx-server-jetty11</artifactId>
+    <name>restx-server-jetty11</name>
 
     <properties>
-        <jetty8.version>8.1.8.v20121106</jetty8.version>
+        <jetty11.version>11.0.15</jetty11.version>
     </properties>
 
     <dependencies>
@@ -33,37 +33,37 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>${jetty8.version}</version>
+            <version>${jetty11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>${jetty8.version}</version>
+            <version>${jetty11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-security</artifactId>
-            <version>${jetty8.version}</version>
+            <version>${jetty11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-util</artifactId>
-            <version>${jetty8.version}</version>
+            <version>${jetty11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
-            <version>${jetty8.version}</version>
+            <version>${jetty11.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>${jetty8.version}</version>
+            <version>${jetty11.version}</version>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.0.1</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>5.0.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
