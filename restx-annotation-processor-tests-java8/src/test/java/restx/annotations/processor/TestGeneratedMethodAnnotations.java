@@ -1,19 +1,14 @@
 package restx.annotations.processor;
 
-import java.util.Arrays;
-
-import javax.tools.JavaFileObject;
-import javax.tools.StandardLocation;
-
-import org.junit.Test;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.truth.Truth;
 import com.google.testing.compile.JavaFileObjects;
 import com.google.testing.compile.JavaSourcesSubjectFactory;
-
+import org.junit.Test;
 import restx.factory.processor.FactoryAnnotationProcessor;
+
+import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
+import java.util.Arrays;
 
 public class TestGeneratedMethodAnnotations {
 
