@@ -17,12 +17,12 @@ public class OptionalSettingResource {
         this.settings = settings;
     }
 
-    @GET("/optional/settings/key1")
+    @GET("/optional/settings/key4")
     public Optional<String> key1() {
-        return settings.key1();
+        return settings.key4();
     }
-    @GET("/optional/settings/key2")
-    public Optional<String> key2() {
-        return settings.key2();
+    @GET("/optional/settings/key5")
+    public Optional<String> key5() {
+        return settings.key5();
     }
 }

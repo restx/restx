@@ -218,17 +218,7 @@
             </dependency>
             <dependency>
                 <groupId>io.restx</groupId>
-                <artifactId>restx-core-java8</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
                 <artifactId>restx-jongo-specs-tests</artifactId>
-                <version>${restx.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.restx</groupId>
-                <artifactId>restx-specs-tests-java8</artifactId>
                 <version>${restx.version}</version>
             </dependency>
             <dependency>
@@ -584,11 +574,7 @@
         <module>restx-md-fragments</module>
 <!--        <module>restx-md-testing</module>-->
 <!--        <module>restx-api-doclet-test</module>-->
-<!--        <module>restx-annotation-processor-tests-java8</module>-->
-        <module>restx-core-java8</module>
-        <module>restx-jongo-java8</module>
-        <module>restx-specs-tests-java8</module>
-        <module>restx-samplest-java8</module>
+<!--        <module>restx-annotation-processor-tests</module>-->
         <module>restx-samplest-kotlin</module>
     </modules>
 </project>

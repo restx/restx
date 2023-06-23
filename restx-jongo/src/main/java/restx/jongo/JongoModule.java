@@ -33,6 +33,7 @@ public class JongoModule {
     public Mapper mapper() {
         final Mapper mapper = new JacksonMapper.Builder()
                 .registerModule(new BsonJodaTimeModule())
+                .registerModule(new BsonJSR310Module())
                 .withView(Views.Private.class)
                 .build();
         return fixJacksonMapper(mapper);

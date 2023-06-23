@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import restx.AppSettings;
 import restx.RestxContext;
 import restx.factory.Factory;
@@ -37,6 +38,7 @@ public class FrontObjectMapperFactory {
         ObjectMapper mapper = new ObjectMapper()
                 .registerModule(new JodaModule())
                 .registerModule(new GuavaModule())
+                .registerModule(new JavaTimeModule())
                 .setDefaultPrettyPrinter(new DefaultPrettyPrinter()
                         // This allows to "enforce" that \n will be used in generated JSON, instead of platform-specific eol
                         // (windows, I'm looking at your \r\n here)

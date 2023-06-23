@@ -9,6 +9,7 @@ import restx.factory.Provides;
 import restx.i18n.SupportedLocale;
 import restx.security.*;
 import samplest.security.CompanyAndSubCompanyRoles;
+import samplest.foobar.Bar;
 
 import javax.inject.Named;
 import java.util.Locale;
@@ -63,4 +64,8 @@ public class AppModule {
         return "testing-mongo";
     }
 
+    @Provides
+    public Bar buildBar() {
+        return new Bar();
+    }
 }

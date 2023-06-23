@@ -17,4 +17,10 @@ public interface MySettings {
     @SettingsKey(key = "example.key3", defaultValue = "MyValue3",
             doc = "This is an example key 3")
     String key3();
+
+    @SettingsKey(key = "example.key4")
+    java.util.Optional<String> key4();
+
+    @SettingsKey(key = "example.key5", defaultValue = "key5")
+    java.util.Optional<String> key5();
 }

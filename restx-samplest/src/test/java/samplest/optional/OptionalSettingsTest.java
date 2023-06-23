@@ -19,16 +19,16 @@ public class OptionalSettingsTest {
     }
 
     @Test
-    public void should_not_find_key1() throws Exception {
-        HttpRequest httpRequest = server.client().authenticatedAs("admin").GET("/api/optional/settings/key1");
+    public void should_not_find_key4() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin").GET("/api/optional/settings/key4");
         assertThat(httpRequest.code()).isEqualTo(404);
     }
 
     @Test
-    public void should_find_key2() throws Exception {
-        HttpRequest httpRequest = server.client().authenticatedAs("admin").GET("/api/optional/settings/key2");
+    public void should_find_key5() throws Exception {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin").GET("/api/optional/settings/key5");
         assertThat(httpRequest.code()).isEqualTo(200);
-        assertThat(httpRequest.body().trim()).isEqualTo("key2");
+        assertThat(httpRequest.body().trim()).isEqualTo("key5");
     }
 
 }
