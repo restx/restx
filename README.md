@@ -14,24 +14,13 @@ Here you will find the build instructions if you want to build RESTX yourself, a
 
 ## Build
 
-RESTX requires Java 7.
+RESTX requires Java 17.
 
-You can build it using either Maven 2+ or EasyAnt.
+You can build it using either Maven Wrapper.
 
 With Maven:
 
-`mvn install`
-
-With EasyAnt:
-
-`easyant test package`
-
-
-## Changing dependencies
-
-The sources for module descriptors are the `md.restx.json` files located in each module, and the `restx.build.properties` for the dependencies version.
-
-Maven poms and EasyAnt Ivy files are generated from these files using `restx build generate pom + build generate ivy`.
+`./mvnw install`
 
 ## Project organisation
 
@@ -58,9 +47,7 @@ Here is a brief summary of each module:
 
 - `restx-i18n`: I18n Support
 - `restx-security-basic`: A basic implementation of security, still enough in many cases but you can remove it at will
-- `restx-core-java8`: Java 8 support (like Optional) for restx
 - `restx-specs-tests`: Enables using RESTX specs as JUnit tests.
-- `restx-specs-tests-java8`: Support for java 8 time API during specs tests
 - `restx-specs-server`: Enables using RESTX specs as HTTP mocks (running a server serving spec files responses given spec files requests).
 - `restx-factory-testing`: A module dedicated to test `restx-factory` features involving annotation processing.
 - `restx-validation`: Bean validation support (based on `hibernate-validator` implementation) for POJOs BODY parameters
@@ -87,8 +74,8 @@ Here is a brief summary of each module:
 
 ### Servers support:
 
-- `restx-servlet`: Servlet 2.5+ adapter for RESTX, allowing to embed RESTX in any servlet 2.5+ container.
-- `restx-server-jetty8`: Embedded Jetty 8 support.
+- `restx-servlet`: Servlet 5+ adapter for RESTX, allowing to embed RESTX in any servlet 5+ container.
+- `restx-server-jetty11`: Embedded Jetty 11 support.
 - `restx-server-tomcat`: Embedded Tomcat support.
 - `restx-server-simple`: SimpleFramework adapter for RESTX, this is the lightest and fastest solution.
 - `restx-server-testing`: JUnit tests for all the supported embedded servers.
@@ -105,7 +92,7 @@ If you want to deploy in a web server, you will ` restx-servlet `
 ### Others:
 
 - `restx-samplest`: both a sample of individual features and JUnit tests of them
-- `restx-samplest-java8`: Same as `restx-samplest` but for demo-ing restx java8 support
+- `restx-samplest-kotlin`: Same as `restx-samplest` but for demo-ing restx with kotlin support
 - `restx-annotation-processors-package`: assembly module for annotation processor only, if you prefer to setup annotation processing manually with `-proc` javac option
 - `restx-barbarywatch`: MacOSX filesystem watching that actually works. Only module with GPL license, but no other module depend on it, it's detected at runtime, and used only during development
 
