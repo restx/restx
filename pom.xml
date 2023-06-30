@@ -98,6 +98,9 @@
 
         <!-- Plugins -->
         <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
+
+        <!--  This is required for later correct replacement of argline -->
+        <argLine/>
     </properties>
 
     <dependencyManagement>
@@ -484,7 +487,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.1.2</version>
                     <configuration>
-                        <argLine>-Duser.timezone=UTC</argLine>
+                        <argLine>@{argLine} -Duser.timezone=UTC</argLine>
                     </configuration>
                 </plugin>
                 <plugin>
