@@ -23,5 +23,5 @@ sedi(){
 }
 
 sedi "s/<restx.version>[0-9\\.a-zA-Z\\-]*</<restx.version>$VERSION</g" pom.xml
-mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
+./mvnw versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
 
