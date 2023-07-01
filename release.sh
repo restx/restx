@@ -26,7 +26,7 @@ fi
 ./setVersion.sh $RELVERSION
 git add . && git commit -m "preparing $RELVERSION"
 
-./mvnw "-DreleaseVersion=$RELVERSION" "-DdevelopmentVersion=$DEVVERSION" -B release:prepare release:perform
+./mvnw -Psonatype-oss-release "-DreleaseVersion=$RELVERSION" "-DdevelopmentVersion=$DEVVERSION" -B release:prepare release:perform
 
 ./setVersion.sh $DEVVERSION
 git add . && git commit -m "re-snapshoted restx.version property"
