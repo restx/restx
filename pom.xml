@@ -22,6 +22,8 @@
     <artifactId>restx-parent</artifactId>
     <version>0.36-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>RESTX</name>
+    <description>RESTX is a full lightweight disrupting stack, which includes Swagger-like ui &amp; considers REST specs tests as docs.</description>
     <url>http://restx.io</url>
     <licenses>
         <license>
