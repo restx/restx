@@ -15,12 +15,11 @@
   ~ limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.restx</groupId>
     <artifactId>restx-parent</artifactId>
-    <version>1.0.0-rc1-SNAPSHOT</version>
+    <version>1.0.0-rc1</version>
     <packaging>pom</packaging>
     <name>RESTX</name>
     <description>RESTX is a full lightweight disrupting stack, which includes Swagger-like ui &amp; considers REST specs tests as docs.</description>
@@ -51,7 +50,7 @@
 
     <properties>
         <!-- RestX -->
-        <restx.version>1.0.0-rc1-SNAPSHOT</restx.version>
+        <restx.version>1.0.0-rc1</restx.version>
         <restx.shell.version>1.0</restx.shell.version>
 
         <!-- Compiler -->
