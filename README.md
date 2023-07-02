@@ -1,6 +1,6 @@
 # RESTX - the lightweight Java REST framework
 
-[![Build Status](https://travis-ci.org/restx/restx.svg?branch=master)](https://travis-ci.org/restx/restx)
+[![Build Status](https://github.com/restx/restx/actions/workflows/restx-ci.yml/badge.svg?branch=master)](https://github.com/restx/restx/actions/workflows/restx-ci.yml)
 
 RESTX is a full lightweight disrupting stack, which includes Swagger-like ui & considers REST specs tests as docs.
 
