@@ -514,7 +514,6 @@
                     <version>3.1.2</version>
                     <configuration>
                         <argLine>-Duser.timezone=UTC</argLine>
-                        <skipTests>true</skipTests>
                     </configuration>
                 </plugin>
                 <plugin>
