@@ -3,9 +3,11 @@ package restx.servlet;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.*;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import restx.AbstractRequest;
 import restx.HttpSettings;
 
@@ -14,10 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * User: xavierhanin
@@ -52,7 +51,7 @@ public class HttpServletRestxRequest extends AbstractRequest {
     @Override
     public String getRestxPath() {
         String restxPath = request.getRequestURI().substring((getBaseApiPath()).length());
-        if(this.httpSettings.decodeURLPathParams()) {
+        if (this.httpSettings.decodeURLPathParams()) {
             try {
                 restxPath = URLDecoder.decode(restxPath, "UTF-8");
             } catch (UnsupportedEncodingException e) {
@@ -79,7 +78,7 @@ public class HttpServletRestxRequest extends AbstractRequest {
     @Override
     public List<String> getQueryParams(String param) {
         final String[] parameterValues = request.getParameterValues(param);
-        if(parameterValues==null) {
+        if (parameterValues == null) {
             return Collections.emptyList();
         }
         return Lists.newArrayList(parameterValues);
@@ -156,7 +155,7 @@ public class HttpServletRestxRequest extends AbstractRequest {
     }
 
     private static String getCookieValue(Cookie[] cookies,
-                                    String cookieName) {
+                                         String cookieName) {
         if (cookies == null) {
             return null;
         }
@@ -208,5 +207,13 @@ public class HttpServletRestxRequest extends AbstractRequest {
     @SuppressWarnings("unchecked")
     public ImmutableList<Locale> getLocales() {
         return ImmutableList.copyOf(Iterators.<Locale>forEnumeration(request.getLocales()));
+    }
+
+    public Collection<Part> getParts() throws IOException, ServletException {
+        return request.getParts();
+    }
+
+    public Part getPart(String name) throws IOException, ServletException {
+        return getPart(name);
     }
 }
