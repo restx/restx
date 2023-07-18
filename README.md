@@ -97,6 +97,53 @@ If you want to deploy in a web server, you will ` restx-servlet `
 - `restx-barbarywatch`: MacOSX filesystem watching that actually works. Only module with GPL license, but no other module depend on it, it's detected at runtime, and used only during development
 
 
+## Publish release
+Pour release sur RESTX :
+- Il faut avoir une paire de clé GPG
+  Pour générer sa paire de clé GPG sur Mac OS :
+  brew install gpg
+  gpg --full-gen-key
+  Sélectionner 'RSA et DSA' (choix par défault)
+  Mettre 4096 bits
+  Mettre une expiration de la clé (3 ans c'est bien).
+  Mettre son nom + email
+- Envoyer la clé public sur le serveur de Ubuntu via la commande :
+  gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
+  Pour trouver l'id de votre clé :
+  gpg --list-keys
+- Avoir configurer son settings.xml dans son .m2
+``<settings>
+  <servers>
+  <server>
+  <id>gpg.passphrase</id>
+  <password>PASSPHRASE CLE GPG SI DEFINI</password>
+  </server>
+  <server>
+  <id>ossrh</id>
+  <username>LOGIN_COMPTE_SONATYPE</username>
+  <password>PASSWORD_COMPTE_SONATYPE</password>
+  </server>
+  <server>
+  <id>sonatype-nexus-snapshots</id>
+  <username>LOGIN_COMPTE_SONATYPE</username>
+  <password>PASSWORD_COMPTE_SONATYPE</password>
+  </server>
+  <server>
+  <id>sonatype-nexus-release</id>
+  <username>LOGIN_COMPTE_SONATYPE</username>
+  <password>PASSWORD_COMPTE_SONATYPE</password>
+  </server>
+  <server>
+  <id>sonatype-nexus-staging</id>
+  <username>LOGIN_COMPTE_SONATYPE</username>
+  <password>PASSWORD_COMPTE_SONATYPE</password>
+  </server>
+  </servers>
+  </settings>``
+- Avoir les droits sur Sonatype pour publier la release sur Maven Central (on peut le faire Nicolas ou moi si besoin).
+- type command to release rc2 and prepare a rc3
+``./release.sh 1.0.0-rc2-SNAPSHOT 1.0.0-rc3``
+
 ## Contributing
 
 Contributions are welcome, fork the repo, push your changes to a branch and send a Pull Request.
