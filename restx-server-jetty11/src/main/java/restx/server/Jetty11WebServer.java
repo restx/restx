@@ -31,7 +31,7 @@ public class Jetty11WebServer extends WebServerBase {
     }
 
     public Jetty11WebServer(String webInfLocation, String appBase, int port, String bindInterface) {
-        super(checkNotNull(appBase), port, bindInterface, "Jetty8", "org.eclipse.jetty", "jetty-server");
+        super(checkNotNull(appBase), port, bindInterface, "Jetty11", "org.eclipse.jetty", "jetty-server");
 
         if (webInfLocation != null) {
             checkFileExists(webInfLocation);
