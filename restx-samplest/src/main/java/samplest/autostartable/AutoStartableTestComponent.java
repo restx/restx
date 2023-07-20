@@ -9,9 +9,9 @@ import restx.factory.Component;
 import javax.inject.Named;
 
 /**
-* Date: 1/12/13
-* Time: 14:21
-*/
+ * Date: 1/12/13
+ * Time: 14:21
+ */
 @Component
 public class AutoStartableTestComponent implements AutoStartable, AutoCloseable {
     private static int closed;
@@ -33,6 +33,10 @@ public class AutoStartableTestComponent implements AutoStartable, AutoCloseable 
 
     public static int getClosed() {
         return closed;
+    }
+
+    public static void clear() {
+        started = instanciated = closed = 0;
     }
 
     public static int getStarted() {

@@ -15,8 +15,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Time: 21:24
  */
 public class AutoStartableTest {
+
     @Test
     public void should_handle_auto_startable_in_dev_mode() throws Exception {
+        AutoStartableTestComponent.clear();
         int started = AutoStartableTestComponent.getStarted() + 1;
         int closed = AutoStartableTestComponent.getClosed();
         int instantiated = AutoStartableTestComponent.getInstanciated() + 1;
