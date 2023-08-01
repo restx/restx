@@ -41,13 +41,12 @@ public class ParameterExpressionBuilder {
     public ParameterExpressionBuilder surroundWithCheckValid(
             RestxAnnotationProcessor.ResourceMethodParameter parameter) {
 
-        boolean isOptionalType = parameter.guavaOptional || parameter.java8Optional;
+        boolean isOptionalType = parameter.guavaOptional || parameter.java8Optional || parameter.annotationNullable;
         // If we don't have any optional type, we should check for non nullity *before* calling checkValid()
         if(!isOptionalType) {
             // In case we're on an aggregate interface, parameterExpr will always return a non-null value
             // (see createFromMapQueryObjectFromRequest() method) so we don't need to add checkNotNull() check on this
-            if(AggregateType.isAggregate(parameter.type)) {
-            } else {
+            if (!AggregateType.isAggregate(parameter.type)) {
                 // If not an iterable type, ensuring target value is set
                 this.parameterExpr = String.format(
                         "checkNotNull(%s, \"%s param <%s> is required\")",

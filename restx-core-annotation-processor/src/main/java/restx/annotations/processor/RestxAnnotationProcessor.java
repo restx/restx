@@ -420,7 +420,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     variableName,
                     reqParamName,
                     parameterKind,
-                    validationGroups));
+                    validationGroups,
+                    p.getAnnotationMirrors().stream()
+                            .map(a -> a.getAnnotationType().toString())
+                            .anyMatch("org.jetbrains.annotations.Nullable"::equals)
+            ));
         }
         if (!pathParamNamesToMatch.isEmpty()) {
             error(
@@ -511,7 +515,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                             kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
                             toSchemaKey(parameter.type),
-                            String.valueOf(!parameter.guavaOptional && !parameter.java8Optional)
+                            String.valueOf(!parameter.guavaOptional && !parameter.java8Optional && !parameter.annotationNullable)
                     ).replaceAll("\\{PARAMETER}", parameter.name));
                 }
             }
@@ -529,14 +533,18 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     call = call;
                 } else if (resourceMethod.returnTypeJava8Optional) {
                     call = "Optional.fromNullable(" + call + ".orElse(null))";
+                } else if (resourceMethod.returnAnnotationNullable) {
+                    call = "Optional.fromNullable(" + call + ")";
                 } else {
                     call = "Optional.of(" + call + ")";
                 }
                 call = "return " + call + ";";
-
             }
 
             String outEntity = resourceMethod.returnType.equalsIgnoreCase("void") ? "Empty" : resourceMethod.returnType;
+
+            outEntity = primitiveTypeToClass(outEntity);
+
             routes.add(ImmutableMap.<String, Object>builder()
                     .put("routeId", resourceMethod.id)
                     .put("routeName", CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, resourceMethod.name))
@@ -568,6 +576,20 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     .build()
             );
         }
+    }
+
+    private String primitiveTypeToClass(String outEntity) {
+        outEntity = switch (outEntity) {
+            case "int" -> "Integer";
+            case "float" -> "Float";
+            case "long" -> "Long";
+            case "double" -> "Double";
+            case "byte" -> "Byte";
+            case "short" -> "Short";
+            case "boolean" -> "Boolean";
+            default -> outEntity;
+        };
+        return outEntity;
     }
 
 
@@ -719,6 +741,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String realReturnType;
         final boolean returnTypeGuavaOptional;
         final boolean returnTypeJava8Optional;
+        final boolean returnAnnotationNullable;
         final String returnType;
         final String thrownTypes;
         final String id;
@@ -750,15 +773,26 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.realReturnType = returnType;
 
             TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(returnType);
+            boolean returnAnnotationNullable = annotationDescriptions.stream().toList().stream()
+                    .map(annotationDescription -> annotationDescription.annotationClass)
+                    .anyMatch(annotationClass -> annotationClass.equals("org.jetbrains.annotations.Nullable"));
+
             if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
                 this.returnTypeGuavaOptional = true;
                 this.returnTypeJava8Optional = false;
+                this.returnAnnotationNullable = false;
             } else if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
                 this.returnTypeGuavaOptional = false;
                 this.returnTypeJava8Optional = true;
+                this.returnAnnotationNullable = false;
+            }  else if (returnAnnotationNullable) {
+                this.returnTypeGuavaOptional = false;
+                this.returnTypeJava8Optional = false;
+                this.returnAnnotationNullable = true;
             } else {
                 this.returnTypeGuavaOptional = false;
                 this.returnTypeJava8Optional = false;
+                this.returnAnnotationNullable = false;
             }
             this.returnType = optionalMatchingReturnType.getUnderlyingType();
 
@@ -784,6 +818,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String reqParamName;
         final ResourceMethodParameterKind kind;
         final List<String> validationGroupsFQNs;
+        final boolean annotationNullable;
 
         private static final Function<String, String> CLASS_APPENDER_FCT = new Function<String, String>() {
             @Override
@@ -792,17 +827,29 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
         };
 
-        private ResourceMethodParameter(String type, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
+        private ResourceMethodParameter(String type,
+                                        String name,
+                                        String reqParamName,
+                                        ResourceMethodParameterKind kind,
+                                        String[] validationGroupsFQNs,
+                                        boolean annotationNullable) {
             TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(type);
             if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
                 this.guavaOptional = true;
                 this.java8Optional = false;
+                this.annotationNullable = false;
             } else if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
                 this.guavaOptional = false;
                 this.java8Optional = true;
+                this.annotationNullable = false;
+            } else if (annotationNullable) {
+                this.guavaOptional = false;
+                this.java8Optional = false;
+                this.annotationNullable = true;
             } else {
                 this.guavaOptional = false;
                 this.java8Optional = false;
+                this.annotationNullable = false;
             }
             this.type = optionalMatchingReturnType.getUnderlyingType();
             this.realType = type;
