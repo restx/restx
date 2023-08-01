@@ -1,8 +1,7 @@
 package restx.jongo.specs.tests;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
 import org.junit.Test;
+import org.testcontainers.containers.MongoDBContainer;
 
 import java.io.IOException;
 
@@ -14,8 +13,8 @@ public class EmbedMongoClientPoolTest {
     @Test
     public void should_checkIn_subscribe_object_reference_in_client_pool() {
         // Given
-        MongodExecutable executable = mock(MongodExecutable.class);
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object client = new Object();
 
@@ -30,8 +29,8 @@ public class EmbedMongoClientPoolTest {
     @Test
     public void should_checkIn_start_mongo_executable_after_first_checkIn() throws IOException {
         // Given
-        MongodExecutable executable = mock(MongodExecutable.class);
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object client = new Object();
 
@@ -39,14 +38,14 @@ public class EmbedMongoClientPoolTest {
         pool.checkIn(client);
 
         // Then
-        verify(executable).start();
+        verify(mongoDBContainer).start();
     }
 
     @Test
     public void should_checkIn_not_start_mongo_executable_after_second_checkIn() throws IOException {
         // Given
-        MongodExecutable executable = mock(MongodExecutable.class);
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object firstClient = new Object();
         Object secondClient = new Object();
@@ -56,14 +55,14 @@ public class EmbedMongoClientPoolTest {
         pool.checkIn(secondClient);
 
         // Then
-        verify(executable).start();
+        verify(mongoDBContainer).start();
     }
 
     @Test
     public void should_checkOut_remove_client_from_pool() throws IOException {
         // Given
-        MongodExecutable executable = newMongodExecutable();
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object client = new Object();
         pool.checkIn(client);
@@ -79,8 +78,8 @@ public class EmbedMongoClientPoolTest {
     @Test
     public void should_checkOut_stop_mongo_executable_after_last_checkout() throws IOException {
         // Given
-        MongodExecutable executable = newMongodExecutable();
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object client = new Object();
         pool.checkIn(client);
@@ -89,14 +88,14 @@ public class EmbedMongoClientPoolTest {
         pool.checkOut(client);
 
         // Then
-        verify(executable).stop();
+        verify(mongoDBContainer).stop();
     }
 
     @Test
     public void should_checkOut_not_stop_mongo_executable_when_other_clients_are_in_the_pool() throws IOException {
         // Given
-        MongodExecutable executable = newMongodExecutable();
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object firstClient = new Object();
         pool.checkIn(firstClient);
@@ -110,24 +109,14 @@ public class EmbedMongoClientPoolTest {
         pool.checkOut(firstClient);
 
         // Then
-        verify(executable, times(expectedNumberOfInvocations)).stop();
-    }
-
-    private MongodExecutable newMongodExecutable() throws IOException {
-        MongodExecutable executable = mock(MongodExecutable.class);
-        when(executable.start()).thenReturn(mock(MongodProcess.class));
-        return executable;
+        verify(mongoDBContainer, times(expectedNumberOfInvocations)).stop();
     }
 
     @Test
     public void should_checkOut_stop_mongo_process_after_last_checkout() throws IOException {
         // Given
-        MongodProcess process = mock(MongodProcess.class);
-
-        MongodExecutable executable = mock(MongodExecutable.class);
-        when(executable.start()).thenReturn(process);
-
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object client = new Object();
         pool.checkIn(client);
@@ -136,14 +125,14 @@ public class EmbedMongoClientPoolTest {
         pool.checkOut(client);
 
         // Then
-        verify(process).stop();
+        verify(mongoDBContainer).stop();
     }
 
     @Test
     public void should_checkIn_start_again_database_when_stopped_after_checkOut() throws IOException {
         // Given
-        MongodExecutable executable = newMongodExecutable();
-        EmbedMongoClientPool pool = new EmbedMongoClientPool(executable);
+        MongoDBContainer mongoDBContainer = mock(MongoDBContainer.class);
+        EmbedMongoClientPool pool = new EmbedMongoClientPool(mongoDBContainer);
 
         Object client = new Object();
 
@@ -153,6 +142,6 @@ public class EmbedMongoClientPoolTest {
         pool.checkIn(client);
 
         // Then
-        verify(executable, times(2)).start();
+        verify(mongoDBContainer, times(2)).start();
     }
 }

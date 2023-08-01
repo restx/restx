@@ -29,7 +29,10 @@ public class GivenJongoCollectionSpecRuleSupplier implements GivenSpecRuleSuppli
     @Inject
     public GivenJongoCollectionSpecRuleSupplier(MongoSettings mongoSettings) {
         this.db = mongoSettings.dbName();
-        this.uri = mongoSettings.uri();
+
+        // TODO Force uri to property over RESTX Factory, MongoSettings does seem to take in account MongoRestxSpecTestListener properly
+        final String mongoUriProperty = System.getProperty(MongoModule.MONGO_URI);
+        this.uri = mongoUriProperty != null ? mongoUriProperty : mongoSettings.uri();
     }
 
     @Override

@@ -1,8 +1,6 @@
 package restx.jongo.specs.tests;
 
 import com.mongodb.MongoClientURI;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.distribution.Version;
 import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
@@ -41,7 +39,7 @@ public class MongoRestxSpecTestsListenerTest {
     }
 
     @Test
-    public void should_testRunStarted_prepare_a_mongod_executable() {
+    public void should_testRunStarted_prepare_a_mongo_container() {
         // Given
         EmbedMongoClientPool pool = mock(EmbedMongoClientPool.class);
         EmbedMongoFactory factory = newEmbedMongoFactory(pool);
@@ -52,7 +50,7 @@ public class MongoRestxSpecTestsListenerTest {
             listener.testRunStarted(description);
 
             // Then
-            verify(factory).getEmbedMongoClientPool(any(MongodStarter.class), any(PoolKey.class));
+            verify(factory).getEmbedMongoClientPool(any(String.class));
         }
     }
 
@@ -75,16 +73,15 @@ public class MongoRestxSpecTestsListenerTest {
     }
 
     private EmbedMongoFactory newEmbedMongoFactory(EmbedMongoClientPool pool) {
+        final String connectionString = "mongodb://localhost:21017";
         MongoClientURI mongoClientURI = mock(MongoClientURI.class);
-        when(mongoClientURI.getURI()).thenReturn("mongodb://localhost:21017");
+        when(mongoClientURI.getURI()).thenReturn(connectionString);
 
-        PoolKey key = mock(PoolKey.class);
-        when(key.getUri()).thenReturn(mongoClientURI);
-        when(key.getVersion()).thenReturn(Version.Main.PRODUCTION);
+        when(pool.getMongoUri()).thenReturn(mongoClientURI);
+        when(pool.getConnectionString()).thenReturn(connectionString);
 
         EmbedMongoFactory factory = mock(EmbedMongoFactory.class);
-        when(factory.getPoolKey(Version.Main.PRODUCTION)).thenReturn(key);
-        when(factory.getEmbedMongoClientPool(any(MongodStarter.class), eq(key))).thenReturn(pool);
+        when(factory.getEmbedMongoClientPool(any(String.class))).thenReturn(pool);
         return factory;
     }
 

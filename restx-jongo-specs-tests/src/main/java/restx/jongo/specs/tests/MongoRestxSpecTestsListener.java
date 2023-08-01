@@ -1,7 +1,5 @@
 package restx.jongo.specs.tests;
 
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.distribution.Version;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
@@ -9,6 +7,8 @@ import restx.mongo.MongoModule;
 
 import java.io.Closeable;
 import java.util.Objects;
+
+import static restx.jongo.specs.tests.MongoVersion.DEFAULT_MONGO_VERSION;
 
 public final class MongoRestxSpecTestsListener extends RunListener implements Closeable {
 
@@ -25,11 +25,8 @@ public final class MongoRestxSpecTestsListener extends RunListener implements Cl
 
     @Override
     public void testRunStarted(Description description) {
-        Version.Main version = Version.Main.PRODUCTION;
-        PoolKey key = factory.getPoolKey(version);
-        System.setProperty(MongoModule.MONGO_URI, key.getUri().getURI());
-        MongodStarter starter = MongodStarter.getDefaultInstance();
-        pool = factory.getEmbedMongoClientPool(starter, key);
+        pool = factory.getEmbedMongoClientPool(DEFAULT_MONGO_VERSION);
+        System.setProperty(MongoModule.MONGO_URI, pool.getConnectionString());
         pool.checkIn(this);
     }
 

@@ -83,14 +83,14 @@
         <!-- Mongo modules -->
         <mongo-java-driver.version>4.8.2</mongo-java-driver.version>
         <jongo.version>1.5.1</jongo.version>
-        <de.flapdoodle.embed.version>2.2.0</de.flapdoodle.embed.version>
 
         <!-- Test libs -->
         <junit.version>4.13.2</junit.version>
         <junit.toolbox.version>2.3</junit.toolbox.version>
         <assertj-core.version>3.24.2</assertj-core.version>
         <maven-verifier.version>1.4</maven-verifier.version>
-        <mockito.version>3.3.3</mockito.version>
+        <mockito.version>5.4.0</mockito.version>
+        <test-container.version>1.18.3</test-container.version>
 
         <!-- Plugins -->
         <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
@@ -413,9 +413,14 @@
                 <version>${jongo.version}</version>
             </dependency>
             <dependency>
-                <groupId>de.flapdoodle.embed</groupId>
-                <artifactId>de.flapdoodle.embed.mongo</artifactId>
-                <version>${de.flapdoodle.embed.version}</version>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>${test-container.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>mongodb</artifactId>
+                <version>${test-container.version}</version>
             </dependency>
 
             <!-- HTTP Request -->
@@ -642,7 +647,7 @@
         <module>restx-specs-admin</module>
         <module>restx-specs-server</module>
         <module>restx-jongo</module>
-        <!--        <module>restx-jongo-specs-tests</module>-->
+        <module>restx-jongo-specs-tests</module>
         <module>restx-servlet</module>
         <module>restx-server-jetty11</module>
         <module>restx-server-tomcat</module>
