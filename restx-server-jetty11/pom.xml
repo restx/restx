@@ -12,7 +12,7 @@
     <name>restx-server-jetty11</name>
 
     <properties>
-        <jetty11.version>11.0.15</jetty11.version>
+        <jetty11.version>11.0.16</jetty11.version>
     </properties>
 
     <dependencies>
