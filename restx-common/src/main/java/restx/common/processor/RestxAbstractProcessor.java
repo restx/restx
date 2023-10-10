@@ -12,6 +12,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -94,9 +95,12 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
 
     protected TypeElement asTypeElement(TypeMirror typeMirror) {
         Types TypeUtils = this.processingEnv.getTypeUtils();
-        return (TypeElement)TypeUtils.asElement(typeMirror);
+		if (typeMirror.getKind().isPrimitive()) {
+			return TypeUtils.boxedClass((PrimitiveType) typeMirror);
+		} else {
+			return (TypeElement) TypeUtils.asElement(typeMirror);
+		}
     }
-
 
     protected void generateJavaClass(String className, Template mustache, ImmutableMap<String, Object> ctx,
                                      Element originatingElements) throws IOException {
