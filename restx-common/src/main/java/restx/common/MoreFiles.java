@@ -112,6 +112,9 @@ public class MoreFiles {
             while ((entry = zis.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
                     File file = new File(toDir, entry.getName());
+                    if (!file.toPath().normalize().startsWith(toDir.toPath().normalize())) {
+                        throw new IOException("Bad zip entry");
+                    }
                     createParentDirs(file);
                     Files.copy(zis, file.toPath());
                     zis.closeEntry();
