@@ -3,11 +3,9 @@ package restx.validation;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Path;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Path;
-import javax.validation.metadata.ConstraintDescriptor;
-import java.lang.annotation.ElementType;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;

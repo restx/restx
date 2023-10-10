@@ -15,7 +15,7 @@ private final Factory.Query<restx.entity.EntityRequestBodyReaderRegistry> reader
 private final Factory.Query<restx.entity.EntityResponseWriterRegistry> writerRegistry = Factory.Query.byClass(restx.entity.EntityResponseWriterRegistry.class).mandatory();
 private final Factory.Query<restx.converters.MainStringConverter> converter = Factory.Query.byClass(restx.converters.MainStringConverter.class).mandatory();
 private final Factory.Query<restx.security.PermissionFactory> pf = Factory.Query.byClass(restx.security.PermissionFactory.class).mandatory();
-private final Factory.Query<javax.validation.Validator> validator = Factory.Query.byClass(javax.validation.Validator.class).optional();
+private final Factory.Query<jakarta.validation.Validator> validator = Factory.Query.byClass(jakarta.validation.Validator.class).optional();
 private final Factory.Query<restx.security.RestxSecurityManager> securityManager = Factory.Query.byClass(restx.security.RestxSecurityManager.class).mandatory();
 private final Factory.Query<restx.endpoint.EndpointParameterMapperRegistry> paramMapperRegistry = Factory.Query.byClass(restx.endpoint.EndpointParameterMapperRegistry.class).mandatory();
 

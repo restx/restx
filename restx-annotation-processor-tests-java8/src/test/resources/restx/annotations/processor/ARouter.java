@@ -22,7 +22,7 @@ import restx.description.*;
 import restx.converters.MainStringConverter;
 import static restx.common.MorePreconditions.checkPresent;
 
-import javax.validation.Validator;
+import jakarta.validation.Validator;
 import static restx.validation.Validations.checkValid;
 
 import java.io.IOException;
