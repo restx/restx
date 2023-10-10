@@ -1,37 +1,36 @@
 package restx.server;
 
 import com.google.common.base.Strings;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.security.DefaultIdentityService;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.UserStore;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static restx.common.MoreFiles.checkFileExists;
 
-public class Jetty11WebServer extends WebServerBase {
-    private static final Logger logger = LoggerFactory.getLogger(Jetty11WebServer.class);
+public class JettyWebServer extends WebServerBase {
+    private static final Logger logger = LoggerFactory.getLogger(JettyWebServer.class);
 
     private Server server;
     private String webInfLocation;
 
-    public Jetty11WebServer(String appBase, int aPort) {
+    public JettyWebServer(String appBase, int aPort) {
         this(null, appBase, aPort, null);
     }
 
-    public Jetty11WebServer(String webInfLocation, String appBase, int port, String bindInterface) {
-        super(checkNotNull(appBase), port, bindInterface, "Jetty11", "org.eclipse.jetty", "jetty-server");
+    public JettyWebServer(String webInfLocation, String appBase, int port, String bindInterface) {
+        super(checkNotNull(appBase), port, bindInterface, "Jetty", "org.eclipse.jetty", "jetty-server");
 
         if (webInfLocation != null) {
             checkFileExists(webInfLocation);
@@ -73,14 +72,9 @@ public class Jetty11WebServer extends WebServerBase {
         return connector;
     }
 
-    protected HandlerCollection createHandlers(WebAppContext webAppContext) {
-
-        HandlerList contexts = new HandlerList();
-        contexts.setHandlers(new Handler[]{webAppContext});
-
-        HandlerCollection result = new HandlerCollection();
-        result.setHandlers(new Handler[]{contexts});
-
+    protected ContextHandlerCollection createHandlers(WebAppContext webAppContext) {
+        ContextHandlerCollection result = new ContextHandlerCollection();
+        result.setHandlers(webAppContext);
         return result;
     }
 
@@ -112,12 +106,7 @@ public class Jetty11WebServer extends WebServerBase {
     }
 
     public static WebServerSupplier jettyWebServerSupplier(final String webInfLocation, final String appBase) {
-        return new WebServerSupplier() {
-            @Override
-            public WebServer newWebServer(int port) {
-                return new Jetty11WebServer(webInfLocation, appBase, port, "0.0.0.0");
-            }
-        };
+        return port -> new JettyWebServer(webInfLocation, appBase, port, "0.0.0.0");
     }
 
     public static void main(String[] args) throws Exception {
@@ -128,6 +117,6 @@ public class Jetty11WebServer extends WebServerBase {
 
         String appBase = args[0];
         int port = args.length > 1 ? Integer.parseInt(args[1]) : 8086;
-        new Jetty11WebServer(appBase + "WEB-INF/web.xml", appBase, port, "0.0.0.0").startAndAwait();
+        new JettyWebServer(appBase + "WEB-INF/web.xml", appBase, port, "0.0.0.0").startAndAwait();
     }
 }

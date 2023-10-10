@@ -42,7 +42,7 @@
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-server-jetty11</artifactId>
+            <artifactId>restx-server-jetty</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
