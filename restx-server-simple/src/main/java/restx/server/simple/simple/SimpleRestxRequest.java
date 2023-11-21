@@ -14,7 +14,6 @@ import restx.HttpSettings;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,7 +23,7 @@ import java.util.Map;
  * Date: 2/16/13
  * Time: 1:57 PM
  */
-public class SimpleRestxRequest  extends AbstractRequest {
+public class SimpleRestxRequest extends AbstractRequest {
     private final String restxPath;
     private final String apiPath;
     private final Request request;
@@ -80,7 +79,7 @@ public class SimpleRestxRequest  extends AbstractRequest {
     @Override
     public List<String> getQueryParams(String param) {
         List<String> queryParams = request.getQuery().getAll(param);
-        return queryParams==null?null:Lists.newArrayList(queryParams);
+        return queryParams == null ? null : Lists.newArrayList(queryParams);
     }
 
     @Override
@@ -176,6 +175,19 @@ public class SimpleRestxRequest  extends AbstractRequest {
         } else {
             return ImmutableList.copyOf(locales);
         }
+    }
+
+    public ImmutableMap<String, String> getHeaders() {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        List<String> headerNames = request.getNames().stream().map(String::toLowerCase).toList();
+        headerNames.forEach(headerName -> {
+            String headerValue = request.getValue(headerName);
+            if (headerValue == null) {
+                headerValue = "";
+            }
+            builder.put(headerName, headerValue);
+        });
+        return builder.build();
     }
 
 }

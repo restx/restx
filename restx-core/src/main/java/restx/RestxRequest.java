@@ -167,4 +167,6 @@ public interface RestxRequest {
      *
      */
     ImmutableList<Locale> getLocales();
+
+    ImmutableMap<String, String> getHeaders();
 }
