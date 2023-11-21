@@ -7,6 +7,10 @@ import com.samskivert.mustache.Template;
 import restx.RestxLogLevel;
 import restx.StdRestxRequestMatcher;
 import restx.annotations.*;
+import restx.common.MoreFunctions;
+import restx.common.MoreStrings;
+import restx.types.OptionalTypeDefinition;
+import restx.types.Types;
 import restx.common.Mustaches;
 import restx.common.processor.RestxAbstractProcessor;
 import restx.endpoint.EndpointParameterKind;
@@ -22,6 +26,7 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
@@ -57,6 +62,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     };
 
     public RestxAnnotationProcessor() {
+        super();
         routerTpl = Mustaches.compile(RestxAnnotationProcessor.class, "RestxRouter.mustache");
     }
 
@@ -178,7 +184,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 return PRIMITIVE;
             } else if (String.class.getCanonicalName().equals(componentType.toString())) {
                 return STRING;
-            } else if (Class.class.getCanonicalName().equals(TypeHelper.rawTypeFrom(componentType.toString()))) {
+            } else if(Class.class.getCanonicalName().equals(Types.rawTypeFrom(componentType.toString()))) {
                 return CLASS;
             } else {
                 ImmutableList<String> superTypesClassNames = FluentIterable.from(processingEnv.getTypeUtils().directSupertypes(componentType))
@@ -416,7 +422,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
 
             resourceMethod.parameters.add(new ResourceMethodParameter(
-                    p.asType().toString(),
+                    p,
                     variableName,
                     reqParamName,
                     parameterKind,
@@ -498,8 +504,11 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 callParameters.add(String.format("/* [%s] %s */ %s", kind, parameter.reqParamName, kind.fetchFromReqCode(parameter, resourceMethod)));
 
                 if (kind.resolvedWithQueryParamMapper()) {
-                    queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\")",
-                            TypeHelper.getTypeReferenceExpressionFor(parameter.type), parameter.reqParamName));
+                    queryParametersDefinition.add(String.format("                    ParamDef.of(%s, \"%s\"%s)",
+                            TypeHelper.getTypeReferenceExpressionFor(parameter.type),
+                            parameter.reqParamName,
+                            createSpecialParamsHandlingExpression(parameter, "                    ")
+                    ));
                 }
 
                 if (kind != ResourceMethodParameterKind.CONTEXT) {
@@ -515,7 +524,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                             kind.name().toLowerCase(),
                             toTypeDescription(parameter.type),
                             toSchemaKey(parameter.type),
-                            String.valueOf(!parameter.guavaOptional && !parameter.java8Optional && !parameter.annotationNullable)
+                            String.valueOf(!parameter.optionalTypeMatcher.isOptionalType())
                     ).replaceAll("\\{PARAMETER}", parameter.name));
                 }
             }
@@ -529,10 +538,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                 call = call + ";\n" +
                         "                    return Optional.of(Empty.EMPTY);";
             } else {
-                if (resourceMethod.returnTypeGuavaOptional) {
-                    call = call;
-                } else if (resourceMethod.returnTypeJava8Optional) {
-                    call = "Optional.fromNullable(" + call + ".orElse(null))";
+                if (resourceMethod.optionalReturnTypeMatcher.isOptionalType()) {
+                    call = resourceMethod.optionalReturnTypeMatcher.getCurrentOptionalExpressionToGuavaOptionalCodeExpressionTransformer().apply(call);
                 } else if (resourceMethod.returnAnnotationNullable) {
                     call = "Optional.fromNullable(" + call + ")";
                 } else {
@@ -590,6 +597,87 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             default -> outEntity;
         };
         return outEntity;
+    }
+
+    private boolean isComplexType(TypeMirror typeMirror) {
+        return !Types.optionalMatchingTypeOf(typeMirror.toString()).isOptionalType()
+                && !Types.isRawType(typeMirror, this.processingEnv)
+                && !Types.isAggregateType(typeMirror.toString());
+    }
+
+    private String createSpecialParamsHandlingExpression(ResourceMethodParameter parameter, final String indentation) {
+        List<String> specialParamHandlingDeclarations = new ArrayList<>();
+
+        if(isComplexType(parameter.typeMirror)) {
+            fillSpecialParamsHandlingDeclarations(specialParamHandlingDeclarations, parameter.typeMirror, "", 0);
+        }
+
+        return specialParamHandlingDeclarations.isEmpty()?
+                ""
+                :", ImmutableMap.<String, ParamDef.SpecialParamHandling>builder()\n"+Joiner.on("").join(Lists.transform(specialParamHandlingDeclarations, new Function<String, String>() {
+                    @Override
+                    public String apply(String input) {
+                        return indentation+"  "+input+"\n";
+                    }
+                }))+indentation+".build()";
+    }
+
+    private void fillSpecialParamsHandlingDeclarations(List<String> specialParamHandlingDeclarations, TypeMirror typeMirror, String path, int depth) {
+        // Limiting depth of nested field declaration sa we may hit infinite loops here when a nested type
+        // is of same complex type of container type
+        if(depth >= 4) {
+            return;
+        }
+        // No need to fill any declaration on arrays (no matter if it is an array of raw or complex types)
+        if(!(typeMirror instanceof DeclaredType)) {
+            return;
+        }
+
+        TypeElement typeElement = (TypeElement) ((DeclaredType)typeMirror).asElement();
+        // Calling fillSpecialParamsHandlingDeclarations() on super type (except when super type is java.lang.Object)
+        if(!"java.lang.Object".equals(typeElement.getSuperclass().toString())) {
+            fillSpecialParamsHandlingDeclarations(specialParamHandlingDeclarations, typeElement.getSuperclass(), path, depth);
+        }
+
+        // Identifying setters in current type
+        ImmutableList<ExecutableElement> setters = FluentIterable.from(typeElement.getEnclosedElements())
+                .filter(new Predicate<Element>() {
+                    @Override
+                    public boolean apply(Element elem) {
+                        if (!(elem instanceof ExecutableElement)) {
+                            return false;
+                        }
+
+                        ExecutableElement executableElem = (ExecutableElement) elem;
+                        return executableElem.getSimpleName().toString().startsWith("set")
+                                && executableElem.getParameters().size() == 1;
+                    }
+                }).transform(MoreFunctions.cast(ExecutableElement.class)).toList();
+
+        for(ExecutableElement setter: setters) {
+            TypeMirror propertyType = Iterables.getOnlyElement(setter.getParameters()).asType();
+            String propertyName = MoreStrings.lowerFirstLetter(setter.getSimpleName().toString().substring("set".length()));
+            String propertyPath = path+(path.isEmpty()?"":".")+propertyName;
+
+            if(Types.isAggregateType(propertyType.toString())) {
+                TypeMirror aggregateType = Types.aggregatedTypeOf(propertyType);
+                // Aggregates of RAW types should be handled with ParamDef.SpecialParamHandling.ARRAYS
+                if (Types.isRawType(aggregateType, processingEnv)) {
+                    specialParamHandlingDeclarations.add(String.format(".put(\"%s\", ParamDef.SpecialParamHandling.ARRAYS)", propertyPath));
+                // Aggregates of COMPLEX types should not be supported
+                // Note that it will throw an error ONLY if request param contains a key targetting your Aggregate<COMPLEX> type
+                } else {
+                    specialParamHandlingDeclarations.add(String.format(".put(\"%s\", ParamDef.SpecialParamHandling.UNSUPPORTED)", propertyPath));
+                }
+            } else if(Types.isRawType(propertyType, processingEnv)) {
+                // Current setter represents a RAW type => no special handling here
+            } else if(isComplexType(propertyType)) {
+                // Current setter represents a COMPLEX type => calling fillSpecialParamsHandlingDeclarations() on nested node
+                fillSpecialParamsHandlingDeclarations(specialParamHandlingDeclarations, propertyType, propertyPath, depth+1);
+            } else {
+                throw new IllegalStateException(String.format("Property type %s not identified as a RAW/AGGREGATE/COMPLEX type (weird !)", propertyType));
+            }
+        }
     }
 
 
@@ -716,7 +804,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             } else if (isArray) {
                 return String.format("return new %s[]{ %s }",
                         // Arrays cannot be parameterized
-                        TypeHelper.rawTypeFrom(type.toString()),
+                        Types.rawTypeFrom(type.toString()),
                         Joiner.on(", ").join((List) value));
             } else {
                 return "return " + kind.transformSingleValueToExpression(value, this);
@@ -739,9 +827,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String path;
         final String name;
         final String realReturnType;
-        final boolean returnTypeGuavaOptional;
-        final boolean returnTypeJava8Optional;
-        final boolean returnAnnotationNullable;
+        final OptionalTypeDefinition.Matcher optionalReturnTypeMatcher;
         final String returnType;
         final String thrownTypes;
         final String id;
@@ -772,29 +858,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.thrownTypes = thrownTypes;
             this.realReturnType = returnType;
 
-            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(returnType);
-            boolean returnAnnotationNullable = annotationDescriptions.stream().toList().stream()
-                    .map(annotationDescription -> annotationDescription.annotationClass)
-                    .anyMatch(annotationClass -> annotationClass.equals("org.jetbrains.annotations.Nullable"));
-
-            if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
-                this.returnTypeGuavaOptional = true;
-                this.returnTypeJava8Optional = false;
-                this.returnAnnotationNullable = false;
-            } else if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
-                this.returnTypeGuavaOptional = false;
-                this.returnTypeJava8Optional = true;
-                this.returnAnnotationNullable = false;
-            }  else if (returnAnnotationNullable) {
-                this.returnTypeGuavaOptional = false;
-                this.returnTypeJava8Optional = false;
-                this.returnAnnotationNullable = true;
-            } else {
-                this.returnTypeGuavaOptional = false;
-                this.returnTypeJava8Optional = false;
-                this.returnAnnotationNullable = false;
-            }
-            this.returnType = optionalMatchingReturnType.getUnderlyingType();
+            this.optionalReturnTypeMatcher = Types.optionalMatchingTypeOf(returnType);
+            this.returnType = this.optionalReturnTypeMatcher.getUnderlyingType();
 
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
             this.successStatus = successStatus;
@@ -810,10 +875,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     static class ResourceMethodParameter {
+        final TypeMirror typeMirror;
         final String type;
         final String realType;
-        final boolean guavaOptional;
-        final boolean java8Optional;
+        final OptionalTypeDefinition.Matcher optionalTypeMatcher;
         final String name;
         final String reqParamName;
         final ResourceMethodParameterKind kind;
@@ -827,32 +892,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
         };
 
-        private ResourceMethodParameter(String type,
-                                        String name,
-                                        String reqParamName,
-                                        ResourceMethodParameterKind kind,
-                                        String[] validationGroupsFQNs,
-                                        boolean annotationNullable) {
-            TypeHelper.OptionalMatchingType optionalMatchingReturnType = TypeHelper.optionalMatchingTypeOf(type);
-            if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.GUAVA) {
-                this.guavaOptional = true;
-                this.java8Optional = false;
-                this.annotationNullable = false;
-            } else if (optionalMatchingReturnType.getOptionalType() == TypeHelper.OptionalMatchingType.Type.JAVA8) {
-                this.guavaOptional = false;
-                this.java8Optional = true;
-                this.annotationNullable = false;
-            } else if (annotationNullable) {
-                this.guavaOptional = false;
-                this.java8Optional = false;
-                this.annotationNullable = true;
-            } else {
-                this.guavaOptional = false;
-                this.java8Optional = false;
-                this.annotationNullable = false;
-            }
-            this.type = optionalMatchingReturnType.getUnderlyingType();
-            this.realType = type;
+        private ResourceMethodParameter(VariableElement element, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
+            this.typeMirror = element.asType();
+            this.realType = this.typeMirror.toString();
+
+            this.optionalTypeMatcher = Types.optionalMatchingTypeOf(this.realType);
+            this.type = optionalTypeMatcher.getUnderlyingType();
 
             this.name = name;
             this.reqParamName = reqParamName;

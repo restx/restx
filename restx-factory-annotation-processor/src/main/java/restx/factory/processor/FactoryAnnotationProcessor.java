@@ -62,6 +62,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
+        super();
         componentMachineTpl = compile(FactoryAnnotationProcessor.class, "ComponentMachine.mustache");
         conditionalMachineTpl = compile(FactoryAnnotationProcessor.class, "ConditionalMachine.mustache");
         moduleMachineTpl = compile(FactoryAnnotationProcessor.class, "ModuleMachine.mustache");

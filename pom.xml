@@ -244,6 +244,11 @@
                 <artifactId>restx-md-fragments</artifactId>
                 <version>${restx.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.restx</groupId>
+                <artifactId>restx-samplest-custom-types-testing</artifactId>
+                <version>${restx.version}</version>
+            </dependency>
 
             <!-- Jackson -->
             <dependency>
@@ -643,6 +648,7 @@
         <module>restx-server-tomcat</module>
         <module>restx-server-simple</module>
         <module>restx-server-testing</module>
+        <module>restx-samplest-custom-types-testing</module>
         <module>restx-samplest</module>
         <module>restx-validation</module>
         <module>restx-webjars</module>
