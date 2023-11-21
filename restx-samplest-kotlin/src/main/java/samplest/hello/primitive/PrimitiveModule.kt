@@ -18,6 +18,11 @@ class PrimitiveModule {
     fun integerWhen(): Int = 2
 
     @Provides
+    @Named("intWhen")
+    @When(name = "restx.mode", value = "dev")
+    fun integerWhenDev(): Int = 2
+
+    @Provides
     @Named("intAlternativeWhen")
     fun integerAlternativeWhen(): Int = 1
 

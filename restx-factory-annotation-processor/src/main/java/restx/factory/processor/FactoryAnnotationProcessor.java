@@ -2,36 +2,20 @@ package restx.factory.processor;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.google.common.io.CharStreams;
 import com.samskivert.mustache.Template;
 import restx.common.processor.RestxAbstractProcessor;
-import restx.factory.Alternative;
-import restx.factory.Component;
-import restx.factory.Machine;
-import restx.factory.NamedComponent;
-import restx.factory.Provides;
-import restx.factory.When;
+import restx.factory.*;
+import restx.factory.Module;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.element.*;
+import javax.lang.model.type.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -59,7 +43,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     final Template componentMachineTpl;
     final Template conditionalMachineTpl;
     final Template moduleMachineTpl;
-    private final FactoryAnnotationProcessor.ServicesDeclaration machinesDeclaration;
+    private final ServicesDeclaration machinesDeclaration;
 
     public FactoryAnnotationProcessor() {
         componentMachineTpl = compile(FactoryAnnotationProcessor.class, "ComponentMachine.mustache");
@@ -85,7 +69,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
     }
 
     private void processModules(RoundEnvironment roundEnv) throws IOException {
-        for (Element annotation : roundEnv.getElementsAnnotatedWith(restx.factory.Module.class)) {
+        for (Element annotation : roundEnv.getElementsAnnotatedWith(Module.class)) {
             try {
                 if (!(annotation instanceof TypeElement)) {
                     error("annotating element " + annotation + " of type " + annotation.getKind().name()
@@ -93,7 +77,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                     continue;
                 }
                 TypeElement typeElem = (TypeElement) annotation;
-                restx.factory.Module mod = typeElem.getAnnotation(restx.factory.Module.class);
+                Module mod = typeElem.getAnnotation(Module.class);
                 When classWhen = typeElem.getAnnotation(When.class);
 
                 ModuleClass module = new ModuleClass(typeElem.getQualifiedName().toString(), typeElem, mod.priority());
@@ -192,7 +176,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private void processProviderMethod(restx.factory.Module mod, ModuleClass module, Provides provides, ExecutableElement exec) {
+    private void processProviderMethod(Module mod, ModuleClass module, Provides provides, ExecutableElement exec) {
         ProviderMethod m = new ProviderMethod(
                 exec.getReturnType().toString(),
                 exec.getSimpleName().toString(),
@@ -207,7 +191,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
         module.providerMethods.add(m);
     }
 
-    private void processConditionalProviderMethod(restx.factory.Module mod, ModuleClass module, String componentType,
+    private void processConditionalProviderMethod(Module mod, ModuleClass module, String componentType,
                                                   String componentName, int priority, When when, String factoryMachineNameSuffix, ExecutableElement exec) {
         ConditionalProviderMethod m = new ConditionalProviderMethod(
                 componentType,
@@ -671,7 +655,10 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                 if (declaredBaseType.getTypeArguments().isEmpty()) {
                     return Optional.absent();
                 }
-                return (Optional<TypeMirror>) Optional.of(declaredBaseType.getTypeArguments().get(0));
+                if (declaredBaseType.getTypeArguments().get(0).getKind() == TypeKind.WILDCARD) {
+                    return Optional.of(((WildcardType)declaredBaseType.getTypeArguments().get(0)).getExtendsBound());
+                }
+                return Optional.of(declaredBaseType.getTypeArguments().get(0));
             } else {
                 return Optional.absent();
             }
