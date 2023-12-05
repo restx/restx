@@ -34,6 +34,15 @@ import java.util.Set;
  * Time: 07:50
  */
 public abstract class RestxAbstractProcessor extends AbstractProcessor {
+
+	protected RestxAbstractProcessor() {
+		// Updating current thread's context classloader in order to have
+		// ServiceLoader.load() calls rely on it instead of default classloader during annotation processing
+		// See https://stackoverflow.com/questions/45061170/using-serviceloader-within-an-annotation-processor
+		// This will be particularly useful when calling Types.* utility methods
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+	}
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {

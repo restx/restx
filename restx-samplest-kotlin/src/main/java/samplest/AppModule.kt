@@ -11,6 +11,6 @@ import javax.inject.Named
 class AppModule {
     @Provides @Named("restx.app.package")
     fun appPackage(): String = "samplest"
-
-
 }
+
+

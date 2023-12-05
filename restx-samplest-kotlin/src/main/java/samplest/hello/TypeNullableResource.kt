@@ -38,6 +38,18 @@ class TypeNullableResource {
         @QueryParam nullable: String?,
         @QueryParam optionalJ8: Optional<String>,
         @QueryParam optionalG: com.google.common.base.Optional<String>,
-        @QueryParam nonNull: String
+        @QueryParam nonNull: String,
     ): String? = null
+
+    @GET("/find-nullable-criteria-kotlin")
+    fun queryNullableCriteria(
+        criteria: Criteria?
+    ): Criteria? = criteria
+
+    @GET("/find-criteria-kotlin")
+    fun queryCriteria(
+        criteria: Criteria
+    ): Criteria = criteria
 }
+
+class Criteria(val nonNull: String)

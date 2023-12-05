@@ -31,6 +31,7 @@ public class ColdClassesAnnotationProcessor extends RestxAbstractProcessor {
 	private final ColdClassesAnnotationProcessor.ColdClassesDeclaration coldClassesDeclaration;
 
 	public ColdClassesAnnotationProcessor() {
+		super();
 		this.coldClassesDeclaration = new ColdClassesDeclaration();
 	}
 
