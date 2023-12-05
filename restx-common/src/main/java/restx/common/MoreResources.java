@@ -1,7 +1,9 @@
 package restx.common;
 
 import com.google.common.io.Resources;
+import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
+import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 
@@ -14,10 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
@@ -32,7 +31,7 @@ public class MoreResources {
         URL resource = null;
         if (searchInSources) {
             // in DEV mode we try to load resource from sources if we find them
-            Set<URL> urls = ClasspathHelper.forResource(resourceName);
+            Set<URL> urls = new HashSet<>(ClasspathHelper.forResource(resourceName));
             for (URL url : urls) {
                 if (url.getProtocol().equals("file")) {
                     for (String classesLocation : asList("target/classes/", "bin/")) {
@@ -90,12 +89,12 @@ public class MoreResources {
             }
         }
 
+        Reflections reflections = new Reflections(ConfigurationBuilder.build()
+                .forPackage(packageName)
+                .setScanners(Scanners.Resources));
+
         // now we search for real resources, but avoid duplicates, especially for the one found in sources
-        for (String r : new ConfigurationBuilder()
-                        .setUrls(ClasspathHelper.forPackage(packageName))
-                        .setScanners(new ResourcesScanner())
-                        .build()
-                        .getResources(p)) {
+        for (String r : reflections.getResources(p)) {
             if (!resourcesUrls.containsKey(r) && r.startsWith(packageName.replace('.', '/'))) {
                 resourcesUrls.put(r, Resources.getResource(r));
             }
@@ -105,7 +104,7 @@ public class MoreResources {
 
     private static Set<Path> findSourceRoots() {
         Set<Path> sourceRoots = new LinkedHashSet<>();
-        Set<URL> urls = ClasspathHelper.forClassLoader();
+        Set<URL> urls = new HashSet<>(ClasspathHelper.forClassLoader());
         for (URL url : urls) {
             if (url.getProtocol().equals("file")) {
                 for (String classesLocation : asList("target/classes/", "bin/")) {

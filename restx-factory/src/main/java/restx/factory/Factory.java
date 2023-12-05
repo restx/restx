@@ -6,6 +6,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
+import org.reflections.Reflections;
 import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -62,6 +63,7 @@ public class Factory implements AutoCloseable {
             return o1.priority() - o2.priority();
         }
     };
+
     private static int compareByPriorityAndName(int p1, Name<?> n1, int p2, Name<?> n2) {
         int priorityComparison = Integer.compare(p1, p2);
         if (priorityComparison == 0) {
@@ -70,6 +72,7 @@ public class Factory implements AutoCloseable {
             return priorityComparison;
         }
     }
+
     private static final AtomicLong ID = new AtomicLong();
 
     private static final ConcurrentMap<String, Factory> factories = Maps.newConcurrentMap();
@@ -98,9 +101,9 @@ public class Factory implements AutoCloseable {
 
     /**
      * Returns a default Factory instance, getting componenents from ServiceLoader only.
-     *
+     * <p>
      * Make sure you never close that instance except on JVM shutdown, it's probably shared among several usages.
-     *
+     * <p>
      * Prefer using your own Factory with newInstance for instance if you want to have control over its lifecycle.
      *
      * @return the default factory instance.
@@ -133,12 +136,12 @@ public class Factory implements AutoCloseable {
 
         /**
          * An alias for threadLocal() which makes the intention of using it to override components clearer.
-         *
+         * <p>
          * It's usually used like this:
          * <code>
-         *     overrideComponents().set("componentName", "componentValue");
+         * overrideComponents().set("componentName", "componentValue");
          * </code>
-         *
+         * <p>
          * Note that it doesn't do anything special to actually override components: they will be used only in Factory
          * relying on threadLocal() LocalMachines is built after the call.
          *
@@ -150,9 +153,9 @@ public class Factory implements AutoCloseable {
 
         /**
          * Returns a LocalMachines associated with current thread.
-         *
+         * <p>
          * This is often used when building a Factory, the Factory.newInstance() use it for instance.
-         *
+         * <p>
          * Thanks to client affinity, it can also be shared between client and server.
          *
          * @return a LocalMachines associated with current thread.
@@ -173,14 +176,14 @@ public class Factory implements AutoCloseable {
 
         /**
          * Return LocalMachines associated with another thread, by id.
-         *
+         * <p>
          * You must know the id of the threadlocal from the other thread to be able to access it.
-         *
+         * <p>
          * From the other thread do Factory.LocalMachines.threadLocal().getId()
          *
          * @param id the other thread threadLocal() LocalMachines id
          * @return the LocalMachines associated with the other thread, or an empty LocalMachines which is not
-         *         automatically registered if none is found.
+         * automatically registered if none is found.
          */
         public static LocalMachines threadLocalFrom(String id) {
             LocalMachines localMachines = contextLocals.get(id);
@@ -232,24 +235,29 @@ public class Factory implements AutoCloseable {
             set(NamedComponent.of(aClass, name, component));
             return this;
         }
+
         @SuppressWarnings("unchecked")
         public LocalMachines set(int priority, String name, Object component) {
             Class aClass = component.getClass();
             set(priority, NamedComponent.of(aClass, name, component));
             return this;
         }
+
         public <T> LocalMachines set(Class<T> clazz, String name, T component) {
             set(NamedComponent.of(clazz, name, component));
             return this;
         }
+
         public <T> LocalMachines set(int priority, Class<T> clazz, String name, T component) {
             set(priority, NamedComponent.of(clazz, name, component));
             return this;
         }
+
         public <T> LocalMachines set(NamedComponent<T> namedComponent) {
             set(-1000, namedComponent);
             return this;
         }
+
         public <T> LocalMachines set(int priority, NamedComponent<T> namedComponent) {
             addMachine(new SingletonFactoryMachine<>(priority, namedComponent));
             return this;
@@ -260,6 +268,7 @@ public class Factory implements AutoCloseable {
         private boolean usedServiceLoader;
         private Multimap<String, FactoryMachine> machines = ArrayListMultimap.create();
         private List<Warehouse> providers = new ArrayList<>();
+
         public Builder addFromServiceLoader() {
             machines.putAll(SERVICE_LOADER, FactoryMachinesServiceLoader.getMachines());
 
@@ -370,7 +379,7 @@ public class Factory implements AutoCloseable {
 
             if (!notSatisfied.isEmpty() // some deps were not satisfied
                     && machines.isEmpty() // and we produced no new machines, so there is no chance we satisfy them later
-                    ) {
+            ) {
                 throw notSatisfied.raise();
             }
 
@@ -433,27 +442,33 @@ public class Factory implements AutoCloseable {
         }
 
         public abstract boolean isMultiple();
+
         public final Optional<NamedComponent<T>> findOne() {
             return doFindOne();
         }
+
         public final Optional<T> findOneAsComponent() {
             Optional<NamedComponent<T>> namedComponent = findOne();
-            if(namedComponent.isPresent()){
+            if (namedComponent.isPresent()) {
                 return Optional.of(namedComponent.get().getComponent());
             } else {
                 return Optional.absent();
             }
         }
+
         public final Set<NamedComponent<T>> find() {
             return doFind();
         }
+
         public final Set<T> findAsComponents() {
             return ImmutableSet.copyOf(
-                        Iterables.transform(find(), NamedComponent.<T>toComponent()));
+                    Iterables.transform(find(), NamedComponent.<T>toComponent()));
         }
+
         public abstract Set<Name<T>> findNames();
 
         protected abstract Optional<NamedComponent<T>> doFindOne();
+
         protected abstract Set<NamedComponent<T>> doFind();
 
         public void checkSatisfy() {
@@ -701,7 +716,11 @@ public class Factory implements AutoCloseable {
     private final Warehouse warehouse;
     private final ImmutableList<ComponentCustomizerEngine> customizerEngines;
     private final String id;
-    private final Object dumper = new Object() { public String toString() { return Factory.this.dump(); } };
+    private final Object dumper = new Object() {
+        public String toString() {
+            return Factory.this.dump();
+        }
+    };
 
     private final Set<Name> deactivatedComponents = new CopyOnWriteArraySet<>();
     private final Set<Name> activatedComponents = new CopyOnWriteArraySet<>();
@@ -724,9 +743,7 @@ public class Factory implements AutoCloseable {
                             protected MetricRegistry doNewComponent(SatisfiedBOM satisfiedBOM) {
                                 return new DummyMetricRegistry();
                             }
-                        }))
-
-                ;
+                        }));
 
         if (!warehouse.getProviders().isEmpty()) {
             machineBuilder
@@ -748,7 +765,7 @@ public class Factory implements AutoCloseable {
         this.warehouse = checkNotNull(warehouse);
 
         this.metrics = new DummyMetricRegistry(); // give a value so that we can call getComponent which uses metrics to trace
-                                             // the MetricRegistry building itself
+        // the MetricRegistry building itself
         this.metrics = getComponent(MetricRegistry.class);
     }
 
@@ -785,9 +802,9 @@ public class Factory implements AutoCloseable {
 
     /**
      * Builds a component by class.
-     *
+     * <p>
      * This is a shortcut for queryByClass(cls).mandatory().findOneAsComponent().get()
-     *
+     * <p>
      * Therefore it raises an exception if no component of this class is found or if several one match.
      *
      * @param componentClass
@@ -801,9 +818,9 @@ public class Factory implements AutoCloseable {
 
     /**
      * Builds a component by name.
-     *
+     * <p>
      * This is a shortcut for queryByName(name).mandatory().findOneAsComponent().get()
-     *
+     * <p>
      * Therefore it raises an exception if no component of this name is found.
      *
      * @param componentName
@@ -817,11 +834,11 @@ public class Factory implements AutoCloseable {
 
     /**
      * Builds and return all the component of given class.
-     *
+     * <p>
      * This is a shortcut for queryByClass(componentClass).findAsComponents()
      *
      * @param componentClass the class of the components to build and return
-     * @param <T> the type of components
+     * @param <T>            the type of components
      * @return the set of components of given class
      */
     public <T> Set<T> getComponents(Class<T> componentClass) {
@@ -864,12 +881,12 @@ public class Factory implements AutoCloseable {
 
     @Override
     public String toString() {
-        return  "Factory[" + id + "]";
+        return "Factory[" + id + "]";
     }
 
     /**
      * Returns an object which toString method dumps the factory.
-     *
+     * <p>
      * This is useful in logger or check messages, to prevent actually calling dump() if log is disabled
      * or check does not raise exception.
      *
@@ -904,9 +921,9 @@ public class Factory implements AutoCloseable {
         Set<String> undeclaredMachines = findUndeclaredMachines();
         if (!undeclaredMachines.isEmpty()) {
             sb.append("--> WARNING: classes annotated with @Machine were found in classpath\n")
-              .append("             but not in service declaration files `META-INF/services/restx.factory.FactoryMachine`.\n")
-              .append("             Do a clean build and check your annotation processing.\n")
-              .append("             List of missing machines:\n");
+                    .append("             but not in service declaration files `META-INF/services/restx.factory.FactoryMachine`.\n")
+                    .append("             Do a clean build and check your annotation processing.\n")
+                    .append("             List of missing machines:\n");
             for (String undeclaredMachine : undeclaredMachines) {
                 sb.append("  ").append(undeclaredMachine).append("\n");
             }
@@ -914,8 +931,8 @@ public class Factory implements AutoCloseable {
         }
 
         sb.append("--> Warehouse\n  ")
-            .append(warehouse)
-            .append("\n--\n");
+                .append(warehouse)
+                .append("\n--\n");
 
         sb.append("---------------------------------------------");
         return sb.toString();
@@ -971,7 +988,7 @@ public class Factory implements AutoCloseable {
 
     /**
      * Look for classes with @Machine annotation which are not part of factory, if it has been loaded with ServiceLoader.
-     *
+     * <p>
      * It may happen that annotation processing has not generated the META-INF/services/restx.factory.FactoryMachine
      * properly, am be due to failed incremental compilation.
      */
@@ -979,11 +996,18 @@ public class Factory implements AutoCloseable {
         if (!usedServiceLoader) {
             return Collections.emptySet();
         }
-        Set<Class<?>> annotatedMachines = new ConfigurationBuilder()
+        /*Set<Class<?>> annotatedMachines = new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(""))
                 .setScanners(new TypeAnnotationsScanner())
                 .build()
+                .getTypesAnnotatedWith(Machine.class);*/
+
+
+        Set<Class<?>> annotatedMachines = new Reflections(ConfigurationBuilder.build()
+                .setUrls(ClasspathHelper.forPackage(""))
+                .setScanners(new TypeAnnotationsScanner()))
                 .getTypesAnnotatedWith(Machine.class);
+
 
         Set<String> undeclared = Sets.newLinkedHashSet();
         for (Class<?> annotatedMachine : annotatedMachines) {
@@ -1024,14 +1048,14 @@ public class Factory implements AutoCloseable {
         }
         return Ordering.from(ENGINE_COMPARATOR).sortedCopy(
                 Iterables.transform(
-                    Iterables.filter(machines, new CanBuildPredicate(name)),
-                new Function<FactoryMachine, MachineEngine<T>>() {
-                    @Override
-                    public MachineEngine<T> apply(FactoryMachine input) {
-                        return input.getEngine(name);
-                    }
-                }
-        ));
+                        Iterables.filter(machines, new CanBuildPredicate(name)),
+                        new Function<FactoryMachine, MachineEngine<T>>() {
+                            @Override
+                            public MachineEngine<T> apply(FactoryMachine input) {
+                                return input.getEngine(name);
+                            }
+                        }
+                ));
     }
 
     private <T> Optional<MachineEngine<T>> findMachineEngineFor(Name<T> name) {
@@ -1198,7 +1222,7 @@ public class Factory implements AutoCloseable {
 
         SatisfiedBOM satisfiedBOM = buildingBox.satisfiedBOM;
         if (satisfiedBOM == null) {
-            if(buildingBox.depsToSort != null && !buildingBox.depsToSort.isEmpty()) {
+            if (buildingBox.depsToSort != null && !buildingBox.depsToSort.isEmpty()) {
                 StringBuilder circularDependencyLog = new StringBuilder();
                 for (BuildingBox<?> boxToSort : buildingBox.depsToSort) {
                     buildCircularDependencyLog(circularDependencyLog, boxToSort, ImmutableSet.<Name>of());
@@ -1223,15 +1247,15 @@ public class Factory implements AutoCloseable {
 
     private void buildCircularDependencyLog(StringBuilder circularDependencyLog, BuildingBox buildingBox, ImmutableSet<Name> alreadyDisplayedComponents) {
         StringBuilder indentation = new StringBuilder();
-        for(int i=0; i<alreadyDisplayedComponents.size(); i++) {
+        for (int i = 0; i < alreadyDisplayedComponents.size(); i++) {
             indentation.append("  ");
         }
 
         Iterator buildingBoxToSortIter = buildingBox.depsToSort.iterator();
-        while(buildingBoxToSortIter.hasNext()) {
+        while (buildingBoxToSortIter.hasNext()) {
             BuildingBox<?> buildingBoxToSort = (BuildingBox<?>) buildingBoxToSortIter.next();
             circularDependencyLog.append(indentation.toString()).append("-> ").append(buildingBox.engine.getName()).append("\n");
-            if(!alreadyDisplayedComponents.contains(buildingBox.engine.getName())) {
+            if (!alreadyDisplayedComponents.contains(buildingBox.engine.getName())) {
                 buildCircularDependencyLog(
                         circularDependencyLog, buildingBoxToSort,
                         ImmutableSet.<Name>builder().addAll(alreadyDisplayedComponents).add(buildingBox.engine.getName()).build()
@@ -1368,6 +1392,7 @@ public class Factory implements AutoCloseable {
             return new UnsatisfiedDependency(ImmutableList.<SatisfiedQuery<?>>of(),
                     unsatisfied, String.format("component satisfying %s not found.", unsatisfied));
         }
+
         public static UnsatisfiedDependency on(ImmutableList<SatisfiedQuery<?>> path, Query<?> unsatisfied) {
             return on(path, unsatisfied, String.format("component satisfying %s not found.", unsatisfied));
         }
@@ -1555,7 +1580,7 @@ public class Factory implements AutoCloseable {
 
     /**
      * Used to load FactoryMachines from ServiceLoader.
-     *
+     * <p>
      * This class is used to cache FactoryMachines loaded from ServiceLoader, to call it only once per Classloader.
      */
     private static class FactoryMachinesServiceLoader {
