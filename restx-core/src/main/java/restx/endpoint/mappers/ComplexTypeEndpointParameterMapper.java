@@ -75,6 +75,11 @@ public class ComplexTypeEndpointParameterMapper implements EndpointParameterMapp
             }
         }
 
+        // return null if map is empty as there is nothing to pass to jackson
+        if (hierarchicalMap.isEmpty()) {
+            return null;
+        }
+
         return hierarchicalMap;
     }
 }

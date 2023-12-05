@@ -1,7 +1,6 @@
-package restx.types;
+package restx.types.optional;
 
 import com.google.common.base.Function;
-
 import java.util.Optional;
 
 public class JDK8OptionalTypeDefinition extends OptionalTypeDefinition.ClassBasedOptionalTypeDefinition {

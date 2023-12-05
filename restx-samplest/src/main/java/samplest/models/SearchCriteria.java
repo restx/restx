@@ -27,7 +27,7 @@ public class SearchCriteria<T> extends ParentSearchCriteria {
     DateTime[] multipleV8;
     SearchType[] multipleV9;
     List<SearchType> multipleV10;
-    List<MyCustomValueClass<String>> multipleV11;
+
     SearchCriteria<T> nestedCriteria;
     // An iterable/array of "complex" (by "complex", I mean not a "value" type) type should not be mapped
     // and should trigger an error when provided in request params
@@ -153,13 +153,5 @@ public class SearchCriteria<T> extends ParentSearchCriteria {
 
     public void setV7(MyCustomValueClass<String> v7) {
         this.v7 = v7;
-    }
-
-    public List<MyCustomValueClass<String>> getMultipleV11() {
-        return multipleV11;
-    }
-
-    public void setMultipleV11(List<MyCustomValueClass<String>> multipleV11) {
-        this.multipleV11 = multipleV11;
     }
 }

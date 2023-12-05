@@ -89,4 +89,32 @@ public class TypeNullableKotlinResourceTest {
 
         assertThat(httpRequest.code()).isEqualTo(404);
     }
+
+    @Test
+    public void should_accept_kotlin_nullable_in_criteria() {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .GET("/api/find-nullable-criteria-kotlin");
+
+        assertThat(httpRequest.code()).isEqualTo(404);
+    }
+
+    @Test
+    public void should_not_accept_kotlin_nullable_in_criteria() {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .GET("/api/find-criteria-kotlin");
+
+        assertThat(httpRequest.code()).isEqualTo(500);
+        assertThat(httpRequest.body()).contains("QUERY param <criteria> is required");
+    }
+
+    @Test
+    public void should_accept_kotlin_criteria() {
+        HttpRequest httpRequest = server.client().authenticatedAs("admin")
+                .GET("/api/find-criteria-kotlin?nonNull=test");
+
+        assertThat(httpRequest.code()).isEqualTo(200);
+
+        final String body = httpRequest.body().trim().replace("\n", "").replace(" ", "");
+        assertThat(body).contains("{\"nonNull\":\"test\"}");
+    }
 }

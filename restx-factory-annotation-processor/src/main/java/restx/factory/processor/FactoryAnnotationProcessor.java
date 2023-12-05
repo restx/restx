@@ -17,6 +17,7 @@ import restx.factory.Machine;
 import restx.factory.NamedComponent;
 import restx.factory.Provides;
 import restx.factory.When;
+import restx.types.Types;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -134,7 +135,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
                                 processConditionalProviderMethod(
                                         mod,
                                         module,
-                                        exec.getReturnType().toString(),
+                                        Types.primitiveTypeMirrorToBoxed(exec.getReturnType(), processingEnv).toString(),
                                         getInjectionName(exec.getAnnotation(Named.class)).or(exec.getSimpleName().toString()),
                                         provides.priority() == 0 ? mod.priority() : provides.priority(),
                                         whenToUse,
@@ -195,7 +196,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
     private void processProviderMethod(restx.factory.Module mod, ModuleClass module, Provides provides, ExecutableElement exec) {
         ProviderMethod m = new ProviderMethod(
-                exec.getReturnType().toString(),
+                Types.primitiveTypeMirrorToBoxed(exec.getReturnType(), processingEnv).toString(),
                 exec.getSimpleName().toString(),
                 provides.priority() == 0 ? mod.priority() : provides.priority(),
                 getInjectionName(exec.getAnnotation(Named.class)),
@@ -416,11 +417,10 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
         for (ProviderMethod method : moduleClass.providerMethods) {
             engines.add(ImmutableMap.<String, Object>builder()
-                    .put("type", primitiveTypeToClass(method.type))
+                    .put("type", method.type)
                     .put("name", method.name)
                     .put("enginePriority", method.priority)
-                    .put("injectionName", method.injectionName.isPresent() ?
-                            method.injectionName.get() : method.name)
+                    .put("injectionName", method.injectionName.isPresent() ? method.injectionName.get() : method.name)
                     .put("queriesDeclarations", Joiner.on("\n").join(buildQueriesDeclarationsCode(method.parameters)))
                     .put("queries", Joiner.on(",\n").join(buildQueriesNames(method.parameters)))
                     .put("parameters", Joiner.on(",\n").join(buildParamFromSatisfiedBomCode(method.parameters)))
@@ -430,7 +430,7 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
 
         for (ConditionalProviderMethod method : moduleClass.conditionalProviderMethods) {
             conditionalsEngines.add(ImmutableMap.<String, Object>builder()
-                    .put("componentType", primitiveTypeToClass(method.componentType))
+                    .put("componentType", method.componentType)
                     .put("componentName", method.componentName)
                     .put("conditionalFactoryMachineName", method.methodName + method.componentName + method.factoryMachineNameSuffix)
                     .put("whenName", method.whenName)
@@ -543,20 +543,6 @@ public class FactoryAnnotationProcessor extends RestxAbstractProcessor {
             parametersCode.add(parameter.getFromSatisfiedBomCode());
         }
         return parametersCode;
-    }
-
-    private String primitiveTypeToClass(String outEntity) {
-        outEntity = switch (outEntity) {
-            case "int" -> "Integer";
-            case "float" -> "Float";
-            case "long" -> "Long";
-            case "double" -> "Double";
-            case "byte" -> "Byte";
-            case "short" -> "Short";
-            case "boolean" -> "Boolean";
-            default -> outEntity;
-        };
-        return outEntity;
     }
 
     private static class ComponentClass {

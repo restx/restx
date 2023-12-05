@@ -22,7 +22,6 @@ public class ParameterExpressionBuilder {
     public ParameterExpressionBuilder surroundWithCheckValid(
             RestxAnnotationProcessor.ResourceMethodParameter parameter) {
 
-        boolean isOptionalType = parameter.guavaOptional || parameter.java8Optional || parameter.annotationNullable;
         // If we don't have any optional type, we should check for non nullity *before* calling checkValid()
         if(!parameter.optionalTypeMatcher.isOptionalType()) {
             // In case we're on an aggregate interface, parameterExpr will always return a non-null value

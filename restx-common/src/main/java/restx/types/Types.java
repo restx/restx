@@ -8,12 +8,15 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import restx.types.optional.OptionalTypeDefinition;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.*;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
@@ -270,11 +273,11 @@ public class Types {
 		return aggregateTypeFrom(fqcn).isPresent();
 	}
 
-	public static OptionalTypeDefinition.Matcher optionalMatchingTypeOf(String fqcn) {
+	public static OptionalTypeDefinition.Matcher optionalMatchingTypeOf(TypeMirror type, final List<String> additionalAnnotationClasses) {
 		OptionalTypeDefinition.Matcher lastMatcher = null;
-		for(OptionalTypeDefinition optionalDefinition: DECLARED_OPTIONAL_TYPES) {
-			lastMatcher = optionalDefinition.matches(fqcn);
-			if(lastMatcher.isOptionalType()) {
+		for (OptionalTypeDefinition optionalDefinition: DECLARED_OPTIONAL_TYPES) {
+			lastMatcher = optionalDefinition.matches(type, additionalAnnotationClasses);
+			if (lastMatcher.isOptionalType()) {
 				return lastMatcher;
 			}
 		}
@@ -314,5 +317,13 @@ public class Types {
 
 	public static String rawTypeFrom(String type) {
 		return isParameterizedType(type)?type.substring(0, type.indexOf("<")):type;
+	}
+
+	public static TypeMirror primitiveTypeMirrorToBoxed(TypeMirror typeMirror, ProcessingEnvironment processingEnvironment) {
+		if (typeMirror.getKind().isPrimitive()) {
+			return processingEnvironment.getTypeUtils().boxedClass((PrimitiveType) typeMirror).asType();
+		} else {
+			return typeMirror;
+		}
 	}
 }

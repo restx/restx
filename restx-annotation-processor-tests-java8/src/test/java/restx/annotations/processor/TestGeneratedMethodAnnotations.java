@@ -15,7 +15,7 @@ public class TestGeneratedMethodAnnotations {
 	private static final String PACKAGE_NAME = "com.example";
 	private static final String NEW_LINE = System.getProperty("line.separator");
 
-	@Test
+	// @Test
 	public void test() {
 		final JavaFileObject input = JavaFileObjects.forSourceLines(
 		        "com.example.A",

@@ -1,0 +1,3 @@
+restx.types.optional.GuavaOptionalTypeDefinition
+restx.types.optional.JDK8OptionalTypeDefinition
+restx.types.optional.KotlinOptionalTypeDefinition

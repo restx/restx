@@ -26,7 +26,7 @@ public class ParamDef<T> {
         SpecialParamHandling UNSUPPORTED = new SpecialParamHandling() {
             @Override
             public Object extractValueFrom(ImmutableList<String> values, String fullPath) {
-                throw new IllegalArgumentException("Unsupported array of complex type for query parameter "+fullPath);
+                throw new IllegalArgumentException("Unsupported array of complex type for query parameter " + fullPath);
             }
         };
 

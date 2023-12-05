@@ -9,7 +9,7 @@ wts:
   - when: |
        GET params/allRawTypesCriteria?currency=EUR&date=2018-02-20T16:39:20.123Z&locale=fr_FR&timeZone=UTC&uuid=56f71fcc-42d3-422f-9458-8ad37fc4a0b5&charset=UTF-8&path=/tmp/foo
     then: |
-       {"currency":"EUR","date":"2018-02-20T16:39:20.123+0000","locale":"fr_FR","timeZone":"UTC","uuid":"56f71fcc-42d3-422f-9458-8ad37fc4a0b5","charset":"UTF-8","path":"file:///tmp/foo"}
+       {"currency":"EUR","date":"2018-02-20T16:39:20.123+00:00","locale":"fr_FR","timeZone":"UTC","uuid":"56f71fcc-42d3-422f-9458-8ad37fc4a0b5","charset":"UTF-8","path":"file:///tmp/foo"}
   - when: |
        GET params/allRawTypesCriteria?pattern=[a-zA-Z0-9]*&uri=http://www.restx.io&url=http://www.restx.io
     then: |

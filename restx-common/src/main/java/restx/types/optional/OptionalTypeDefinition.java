@@ -1,9 +1,9 @@
-package restx.types;
+package restx.types.optional;
 
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Optional;
 
+import javax.lang.model.type.TypeMirror;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public interface OptionalTypeDefinition {
@@ -49,7 +49,7 @@ public interface OptionalTypeDefinition {
         }
     }
 
-    Matcher matches(String type);
+    Matcher matches(TypeMirror type, final List<String> additionalAnnotationClasses);
 
     abstract class ClassBasedOptionalTypeDefinition implements OptionalTypeDefinition {
         private final Pattern optionalRegex;
@@ -66,26 +66,13 @@ public interface OptionalTypeDefinition {
             this.fromNullableExpressionTransformer = fromNullableExpressionTransformer;
         }
 
-        public Matcher matches(String type) {
-            java.util.regex.Matcher matcher = this.optionalRegex.matcher(type);
+        public Matcher matches(TypeMirror type, final List<String> additionalAnnotationClasses) {
+            java.util.regex.Matcher matcher = this.optionalRegex.matcher(type.toString());
             if(matcher.matches()) {
                 return Matcher.optionalOf(matcher.group(1), this.currentOptionalExpressionToGuavaOptionalCodeExpressionTransformer, this.fromNullableExpressionTransformer);
             } else {
-                return Matcher.notOptional(type);
+                return Matcher.notOptional(type.toString());
             }
-        }
-    }
-
-    class GUAVA extends ClassBasedOptionalTypeDefinition {
-        private static final Function<String, String> FROM_NULLABLE_EXPRESSION_TRANSFORMER = new Function<String, String>() {
-            @Override
-            public String apply(String expression) {
-                return "Optional.fromNullable(" + expression + ")";
-            }
-        };
-
-        public GUAVA() {
-            super(Optional.class, Functions.<String>identity(), FROM_NULLABLE_EXPRESSION_TRANSFORMER);
         }
     }
 }

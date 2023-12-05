@@ -9,7 +9,6 @@ import restx.StdRestxRequestMatcher;
 import restx.annotations.*;
 import restx.common.MoreFunctions;
 import restx.common.MoreStrings;
-import restx.types.OptionalTypeDefinition;
 import restx.types.Types;
 import restx.common.Mustaches;
 import restx.common.processor.RestxAbstractProcessor;
@@ -18,6 +17,7 @@ import restx.factory.When;
 import restx.http.HttpStatus;
 import restx.security.PermitAll;
 import restx.security.RolesAllowed;
+import restx.types.optional.OptionalTypeDefinition;
 import restx.validation.ValidatedFor;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -109,13 +109,18 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
                 ResourceMethod resourceMethod = new ResourceMethod(
                         resourceClass,
-                        annotation.httpMethod, r.value + annotation.path,
+                        annotation.httpMethod,
+                        r.value + annotation.path,
                         annotation.methodElem.getSimpleName().toString(),
-                        annotation.methodElem.getReturnType().toString(),
-                        annotation.methodElem.getThrownTypes().toString(),
-                        successStatus, logLevel, permission,
-                        typeElem.getQualifiedName().toString() + "#" + annotation.methodElem.toString(),
-                        inContentType, outContentType, annotationDescriptionsBuilder.build()
+                        Types.primitiveTypeMirrorToBoxed(annotation.methodElem.getReturnType(), processingEnv),
+                        annotation.methodElem.getThrownTypes(),
+                        successStatus,
+                        logLevel,
+                        permission,
+                        typeElem.getQualifiedName().toString() + "#" + annotation.methodElem,
+                        inContentType,
+                        outContentType,
+                        annotationDescriptionsBuilder.build()
                 );
 
                 resourceClass.resourceMethods.add(resourceMethod);
@@ -426,10 +431,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
                     variableName,
                     reqParamName,
                     parameterKind,
-                    validationGroups,
-                    p.getAnnotationMirrors().stream()
-                            .map(a -> a.getAnnotationType().toString())
-                            .anyMatch("org.jetbrains.annotations.Nullable"::equals)
+                    validationGroups
             ));
         }
         if (!pathParamNamesToMatch.isEmpty()) {
@@ -540,8 +542,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             } else {
                 if (resourceMethod.optionalReturnTypeMatcher.isOptionalType()) {
                     call = resourceMethod.optionalReturnTypeMatcher.getCurrentOptionalExpressionToGuavaOptionalCodeExpressionTransformer().apply(call);
-                } else if (resourceMethod.returnAnnotationNullable) {
-                    call = "Optional.fromNullable(" + call + ")";
                 } else {
                     call = "Optional.of(" + call + ")";
                 }
@@ -549,8 +549,6 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             }
 
             String outEntity = resourceMethod.returnType.equalsIgnoreCase("void") ? "Empty" : resourceMethod.returnType;
-
-            outEntity = primitiveTypeToClass(outEntity);
 
             routes.add(ImmutableMap.<String, Object>builder()
                     .put("routeId", resourceMethod.id)
@@ -585,22 +583,8 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
     }
 
-    private String primitiveTypeToClass(String outEntity) {
-        outEntity = switch (outEntity) {
-            case "int" -> "Integer";
-            case "float" -> "Float";
-            case "long" -> "Long";
-            case "double" -> "Double";
-            case "byte" -> "Byte";
-            case "short" -> "Short";
-            case "boolean" -> "Boolean";
-            default -> outEntity;
-        };
-        return outEntity;
-    }
-
     private boolean isComplexType(TypeMirror typeMirror) {
-        return !Types.optionalMatchingTypeOf(typeMirror.toString()).isOptionalType()
+        return !Types.optionalMatchingTypeOf(typeMirror, Collections.emptyList()).isOptionalType()
                 && !Types.isRawType(typeMirror, this.processingEnv)
                 && !Types.isAggregateType(typeMirror.toString());
     }
@@ -659,7 +643,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             String propertyName = MoreStrings.lowerFirstLetter(setter.getSimpleName().toString().substring("set".length()));
             String propertyPath = path+(path.isEmpty()?"":".")+propertyName;
 
-            if(Types.isAggregateType(propertyType.toString())) {
+            if (Types.isAggregateType(propertyType.toString())) {
                 TypeMirror aggregateType = Types.aggregatedTypeOf(propertyType);
                 // Aggregates of RAW types should be handled with ParamDef.SpecialParamHandling.ARRAYS
                 if (Types.isRawType(aggregateType, processingEnv)) {
@@ -826,10 +810,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         final String httpMethod;
         final String path;
         final String name;
-        final String realReturnType;
+        final TypeMirror realReturnType;
         final OptionalTypeDefinition.Matcher optionalReturnTypeMatcher;
         final String returnType;
-        final String thrownTypes;
+        final List<? extends TypeMirror> thrownTypes;
         final String id;
         final ImmutableList<String> pathParamNames;
         final HttpStatus successStatus;
@@ -842,9 +826,18 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
         final List<ResourceMethodParameter> parameters = Lists.newArrayList();
 
-        ResourceMethod(ResourceClass resourceClass, String httpMethod, String path, String name, String returnType,
-                       String thrownTypes, HttpStatus successStatus, RestxLogLevel logLevel, String permission,
-                       String sourceLocation, Optional<String> inContentType, Optional<String> outContentType,
+        ResourceMethod(ResourceClass resourceClass,
+                       String httpMethod,
+                       String path,
+                       String name,
+                       TypeMirror returnType,
+                       List<? extends TypeMirror> thrownTypes,
+                       HttpStatus successStatus,
+                       RestxLogLevel logLevel,
+                       String permission,
+                       String sourceLocation,
+                       Optional<String> inContentType,
+                       Optional<String> outContentType,
                        ImmutableList<AnnotationDescription> annotationDescriptions) {
             this.httpMethod = httpMethod;
             this.path = path;
@@ -858,7 +851,10 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             this.thrownTypes = thrownTypes;
             this.realReturnType = returnType;
 
-            this.optionalReturnTypeMatcher = Types.optionalMatchingTypeOf(returnType);
+            final List<String> additionalAnnotationClasses = annotationDescriptions.stream()
+                    .map(annotationDescription -> annotationDescription.annotationClass)
+                    .toList();
+            this.optionalReturnTypeMatcher = Types.optionalMatchingTypeOf(returnType, additionalAnnotationClasses);
             this.returnType = this.optionalReturnTypeMatcher.getUnderlyingType();
 
             this.id = resourceClass.group.name + "#" + resourceClass.name + "#" + name;
@@ -870,20 +866,21 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }
 
         boolean throwsIOException() {
-            return thrownTypes != null && thrownTypes.contains(IOException.class.getCanonicalName());
+            // TODO
+            //return thrownTypes != null && thrownTypes.stream().map(it -> it.) .contains(IOException.class);
+            return false;
         }
     }
 
     static class ResourceMethodParameter {
         final TypeMirror typeMirror;
         final String type;
-        final String realType;
+        final TypeMirror realType;
         final OptionalTypeDefinition.Matcher optionalTypeMatcher;
         final String name;
         final String reqParamName;
         final ResourceMethodParameterKind kind;
         final List<String> validationGroupsFQNs;
-        final boolean annotationNullable;
 
         private static final Function<String, String> CLASS_APPENDER_FCT = new Function<String, String>() {
             @Override
@@ -894,9 +891,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
 
         private ResourceMethodParameter(VariableElement element, String name, String reqParamName, ResourceMethodParameterKind kind, String[] validationGroupsFQNs) {
             this.typeMirror = element.asType();
-            this.realType = this.typeMirror.toString();
+            this.realType = this.typeMirror;
 
-            this.optionalTypeMatcher = Types.optionalMatchingTypeOf(this.realType);
+            final List<String> additionalAnnotationClasses = element.getAnnotationMirrors().stream()
+                    .map(annotationMirror -> annotationMirror.getAnnotationType().toString())
+                    .toList();
+            this.optionalTypeMatcher = Types.optionalMatchingTypeOf(this.realType, additionalAnnotationClasses);
             this.type = optionalTypeMatcher.getUnderlyingType();
 
             this.name = name;
