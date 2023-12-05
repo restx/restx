@@ -76,17 +76,17 @@ public class SecuredResourceTest {
         RestxSessionCookieDescriptor restxSessionCookieDescriptor = restxSessionCookieDescriptorNamedComponentOptional
                 .get()
                 .getComponent();
-        String headerSetCookie = httpRequest.headers("Set-Cookie")[1];
 
-        String cookieSeparator = headerSetCookie.contains(";\\s") ? ";\\s" : ";";
-        java.util.Optional<String> headerPrincipalOptional = Arrays.stream(headerSetCookie.split(cookieSeparator))
-                .filter(assign -> assign.startsWith("RestxSession="))
+        java.util.Optional<String> headerPrincipalOptional = Arrays.stream(httpRequest.headers("Set-Cookie"))
+                .filter(cookie -> cookie.startsWith("RestxSession="))
                 .findFirst();
 
         assertThat(headerPrincipalOptional).isPresent();
 
         final String headerPrincipal = headerPrincipalOptional.get();
-        final String headerPrincipalValue = headerPrincipal.split("=")[1];
+
+        String cookieSeparator = headerPrincipal.contains(";\\s") ? ";\\s" : ";";
+        final String headerPrincipalValue = headerPrincipal.split("=")[1].split(cookieSeparator)[0];
 
         return restxSessionCookieDescriptor.decodeValueIfNeeded(headerPrincipalValue);
     }

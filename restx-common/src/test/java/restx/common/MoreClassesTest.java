@@ -12,12 +12,7 @@ import java.io.FileOutputStream;
 import java.io.Flushable;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.AbstractCollection;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.RandomAccess;
+import java.util.*;
 
 /**
  * Test cases for {@link MoreClasses}
@@ -72,7 +67,8 @@ public class MoreClassesTest {
 				Iterable.class,
 				Serializable.class,
 				RandomAccess.class,
-				Cloneable.class
+				Cloneable.class,
+				SequencedCollection.class
 		);
 
 		assertThat(getInheritedClasses(FileOutputStream.class)).containsOnly(
