@@ -69,7 +69,6 @@
         <reflections.version>0.10.2</reflections.version>
         <snakeyaml.version>2.2</snakeyaml.version>
         <validation-api.version>3.0.2</validation-api.version>
-        <ivy.version>2.3.0</ivy.version>
         <jbcrypt.version>0.4</jbcrypt.version>
         <metrics.version>3.1.0</metrics.version>
         <http-request.version>6.0</http-request.version>
