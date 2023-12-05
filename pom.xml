@@ -63,7 +63,7 @@
         <joda-time.version>2.12.5</joda-time.version>
         <jna.version>5.13.0</jna.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.2.13</logback.version>
         <javax.inject.version>1</javax.inject.version>
         <mustache.version>1.15</mustache.version>
         <reflections.version>0.9.9-RC1</reflections.version>
