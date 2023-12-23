@@ -7,13 +7,13 @@ angular.module('admin').factory('baseUri', function() {
 angular.module('admin').controller('LoginController', function($scope, baseUri, $http) {
     $scope.authenticate = function() {
         $http.post(baseUri + '/sessions', {principal: {name: $scope.username, passwordHash: SparkMD5.hash($scope.password)}})
-            .success(function(data, status, headers, config) {
-                console.log('authenticated', data, status);
+            .then(function onSuccess(response) {
+                console.log('authenticated', response.data, response.status);
                 window.location = $.querystring('backTo') || (baseUri + '/@/ui/');
-            }).error(function(data, status, headers, config) {
-                console.log('error', data, status);
+            }, function onError(response) {
+                console.log('error', response.data, response.status);
                 alertify.success("Authentication error, please try again.");
-            });;
+            });
     }
 });
 

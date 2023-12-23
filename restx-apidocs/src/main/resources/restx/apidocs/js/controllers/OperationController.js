@@ -98,10 +98,10 @@ adminApp.controller('OperationController', function OperationController(
                     return r
                 }
             })
-            .success(function (data, status, headers, config) {
-                $scope.request.response.status = status;
-                $scope.request.response.body = data;
-                $rootScope.contextData = data;
+            .then(function (response) {
+                $scope.request.response.status = response.status;
+                $scope.request.response.body = response.data;
+                $rootScope.contextData = response.data;
                 $rootScope.contextDataType = $scope.operation.responseClass;
 
                 try {
@@ -115,12 +115,11 @@ adminApp.controller('OperationController', function OperationController(
                     $scope.request.response.bodyType = "raw";
                 }
                 if (onSuccess) {
-                    onSuccess(data, status, headers, config);
+                    onSuccess(response);
                 }
-            }).
-            error(function (data, status, headers, config) {
-                $scope.request.response.status = status;
-                $scope.request.response.body = data;
+            }, function (response) {
+                $scope.request.response.status = response.status;
+                $scope.request.response.body = response.data;
             });
     }
 
@@ -176,8 +175,8 @@ adminApp.controller('OperationController', function OperationController(
     $scope.fix = function() {
         var spec = $scope.expect.specPath;
         $http.put('../../specs/' + encodeURIComponent(spec) + '/wts/0/then',
-            {expectedCode: $scope.expect.status, expected: $scope.expect.body }).
-            success(function () {
+            {expectedCode: $scope.expect.status, expected: $scope.expect.body })
+            .then(function () {
                 loadSpec(spec);
             });
         delete $scope.expect;
@@ -188,10 +187,10 @@ adminApp.controller('OperationController', function OperationController(
         // URI encoding the forward slash causes problems on some servers.
         // see https://github.com/restx/restx/issues/90
         var encodedSpecId = encodeURIComponent(spec.replace(/\//g, '___'));
-        $http.get('../../specs/' + encodedSpecId).
-            success(function (data) {
-                spec = { title: data.title, requests: [] };
-                data.whens.forEach(function (when) {
+        $http.get('../../specs/' + encodedSpecId)
+            .then(function (response) {
+                spec = { title: response.data.title, requests: [] };
+                response.data.whens.forEach(function (when) {
                     spec.requests.push({
                         httpMethod: when.method, path: ((when.path === '/')?'':'/') + when.path, body: when.body, showBody: when.body.trim() !== '',
                         response: { body: when.then.expected, status: when.then.expectedCode }});
@@ -203,8 +202,8 @@ adminApp.controller('OperationController', function OperationController(
     function loadAllSpecs() {
         $scope.specs = [];
         $http.get('../../specs', {params: {httpMethod: $routeParams.httpMethod, path: path}}).
-            success(function (data) {
-                data.forEach(function (spec) {
+            then(function (response) {
+                response.data.forEach(function (spec) {
                     loadSpec(spec);
                 });
             });
