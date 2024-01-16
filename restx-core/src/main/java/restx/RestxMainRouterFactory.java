@@ -3,7 +3,6 @@ package restx;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -44,11 +43,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -63,9 +62,9 @@ import static restx.common.MoreStrings.indent;
  */
 public class RestxMainRouterFactory {
     private static final Logger logger = LoggerFactory.getLogger(RestxMainRouterFactory.class);
-    private static final Map<String, RestxMainRouter> routers = new HashMap<>();
+    private static final Map<String, RestxMainRouter> routers = new ConcurrentHashMap<>();
 
-    public static synchronized RestxMainRouter newInstance(final String serverId, Optional<String> baseUri) {
+    public static RestxMainRouter newInstance(final String serverId, Optional<String> baseUri) {
         checkNotNull(serverId);
         RestxMainRouter router = routers.get(serverId);
         if (router == null)  {
@@ -77,11 +76,11 @@ public class RestxMainRouterFactory {
         return router;
     }
 
-    public static synchronized Optional<RestxMainRouter> getInstance(String serverId) {
+    public static Optional<RestxMainRouter> getInstance(String serverId) {
         return Optional.fromNullable(routers.get(serverId));
     }
 
-    public static synchronized void clear(String serverId) {
+    public static void clear(String serverId) {
         routers.remove(serverId);
         Optional<Factory> factory = Factory.getFactory(serverId);
         if (factory.isPresent()) {

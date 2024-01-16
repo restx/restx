@@ -162,7 +162,7 @@ public class StdRequest extends AbstractRequest {
     }
 
     @Override
-    public synchronized InputStream getContentStream() throws IOException {
+    public InputStream getContentStream() {
         if (inputStream != null) {
             throw new IllegalStateException("can't get content stream multiple times");
         }
@@ -170,7 +170,7 @@ public class StdRequest extends AbstractRequest {
     }
 
     @Override
-    public synchronized void closeContentStream() throws IOException {
+    public void closeContentStream() throws IOException {
         if (inputStream == null) {
             throw new IllegalStateException("can't close content stream which is not opened");
         }
