@@ -33,6 +33,7 @@ public class SettingsAnnotationProcessor extends RestxAbstractProcessor {
     final Template settingsConfigTpl;
 
     public SettingsAnnotationProcessor() {
+        super();
         settingsProviderTpl = Mustaches.compile(SettingsAnnotationProcessor.class, "SettingsProvider.mustache");
         settingsConfigTpl = Mustaches.compile(SettingsAnnotationProcessor.class, "SettingsConfig.mustache");
     }

@@ -22,7 +22,7 @@ import restx.description.*;
 import restx.converters.MainStringConverter;
 import static restx.common.MorePreconditions.checkPresent;
 
-import javax.validation.Validator;
+import jakarta.validation.Validator;
 import static restx.validation.Validations.checkValid;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class ARouter extends RestxRouter {
                 securityManager.check(request, match, isAuthenticated());
                 try {
                     resource.b(
-                        /* [QUERY] num */ checkValid(validator, checkNotNull(mapQueryObjectFromRequest(int.class, "num", request, match, EndpointParameterKind.QUERY), "QUERY param <num> is required"))
+                        /* [QUERY] num */ checkValid(validator, checkNotNull(mapQueryObjectFromRequest(int.class, "num", request, match, EndpointParameterKind.QUERY), "QUERY param <num> is required"),com.example.A.class)
                     );
                     return Optional.of(Empty.EMPTY);
                 } catch(RuntimeException e) { throw e; }

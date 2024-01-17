@@ -1,10 +1,14 @@
-angular.module('admin', ['ngResource']);
+var adminApp = angular.module('admin', ['ngResource']);
 
+adminApp.config(function ($locationProvider) {
+    // undo the default ('!') to avoid breaking change from angularjs 1.6
+    $locationProvider.hashPrefix('');
+});
 
-angular.module('admin').factory('ErrorDescriptors', function($resource) {
+adminApp.factory('ErrorDescriptors', function($resource) {
     return $resource('../../errors/descriptors');
 });
 
-angular.module('admin').controller('ErrorDescriptorsController', function($scope, ErrorDescriptors) {
+adminApp.controller('ErrorDescriptorsController', function($scope, ErrorDescriptors) {
     $scope.errors = ErrorDescriptors.query();
 });

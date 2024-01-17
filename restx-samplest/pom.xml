@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.1.0-rc2-SNAPSHOT</version>
     </parent>
 
     <artifactId>restx-samplest</artifactId>
@@ -47,7 +47,7 @@
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
-            <artifactId>restx-server-jetty11</artifactId>
+            <artifactId>restx-server-jetty</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -61,6 +61,10 @@
         <dependency>
             <groupId>io.restx</groupId>
             <artifactId>restx-i18n-admin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-samplest-custom-types-testing</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.1.0-rc2-SNAPSHOT</version>
     </parent>
 
     <artifactId>restx-core</artifactId>
@@ -64,8 +64,8 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

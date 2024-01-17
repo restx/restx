@@ -5,14 +5,14 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.1.0-rc2-SNAPSHOT</version>
     </parent>
 
     <artifactId>restx-server-tomcat</artifactId>
     <name>restx-server-tomcat</name>
 
     <properties>
-        <embedded.tomcat.version>10.0.27</embedded.tomcat.version>
+        <embedded.tomcat.version>10.1.17</embedded.tomcat.version>
     </properties>
 
     <dependencies>

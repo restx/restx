@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.restx</groupId>
         <artifactId>restx-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.1.0-rc2-SNAPSHOT</version>
     </parent>
 
     <artifactId>restx-samplest-kotlin</artifactId>
@@ -75,6 +75,11 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 

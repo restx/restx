@@ -8,7 +8,7 @@ import restx.tests.RestxServerRule;
 
 import java.io.IOException;
 
-import static restx.server.Jetty11WebServer.jettyWebServerSupplier;
+import static restx.server.JettyWebServer.jettyWebServerSupplier;
 
 
 /**

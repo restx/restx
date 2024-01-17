@@ -213,7 +213,15 @@ public class HttpServletRestxRequest extends AbstractRequest {
         return request.getParts();
     }
 
-    public Part getPart(String name) throws IOException, ServletException {
-        return getPart(name);
+    public ImmutableMap<String, String> getHeaders() {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            if (headerName != null) {
+                builder.put(headerName, request.getHeader(headerName));
+            }
+        }
+        return builder.build();
     }
 }

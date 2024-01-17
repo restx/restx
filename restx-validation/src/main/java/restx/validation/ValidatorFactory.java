@@ -1,5 +1,7 @@
 package restx.validation;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.HibernateValidatorConfiguration;
 import restx.factory.Module;
@@ -7,8 +9,6 @@ import restx.factory.Name;
 import restx.factory.Provides;
 
 import javax.inject.Named;
-import javax.validation.Validation;
-import javax.validation.Validator;
 
 /**
  * User: xavierhanin

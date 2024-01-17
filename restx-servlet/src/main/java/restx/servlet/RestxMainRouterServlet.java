@@ -3,9 +3,6 @@ package restx.servlet;
 import com.google.common.base.Optional;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
-import org.codehaus.commons.compiler.CompileException;
-import org.codehaus.janino.ExpressionEvaluator;
-import org.codehaus.janino.JaninoRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import restx.RestxMainRouterFactory;
@@ -13,7 +10,6 @@ import restx.factory.Factory;
 import restx.server.WebServer;
 import restx.server.WebServers;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Set;
 
@@ -33,23 +29,14 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         Optional<String> baseUri = Optional.fromNullable(System.getProperty("restx.baseUri"));
         String baseServer = config.getServletContext().getInitParameter("restx.baseServerUri");
         if (!baseUri.isPresent() && baseServer != null) {
-            try {
-                // try to use servlet3 API without actually requiring it
-                Collection<String> mappings = getMappings(config);
-                if (!mappings.isEmpty()) {
-                    String routerPath = mappings.iterator().next();
-                    if (routerPath.endsWith("/*")) {
-                        routerPath = routerPath.substring(0, routerPath.length() - 2);
-                    }
-                    baseUri = Optional.of(baseServer + routerPath);
-                    logger.debug("deduced baseUri from servlet registration: {}", baseUri);
+            Collection<String> mappings = getMappings(config);
+            if (!mappings.isEmpty()) {
+                String routerPath = mappings.iterator().next();
+                if (routerPath.endsWith("/*")) {
+                    routerPath = routerPath.substring(0, routerPath.length() - 2);
                 }
-            } catch (JaninoRuntimeException e) {
-                logger.info("servlet <3 detected. use servlet3+ to get automatic baseUri detection");
-            } catch (CompileException e) {
-                logger.info("servlet <3 detected. use servlet3+ to get automatic baseUri detection");
-            } catch (InvocationTargetException e) {
-                logger.info("servlet <3 detected. use servlet3+ to get automatic baseUri detection");
+                baseUri = Optional.of(baseServer + routerPath);
+                logger.debug("deduced baseUri from servlet registration: {}", baseUri);
             }
         }
         if (!baseUri.isPresent()) {
@@ -66,7 +53,7 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         }
 
         serverId = Optional.fromNullable(
-                config.getServletContext().getInitParameter("restx.serverId"))
+                        config.getServletContext().getInitParameter("restx.serverId"))
                 .or(DEPLOYED_SERVER_ID);
 
         registerIdNeeded(serverId);
@@ -74,14 +61,8 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
         init(RestxMainRouterFactory.newInstance(serverId, baseUri));
     }
 
-    @SuppressWarnings("unchecked")
-    protected Collection<String> getMappings(ServletConfig config) throws CompileException, InvocationTargetException {
-        ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator(
-                "config.getServletContext().getServletRegistration(config.getServletName()).getMappings()",
-                Collection.class,
-                new String[]{"config"},
-                new Class[]{ServletConfig.class});
-        return (Collection<String>) expressionEvaluator.evaluate(new Object[]{config});
+    protected Collection<String> getMappings(ServletConfig config) {
+        return config.getServletContext().getServletRegistration(config.getServletName()).getMappings();
     }
 
     @Override
@@ -102,7 +83,7 @@ public class RestxMainRouterServlet extends AbstractRestxMainRouterServlet {
 
     /**
      * Tries to guess server type based on current callstack.
-     *
+     * <p>
      * It uses the set of registered server types to make the guess, so this can be contributed through plugins.
      *
      * @return the guessed server type, may be 'unknown'

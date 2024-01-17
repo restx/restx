@@ -1,10 +1,8 @@
 package restx.tests;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.util.ClasspathHelper;
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import restx.factory.Factory;
@@ -17,27 +15,17 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
-* A list of specs to be run as tests by a RestxSpecTestsRunner.
-*/
+ * A list of specs to be run as tests by a RestxSpecTestsRunner.
+ */
 public class RestxSpecTests {
-
-    public static Iterable<Object[]> specsAsParametersIn(String location) throws IOException {
-        return Collections2.transform(findSpecsIn(location), new Function<RestxSpec, Object[]>() {
-            @Override
-            public Object[] apply(RestxSpec restxSpec) {
-                return new Object[]{restxSpec};
-            }
-        });
-    }
 
     public static List<RestxSpec> findSpecsIn(String location) throws IOException {
         RestxSpecLoader loader = new RestxSpecLoader(Factory.getInstance());
 
-        Set<String> specResources = new ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forPackage(location))
-                .setScanners(new ResourcesScanner())
-                .filterInputsBy(new FilterBuilder().includePackage(location.replace('/','.')))
-                .build()
+        Set<String> specResources = new Reflections(ConfigurationBuilder.build()
+                .forPackage(location)
+                .setScanners(Scanners.Resources)
+                .filterInputsBy(new FilterBuilder().includePackage(location.replace('/', '.'))))
                 .getResources(Pattern.compile(".*\\.spec\\.yaml"));
 
         List<RestxSpec> loaded = Lists.newArrayList();
@@ -57,9 +45,10 @@ public class RestxSpecTests {
         this.specs = specs;
     }
 
-    public  RestxSpecRule getRule() {
+    public RestxSpecRule getRule() {
         return rule;
     }
+
     public List<RestxSpec> getSpecs() {
         return specs;
     }

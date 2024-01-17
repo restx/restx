@@ -233,6 +233,11 @@ public class StdRequest extends AbstractRequest {
         return ImmutableList.copyOf(locales);
     }
 
+    @Override
+    public ImmutableMap<String, String> getHeaders() {
+        return headers;
+    }
+
     public static class StdRequestBuilder {
         private String baseUri;
         private String restxPath;

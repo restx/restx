@@ -1,4 +1,4 @@
-angular.module('admin', ['ngResource']);
+angular.module('admin', ['ngResource', 'ngRoute']);
 
 
 angular.module('admin')

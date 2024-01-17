@@ -125,4 +125,9 @@ public class RestxRequestWrapper implements RestxRequest {
     public ImmutableList<Locale> getLocales() {
         return original.getLocales();
     }
+
+    @Override
+    public ImmutableMap<String, String> getHeaders() {
+        return original.getHeaders();
+    }
 }

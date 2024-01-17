@@ -12,6 +12,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -33,6 +34,15 @@ import java.util.Set;
  * Time: 07:50
  */
 public abstract class RestxAbstractProcessor extends AbstractProcessor {
+
+	protected RestxAbstractProcessor() {
+		// Updating current thread's context classloader in order to have
+		// ServiceLoader.load() calls rely on it instead of default classloader during annotation processing
+		// See https://stackoverflow.com/questions/45061170/using-serviceloader-within-an-annotation-processor
+		// This will be particularly useful when calling Types.* utility methods
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+	}
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
@@ -94,9 +104,12 @@ public abstract class RestxAbstractProcessor extends AbstractProcessor {
 
     protected TypeElement asTypeElement(TypeMirror typeMirror) {
         Types TypeUtils = this.processingEnv.getTypeUtils();
-        return (TypeElement)TypeUtils.asElement(typeMirror);
+		if (typeMirror.getKind().isPrimitive()) {
+			return TypeUtils.boxedClass((PrimitiveType) typeMirror);
+		} else {
+			return (TypeElement) TypeUtils.asElement(typeMirror);
+		}
     }
-
 
     protected void generateJavaClass(String className, Template mustache, ImmutableMap<String, Object> ctx,
                                      Element originatingElements) throws IOException {

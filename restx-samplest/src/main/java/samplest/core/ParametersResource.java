@@ -2,6 +2,7 @@ package samplest.core;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
 import org.joda.time.DateTime;
@@ -10,9 +11,12 @@ import restx.RestxRequest;
 import restx.annotations.*;
 import restx.factory.Component;
 import restx.security.PermitAll;
+import samplest.models.AllRawTypesCriteria;
+import samplest.models.SearchCriteria;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -125,6 +129,21 @@ public class ParametersResource {
     @GET("/params/optionalArrayedJodaDatesParams")
     public DateTime[] optionalArrayedJodaDatesParams(Optional<DateTime[]> params, Optional<DateTime[]> otherParams) {
         return ObjectArrays.concat(params.or(new DateTime[0]), otherParams.or(new DateTime[0]), DateTime.class);
+    }
+
+    @GET("/params/complexParams")
+    public SearchCriteria.ConcreteSearchCriteria complexParams(SearchCriteria.ConcreteSearchCriteria criteria) {
+        return criteria;
+    }
+
+    @GET("/params/allRawTypesCriteria")
+    public AllRawTypesCriteria allRawTypesCriteria(AllRawTypesCriteria criteria) {
+        return criteria;
+    }
+
+    @GET("/params/multipleComplexParams")
+    public Map<String, Object> complexParams(SearchCriteria.ConcreteSearchCriteria criteria, AllRawTypesCriteria anotherCriteria, Optional<String> v1) {
+        return ImmutableMap.of("criteria", criteria, "v1", v1, "allRawTypesCriteria", anotherCriteria);
     }
 
     @GET("/params/headers")

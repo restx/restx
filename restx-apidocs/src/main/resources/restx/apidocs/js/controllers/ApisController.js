@@ -40,7 +40,8 @@ adminApp.controller('ApisController', function($rootScope, $scope, $location, Ap
     });
 
     $scope.scrollTo = function(name) {
-        $('#' + name).ScrollTo();
+        const element = document.getElementById(name);
+        element.scrollIntoView();
         return false;
     }
 });

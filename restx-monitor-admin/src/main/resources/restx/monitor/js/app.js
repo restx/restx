@@ -1,69 +1,70 @@
-adminApp = angular.module('admin', ['ngResource']);
+adminApp = angular.module('admin', ['ngResource', 'ngRoute']);
 
-adminApp.config(function($routeProvider) {
-    $routeProvider.
-        when('/', {
-            controller: 'MetricsController',
-            templateUrl: 'views/metrics.html'
-        }).
-        when('/sessions', {
-            controller: 'SessionsController',
-            templateUrl: 'views/sessions.html'
-        }).
-        when('/thread-dump', {
-            controller: 'ThreadDumpController',
-            templateUrl: 'views/thread-dump.html'
-        })
-    ;
+adminApp.config(function ($routeProvider, $locationProvider) {
+    $routeProvider.when('/', {
+        controller: 'MetricsController',
+        templateUrl: 'views/metrics.html'
+    }).when('/sessions', {
+        controller: 'SessionsController',
+        templateUrl: 'views/sessions.html'
+    }).when('/thread-dump', {
+        controller: 'ThreadDumpController',
+        templateUrl: 'views/thread-dump.html'
+    });
+
+    // undo the default ('!') to avoid breaking change from angularjs 1.6
+    $locationProvider.hashPrefix('');
 });
 
-adminApp.filter('uaBrowser', function() {
-    return function(input) {
+adminApp.filter('uaBrowser', function () {
+    return function (input) {
         var parser = new UAParser();
         parser.setUA(input);
         var ua = parser.getResult();
-        return  ua.browser.name + ' ' + ua.browser.version;
+        return ua.browser.name + ' ' + ua.browser.version;
     }
 });
-adminApp.filter('uaOS', function() {
-    return function(input) {
+adminApp.filter('uaOS', function () {
+    return function (input) {
         var parser = new UAParser();
         parser.setUA(input);
         var ua = parser.getResult();
-        return  ua.os.name + ' ' + ua.os.version;
+        return ua.os.name + ' ' + ua.os.version;
     }
 });
 
-adminApp.factory('Metrics', function($resource) {
+adminApp.factory('Metrics', function ($resource) {
     return $resource('../../metrics');
 });
 
-adminApp.factory('SessionStats', function($resource) {
+adminApp.factory('SessionStats', function ($resource) {
     return $resource('../../sessionStats');
 });
 
-adminApp.controller('SessionsController', function($rootScope, $scope, SessionStats) {
+adminApp.controller('SessionsController', function ($rootScope, $scope, SessionStats) {
     $scope.searchQuery = '';
-    $rootScope.$on('search', function() {
+    $rootScope.$on('search', function () {
         $scope.searchQuery = $rootScope.searchQuery;
     })
 
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.sessionStats = SessionStats.query();
     }
 });
 
-adminApp.controller('MetricsController', function($rootScope, $scope, Metrics) {
-    $scope.init = function() {
+adminApp.controller('MetricsController', function ($rootScope, $scope, Metrics) {
+    $scope.init = function () {
         $scope.metrics = Metrics.get();
     }
 
     initGrid();
 });
 
-adminApp.controller('ThreadDumpController', function($rootScope, $scope, $http) {
-    $scope.init = function() {
-        $http.get('../../thread-dump').success(function(data) {$scope.threadDump = data});
+adminApp.controller('ThreadDumpController', function ($rootScope, $scope, $http) {
+    $scope.init = function () {
+        $http.get('../../thread-dump').then(function (response) {
+            $scope.threadDump = response.data
+        });
     }
 });
 
@@ -103,7 +104,7 @@ function initGrid() {
     }
 
     $(function () {
-        dataView = new Slick.Data.DataView({ inlineFilters: true });
+        dataView = new Slick.Data.DataView({inlineFilters: true});
         grid = new Slick.Grid("#myGrid", dataView, columns, options);
 
         grid.onSort.subscribe(function (e, args) {
@@ -155,7 +156,7 @@ function initGrid() {
 
         $.getJSON('../../monitor', setData);
 
-        $('#refresh').click(function() {
+        $('#refresh').click(function () {
             $.getJSON('../../monitor', setData);
         })
     })

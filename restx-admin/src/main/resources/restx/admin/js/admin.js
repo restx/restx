@@ -23,12 +23,13 @@ angular.module('admin').controller('AdminController', function($scope, $http, ba
 });
 
 angular.module('admin').config(function($httpProvider) {
-    $httpProvider.responseInterceptors.push(function($q, baseUri) {
-      return function(promise) {
-          return promise.then(function(response) {
+    $httpProvider.interceptors.push(function($q, baseUri) {
+        return {
+            response: function(response) {
                 return response;
-              }, function(response) {
-                if (response.status == 401 || response.status == 403) {
+            },
+            responseError: function(response) {
+                if (response.status === 401 || response.status === 403) {
                     // onSecurityException should be loaded by /@/ui/js/securityHandling.js
                     var backTo = location;
                     if (window.onSecurityException) {
@@ -44,7 +45,7 @@ angular.module('admin').config(function($httpProvider) {
                     }
                 }
                 return $q.reject(response);
-              });
-      }
+            }
+        };
     });
 });

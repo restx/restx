@@ -195,11 +195,11 @@ angular.module('admin').controller('WarehouseController', function($scope, $http
         graph.highlightNodes($scope.searchedQuery);
     };
 
-    $http.get(baseUri + '/@/warehouse').success(function(data) {
-        _.each(data.nodes, function(node) {
+    $http.get(baseUri + '/@/warehouse').then(function(response) {
+        _.each(response.data.nodes, function(node) {
             graph.graph.addNode(node.id, node);
         })
-        _.each(data.links, function(link) {
+        _.each(response.data.links, function(link) {
             graph.graph.addLink(link.origin, link.target);
         })
     });

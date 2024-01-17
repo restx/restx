@@ -2,15 +2,13 @@ package restx.annotations.processor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import restx.types.Types;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Date: 23/10/13
@@ -23,8 +21,6 @@ public class TypeHelper {
             Iterable.class.getCanonicalName(), "LIST",
             List.class.getCanonicalName(), "LIST",
             Map.class.getCanonicalName(), "MAP");
-    private static Pattern guavaOptionalPattern = Pattern.compile("\\Q" + Optional.class.getName() + "<\\E(.+)>");
-    private static Pattern java8OptionalPattern = Pattern.compile("\\Qjava.util.Optional<\\E(.+)>");
     private static Set<String> RAW_TYPES_STR = Sets.newHashSet("byte", "short", "int", "long", "float", "double", "boolean", "char");
 
     private static class ParsedType {
@@ -139,62 +135,7 @@ public class TypeHelper {
         return getTypeExpressionFor(parseParameterizedType(type));
     }
 
-    static boolean isParameterizedType(String type) {
-        return type.contains("<");
-    }
-
-    static String rawTypeFrom(String type) {
-        return isParameterizedType(type)?type.substring(0, type.indexOf("<")):type;
-    }
-
     static String getTypeReferenceExpressionFor(String type) {
         return RAW_TYPES_STR.contains(type) ? type + ".class" : "new TypeReference<" + type + ">(){}";
     }
-
-    public static class OptionalMatchingType {
-        public enum Type {GUAVA, JAVA8, NONE}
-
-        private final Type optionalType;
-        private final String underlyingType;
-
-        protected OptionalMatchingType(Type optionalType, String underlyingType) {
-            this.optionalType = optionalType;
-            this.underlyingType = underlyingType;
-        }
-
-        public static OptionalMatchingType guava(String underlyingType) {
-            return new OptionalMatchingType(Type.GUAVA, underlyingType);
-        }
-
-        public static OptionalMatchingType java8(String underlyingType) {
-            return new OptionalMatchingType(Type.JAVA8, underlyingType);
-        }
-
-        public static OptionalMatchingType none(String underlyingType) {
-            return new OptionalMatchingType(Type.NONE, underlyingType);
-        }
-
-        public Type getOptionalType() {
-            return optionalType;
-        }
-
-        public String getUnderlyingType() {
-            return underlyingType;
-        }
-    }
-
-    public static OptionalMatchingType optionalMatchingTypeOf(String type) {
-        Matcher guavaOptionalMatcher = guavaOptionalPattern.matcher(type);
-        if (guavaOptionalMatcher.matches()) {
-            return OptionalMatchingType.guava(guavaOptionalMatcher.group(1));
-        }
-
-        Matcher java8OptionalMatcher = java8OptionalPattern.matcher(type);
-        if (java8OptionalMatcher.matches()) {
-            return OptionalMatchingType.java8(java8OptionalMatcher.group(1));
-        }
-
-        return OptionalMatchingType.none(type);
-    }
-
 }
