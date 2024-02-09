@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.restx</groupId>
     <artifactId>restx-parent</artifactId>
-    <version>1.1.0-rc2-SNAPSHOT</version>
+    <version>1.1.0-rc4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>RESTX</name>
     <description>RESTX is a full lightweight disrupting stack, which includes Swagger-like ui &amp; considers REST specs tests as docs.</description>
@@ -50,7 +50,7 @@
 
     <properties>
         <!-- RestX -->
-        <restx.version>1.1.0-rc2-SNAPSHOT</restx.version>
+        <restx.version>1.1.0-rc4-SNAPSHOT</restx.version>
         <restx.shell.version>1.0</restx.shell.version>
 
         <!-- Compiler -->
