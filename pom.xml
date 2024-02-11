@@ -50,7 +50,7 @@
 
     <properties>
         <!-- RestX -->
-        <restx.version>1.1.0-rc3</restx.version>
+        <restx.version>1.1.0-rc5-SNAPSHOT</restx.version>
         <restx.shell.version>1.0</restx.shell.version>
 
         <!-- Compiler -->
