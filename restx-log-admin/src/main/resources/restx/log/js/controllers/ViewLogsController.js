@@ -10,9 +10,9 @@ angular.module('admin').controller('ViewLogsController', function($scope, $rootS
             transformResponse: function (r) {
                 return r
             }})
-            .success(function (data) {
+            .then(function (response) {
                 var levels = [' TRACE ', ' WARN ', ' ERROR ', ' DEBUG '];
-                $scope.lines = _.map(data.split('\n'), function(l) {
+                $scope.lines = _.map(response.data.split('\n'), function(l) {
                     var level = 'INFO';
                     for (var lv in levels) {
                         if (l.indexOf(levels[lv]) !== -1) {
