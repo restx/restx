@@ -12,14 +12,15 @@ import restx.security.UserRepository;
 public class JongoUserRepository<U extends RestxPrincipal> implements UserRepository<U> {
     private final JongoCollection users;
     private final JongoCollection usersCredentials;
-    private final UserRefStrategy<U> userRefStrategy;
+
+    private final UserRefStrategy<U, ? extends UserCredentials> userRefStrategy;
     private final CredentialsStrategy credentialsStrategy;
     private final Class<U> userClass;
     private final U defaultAdminUser;
 
     public JongoUserRepository(JongoCollection users,
                                JongoCollection usersCredentials,
-                               UserRefStrategy<U> userRefStrategy,
+                               UserRefStrategy<U, ? extends UserCredentials> userRefStrategy,
                                CredentialsStrategy credentialsStrategy,
                                Class<U> userClass,
                                U defaultAdminUser) {
@@ -29,11 +30,6 @@ public class JongoUserRepository<U extends RestxPrincipal> implements UserReposi
         this.credentialsStrategy = credentialsStrategy;
         this.userClass = userClass;
         this.defaultAdminUser = defaultAdminUser;
-    }
-
-    @Override
-    public Optional<U> findUserByName(String name) {
-        return Optional.fromNullable(users.get().findOne("{" + userRefStrategy.getNameProperty() + ": #}", name).as(userClass));
     }
 
     @Override
@@ -48,6 +44,16 @@ public class JongoUserRepository<U extends RestxPrincipal> implements UserReposi
         }
 
         return Optional.fromNullable(c.getPasswordHash());
+    }
+
+    @Override
+    public Optional<U> findUserByName(String name) {
+        return Optional.fromNullable(users.get().findOne("{" + userRefStrategy.getNameProperty() + ": #}", name).as(userClass));
+    }
+
+    private UserCredentials findCredentialsForUserRef(String userRef) {
+        return usersCredentials.get()
+                .findOne("{ _id: # }", userRefStrategy.toId(userRef)).as(userRefStrategy.getCredentialClass());
     }
 
     @Override
@@ -66,11 +72,6 @@ public class JongoUserRepository<U extends RestxPrincipal> implements UserReposi
     @Override
     public U defaultAdmin() {
         return defaultAdminUser;
-    }
-    
-    private UserCredentials findCredentialsForUserRef(String userRef) {
-        return usersCredentials.get()
-                .findOne("{ _id: # }", userRefStrategy.toId(userRef)).as(UserCredentials.class);
     }
 
     /////////////////////////////////////////////////////////
@@ -100,7 +101,7 @@ public class JongoUserRepository<U extends RestxPrincipal> implements UserReposi
         UserCredentials userCredentials = findCredentialsForUserRef(userRef);
 
         if (userCredentials == null) {
-            userCredentials = new UserCredentials().setUserRef(userRef);
+            userCredentials = userRefStrategy.createUserCredentials().setUserRef(userRef);
         }
         String hashed = credentialsStrategy.cryptCredentialsForStorage(userRef, passwordHash);
         usersCredentials.get().save(
@@ -113,13 +114,17 @@ public class JongoUserRepository<U extends RestxPrincipal> implements UserReposi
         return Optional.fromNullable(users.get().findOne("{ _id: # }", userRefStrategy.toId(key)).as(userClass));
     }
 
-    public static interface UserRefStrategy<U extends RestxPrincipal> {
+    public static interface UserRefStrategy<U extends RestxPrincipal, C extends UserCredentials> {
         String getNameProperty();
         String getUserRef(U user);
+
+        Class<C> getCredentialClass();
+
+        C createUserCredentials();
         Object toId(String userRef);
     }
-    
-    public static class RefUserByNameStrategy<U extends RestxPrincipal> implements UserRefStrategy<U> {
+
+    public static class RefUserByNameStrategy<U extends RestxPrincipal> implements UserRefStrategy<U, UserCredentialsByName> {
         public String getNameProperty() {
             return "_id";
         }
@@ -128,12 +133,22 @@ public class JongoUserRepository<U extends RestxPrincipal> implements UserReposi
             return user.getName();
         }
 
+        @Override
+        public Class<UserCredentialsByName> getCredentialClass() {
+            return UserCredentialsByName.class;
+        }
+
+        @Override
+        public UserCredentialsByName createUserCredentials() {
+            return new UserCredentialsByName();
+        }
+
         public Object toId(String userRef) {
             return userRef;
         }
-    } 
-    
-    public static abstract class RefUserByKeyStrategy<U extends RestxPrincipal> implements UserRefStrategy<U> {
+    }
+
+    public static abstract class RefUserByKeyStrategy<U extends RestxPrincipal> implements UserRefStrategy<U, UserCredentialsByKey> {
         public String getNameProperty() {
             return "name";
         }
@@ -143,6 +158,16 @@ public class JongoUserRepository<U extends RestxPrincipal> implements UserReposi
         }
 
         protected abstract String getId(U user);
+
+        @Override
+        public Class<UserCredentialsByKey> getCredentialClass() {
+            return UserCredentialsByKey.class;
+        }
+
+        @Override
+        public UserCredentialsByKey createUserCredentials() {
+            return new UserCredentialsByKey();
+        }
 
         public Object toId(String userRef) {
             return new ObjectId(userRef);

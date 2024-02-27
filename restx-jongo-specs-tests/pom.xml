@@ -25,6 +25,12 @@
             <artifactId>restx-jongo</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.restx</groupId>
+            <artifactId>restx-server-jetty</artifactId>
+            <version>${restx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
         </dependency>
