@@ -5,7 +5,7 @@ angular.module('admin').controller('FactoryController', function($scope, $http) 
         transformResponse: function (r) {
             return r
         }})
-        .success(function (data) {
-            $scope.dump = data;
+        .then(function (response) {
+            $scope.dump = response.data;
         })
 })

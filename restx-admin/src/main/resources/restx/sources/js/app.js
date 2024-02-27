@@ -1,6 +1,11 @@
-angular.module('admin', ['ngResource', 'ui.codemirror']);
+let sourceApp = angular.module('admin', ['ngResource', 'ui.codemirror']);
 
-angular.module('admin').controller('SourcesController', function($scope, $http, $location) {
+sourceApp.config(function ($locationProvider) {
+    // undo the default ('!') to avoid breaking change from angularjs 1.6
+    $locationProvider.hashPrefix('');
+});
+
+sourceApp.controller('SourcesController', function($scope, $http, $location) {
 
     var modes = {
         'js': 'javascript',
@@ -57,8 +62,8 @@ angular.module('admin').controller('SourcesController', function($scope, $http, 
                 {name: 'resources', isDirectory: true, path: '/resources/'}
             ];
         } else {
-            $http.get(url(dir)).success(function(data) {
-                $scope.dirListing = _(data).map(function(f) { return {name: f, isDirectory: !!f.match(/\/$/), path: dir + f}; });
+            $http.get(url(dir)).then(function(response) {
+                $scope.dirListing = _(response.data).map(function(f) { return {name: f, isDirectory: !!f.match(/\/$/), path: dir + f}; });
                 if (parent) {
                     $scope.dirListing = [{name: '..', isDirectory:true, path: parent}].concat($scope.dirListing);
                 }

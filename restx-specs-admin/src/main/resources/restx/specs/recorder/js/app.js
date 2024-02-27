@@ -1,5 +1,9 @@
 angular.module('admin', ['ngResource']);
 
+angular.config(function ($routeProvider, $locationProvider) {
+    // undo the default ('!') to avoid breaking change from angularjs 1.6
+    $locationProvider.hashPrefix('');
+});
 
 var grid, dataView;
 var columns = [

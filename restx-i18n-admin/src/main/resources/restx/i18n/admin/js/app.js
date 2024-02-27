@@ -1,4 +1,4 @@
-angular.module('admin', ['ngResource']);
+angular.module('admin', ['ngResource', 'ngRoute']);
 
 
 angular.module('admin')
@@ -26,11 +26,11 @@ angular.module('admin')
     .controller('I18nController', function($scope, $http, I18nMessages) {
         $scope.messages = {};
 
-        $http.get('../../i18n/keys').success(function(data) { $scope.keys = data; });
-        $http.get('../../i18n/locales').success(function(data) {
-            $scope.locales =  data;
-            if (data.length) {
-                $scope.setLocale(data[0]);
+        $http.get('../../i18n/keys').then(function(response) { $scope.keys = response.data; });
+        $http.get('../../i18n/locales').then(function(response) {
+            $scope.locales = response.data;
+            if (response.data.length) {
+                $scope.setLocale(response.data[0]);
             }
         });
 

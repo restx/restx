@@ -58,7 +58,7 @@ public class ProdModeTest {
         // the name of the MBean is escaped, so it is enclosed in quotes: "
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         Set<ObjectName> objectNames = mBeanServer.queryNames(
-                ObjectName.getInstance("metrics:name=\"<HTTP> GET /params/path/*\""), null);
+                ObjectName.getInstance("metrics:name=\"*<HTTP> GET /params/path/*\",type=timers"), null);
         assertThat(objectNames.size()).isEqualTo(1);
     }
 }

@@ -1,6 +1,6 @@
-angular.module('admin', ['ngResource']);
+let factoryAdminApp = angular.module('admin', ['ngResource', 'ngRoute']);
 
-angular.module('admin').config(function($routeProvider) {
+factoryAdminApp.config(function($routeProvider, $locationProvider) {
   $routeProvider.
       when('/', {
         controller: 'FactoryController',
@@ -10,4 +10,7 @@ angular.module('admin').config(function($routeProvider) {
         controller: 'WarehouseController',
         templateUrl: 'views/warehouse.html'
       });
+
+    // undo the default ('!') to avoid breaking change from angularjs 1.6
+    $locationProvider.hashPrefix('');
 });

@@ -3,7 +3,12 @@
 $.ScrollTo.config.duration = 200;
 $.ScrollTo.config.offsetTop = 40;
 
-var adminApp = angular.module('admin', ['ngResource']);
+var adminApp = angular.module('admin', ['ngResource', 'ngRoute']);
+
+adminApp.config(function ($routeProvider, $locationProvider) {
+    // undo the default ('!') to avoid breaking change from angularjs 1.6
+    $locationProvider.hashPrefix('');
+});
 
 adminApp.config(function($routeProvider) {
   $routeProvider.

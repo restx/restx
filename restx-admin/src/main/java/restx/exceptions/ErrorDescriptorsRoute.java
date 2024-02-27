@@ -49,6 +49,7 @@ public class ErrorDescriptorsRoute extends StdJsonProducerEntityRoute {
         }
         this.errorDescriptors = ImmutableMap.copyOf(map);
         this.securityManager = securityManager;
+        this.permissionFactory = permissionFactory;
     }
 
     @Override

@@ -62,20 +62,20 @@
         <div class="span4">
             <b>Garbage collections</b>
             <div class="row">
-                <div class="span9">Mark Sweep count</div>
-                <div class="span3">{{metrics.gauges["jvm.garbage.PS-MarkSweep.count"].value}}</div>
+                <div class="span9">G1-Old-Generation count</div>
+                <div class="span3">{{metrics.gauges["jvm.garbage.G1-Old-Generation.count"].value}}</div>
             </div>
             <div class="row">
-                <div class="span9">Mark Sweep time</div>
-                <div class="span3">{{metrics.gauges["jvm.garbage.PS-MarkSweep.time"].value}}ms</div>
+                <div class="span9">G1-Old-Generation time</div>
+                <div class="span3">{{metrics.gauges["jvm.garbage.G1-Old-Generation.time"].value}}ms</div>
             </div>
             <div class="row">
-                <div class="span9">Scavenge count</div>
-                <div class="span3">{{metrics.gauges["jvm.garbage.PS-Scavenge.count"].value}}</div>
+                <div class="span9">G1-Young-Generation count</div>
+                <div class="span3">{{metrics.gauges["jvm.garbage.G1-Young-Generation.count"].value}}</div>
             </div>
             <div class="row">
-                <div class="span9">Scavenge time</div>
-                <div class="span3">{{metrics.gauges["jvm.garbage.PS-Scavenge.time"].value}}ms</div>
+                <div class="span9">G1-Young-Generation time</div>
+                <div class="span3">{{metrics.gauges["jvm.garbage.G1-Young-Generation.time"].value}}ms</div>
             </div>
         </div>
     </div>
