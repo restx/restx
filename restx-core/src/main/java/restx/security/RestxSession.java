@@ -159,7 +159,7 @@ public class RestxSession {
 
     private static final ThreadLocal<RestxSession> current = new ThreadLocal<>();
 
-    static void setCurrent(RestxSession ctx) {
+    public static void setCurrent(RestxSession ctx) {
         if (ctx == null) {
             current.remove();
         } else {
@@ -176,7 +176,7 @@ public class RestxSession {
     private final Duration expires;
     private final Optional<? extends RestxPrincipal> principal;
 
-    RestxSession(Definition definition, ImmutableMap<String, String> valueidsByKey,
+    public RestxSession(Definition definition, ImmutableMap<String, String> valueidsByKey,
                  Optional<? extends RestxPrincipal> principal, Duration expires) {
         this.definition = definition;
         this.valueidsByKey = valueidsByKey;
@@ -186,9 +186,25 @@ public class RestxSession {
 
     public RestxSession invalidateCaches() {
         for (Entry<String, String> entry : valueidsByKey.entrySet()) {
-            definition.getEntry(entry.getKey()).get().invalidateCacheFor(entry.getValue());
+            if (definition.getEntry(entry.getKey()).isPresent()) {
+                definition.getEntry(entry.getKey()).get().invalidateCacheFor(entry.getValue());
+            }
         }
         return this;
+    }
+
+    public void invalidatePrincipal(String principal) {
+        Optional<Definition.CachedEntry<Object>> defEntryOpt = definition.getEntry(RestxPrincipal.SESSION_DEF_KEY);
+        if (defEntryOpt.isPresent()) {
+            defEntryOpt.get().invalidateCacheFor(principal);
+        }
+    }
+
+    public void invalidate(String key, String value) {
+        Optional<Definition.CachedEntry<Object>> defEntryOpt = definition.getEntry(key);
+        if (defEntryOpt.isPresent()) {
+            defEntryOpt.get().invalidateCacheFor(value);
+        }
     }
 
     public <T> Optional<T> get(Class<T> clazz, String key) {
@@ -196,8 +212,12 @@ public class RestxSession {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Optional<T> getValue(Definition definition, Class<T> clazz, String key, String valueid) {
+    public static <T> Optional<T> getValue(Definition definition, Class<T> clazz, String key, String valueid) {
         if (valueid == null) {
+            return Optional.absent();
+        }
+
+        if (!definition.getEntry(key).isPresent()) {
             return Optional.absent();
         }
 
@@ -249,7 +269,7 @@ public class RestxSession {
         return newSession;
     }
 
-    ImmutableMap<String, String> valueidsByKeyMap() {
+    public ImmutableMap<String, String> valueidsByKeyMap() {
         return valueidsByKey;
     }
 
