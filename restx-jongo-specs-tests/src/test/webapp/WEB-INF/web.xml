@@ -1,0 +1,17 @@
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+      version="3.0" metadata-complete="true">
+
+    <servlet>
+        <servlet-name>restx</servlet-name>
+        <servlet-class>restx.servlet.RestxMainRouterServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>restx</servlet-name>
+        <!-- Important : in our case, we want to map every requests to restx because it will be responsible of
+        serving static resources from classpath -->
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+</web-app>
