@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -15,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Retention(RUNTIME)
 @JacksonAnnotationsInside
-
+@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
 @JsonSerialize(using = FixedPrecisionSerializer.class)
 @JsonDeserialize(using = FixedPrecisionDeserializer.class)
 public @interface FixedPrecision {
