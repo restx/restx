@@ -1,9 +1,9 @@
 package samplest.validation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.Email;
 import restx.validation.stereotypes.FormValidations;
 
 public class POJO {

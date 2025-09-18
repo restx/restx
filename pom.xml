@@ -58,24 +58,26 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <!-- 3rd party libs -->
-        <jackson.version>2.15.2</jackson.version>
-        <guava.version>32.0.1-jre</guava.version>
-        <joda-time.version>2.12.5</joda-time.version>
-        <jna.version>5.13.0</jna.version>
-        <slf4j-api.version>2.0.9</slf4j-api.version>
-        <logback.version>1.4.14</logback.version>
+        <jackson.version>2.20.0</jackson.version>
+        <!-- since 2.20.x jackson has separated lifecycle jackson annotation version from jackson core version -->
+        <jackson-annotations.version>2.20</jackson-annotations.version>
+        <guava.version>33.4.8-jre</guava.version>
+        <joda-time.version>2.14.0</joda-time.version>
+        <jna.version>5.17.0</jna.version>
+        <slf4j-api.version>2.0.17</slf4j-api.version>
+        <logback.version>1.5.18</logback.version>
         <javax.inject.version>1</javax.inject.version>
-        <mustache.version>1.15</mustache.version>
+        <mustache.version>1.16</mustache.version>
         <reflections.version>0.10.2</reflections.version>
-        <snakeyaml.version>2.2</snakeyaml.version>
-        <validation-api.version>3.0.2</validation-api.version>
+        <snakeyaml.version>2.5</snakeyaml.version>
+        <validation-api.version>3.1.1</validation-api.version>
         <jbcrypt.version>0.4</jbcrypt.version>
-        <metrics.version>4.2.22</metrics.version>
+        <metrics.version>4.2.36</metrics.version>
         <http-request.version>6.0</http-request.version>
         <diffutils.version>1.3.0</diffutils.version>
-        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
-        <el.api.version>5.0.0</el.api.version>
-        <servlet-api.version>6.0.0</servlet-api.version>
+        <hibernate-validator.version>9.0.1.Final</hibernate-validator.version>
+        <el.api.version>6.0.0</el.api.version>
+        <servlet-api.version>6.1.0</servlet-api.version>
 
         <!-- Mongo modules -->
         <mongo-java-driver.version>4.11.2</mongo-java-driver.version>
@@ -261,7 +263,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson-annotations.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -319,7 +321,7 @@
                 <version>${validation-api.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.hibernate</groupId>
+                <groupId>org.hibernate.validator</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>${hibernate-validator.version}</version>
             </dependency>

@@ -54,7 +54,7 @@ public class WhenHttpChecker implements WhenChecker<WhenHttpRequest> {
                         ? Base58Codec.doEncode(entry.getValue().getBytes())
                         : entry.getValue();
 
-                sb.append(entry.getKey()).append("=\"").append(valueCookie.replace("\"", "\\\"")).append("\"; ");
+                sb.append(entry.getKey()).append("=").append(valueCookie.replace("\"", "\\\"")).append("; ");
             }
             sb.setLength(sb.length() - 2);
             httpRequest.header("Cookie", sb.toString());

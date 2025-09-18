@@ -1,11 +1,14 @@
 package restx.specs;
 
+import com.chrylis.codec.base58.Base58Codec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import restx.factory.Component;
 import restx.security.RestxSessionCookieDescriptor;
 import restx.security.Signer;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author fcamblor

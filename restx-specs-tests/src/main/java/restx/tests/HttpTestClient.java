@@ -74,7 +74,7 @@ public class HttpTestClient {
         if (!cookies.isEmpty()) {
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, String> entry : cookies.entrySet()) {
-                sb.append(entry.getKey()).append("=\"").append(entry.getValue().replace("\"", "\\\"")).append("\"; ");
+                sb.append(entry.getKey()).append("=").append(entry.getValue().replace("\"", "\\\"")).append("; ");
             }
             sb.setLength(sb.length() - 2);
             httpRequest.header("Cookie", sb.toString());

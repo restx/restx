@@ -76,7 +76,7 @@ Here is a brief summary of each module:
 
 - `restx-servlet`: Servlet 6+ adapter for RESTX, allowing to embed RESTX in any servlet 5+ container.
 - `restx-server-jetty`: Embedded Jetty 12 support.
-- `restx-server-tomcat`: Embedded Tomcat 10.1 support.
+- `restx-server-tomcat`: Embedded Tomcat 11 support.
 - `restx-server-simple`: SimpleFramework adapter for RESTX, this is the lightest and fastest solution.
 - `restx-server-testing`: JUnit tests for all the supported embedded servers.
 
