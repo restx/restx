@@ -603,6 +603,12 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
+                            <excludeArtifacts>
+                                <excludeArtifact>restx-annotation-processor-tests-java8</excludeArtifact>
+                                <excludeArtifact>restx-samplest</excludeArtifact>
+                                <excludeArtifact>restx-samplest-custom-types-testing</excludeArtifact>
+                                <excludeArtifact>restx-samplest-kotlin</excludeArtifact>
+                            </excludeArtifacts>
                         </configuration>
                     </plugin>
                 </plugins>
