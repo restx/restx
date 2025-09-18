@@ -592,7 +592,6 @@
                                         <arg>--pinentry-mode</arg>
                                         <arg>loopback</arg>
                                     </gpgArguments>
-                                    <passphraseServerId>gpg.passphrase</passphraseServerId>
                                 </configuration>
                             </execution>
                         </executions>
