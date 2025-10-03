@@ -58,9 +58,9 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <!-- 3rd party libs -->
-        <jackson.version>2.20.0</jackson.version>
+        <jackson.version>2.19.2</jackson.version>
         <!-- since 2.20.x jackson has separated lifecycle jackson annotation version from jackson core version -->
-        <jackson-annotations.version>2.20</jackson-annotations.version>
+        <jackson-annotations.version>2.19.2</jackson-annotations.version>
         <guava.version>33.4.8-jre</guava.version>
         <joda-time.version>2.14.0</joda-time.version>
         <jna.version>5.17.0</jna.version>
