@@ -143,7 +143,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             @Override
             public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
                 String val = super.transformSingleValueToExpression(value, annotationField);
-                switch (annotationField.type.toString()) {
+                switch (annotationField.getType()) {
                     case "float":
                         return val + "f";
                     case "char":
@@ -165,12 +165,12 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
         }, ENUM() {
             @Override
             public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
-                return annotationField.type + "." + value.toString();
+                return annotationField.getType() + "." + value.toString();
             }
         }, ANNOTATION() {
             @Override
             public String transformSingleValueToExpression(Object value, AnnotationField annotationField) {
-                return annotationField.type + "." + value.toString();
+                return annotationField.getType() + "." + value.toString();
             }
         };
 
@@ -182,14 +182,24 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             return (TypeKind.ARRAY.equals(type.getKind())) ? ((ArrayType) type).getComponentType() : type;
         }
 
+        /**
+         * Removes type-use annotations (e.g., @NonNls) from a type string.
+         */
+        private static String cleanTypeAnnotations(String typeString) {
+            // Remove type-use annotations like @org.jetbrains.annotations.NonNls from the type string
+            // Pattern: @fully.qualified.Annotation followed by space
+            return typeString.replaceAll("@[\\w\\.]+\\s+", "");
+        }
+
         public static AnnotationFieldKind valueOf(ProcessingEnvironment processingEnv, TypeMirror type) {
             TypeMirror componentType = componentTypeOf(type);
+            String cleanComponentType = cleanTypeAnnotations(componentType.toString());
 
             if (componentType.getKind().isPrimitive()) {
                 return PRIMITIVE;
-            } else if (String.class.getCanonicalName().equals(componentType.toString())) {
+            } else if (String.class.getCanonicalName().equals(cleanComponentType)) {
                 return STRING;
-            } else if(Class.class.getCanonicalName().equals(Types.rawTypeFrom(componentType.toString()))) {
+            } else if(Class.class.getCanonicalName().equals(Types.rawTypeFrom(cleanComponentType))) {
                 return CLASS;
             } else {
                 ImmutableList<String> superTypesClassNames = FluentIterable.from(processingEnv.getTypeUtils().directSupertypes(componentType))
@@ -770,16 +780,26 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
     private static class AnnotationField {
         final String name;
         final Object value;
-        final TypeMirror type;
+        final TypeMirror typeMirror;
         final RestxAnnotationProcessor.AnnotationFieldKind kind;
         final boolean isArray;
 
         public AnnotationField(String name, Object value, TypeMirror type, RestxAnnotationProcessor.AnnotationFieldKind kind, boolean isArray) {
             this.name = name;
             this.value = value;
-            this.type = type;
+            this.typeMirror = type;
             this.kind = kind;
             this.isArray = isArray;
+        }
+
+        /**
+         * Returns the type as a string, removing type-use annotations (e.g., @NonNls) that cause invalid Java code generation.
+         */
+        public String getType() {
+            String typeStr = typeMirror.toString();
+            // Remove type-use annotations like @org.jetbrains.annotations.NonNls from the type string
+            // Pattern: @fully.qualified.Annotation followed by space
+            return typeStr.replaceAll("@[\\w\\.]+\\s+", "");
         }
 
         String getValueCodeInstanciation() {
@@ -788,7 +808,7 @@ public class RestxAnnotationProcessor extends RestxAbstractProcessor {
             } else if (isArray) {
                 return String.format("return new %s[]{ %s }",
                         // Arrays cannot be parameterized
-                        Types.rawTypeFrom(type.toString()),
+                        Types.rawTypeFrom(getType()),
                         Joiner.on(", ").join((List) value));
             } else {
                 return "return " + kind.transformSingleValueToExpression(value, this);
