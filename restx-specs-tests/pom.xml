@@ -11,10 +11,6 @@
     <artifactId>restx-specs-tests</artifactId>
     <name>restx-specs-tests</name>
 
-    <properties>
-        <diffutils.version>1.3.0</diffutils.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.restx</groupId>
@@ -39,6 +35,7 @@
         <dependency>
             <groupId>com.googlecode.java-diff-utils</groupId>
             <artifactId>diffutils</artifactId>
+            <version>${diffutils.version}</version>
         </dependency>
         <dependency>
             <groupId>io.restx</groupId>
